@@ -56,8 +56,11 @@ std::string canonicalize_request(const ExecutionRequest& request) {
   std::ostringstream oss;
   oss << "{\"argv\":" << arr_to_json(request.argv) << ",\"command\":\"" << jsonlite::escape(request.command)
       << "\",\"cwd\":\"" << jsonlite::escape(request.cwd) << "\",\"inputs\":" << map_to_json(request.inputs)
+      << ",\"llm_include_in_digest\":" << (request.llm.include_in_digest ? "true" : "false")
+      << ",\"llm_mode\":\"" << jsonlite::escape(request.llm.mode) << "\""
       << ",\"nonce\":" << request.nonce << ",\"outputs\":" << arr_to_json(request.outputs)
-      << ",\"request_id\":\"" << jsonlite::escape(request.request_id) << "\",\"workspace_root\":\""
+      << ",\"request_id\":\"" << jsonlite::escape(request.request_id) << "\",\"scheduler_mode\":\""
+      << jsonlite::escape(request.policy.scheduler_mode) << "\",\"workspace_root\":\""
       << jsonlite::escape(request.workspace_root) << "\"}";
   return oss.str();
 }
@@ -75,6 +78,11 @@ std::string canonicalize_result(const ExecutionResult& result) {
 ExecutionResult execute(const ExecutionRequest& request) {
   ExecutionResult result;
   result.request_digest = deterministic_digest(canonicalize_request(request));
+  if (result.request_digest.empty()) {
+    result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+    result.exit_code = 2;
+    return result;
+  }
   const std::string cwd = normalize_under(request.workspace_root, request.cwd, request.policy.allow_outside_workspace);
   if (cwd.empty()) {
     result.error_code = to_string(ErrorCode::path_escape);
@@ -122,7 +130,13 @@ ExecutionResult execute(const ExecutionRequest& request) {
     if (out_path.empty() || !fs::exists(out_path)) continue;
     std::ifstream ifs(out_path, std::ios::binary);
     std::string bytes((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-    result.output_digests[output] = deterministic_digest(bytes);
+    const auto out_digest = deterministic_digest(bytes);
+    if (out_digest.empty()) {
+      result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+      result.exit_code = 2;
+      return result;
+    }
+    result.output_digests[output] = out_digest;
   }
   result.trace_events.push_back({2, request.policy.deterministic ? 0ull : 1ull, "process_end", {{"exit_code", std::to_string(result.exit_code)}}});
   std::string trace_cat;
@@ -130,8 +144,18 @@ ExecutionResult execute(const ExecutionRequest& request) {
   result.trace_digest = deterministic_digest(trace_cat);
   result.stdout_digest = deterministic_digest(result.stdout_text);
   result.stderr_digest = deterministic_digest(result.stderr_text);
+  if (result.trace_digest.empty() || result.stdout_digest.empty() || result.stderr_digest.empty()) {
+    result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+    result.exit_code = 2;
+    return result;
+  }
   result.ok = result.exit_code == 0 && result.error_code.empty();
   result.result_digest = deterministic_digest(canonicalize_result(result));
+  if (result.result_digest.empty()) {
+    result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+    result.exit_code = 2;
+    return result;
+  }
   return result;
 }
 
@@ -153,6 +177,9 @@ ExecutionRequest parse_request_json(const std::string& payload, std::string* err
   req.timeout_ms = jsonlite::get_u64(payload, "timeout_ms", 5000);
   req.max_output_bytes = jsonlite::get_u64(payload, "max_output_bytes", 4096);
   req.policy.mode = jsonlite::get_string(payload, "mode", "strict");
+  req.policy.scheduler_mode = jsonlite::get_string(payload, "scheduler_mode", "turbo");
+  req.llm.mode = jsonlite::get_string(payload, "llm_mode", "none");
+  req.llm.include_in_digest = jsonlite::get_bool(payload, "llm_include_in_digest", false);
   if (req.command.empty() && error) *error = "missing_input";
   return req;
 }
@@ -187,7 +214,8 @@ std::string trace_pretty(const ExecutionResult& result) {
 
 std::string policy_explain(const ExecPolicy& policy) {
   std::ostringstream oss;
-  oss << "mode=" << policy.mode << " time_mode=" << policy.time_mode << " deterministic=" << (policy.deterministic ? "true" : "false")
+  oss << "mode=" << policy.mode << " time_mode=" << policy.time_mode << " scheduler=" << policy.scheduler_mode
+      << " deterministic=" << (policy.deterministic ? "true" : "false")
       << " allowlist=" << policy.env_allowlist.size() << " denylist=" << policy.env_denylist.size();
   return oss.str();
 }
