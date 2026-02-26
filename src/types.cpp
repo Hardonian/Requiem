@@ -14,6 +14,7 @@ std::string to_string(ErrorCode code) {
     case ErrorCode::cas_integrity_failed: return "cas_integrity_failed";
     case ErrorCode::replay_failed: return "replay_failed";
     case ErrorCode::drift_detected: return "drift_detected";
+    case ErrorCode::hash_unavailable_blake3: return "hash_unavailable_blake3";
   }
   return "";
 }
