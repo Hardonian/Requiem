@@ -2,6 +2,8 @@
 
 ## v1.0
 - Added real BLAKE3 backend wiring via LLVM C BLAKE3 API with runtime backend/version reporting.
+- Added CI hash-backend gate scripts and workflow assertions on Linux/Windows runners.
+- Added `requiem llm explain` and request contract fields for `scheduler_mode` and LLM mode/include controls.
 - Tightened replacement hard-gates: `requiem validate-replacement` fails when primitive is not BLAKE3 or backend is fallback/unavailable.
 - Added `requiem doctor` for fast blocker detection focused on hash primitive truth.
 

@@ -93,6 +93,11 @@ int main(int argc, char** argv) {
     std::cout << "{\"ok\":true,\"blockers\":[]}" << "\n";
     return 0;
   }
+
+  if (cmd == "llm" && argc >= 3 && std::string(argv[2]) == "explain") {
+    std::cout << R"({"modes":["none","subprocess","sidecar","freeze_then_compute","attempt_deterministic"],"rules":{"default_include_in_digest":false,"engine_network":"never","authoritative_digest":"compute_phase_only_for_freeze_then_compute"}})" << "\n";
+    return 0;
+  }
   if (cmd == "policy" && argc >= 3 && std::string(argv[2]) == "explain") {
     std::cout << requiem::policy_explain(requiem::ExecPolicy{}) << "\n";
     return 0;

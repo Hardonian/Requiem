@@ -32,3 +32,9 @@ jobs:
       - name: lint
         if: runner.os == 'Linux'
         run: ./scripts/verify_lint.sh
+      - name: hash backend gate (linux)
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_hash_backend.sh
+      - name: hash backend gate (windows)
+        if: runner.os == 'Windows'
+        run: ./scripts/verify_hash_backend.ps1
