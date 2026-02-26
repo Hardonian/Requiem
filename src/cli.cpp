@@ -56,8 +56,43 @@ std::string drift_analyze(const std::string& bench_json) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  if (argc < 2) return 1;
-  std::string cmd = argv[1];
+  bool allow_hash_fallback = false;
+  for (int i = 1; i < argc; ++i) {
+    if (std::string(argv[i]) == "--allow-hash-fallback") allow_hash_fallback = true;
+  }
+  requiem::set_hash_fallback_allowed(allow_hash_fallback);
+  std::string cmd;
+  for (int i = 1; i < argc; ++i) {
+    if (std::string(argv[i]).rfind("--", 0) == 0) continue;
+    cmd = argv[i];
+    break;
+  }
+  if (cmd.empty()) return 1;
+  if (cmd == "health") {
+    const auto h = requiem::hash_runtime_info();
+    std::cout << "{\"hash_primitive\":\"" << h.primitive << "\",\"hash_backend\":\"" << h.backend
+              << "\",\"hash_version\":\"" << h.version << "\",\"compat_warning\":"
+              << (h.compat_warning ? "true" : "false") << "}" << "\n";
+    return 0;
+  }
+  if (cmd == "doctor") {
+    const auto h = requiem::hash_runtime_info();
+    if (h.primitive != "blake3" || h.backend == "unavailable") {
+      std::cout << "{\"ok\":false,\"blockers\":[\"hash_not_blake3\"]}" << "\n";
+      return 2;
+    }
+    std::cout << "{\"ok\":true,\"blockers\":[]}" << "\n";
+    return 0;
+  }
+  if (cmd == "validate-replacement") {
+    const auto h = requiem::hash_runtime_info();
+    if (h.primitive != "blake3" || h.backend == "fallback" || h.backend == "unavailable") {
+      std::cout << "{\"ok\":false,\"blockers\":[\"hash_not_blake3\"]}" << "\n";
+      return 2;
+    }
+    std::cout << "{\"ok\":true,\"blockers\":[]}" << "\n";
+    return 0;
+  }
   if (cmd == "policy" && argc >= 3 && std::string(argv[2]) == "explain") {
     std::cout << requiem::policy_explain(requiem::ExecPolicy{}) << "\n";
     return 0;

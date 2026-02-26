@@ -75,6 +75,11 @@ std::string canonicalize_result(const ExecutionResult& result) {
 ExecutionResult execute(const ExecutionRequest& request) {
   ExecutionResult result;
   result.request_digest = deterministic_digest(canonicalize_request(request));
+  if (result.request_digest.empty()) {
+    result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+    result.exit_code = 2;
+    return result;
+  }
   const std::string cwd = normalize_under(request.workspace_root, request.cwd, request.policy.allow_outside_workspace);
   if (cwd.empty()) {
     result.error_code = to_string(ErrorCode::path_escape);
@@ -122,7 +127,13 @@ ExecutionResult execute(const ExecutionRequest& request) {
     if (out_path.empty() || !fs::exists(out_path)) continue;
     std::ifstream ifs(out_path, std::ios::binary);
     std::string bytes((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-    result.output_digests[output] = deterministic_digest(bytes);
+    const auto out_digest = deterministic_digest(bytes);
+    if (out_digest.empty()) {
+      result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+      result.exit_code = 2;
+      return result;
+    }
+    result.output_digests[output] = out_digest;
   }
   result.trace_events.push_back({2, request.policy.deterministic ? 0ull : 1ull, "process_end", {{"exit_code", std::to_string(result.exit_code)}}});
   std::string trace_cat;
@@ -130,8 +141,18 @@ ExecutionResult execute(const ExecutionRequest& request) {
   result.trace_digest = deterministic_digest(trace_cat);
   result.stdout_digest = deterministic_digest(result.stdout_text);
   result.stderr_digest = deterministic_digest(result.stderr_text);
+  if (result.trace_digest.empty() || result.stdout_digest.empty() || result.stderr_digest.empty()) {
+    result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+    result.exit_code = 2;
+    return result;
+  }
   result.ok = result.exit_code == 0 && result.error_code.empty();
   result.result_digest = deterministic_digest(canonicalize_result(result));
+  if (result.result_digest.empty()) {
+    result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
+    result.exit_code = 2;
+    return result;
+  }
   return result;
 }
 

@@ -41,6 +41,7 @@ std::string CasStore::meta_path(const std::string& digest) const { return object
 
 std::string CasStore::put(const std::string& data, const std::string& compression) {
   const std::string digest = deterministic_digest(data);
+  if (digest.empty()) return {};
   const fs::path target = object_path(digest);
   const fs::path meta = meta_path(digest);
   fs::create_directories(target.parent_path());
@@ -101,9 +102,11 @@ std::optional<std::string> CasStore::get(const std::string& digest) const {
   std::string data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
   auto meta = info(digest);
   if (!meta) return std::nullopt;
-  if (deterministic_digest(data) != meta->stored_blob_hash) return std::nullopt;
+  const auto stored_digest = deterministic_digest(data);
+  if (stored_digest.empty() || stored_digest != meta->stored_blob_hash) return std::nullopt;
   if (meta->encoding == "zstd") data = decompress_zstd(data, meta->original_size);
-  if (deterministic_digest(data) != digest) return std::nullopt;
+  const auto orig_digest = deterministic_digest(data);
+  if (orig_digest.empty() || orig_digest != digest) return std::nullopt;
   return data;
 }
 
