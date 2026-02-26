@@ -3,16 +3,32 @@ on: [push, pull_request]
 
 jobs:
   build-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: deps
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev
+      - name: deps (ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev libzstd-dev
+      - name: deps (windows)
+        if: runner.os == 'Windows'
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
       - name: verify
         run: ./scripts/verify.sh
       - name: contract
+        if: runner.os == 'Linux'
         run: ./scripts/verify_contract.sh
       - name: smoke
+        if: runner.os == 'Linux'
         run: ./scripts/verify_smoke.sh
+      - name: bench
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_bench.sh
+      - name: drift
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_drift.sh
       - name: lint
+        if: runner.os == 'Linux'
         run: ./scripts/verify_lint.sh
