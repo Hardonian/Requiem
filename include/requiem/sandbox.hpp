@@ -25,8 +25,17 @@ struct ProcessResult {
   std::string stdout_text;
   std::string stderr_text;
   std::string error_message;
+  // Sandbox capabilities actually applied
+  bool sandbox_workspace_confinement{false};
+  bool sandbox_job_object{false};
+  bool sandbox_rlimits{false};
+  bool sandbox_seccomp{false};
+  bool sandbox_restricted_token{false};
 };
 
 ProcessResult run_process(const ProcessSpec& spec);
+
+// Detect and return sandbox capabilities for current platform
+SandboxCapabilities detect_platform_sandbox_capabilities();
 
 }  // namespace requiem
