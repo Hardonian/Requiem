@@ -19,6 +19,7 @@ enum class ErrorCode {
   cas_integrity_failed,
   replay_failed,
   drift_detected,
+  hash_unavailable_blake3,
 };
 
 std::string to_string(ErrorCode code);
