@@ -48,7 +48,7 @@ ProcessResult run_process(const ProcessSpec& spec) {
     close(out_pipe[0]); close(out_pipe[1]); close(err_pipe[0]); close(err_pipe[1]);
 
     if (!spec.cwd.empty()) {
-      chdir(spec.cwd.c_str());
+      if (chdir(spec.cwd.c_str()) != 0) _exit(127);
     }
 
     std::vector<std::string> all = {spec.command};
