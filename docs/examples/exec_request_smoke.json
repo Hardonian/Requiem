@@ -1,0 +1,11 @@
+{
+  "request_id": "smoke-1",
+  "workspace_root": ".",
+  "command": "/bin/sh",
+  "argv": ["-c", "echo smoke"],
+  "timeout_ms": 2000,
+  "max_output_bytes": 1024,
+  "policy": {
+    "deterministic": true
+  }
+}

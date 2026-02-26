@@ -1,0 +1,12 @@
+{
+  "request_id": "example-1",
+  "workspace_root": ".",
+  "command": "/bin/sh",
+  "argv": ["-c", "echo stable > example.out; echo hello"],
+  "outputs": ["example.out"],
+  "timeout_ms": 2000,
+  "max_output_bytes": 1024,
+  "policy": {
+    "deterministic": true
+  }
+}
