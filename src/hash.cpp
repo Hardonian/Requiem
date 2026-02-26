@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include <openssl/sha.h>
+
 namespace requiem {
 
 namespace {
@@ -26,7 +28,13 @@ std::string hex64(std::uint64_t value) {
 }
 
 std::string deterministic_digest(std::string_view payload) {
-  return hex64(fnv1a64(payload));
+  unsigned char out[SHA256_DIGEST_LENGTH];
+  SHA256(reinterpret_cast<const unsigned char*>(payload.data()), payload.size(), out);
+  std::ostringstream oss;
+  for (unsigned char b : out) {
+    oss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(b);
+  }
+  return oss.str();
 }
 
 }  // namespace requiem
