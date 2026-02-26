@@ -56,8 +56,11 @@ std::string canonicalize_request(const ExecutionRequest& request) {
   std::ostringstream oss;
   oss << "{\"argv\":" << arr_to_json(request.argv) << ",\"command\":\"" << jsonlite::escape(request.command)
       << "\",\"cwd\":\"" << jsonlite::escape(request.cwd) << "\",\"inputs\":" << map_to_json(request.inputs)
+      << ",\"llm_include_in_digest\":" << (request.llm.include_in_digest ? "true" : "false")
+      << ",\"llm_mode\":\"" << jsonlite::escape(request.llm.mode) << "\""
       << ",\"nonce\":" << request.nonce << ",\"outputs\":" << arr_to_json(request.outputs)
-      << ",\"request_id\":\"" << jsonlite::escape(request.request_id) << "\",\"workspace_root\":\""
+      << ",\"request_id\":\"" << jsonlite::escape(request.request_id) << "\",\"scheduler_mode\":\""
+      << jsonlite::escape(request.policy.scheduler_mode) << "\",\"workspace_root\":\""
       << jsonlite::escape(request.workspace_root) << "\"}";
   return oss.str();
 }
@@ -174,6 +177,9 @@ ExecutionRequest parse_request_json(const std::string& payload, std::string* err
   req.timeout_ms = jsonlite::get_u64(payload, "timeout_ms", 5000);
   req.max_output_bytes = jsonlite::get_u64(payload, "max_output_bytes", 4096);
   req.policy.mode = jsonlite::get_string(payload, "mode", "strict");
+  req.policy.scheduler_mode = jsonlite::get_string(payload, "scheduler_mode", "turbo");
+  req.llm.mode = jsonlite::get_string(payload, "llm_mode", "none");
+  req.llm.include_in_digest = jsonlite::get_bool(payload, "llm_include_in_digest", false);
   if (req.command.empty() && error) *error = "missing_input";
   return req;
 }
@@ -208,7 +214,8 @@ std::string trace_pretty(const ExecutionResult& result) {
 
 std::string policy_explain(const ExecPolicy& policy) {
   std::ostringstream oss;
-  oss << "mode=" << policy.mode << " time_mode=" << policy.time_mode << " deterministic=" << (policy.deterministic ? "true" : "false")
+  oss << "mode=" << policy.mode << " time_mode=" << policy.time_mode << " scheduler=" << policy.scheduler_mode
+      << " deterministic=" << (policy.deterministic ? "true" : "false")
       << " allowlist=" << policy.env_allowlist.size() << " denylist=" << policy.env_denylist.size();
   return oss.str();
 }

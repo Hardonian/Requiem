@@ -30,6 +30,7 @@ struct ExecPolicy {
   bool inherit_env{false};
   std::string mode{"strict"};
   std::string time_mode{"fixed_zero"};
+  std::string scheduler_mode{"turbo"};
   std::vector<std::string> env_allowlist;
   std::vector<std::string> env_denylist{"RANDOM", "TZ", "HOSTNAME", "PWD", "OLDPWD", "SHLVL"};
   std::map<std::string, std::string> required_env{{"PYTHONHASHSEED", "0"}};
@@ -41,6 +42,17 @@ struct PolicyApplied {
   std::vector<std::string> allowed_keys;
   std::vector<std::string> denied_keys;
   std::vector<std::string> injected_required_keys;
+};
+
+
+struct LlmOptions {
+  std::string mode{"none"};
+  std::vector<std::string> runner_argv;
+  std::string model_ref;
+  std::uint64_t seed{0};
+  bool has_seed{false};
+  std::map<std::string, std::string> sampler;
+  bool include_in_digest{false};
 };
 
 struct ExecutionRequest {
@@ -56,6 +68,7 @@ struct ExecutionRequest {
   std::uint64_t timeout_ms{5000};
   std::size_t max_output_bytes{4096};
   ExecPolicy policy;
+  LlmOptions llm;
 };
 
 struct TraceEvent {
