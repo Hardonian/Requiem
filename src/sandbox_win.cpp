@@ -68,6 +68,13 @@ ProcessResult run_process(const ProcessSpec& spec) {
   if (result.stdout_truncated) result.stdout_text += "(truncated)";
   if (result.stderr_truncated) result.stderr_text += "(truncated)";
 
+  // Report sandbox capabilities applied
+  result.sandbox_workspace_confinement = true;  // Path-based confinement
+  result.sandbox_job_object = true;  // Job Objects used for kill-on-close
+  result.sandbox_rlimits = false;  // rlimits not available on Windows
+  result.sandbox_seccomp = false;  // Not available on Windows
+  result.sandbox_restricted_token = false;  // Not yet implemented
+
   CloseHandle(out_r);
   CloseHandle(err_r);
   CloseHandle(pi.hThread);
@@ -75,5 +82,19 @@ ProcessResult run_process(const ProcessSpec& spec) {
   CloseHandle(job);
   return result;
 }
+
+SandboxCapabilities detect_platform_sandbox_capabilities() {
+  SandboxCapabilities caps;
+  caps.workspace_confinement = true;  // Path-based confinement is implemented
+  caps.rlimits_cpu = false;  // Not available on Windows
+  caps.rlimits_mem = false;  // Not available on Windows
+  caps.rlimits_fds = false;  // Not available on Windows
+  caps.seccomp_baseline = false;  // Not available on Windows
+  caps.job_objects = true;  // Job Objects available and used
+  caps.restricted_token = false;  // Not yet implemented
+  caps.process_mitigations = false;  // Not yet implemented
+  return caps;
+}
+
 }  // namespace requiem
 #endif

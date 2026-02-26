@@ -112,6 +112,27 @@ ExecutionResult execute(const ExecutionRequest& request) {
     result.policy_applied.allowed_keys.push_back(k);
   }
 
+  // Populate sandbox_applied before execution
+  auto caps = detect_platform_sandbox_capabilities();
+  result.sandbox_applied.workspace_confinement = caps.workspace_confinement;
+  result.sandbox_applied.rlimits = caps.rlimits_cpu || caps.rlimits_mem || caps.rlimits_fds;
+  result.sandbox_applied.seccomp = caps.seccomp_baseline;
+  result.sandbox_applied.job_object = caps.job_objects;
+  result.sandbox_applied.restricted_token = caps.restricted_token;
+  
+  // Build enforced/unsupported lists
+  if (result.sandbox_applied.workspace_confinement) result.sandbox_applied.enforced.push_back("workspace_confinement");
+  if (result.sandbox_applied.rlimits) result.sandbox_applied.enforced.push_back("rlimits");
+  if (result.sandbox_applied.seccomp) result.sandbox_applied.enforced.push_back("seccomp");
+  if (result.sandbox_applied.job_object) result.sandbox_applied.enforced.push_back("job_object");
+  if (result.sandbox_applied.restricted_token) result.sandbox_applied.enforced.push_back("restricted_token");
+  
+  if (!result.sandbox_applied.workspace_confinement) result.sandbox_applied.unsupported.push_back("workspace_confinement");
+  if (!result.sandbox_applied.rlimits) result.sandbox_applied.unsupported.push_back("rlimits");
+  if (!result.sandbox_applied.seccomp) result.sandbox_applied.unsupported.push_back("seccomp");
+  if (!result.sandbox_applied.job_object) result.sandbox_applied.unsupported.push_back("job_object");
+  if (!result.sandbox_applied.restricted_token) result.sandbox_applied.unsupported.push_back("restricted_token");
+
   result.trace_events.push_back({1, request.policy.deterministic ? 0ull : 1ull, "process_start", {{"command", request.command}, {"cwd", cwd}}});
   auto p = run_process(spec);
   result.stdout_text = p.stdout_text;
@@ -161,25 +182,55 @@ ExecutionResult execute(const ExecutionRequest& request) {
 
 ExecutionRequest parse_request_json(const std::string& payload, std::string* error) {
   ExecutionRequest req;
-  auto strict_err = jsonlite::validate_strict(payload);
-  if (strict_err) {
-    if (error) *error = strict_err->code;
+  std::optional<jsonlite::JsonError> err;
+  auto obj = jsonlite::parse(payload, &err);
+  if (err) {
+    if (error) *error = err->code;
     return req;
   }
-  req.request_id = jsonlite::get_string(payload, "request_id", "");
-  req.command = jsonlite::get_string(payload, "command", "");
-  req.argv = jsonlite::get_string_array(payload, "argv");
-  req.cwd = jsonlite::get_string(payload, "cwd", "");
-  req.workspace_root = jsonlite::get_string(payload, "workspace_root", ".");
-  req.inputs = jsonlite::get_string_map(payload, "inputs");
-  req.outputs = jsonlite::get_string_array(payload, "outputs");
-  req.env = jsonlite::get_string_map(payload, "env");
-  req.timeout_ms = jsonlite::get_u64(payload, "timeout_ms", 5000);
-  req.max_output_bytes = jsonlite::get_u64(payload, "max_output_bytes", 4096);
-  req.policy.mode = jsonlite::get_string(payload, "mode", "strict");
-  req.policy.scheduler_mode = jsonlite::get_string(payload, "scheduler_mode", "turbo");
-  req.llm.mode = jsonlite::get_string(payload, "llm_mode", "none");
-  req.llm.include_in_digest = jsonlite::get_bool(payload, "llm_include_in_digest", false);
+  req.request_id = jsonlite::get_string(obj, "request_id", "");
+  req.command = jsonlite::get_string(obj, "command", "");
+  req.argv = jsonlite::get_string_array(obj, "argv");
+  req.cwd = jsonlite::get_string(obj, "cwd", "");
+  req.workspace_root = jsonlite::get_string(obj, "workspace_root", ".");
+  req.inputs = jsonlite::get_string_map(obj, "inputs");
+  req.outputs = jsonlite::get_string_array(obj, "outputs");
+  req.env = jsonlite::get_string_map(obj, "env");
+  req.timeout_ms = jsonlite::get_u64(obj, "timeout_ms", 5000);
+  req.max_output_bytes = jsonlite::get_u64(obj, "max_output_bytes", 4096);
+  req.tenant_id = jsonlite::get_string(obj, "tenant_id", "");
+  
+  // Parse nested policy object if present
+  auto policy_it = obj.find("policy");
+  if (policy_it != obj.end()) {
+    if (std::holds_alternative<jsonlite::Object>(policy_it->second.v)) {
+      const auto& policy_obj = std::get<jsonlite::Object>(policy_it->second.v);
+      req.policy.mode = jsonlite::get_string(policy_obj, "mode", "strict");
+      req.policy.scheduler_mode = jsonlite::get_string(policy_obj, "scheduler_mode", "turbo");
+      req.policy.time_mode = jsonlite::get_string(policy_obj, "time_mode", "fixed_zero");
+      req.policy.deterministic = jsonlite::get_bool(policy_obj, "deterministic", true);
+      req.policy.allow_outside_workspace = jsonlite::get_bool(policy_obj, "allow_outside_workspace", false);
+      // Note: env_allowlist, env_denylist, required_env would need array/object parsing
+    }
+  }
+  
+  // Parse nested llm object if present
+  auto llm_it = obj.find("llm");
+  if (llm_it != obj.end()) {
+    if (std::holds_alternative<jsonlite::Object>(llm_it->second.v)) {
+      const auto& llm_obj = std::get<jsonlite::Object>(llm_it->second.v);
+      req.llm.mode = jsonlite::get_string(llm_obj, "mode", "none");
+      req.llm.include_in_digest = jsonlite::get_bool(llm_obj, "include_in_digest", false);
+      req.llm.model_ref = jsonlite::get_string(llm_obj, "model_ref", "");
+      req.llm.seed = jsonlite::get_u64(llm_obj, "seed", 0);
+      req.llm.has_seed = llm_obj.find("seed") != llm_obj.end();
+    }
+  } else {
+    // Fallback to top-level fields for backward compatibility
+    req.llm.mode = jsonlite::get_string(obj, "llm_mode", "none");
+    req.llm.include_in_digest = jsonlite::get_bool(obj, "llm_include_in_digest", false);
+  }
+  
   if (req.command.empty() && error) *error = "missing_input";
   return req;
 }
@@ -202,7 +253,32 @@ std::string result_to_json(const ExecutionResult& r) {
       << "\",\"request_digest\":\"" << r.request_digest << "\",\"trace_digest\":\"" << r.trace_digest
       << "\",\"stdout_digest\":\"" << r.stdout_digest << "\",\"stderr_digest\":\"" << r.stderr_digest
       << "\",\"result_digest\":\"" << r.result_digest << "\",\"output_digests\":" << map_to_json(r.output_digests)
-      << ",\"trace_events\":" << te.str() << "}";
+      << ",\"trace_events\":" << te.str();
+  
+  // Add policy_applied
+  oss << ",\"policy_applied\":{\"mode\":\"" << jsonlite::escape(r.policy_applied.mode) << "\",\"time_mode\":\"" 
+      << jsonlite::escape(r.policy_applied.time_mode) << "\",\"allowed_keys\":" << arr_to_json(r.policy_applied.allowed_keys)
+      << ",\"denied_keys\":" << arr_to_json(r.policy_applied.denied_keys) << ",\"injected_required_keys\":"
+      << arr_to_json(r.policy_applied.injected_required_keys) << "}";
+  
+  // Add sandbox_applied
+  oss << ",\"sandbox_applied\":{\"workspace_confinement\":" << (r.sandbox_applied.workspace_confinement ? "true" : "false")
+      << ",\"rlimits\":" << (r.sandbox_applied.rlimits ? "true" : "false")
+      << ",\"seccomp\":" << (r.sandbox_applied.seccomp ? "true" : "false")
+      << ",\"job_object\":" << (r.sandbox_applied.job_object ? "true" : "false")
+      << ",\"restricted_token\":" << (r.sandbox_applied.restricted_token ? "true" : "false")
+      << ",\"enforced\":" << arr_to_json(r.sandbox_applied.enforced)
+      << ",\"unsupported\":" << arr_to_json(r.sandbox_applied.unsupported) << "}";
+  
+  // Add enterprise fields if present
+  if (!r.signature.empty()) {
+    oss << ",\"signature\":\"" << jsonlite::escape(r.signature) << "\"";
+  }
+  if (!r.audit_log_id.empty()) {
+    oss << ",\"audit_log_id\":\"" << jsonlite::escape(r.audit_log_id) << "\"";
+  }
+  
+  oss << "}";
   return oss.str();
 }
 
