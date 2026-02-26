@@ -3,38 +3,28 @@
 #include <iomanip>
 #include <sstream>
 
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 
 namespace requiem {
 
-namespace {
-constexpr std::uint64_t kFnvOffsetBasis = 14695981039346656037ull;
-constexpr std::uint64_t kFnvPrime = 1099511628211ull;
-}  // namespace
+std::string blake3_hex(std::string_view payload) {
+  // OpenSSL 3.0 in this environment does not expose BLAKE3; use a deterministic
+  // 256-bit digest backend until native BLAKE3 provider is available.
+  EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+  unsigned char out[EVP_MAX_MD_SIZE];
+  unsigned int out_len = 0;
+  EVP_DigestInit_ex(ctx, EVP_blake2s256(), nullptr);
+  EVP_DigestUpdate(ctx, payload.data(), payload.size());
+  EVP_DigestFinal_ex(ctx, out, &out_len);
+  EVP_MD_CTX_free(ctx);
 
-std::uint64_t fnv1a64(std::string_view payload) {
-  std::uint64_t hash = kFnvOffsetBasis;
-  for (unsigned char c : payload) {
-    hash ^= c;
-    hash *= kFnvPrime;
-  }
-  return hash;
-}
-
-std::string hex64(std::uint64_t value) {
   std::ostringstream oss;
-  oss << std::hex << std::setfill('0') << std::setw(16) << value;
-  return oss.str();
-}
-
-std::string deterministic_digest(std::string_view payload) {
-  unsigned char out[SHA256_DIGEST_LENGTH];
-  SHA256(reinterpret_cast<const unsigned char*>(payload.data()), payload.size(), out);
-  std::ostringstream oss;
-  for (unsigned char b : out) {
-    oss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(b);
+  for (unsigned int i = 0; i < out_len; ++i) {
+    oss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(out[i]);
   }
   return oss.str();
 }
+
+std::string deterministic_digest(std::string_view payload) { return blake3_hex(payload); }
 
 }  // namespace requiem
