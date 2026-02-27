@@ -1,10 +1,13 @@
 #include "requiem/cluster.hpp"
 #include "requiem/worker.hpp"
+#include "requiem/observability.hpp"
+#include "requiem/version.hpp"
 
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <sstream>
 
 namespace requiem {
@@ -235,9 +238,186 @@ void init_cluster_from_env() {
 }
 
 void register_local_worker() {
-  const auto& identity = global_worker_identity();
-  const auto  health   = worker_health_snapshot();
+  const auto& w = global_worker_identity();
+  WorkerIdentity identity = w;
+  // Populate version stamps for cluster compatibility checking.
+  // These are set here because init_worker_identity() runs before version info is available.
+  if (identity.engine_semver.empty()) {
+    const auto vm = version::current_manifest();
+    identity.engine_semver            = vm.engine_semver;
+    identity.engine_abi_version       = vm.engine_abi;
+    identity.hash_algorithm_version   = vm.hash_algorithm;
+    identity.protocol_framing_version = vm.protocol_framing;
+  }
+  const auto health = worker_health_snapshot();
   global_cluster_registry().register_worker(identity, health);
+}
+
+// ---------------------------------------------------------------------------
+// ClusterDriftStatus::to_json
+// ---------------------------------------------------------------------------
+
+std::string ClusterDriftStatus::to_json() const {
+  std::ostringstream o;
+  o << "{"
+    << "\"ok\":" << (ok ? "true" : "false")
+    << ",\"engine_version_mismatch\":" << (engine_version_mismatch ? "true" : "false")
+    << ",\"hash_version_mismatch\":" << (hash_version_mismatch ? "true" : "false")
+    << ",\"protocol_version_mismatch\":" << (protocol_version_mismatch ? "true" : "false")
+    << ",\"auth_version_mismatch\":" << (auth_version_mismatch ? "true" : "false")
+    << ",\"replay_drift_rate\":" << replay_drift_rate
+    << ",\"replay_divergences\":" << replay_divergences
+    << ",\"replay_verifications\":" << replay_verifications
+    << ",\"total_workers\":" << total_workers
+    << ",\"compatible_workers\":" << compatible_workers
+    << ",\"mismatches\":[";
+  bool first = true;
+  for (const auto& m : mismatches) {
+    if (!first) o << ",";
+    first = false;
+    o << "{\"field\":\"" << m.field << "\""
+      << ",\"expected\":\"" << m.expected << "\""
+      << ",\"observed\":\"" << m.observed << "\""
+      << ",\"worker_id\":\"" << m.worker_id << "\"}";
+  }
+  o << "]}";
+  return o.str();
+}
+
+// ---------------------------------------------------------------------------
+// ClusterRegistry::cluster_drift_status
+// ---------------------------------------------------------------------------
+
+ClusterDriftStatus ClusterRegistry::cluster_drift_status() const {
+  ClusterDriftStatus drift;
+
+  const auto& local = global_worker_identity();
+  const auto  vm    = version::current_manifest();
+
+  // Use local version as the reference baseline.
+  const std::string ref_engine_semver = vm.engine_semver.empty()
+      ? local.engine_semver : vm.engine_semver;
+  const uint32_t ref_hash_version     = vm.hash_algorithm;
+  const uint32_t ref_proto_version    = vm.protocol_framing;
+  const uint32_t ref_auth_version     = local.auth_version;
+
+  // Compute replay drift rate from global engine stats.
+  const EngineStats& stats = global_engine_stats();
+  const uint64_t divergences     = stats.replay_divergences.load(std::memory_order_relaxed);
+  const uint64_t verifications   = stats.replay_verifications.load(std::memory_order_relaxed);
+  drift.replay_divergences    = divergences;
+  drift.replay_verifications  = verifications;
+  drift.replay_drift_rate     = (verifications > 0)
+      ? static_cast<double>(divergences) / static_cast<double>(verifications)
+      : -1.0;
+
+  // Check all registered workers for version compatibility.
+  std::lock_guard<std::mutex> lk(mu_);
+  drift.total_workers = static_cast<uint32_t>(workers_.size());
+  drift.compatible_workers = 0;
+
+  for (const auto& wr : workers_) {
+    const WorkerIdentity& wi = wr.identity;
+    bool this_worker_ok = true;
+
+    // engine_semver check (skip if not populated yet).
+    if (!wi.engine_semver.empty() && !ref_engine_semver.empty() &&
+        wi.engine_semver != ref_engine_semver) {
+      VersionMismatch m;
+      m.field     = "engine_semver";
+      m.expected  = ref_engine_semver;
+      m.observed  = wi.engine_semver;
+      m.worker_id = wi.worker_id;
+      drift.mismatches.push_back(m);
+      drift.engine_version_mismatch = true;
+      this_worker_ok = false;
+    }
+
+    // hash_algorithm_version check.
+    if (wi.hash_algorithm_version > 0 &&
+        wi.hash_algorithm_version != ref_hash_version) {
+      VersionMismatch m;
+      m.field     = "hash_algorithm_version";
+      m.expected  = std::to_string(ref_hash_version);
+      m.observed  = std::to_string(wi.hash_algorithm_version);
+      m.worker_id = wi.worker_id;
+      drift.mismatches.push_back(m);
+      drift.hash_version_mismatch = true;
+      this_worker_ok = false;
+    }
+
+    // protocol_framing_version check.
+    if (wi.protocol_framing_version > 0 &&
+        wi.protocol_framing_version != ref_proto_version) {
+      VersionMismatch m;
+      m.field     = "protocol_framing_version";
+      m.expected  = std::to_string(ref_proto_version);
+      m.observed  = std::to_string(wi.protocol_framing_version);
+      m.worker_id = wi.worker_id;
+      drift.mismatches.push_back(m);
+      drift.protocol_version_mismatch = true;
+      this_worker_ok = false;
+    }
+
+    // auth_version check.
+    if (wi.auth_version != ref_auth_version) {
+      VersionMismatch m;
+      m.field     = "auth_version";
+      m.expected  = std::to_string(ref_auth_version);
+      m.observed  = std::to_string(wi.auth_version);
+      m.worker_id = wi.worker_id;
+      drift.mismatches.push_back(m);
+      drift.auth_version_mismatch = true;
+      this_worker_ok = false;
+    }
+
+    if (this_worker_ok) ++drift.compatible_workers;
+  }
+
+  drift.ok = drift.mismatches.empty();
+  return drift;
+}
+
+std::string ClusterRegistry::cluster_drift_to_json() const {
+  return cluster_drift_status().to_json();
+}
+
+bool ClusterRegistry::validate_version_compatibility(ClusterDriftStatus* out) const {
+  const ClusterDriftStatus drift = cluster_drift_status();
+  if (out) *out = drift;
+  return drift.ok;
+}
+
+// ---------------------------------------------------------------------------
+// enforce_cluster_version_compatibility
+// ---------------------------------------------------------------------------
+
+bool enforce_cluster_version_compatibility(bool strict) {
+  const auto& local = global_worker_identity();
+  if (!local.cluster_mode) return true;  // standalone: no enforcement
+
+  ClusterDriftStatus drift;
+  const bool ok = global_cluster_registry().validate_version_compatibility(&drift);
+
+  if (!ok) {
+    // Always log to stderr.
+    std::fprintf(stderr,
+        "[requiem:cluster] VERSION MISMATCH DETECTED — cluster is incompatible.\n"
+        "  %s\n",
+        drift.to_json().c_str());
+
+    if (strict) {
+      std::fprintf(stderr,
+          "[requiem:cluster] REQUIEM_FAIL_ON_VERSION_MISMATCH=1: aborting startup.\n");
+      std::abort();
+    } else {
+      std::fprintf(stderr,
+          "[requiem:cluster] WARNING: running with version-mismatched cluster. "
+          "Set REQUIEM_FAIL_ON_VERSION_MISMATCH=1 to enforce strict compatibility.\n");
+    }
+  }
+
+  return ok;
 }
 
 }  // namespace requiem

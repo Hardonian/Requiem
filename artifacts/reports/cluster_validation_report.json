@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-02-27T12:19:27Z",
+  "engine_version": "0.8.0",
+  "cluster_verify": {"cluster_verify":{"ok":true,"nodes_checked":1,"compatible_workers":1,"mismatches":[],"replay_drift_rate":-1,"replay_divergences":0}},
+  "cluster_drift": {"ok":true,"engine_version_mismatch":false,"hash_version_mismatch":false,"protocol_version_mismatch":false,"auth_version_mismatch":false,"replay_drift_rate":-1,"replay_divergences":0,"replay_verifications":0,"total_workers":1,"compatible_workers":1,"mismatches":[]},
+  "multi_node_simulation": {
+    "shards": 3,
+    "tenants_tested": 8,
+    "routing_deterministic": true
+  },
+  "release_ok": true
+}
