@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "registry_version": "1.0.0",
+  "description": "Central feature flag registry for Requiem. Every flag referenced in code, config, or CI must be registered here. CI fails on unknown flags (verify_flags.sh). Flags control per-tenant staged rollouts and emergency kill switches. Never affect determinism — flags only gate dispatch, never computation.",
+  "last_updated": "2026-02-27",
+
+  "flags": [
+    {
+      "id": "kill_switch_protocol_writer",
+      "type": "kill_switch",
+      "tier": "oss",
+      "default": false,
+      "description": "Emergency kill switch: disables new NDJSON protocol frame writes. Replay and read paths remain fully functional. Activate in runbooks/incident-protocol-corruption.md.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "global",
+        "staged_tenants": []
+      },
+      "owner": "platform-core",
+      "status": "stable"
+    },
+    {
+      "id": "kill_switch_cas_writer",
+      "type": "kill_switch",
+      "tier": "oss",
+      "default": false,
+      "description": "Emergency kill switch: disables new CAS write operations. Existing objects still readable and verifiable. Activate per runbooks/incident-cas-corruption.md.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "global",
+        "staged_tenants": []
+      },
+      "owner": "platform-core",
+      "status": "stable"
+    },
+    {
+      "id": "enable_multi_region_replication",
+      "type": "feature",
+      "tier": "enterprise",
+      "default": false,
+      "description": "Enables CAS object replication to secondary region(s). Must not affect result_digest or any observable computation output.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "staged",
+        "staged_tenants": []
+      },
+      "owner": "infra",
+      "status": "experimental"
+    },
+    {
+      "id": "enable_signed_replay_bundles",
+      "type": "feature",
+      "tier": "enterprise",
+      "default": false,
+      "description": "Attach a cryptographic signature scaffold to replay bundles exported via 'reach bugreport --bundle'. Signature covers result_digest + engine_semver + dependency_snapshot_hash.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "staged",
+        "staged_tenants": []
+      },
+      "owner": "security",
+      "status": "experimental"
+    },
+    {
+      "id": "enable_economic_quotas",
+      "type": "feature",
+      "tier": "enterprise",
+      "default": false,
+      "description": "Enforce per-tenant economic quotas (compute_units, memory_units, etc.). Observational metering always runs; this flag gates hard enforcement (rejection on exceeded quota).",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "staged",
+        "staged_tenants": []
+      },
+      "owner": "billing",
+      "status": "experimental"
+    },
+    {
+      "id": "enable_chaos_testing",
+      "type": "internal",
+      "tier": "oss",
+      "default": false,
+      "description": "Activates chaos fault injection harness for nightly resilience testing. Must never be enabled in production. Controlled exclusively by CI schedule.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "ci_only",
+        "staged_tenants": []
+      },
+      "owner": "platform-core",
+      "status": "stable"
+    },
+    {
+      "id": "enable_formal_spec_runtime_assertions",
+      "type": "internal",
+      "tier": "oss",
+      "default": false,
+      "description": "Enables runtime assertion checking derived from the formal TLA+ specifications in /formal/. Adds overhead; intended for debug/CI builds only.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "ci_only",
+        "staged_tenants": []
+      },
+      "owner": "platform-core",
+      "status": "experimental"
+    },
+    {
+      "id": "enable_merkle_audit_chain",
+      "type": "feature",
+      "tier": "enterprise",
+      "default": false,
+      "description": "Enables Merkle-chained audit log where each entry hashes the previous entry's digest, forming a tamper-evident chain. Requires AUDIT_LOG_VERSION bump when activated.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "staged",
+        "staged_tenants": []
+      },
+      "owner": "security",
+      "status": "experimental"
+    },
+    {
+      "id": "enable_soft_delete",
+      "type": "feature",
+      "tier": "oss",
+      "default": false,
+      "description": "Marks CAS objects and audit records as soft-deleted rather than hard-deleting. Required for compliance retention workflows. Hard delete is permanently disabled when this flag is on.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "global",
+        "staged_tenants": []
+      },
+      "owner": "compliance",
+      "status": "experimental"
+    }
+  ],
+
+  "policy": {
+    "unknown_flags_fail_ci": true,
+    "kill_switch_rollback_requires_incident_ticket": true,
+    "enterprise_flags_blocked_in_oss_build": true,
+    "ci_only_flags_must_not_be_referenced_in_production_paths": true
+  }
+}

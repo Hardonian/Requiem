@@ -92,6 +92,19 @@ jobs:
       - name: version contracts gate (Phase G)
         if: runner.os == 'Linux'
         run: ./scripts/verify_version_contracts.sh
+      - name: compat matrix gate (Phase 10)
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_compat_matrix.sh
+      - name: chaos gate (Phase 12)
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_chaos.sh
+      - name: upload chaos report
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-report
+          path: artifacts/reports/chaos_report.json
+          if-no-files-found: ignore
 
   # ---------------------------------------------------------------------------
   # Governance gates (Linux only — no engine build required)
@@ -121,6 +134,14 @@ jobs:
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
           GITHUB_EVENT_PATH: ${{ github.event_path }}
+      - name: policy gate (Phase 1)
+        run: ./scripts/verify_policy.sh
+      - name: feature flags gate (Phase 4)
+        run: ./scripts/verify_flags.sh
+      - name: compat matrix gate (Phase 10)
+        run: ./scripts/verify_compat_matrix.sh
+      - name: supply chain gate (Phase 7)
+        run: ./scripts/verify_supplychain.sh
       - name: upload governance artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -308,4 +329,61 @@ EOF
         with:
           name: fuzz-corpus
           path: fuzz-corpus/
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # Formal spec model checking — nightly (Phase 11)
+  # ---------------------------------------------------------------------------
+  formal-nightly:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y python3
+      - name: verify formal specs present
+        run: |
+          for spec in formal/CAS.tla formal/Protocol.tla formal/Replay.tla formal/Determinism.tla formal/model_checker.py; do
+            [ -f "$spec" ] || { echo "FAIL: $spec not found"; exit 1; }
+          done
+      - name: run bounded model checker
+        run: python3 formal/model_checker.py --bound 50 --verbose
+      - name: formal gate (full)
+        run: ./scripts/verify_formal.sh
+
+  # ---------------------------------------------------------------------------
+  # Chaos engineering nightly — fault injection suite (Phase 12)
+  # ---------------------------------------------------------------------------
+  chaos-nightly:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev python3
+      - name: build (with chaos harness)
+        run: |
+          cmake -S . -B build-chaos \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DREQUIEM_WITH_ZSTD=OFF \
+            -DREQUIEM_BUILD_C_API=OFF \
+            -DREQUIEM_BUILD_CHAOS=ON
+          cmake --build build-chaos -j$(nproc) --target chaos_harness || \
+            echo "chaos_harness target not available — script-level check only"
+      - name: run chaos harness
+        run: |
+          mkdir -p artifacts/reports
+          if [ -f build-chaos/chaos_harness ]; then
+            ./build-chaos/chaos_harness
+          else
+            echo "INFO: chaos_harness binary not built — running script-level validation"
+          fi
+      - name: chaos gate
+        run: ./scripts/verify_chaos.sh
+      - name: upload chaos report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-report-nightly
+          path: artifacts/reports/chaos_report.json
           if-no-files-found: ignore
