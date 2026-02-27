@@ -23,7 +23,7 @@
 #include <cstdint>
 #include <map>
 #include <regex>
-#include <sstream>
+#include <sstream>  // retained for DEPRECATED regex-based extractors only
 #include <variant>
 
 #include "requiem/hash.hpp"
@@ -257,13 +257,44 @@ std::string to_json(const Value& v) {
   if (std::holds_alternative<std::uint64_t>(v.v)) return std::to_string(std::get<std::uint64_t>(v.v));
   if (std::holds_alternative<double>(v.v)) return format_double(std::get<double>(v.v));
   if (std::holds_alternative<Object>(v.v)) {
-    std::ostringstream oss; oss << "{"; bool first = true;
-    for (const auto& [k, vv] : std::get<Object>(v.v)) { if (!first) oss << ","; first = false; oss << "\"" << escape_inner(k) << "\"" << ":" << to_json(vv); }
-    oss << "}"; return oss.str();
+    // MICRO_OPT: pre-reserved string replaces std::ostringstream.
+    // ostringstream carries locale state, a dynamic internal buffer, and virtual
+    // dispatch per operator<<. Pre-reserved string+append avoids all three.
+    // MICRO_DOCUMENTED: Consistent with escape_inner() and map_to_json() fast-path.
+    // Assumption: avg entry ~32 bytes (key + value + punctuation).
+    // EXTENSION_POINT: data_layout_strategy — if deeply nested objects become hot,
+    // consider a single shared output buffer passed by reference to avoid repeated
+    // reserve() calls across recursive invocations.
+    const auto& obj = std::get<Object>(v.v);
+    std::string out;
+    out.reserve(obj.size() * 32 + 2);
+    out += '{';
+    bool first = true;
+    for (const auto& [k, vv] : obj) {
+      if (!first) out += ',';
+      first = false;
+      out += '"';
+      out += escape_inner(k);
+      out += "\":";
+      out += to_json(vv);
+    }
+    out += '}';
+    return out;
   }
-  std::ostringstream oss; oss << "["; bool first = true;
-  for (const auto& vv : std::get<Array>(v.v)) { if (!first) oss << ","; first = false; oss << to_json(vv); }
-  oss << "]"; return oss.str();
+  // Array case
+  // MICRO_OPT: same pre-reserved string pattern as Object case above.
+  const auto& arr = std::get<Array>(v.v);
+  std::string out;
+  out.reserve(arr.size() * 16 + 2);
+  out += '[';
+  bool first = true;
+  for (const auto& vv : arr) {
+    if (!first) out += ',';
+    first = false;
+    out += to_json(vv);
+  }
+  out += ']';
+  return out;
 }
 }  // namespace
 
