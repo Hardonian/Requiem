@@ -324,6 +324,67 @@ int main(int argc, char** argv) {
     return res.ok ? 0 : 1;
   }
   
+  // exec stream — NDJSON streaming output (one JSON object per line).
+  // Frame order: start → event* → end → result
+  // "result" frame is always last and contains the authoritative result_digest.
+  // Fail-closed: error produces a single {"type":"error",...} line and exits 2.
+  if (cmd == "exec" && argc >= 3 && std::string(argv[2]) == "stream") {
+    std::string in;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--request" && i + 1 < argc) in = argv[++i];
+    }
+    std::string err;
+    auto req = requiem::parse_request_json(read_file(in), &err);
+    if (!err.empty() && req.command.empty()) {
+      std::cout << "{\"type\":\"error\",\"error_code\":\"" << err << "\"}\n";
+      std::cout.flush();
+      return 2;
+    }
+    // start frame
+    std::cout << "{\"type\":\"start\""
+              << ",\"request_id\":\"" << requiem::jsonlite::escape(req.request_id) << "\""
+              << ",\"tenant_id\":\"" << requiem::jsonlite::escape(req.tenant_id) << "\""
+              << "}\n";
+    std::cout.flush();
+    const auto res = requiem::execute(req);
+    // event frames
+    for (const auto& ev : res.trace_events) {
+      std::cout << "{\"type\":\"event\""
+                << ",\"seq\":" << ev.seq
+                << ",\"t_ns\":" << ev.t_ns
+                << ",\"event\":\"" << requiem::jsonlite::escape(ev.type) << "\""
+                << ",\"data\":{";
+      bool first = true;
+      for (const auto& [k, v] : ev.data) {
+        if (!first) std::cout << ",";
+        first = false;
+        std::cout << "\"" << requiem::jsonlite::escape(k) << "\":"
+                  << "\"" << requiem::jsonlite::escape(v) << "\"";
+      }
+      std::cout << "}}\n";
+      std::cout.flush();
+    }
+    // end frame
+    std::cout << "{\"type\":\"end\""
+              << ",\"exit_code\":" << res.exit_code
+              << ",\"termination_reason\":\"" << requiem::jsonlite::escape(res.termination_reason) << "\""
+              << "}\n";
+    std::cout.flush();
+    // result frame — always last; authoritative
+    std::cout << "{\"type\":\"result\""
+              << ",\"ok\":" << (res.ok ? "true" : "false")
+              << ",\"exit_code\":" << res.exit_code
+              << ",\"error_code\":\"" << requiem::jsonlite::escape(res.error_code) << "\""
+              << ",\"request_digest\":\"" << res.request_digest << "\""
+              << ",\"result_digest\":\"" << res.result_digest << "\""
+              << ",\"stdout_digest\":\"" << res.stdout_digest << "\""
+              << ",\"stderr_digest\":\"" << res.stderr_digest << "\""
+              << ",\"trace_digest\":\"" << res.trace_digest << "\""
+              << "}\n";
+    std::cout.flush();
+    return res.ok ? 0 : 1;
+  }
+
   if (cmd == "exec" && argc >= 3 && std::string(argv[2]) == "replay") {
     std::string req_file, result_file, cas_dir = ".requiem/cas/v2";
     for (int i = 3; i < argc; ++i) {

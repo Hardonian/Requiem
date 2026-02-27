@@ -1,12 +1,16 @@
+#include <atomic>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <thread>
+#include <vector>
 
 #include "requiem/cas.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
+#include "requiem/metering.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
 
@@ -438,6 +442,213 @@ void test_replay_validation() {
 
 }  // namespace
 
+// ============================================================================
+// Production Hardening: Multi-tenant isolation
+// ============================================================================
+
+void test_multitenant_cas_isolation() {
+  // Each tenant gets its own CAS root — digests from tenant A must not be
+  // readable from tenant B's CAS store.
+  const fs::path tmp = fs::temp_directory_path() / "rq_mt_cas_test";
+  fs::remove_all(tmp);
+
+  requiem::CasStore cas_a((tmp / "tenant-a").string());
+  requiem::CasStore cas_b((tmp / "tenant-b").string());
+
+  const std::string data_a = "tenant-a-private-content-unique";
+  const std::string digest  = cas_a.put(data_a, "off");
+  expect(!digest.empty(), "tenant-a: put must succeed");
+
+  // tenant-b must not see tenant-a's digest.
+  expect(!cas_b.contains(digest), "cross-tenant CAS read must be blocked");
+  expect(!cas_b.get(digest).has_value(), "cross-tenant CAS get must return nullopt");
+
+  fs::remove_all(tmp);
+}
+
+void test_multitenant_fingerprint_determinism() {
+  // Identical requests across different tenants must produce IDENTICAL
+  // request_digest values (request_digest is policy-canonical, not tenant-specific).
+  // result_digest may differ only if tenant_id is included in canonicalization;
+  // currently tenant_id is not part of the canonical request, so it must be identical.
+  const fs::path tmp = fs::temp_directory_path() / "rq_mt_fp_test";
+  fs::create_directories(tmp);
+
+  requiem::ExecutionRequest req_a;
+  req_a.request_id      = "mt-fp-001";
+  req_a.tenant_id       = "tenant-alpha";
+  req_a.workspace_root  = tmp.string();
+  req_a.command         = "/bin/sh";
+  req_a.argv            = {"-c", "echo deterministic"};
+  req_a.policy.deterministic = true;
+  req_a.nonce           = 42;
+
+  requiem::ExecutionRequest req_b = req_a;
+  req_b.tenant_id = "tenant-beta";  // different tenant, same everything else
+
+  const std::string canon_a = requiem::canonicalize_request(req_a);
+  const std::string canon_b = requiem::canonicalize_request(req_b);
+  // Canonicalization must not include tenant_id (tenant isolation is at infra layer).
+  expect(canon_a == canon_b, "canonical request must not include tenant_id");
+
+  const std::string dig_a = requiem::deterministic_digest(canon_a);
+  const std::string dig_b = requiem::deterministic_digest(canon_b);
+  expect(dig_a == dig_b, "request_digest must be identical across tenants for same request");
+
+  fs::remove_all(tmp);
+}
+
+void test_multitenant_concurrent_isolation() {
+  // 10 tenants run concurrently — no cross-tenant result bleed.
+  const fs::path tmp = fs::temp_directory_path() / "rq_mt_conc_test";
+  fs::create_directories(tmp);
+
+  constexpr int kTenants = 10;
+  std::vector<std::string> digests(kTenants);
+  std::atomic<int> fail_count{0};
+
+  std::vector<std::thread> threads;
+  for (int i = 0; i < kTenants; ++i) {
+    threads.emplace_back([&, i]() {
+      requiem::ExecutionRequest req;
+      req.request_id      = "mt-conc-" + std::to_string(i);
+      req.tenant_id       = "tenant-" + std::to_string(i);
+      req.workspace_root  = tmp.string();
+      req.command         = "/bin/sh";
+      req.argv            = {"-c", "echo tenant_" + std::to_string(i)};
+      req.policy.deterministic = true;
+
+      const auto result = requiem::execute(req);
+      digests[i] = result.stdout_text;
+      // Each tenant's stdout must contain its own identifier.
+      if (result.stdout_text.find("tenant_" + std::to_string(i)) == std::string::npos) {
+        ++fail_count;
+      }
+    });
+  }
+  for (auto& t : threads) t.join();
+
+  expect(fail_count.load() == 0, "no cross-tenant stdout bleed in concurrent execution");
+  // All digests must be distinct (different commands).
+  for (int i = 0; i < kTenants; ++i) {
+    for (int j = i + 1; j < kTenants; ++j) {
+      expect(digests[i] != digests[j], "tenant outputs must be distinct");
+    }
+  }
+
+  fs::remove_all(tmp);
+}
+
+// ============================================================================
+// Production Hardening: Metering / billing
+// ============================================================================
+
+void test_metering_exactly_once() {
+  requiem::MeterLog meter;
+
+  // Emit 10 events for distinct request_digests.
+  for (int i = 0; i < 10; ++i) {
+    auto ev = requiem::make_meter_event(
+        "tenant-1", "req-" + std::to_string(i),
+        requiem::blake3_hex("digest-" + std::to_string(i)),
+        /*success=*/true, "", /*is_shadow=*/false);
+    meter.emit(ev);
+  }
+
+  expect(meter.count_primary_success() == 10, "meter: 10 primary success events");
+  expect(meter.count_shadow() == 0, "meter: zero shadow events");
+  expect(meter.verify_parity(10).empty(), "meter: parity check passes for 10");
+}
+
+void test_metering_shadow_zero() {
+  requiem::MeterLog meter;
+
+  // Shadow events must never enter the log.
+  for (int i = 0; i < 50; ++i) {
+    auto ev = requiem::make_meter_event(
+        "shadow-tenant", "shadow-" + std::to_string(i),
+        requiem::blake3_hex("s" + std::to_string(i)),
+        /*success=*/true, "", /*is_shadow=*/true);
+    meter.emit(ev);  // must be no-op
+  }
+
+  expect(meter.count_primary_success() == 0, "shadow: no primary events emitted");
+  expect(meter.count_shadow() == 0, "shadow: shadow events not stored");
+  expect(meter.verify_parity(0).empty(), "shadow: parity passes with 0 expected");
+}
+
+void test_metering_duplicate_detection() {
+  requiem::MeterLog meter;
+
+  const std::string shared_digest = requiem::blake3_hex("shared_request_input");
+  // Emit two events with the same request_digest (simulates double-billing retry).
+  auto ev1 = requiem::make_meter_event("t", "req-1", shared_digest, true, "", false);
+  auto ev2 = requiem::make_meter_event("t", "req-2", shared_digest, true, "", false);
+  meter.emit(ev1);
+  meter.emit(ev2);
+
+  const auto dups = meter.find_duplicates();
+  expect(!dups.empty(), "meter: duplicate request_digest detected");
+}
+
+void test_billing_no_charge_on_failure() {
+  // Verify explicit billing rules: failed executions do not charge.
+  expect(requiem::billing_behavior_for_error("") == requiem::BillingBehavior::charge,
+         "billing: empty error = charge");
+  expect(requiem::billing_behavior_for_error("timeout") == requiem::BillingBehavior::no_charge,
+         "billing: timeout = no_charge");
+  expect(requiem::billing_behavior_for_error("quota_exceeded") == requiem::BillingBehavior::no_charge,
+         "billing: quota_exceeded = no_charge");
+  expect(requiem::billing_behavior_for_error("spawn_failed") == requiem::BillingBehavior::no_charge,
+         "billing: spawn_failed = no_charge");
+  expect(requiem::billing_behavior_for_error("cas_integrity_failed") == requiem::BillingBehavior::no_charge,
+         "billing: cas_integrity_failed = no_charge");
+  expect(requiem::billing_behavior_for_error("path_escape") == requiem::BillingBehavior::no_charge,
+         "billing: path_escape = no_charge");
+}
+
+// ============================================================================
+// Production Hardening: Determinism under concurrency (mini shadow run)
+// ============================================================================
+
+void test_determinism_concurrent_20_threads() {
+  const fs::path tmp = fs::temp_directory_path() / "rq_det_conc_test";
+  fs::create_directories(tmp);
+
+  constexpr int kThreads = 20;
+  requiem::ExecutionRequest req;
+  req.request_id      = "det-conc-001";
+  req.workspace_root  = tmp.string();
+  req.command         = "/bin/sh";
+  req.argv            = {"-c", "echo concurrent_determinism_check"};
+  req.policy.deterministic = true;
+  req.nonce           = 0;
+
+  std::string expected_digest;
+  std::atomic<int> drift_count{0};
+
+  // Run single reference first.
+  {
+    const auto r = requiem::execute(req);
+    expected_digest = r.result_digest;
+    expect(!expected_digest.empty(), "reference result_digest must be non-empty");
+  }
+
+  std::vector<std::thread> threads;
+  for (int i = 0; i < kThreads; ++i) {
+    threads.emplace_back([&]() {
+      const auto r = requiem::execute(req);
+      if (r.result_digest != expected_digest) ++drift_count;
+    });
+  }
+  for (auto& t : threads) t.join();
+
+  expect(drift_count.load() == 0,
+         "no determinism drift across " + std::to_string(kThreads) + " concurrent threads");
+
+  fs::remove_all(tmp);
+}
+
 int main() {
   std::cout << "=== Requiem Engine Test Suite ===\n";
 
@@ -474,6 +685,20 @@ int main() {
   run_test("stdout truncation", test_stdout_truncation);
   run_test("timeout enforcement", test_timeout);
   run_test("replay validation", test_replay_validation);
+
+  std::cout << "\n[Production Hardening] Multi-tenant isolation\n";
+  run_test("multitenant CAS isolation", test_multitenant_cas_isolation);
+  run_test("multitenant fingerprint determinism", test_multitenant_fingerprint_determinism);
+  run_test("multitenant concurrent isolation (10 threads)", test_multitenant_concurrent_isolation);
+
+  std::cout << "\n[Production Hardening] Metering / billing\n";
+  run_test("metering exactly-once semantics", test_metering_exactly_once);
+  run_test("metering shadow runs zero", test_metering_shadow_zero);
+  run_test("metering duplicate detection", test_metering_duplicate_detection);
+  run_test("billing no-charge on failure", test_billing_no_charge_on_failure);
+
+  std::cout << "\n[Production Hardening] Determinism under concurrency\n";
+  run_test("determinism: 20 concurrent threads", test_determinism_concurrent_20_threads);
 
   std::cout << "\n=== " << g_tests_passed << "/" << g_tests_run << " tests passed ===\n";
   return g_tests_passed == g_tests_run ? 0 : 1;
