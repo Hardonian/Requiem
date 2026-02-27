@@ -196,3 +196,162 @@ export interface ShardRouteResponse {
   is_local_shard: boolean;
   local_shard_id: number;
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5: Cluster Drift Types
+// ---------------------------------------------------------------------------
+
+export interface VersionMismatch {
+  field: string;       // e.g. "engine_semver"
+  expected: string;    // local (reference) value
+  observed: string;    // offending worker's value
+  worker_id: string;
+}
+
+export interface ClusterDriftResponse {
+  ok: boolean;
+  engine_version_mismatch: boolean;
+  hash_version_mismatch: boolean;
+  protocol_version_mismatch: boolean;
+  auth_version_mismatch: boolean;
+  replay_drift_rate: number;       // -1 if no replay verifications yet
+  replay_divergences: number;
+  replay_verifications: number;
+  total_workers: number;
+  compatible_workers: number;
+  mismatches: VersionMismatch[];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3: Auto-tuning Types
+// ---------------------------------------------------------------------------
+
+export interface TuningParameters {
+  worker_thread_count: number;
+  arena_size_bytes: number;
+  cas_batch_size: number;
+  scheduler_mode: string;
+  gpu_kernel_mode: string;
+}
+
+export interface TelemetrySnapshot {
+  p50_us: number;
+  p95_us: number;
+  p99_us: number;
+  peak_memory_bytes: number;
+  cas_hit_rate: number;
+  contention_count: number;
+  avg_queue_depth: number;
+  total_executions: number;
+  replay_divergences: number;
+}
+
+export interface AutotuneEvent {
+  timestamp_unix_ms: number;
+  action: string;
+  rationale: string;
+  snapshot_before: TelemetrySnapshot;
+  params_before: TuningParameters;
+  params_after: TuningParameters;
+  applied: boolean;
+  block_reason?: string;
+}
+
+export interface AutotuneState {
+  current: TuningParameters;
+  baseline: TuningParameters;
+  event_count: number;
+  policy: {
+    tuning_interval_s: number;
+    queue_depth_scale_up_threshold: number;
+    memory_grow_ratio: number;
+    cas_latency_scale_up_us: number;
+    revert_if_p99_ratio: number;
+  };
+  recent_events?: AutotuneEvent[];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4: Root Cause Diagnostics Types
+// ---------------------------------------------------------------------------
+
+export type FailureCategory =
+  | 'determinism_drift'
+  | 'migration_conflict'
+  | 'dependency_drift'
+  | 'resource_exhaustion'
+  | 'cluster_mismatch'
+  | 'cas_corruption'
+  | 'unknown';
+
+export interface DiagnosticEvidence {
+  source: string;
+  fact: string;
+  relevance: string;
+}
+
+export interface DiagnosticSuggestion {
+  action: string;
+  command: string;
+  rationale: string;
+  safe: boolean;
+}
+
+export interface DiagnosticContext {
+  engine_semver: string;
+  engine_abi_version: number;
+  hash_algorithm_version: number;
+  cas_format_version: number;
+  replay_divergences: number;
+  p99_latency_us: number;
+  peak_memory_bytes: number;
+  cas_hit_rate: number;
+  cluster_worker_count: number;
+  cluster_mode: boolean;
+  error_code: string;
+  error_detail: string;
+}
+
+export interface DiagnosticReport {
+  ok: boolean;
+  category: FailureCategory;
+  summary: string;
+  analysis_duration_us: number;
+  evidence: DiagnosticEvidence[];
+  suggestions: DiagnosticSuggestion[];
+  context: DiagnosticContext;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2: RBAC Types
+// ---------------------------------------------------------------------------
+
+export type RbacRole = 'viewer' | 'auditor' | 'operator' | 'admin';
+
+export interface RbacContext {
+  ok: boolean;
+  role: RbacRole;
+  tenant_id: string;
+  denial_reason?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7: Security / Node Auth Types
+// ---------------------------------------------------------------------------
+
+export interface NodeAuthInfo {
+  auth_version: number;
+  node_id: string;
+  issued_at_unix_ms: number;
+  expires_at_unix_ms: number;
+  token_present: boolean;
+}
+
+// Extended WorkerIdentity with version stamps (Phase 5+7).
+export interface WorkerIdentityExtended extends WorkerIdentity {
+  auth_version: number;
+  engine_semver: string;
+  engine_abi_version: number;
+  hash_algorithm_version: number;
+  protocol_framing_version: number;
+}

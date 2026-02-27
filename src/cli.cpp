@@ -9,11 +9,14 @@
 #include <vector>
 
 #include "requiem/audit.hpp"
+#include "requiem/autotune.hpp"
 #include "requiem/cas.hpp"
 #include "requiem/cluster.hpp"
+#include "requiem/diagnostics.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
 #include "requiem/observability.hpp"
+#include "requiem/rbac.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
 #include "requiem/sandbox.hpp"
@@ -136,6 +139,29 @@ int main(int argc, char** argv) {
   }
   
   if (cmd == "doctor") {
+    // Phase 4: --analyze flag triggers AI-assisted root cause diagnostics.
+    bool do_analyze = false;
+    std::string error_code_hint, error_detail_hint;
+    for (int i = 2; i < argc; ++i) {
+      if (std::string(argv[i]) == "--analyze") do_analyze = true;
+      if (std::string(argv[i]) == "--error-code" && i + 1 < argc) error_code_hint = argv[++i];
+      if (std::string(argv[i]) == "--error-detail" && i + 1 < argc) error_detail_hint = argv[++i];
+    }
+
+    if (do_analyze) {
+      // Capture current engine context and run the diagnostic analyzer.
+      requiem::init_worker_identity();
+      requiem::init_cluster_from_env();
+      requiem::register_local_worker();
+      const auto ctx = requiem::diagnostics::capture_context(error_code_hint, error_detail_hint);
+      const auto report = requiem::diagnostics::analyze_failure(ctx);
+      std::cout << report.to_json() << "\n";
+      // Exit 0: analysis succeeded (report.ok=true). Exit 2: specific failure identified.
+      if (!report.ok) return 1;
+      if (report.category != requiem::diagnostics::FailureCategory::unknown) return 2;
+      return 0;
+    }
+
     std::vector<std::string> blockers;
 
     const auto h = requiem::hash_runtime_info();
@@ -147,6 +173,13 @@ int main(int argc, char** argv) {
 
     // Detect sandbox capabilities
     auto caps = requiem::detect_platform_sandbox_capabilities();
+
+    // Phase 5: Include cluster drift status in doctor output.
+    requiem::init_worker_identity();
+    requiem::init_cluster_from_env();
+    requiem::register_local_worker();
+    const auto& drift_status = requiem::global_cluster_registry().cluster_drift_status();
+    if (!drift_status.ok) blockers.push_back("cluster_version_mismatch");
 
     std::cout << "{\"ok\":" << (blockers.empty() ? "true" : "false") << ",\"blockers\":[";
     for (size_t i = 0; i < blockers.size(); ++i) {
@@ -164,6 +197,7 @@ int main(int argc, char** argv) {
               << ",\"seccomp\":" << (caps.seccomp_baseline ? "true" : "false")
               << ",\"job_objects\":" << (caps.job_objects ? "true" : "false")
               << ",\"restricted_token\":" << (caps.restricted_token ? "true" : "false") << "}";
+    std::cout << ",\"cluster\":" << drift_status.to_json();
     std::cout << ",\"rollback\":\"set FORCE_RUST=1 to revert to Rust engine\"";
     std::cout << "}" << "\n";
     return blockers.empty() ? 0 : 2;
@@ -572,12 +606,43 @@ int main(int argc, char** argv) {
   }
 
   if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "verify") {
-    std::string results_dir;
-    for (int i = 3; i < argc; ++i) {
-      if (std::string(argv[i]) == "--results" && i + 1 < argc) results_dir = argv[++i];
-    }
-    // Stub for cluster verification - would compare digests across nodes
-    std::cout << "{\"cluster_verify\":{\"ok\":true,\"nodes_checked\":0,\"mismatches\":[]}}" << "\n";
+    requiem::init_cluster_from_env();
+    requiem::register_local_worker();
+
+    // Phase 5: Real cluster version compatibility check.
+    requiem::ClusterDriftStatus drift;
+    const bool compat = requiem::global_cluster_registry()
+        .validate_version_compatibility(&drift);
+
+    std::cout << "{"
+              << "\"cluster_verify\":{"
+              << "\"ok\":" << (compat ? "true" : "false")
+              << ",\"nodes_checked\":" << drift.total_workers
+              << ",\"compatible_workers\":" << drift.compatible_workers
+              << ",\"mismatches\":" << (drift.mismatches.empty() ? "[]" :
+                  [&] {
+                    std::string s = "[";
+                    for (size_t i = 0; i < drift.mismatches.size(); ++i) {
+                      if (i > 0) s += ",";
+                      const auto& m = drift.mismatches[i];
+                      s += "{\"field\":\"" + m.field + "\""
+                           + ",\"expected\":\"" + m.expected + "\""
+                           + ",\"observed\":\"" + m.observed + "\""
+                           + ",\"worker_id\":\"" + m.worker_id + "\"}";
+                    }
+                    s += "]";
+                    return s;
+                  }())
+              << ",\"replay_drift_rate\":" << drift.replay_drift_rate
+              << ",\"replay_divergences\":" << drift.replay_divergences
+              << "}}\n";
+    return compat ? 0 : 2;
+  }
+
+  if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "drift") {
+    requiem::init_cluster_from_env();
+    requiem::register_local_worker();
+    std::cout << requiem::global_cluster_registry().cluster_drift_to_json() << "\n";
     return 0;
   }
   
@@ -824,6 +889,43 @@ int main(int argc, char** argv) {
               << "\"message\":\"Requiem engine ready. Hash: BLAKE3, CAS: v2, Protocol: v1.\","
               << "\"next\":\"Run: requiem demo  (to verify determinism)\","
               << "\"docs\":\"https://reach-cli.com/quickstart\""
+              << "}\n";
+    return 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase 3: Auto-tuning commands
+  // ---------------------------------------------------------------------------
+  if (cmd == "autotune" && argc >= 3 && std::string(argv[2]) == "status") {
+    std::cout << requiem::autotune::global_autotune_engine().to_json() << "\n";
+    return 0;
+  }
+
+  if (cmd == "autotune" && argc >= 3 && std::string(argv[2]) == "tick") {
+    const auto ev = requiem::autotune::global_autotune_engine().tick();
+    std::cout << ev.to_json() << "\n";
+    return ev.applied ? 0 : 1;
+  }
+
+  if (cmd == "autotune" && argc >= 3 && std::string(argv[2]) == "revert") {
+    const auto ev = requiem::autotune::global_autotune_engine().revert_to_baseline();
+    std::cout << ev.to_json() << "\n";
+    return ev.applied ? 0 : 1;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase 7: Cluster auth commands
+  // ---------------------------------------------------------------------------
+  if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "auth") {
+    requiem::init_worker_identity();
+    const auto& w = requiem::global_worker_identity();
+    std::cout << "{"
+              << "\"auth_version\":" << w.auth_version
+              << ",\"cluster_auth_version\":" << requiem::rbac::CLUSTER_AUTH_VERSION
+              << ",\"node_id\":\"" << w.node_id << "\""
+              << ",\"worker_id\":\"" << w.worker_id << "\""
+              << ",\"auth_scheme\":\"bearer_stub\""
+              << ",\"note\":\"EXTENSION_POINT:node_auth_upgrade — upgrade to mTLS or SPIFFE/SPIRE SVID\""
               << "}\n";
     return 0;
   }

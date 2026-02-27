@@ -155,5 +155,67 @@ export async function fetchClusterWorkers(tenant: TenantContext): Promise<Cluste
   return apiFetch<ClusterWorkersResponse>('/api/cluster/workers', {}, tenant);
 }
 
+// ---------------------------------------------------------------------------
+// Phase 5: Cluster drift client methods
+// ---------------------------------------------------------------------------
+
+export async function fetchClusterDrift(
+  tenant: TenantContext,
+): Promise<import('@/types/engine').ClusterDriftResponse> {
+  return apiFetch<import('@/types/engine').ClusterDriftResponse>(
+    '/api/cluster/drift',
+    {},
+    tenant,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4: Root cause diagnostics client methods
+// ---------------------------------------------------------------------------
+
+export async function fetchEngineAnalysis(
+  tenant: TenantContext,
+  errorCode = '',
+  errorDetail = '',
+): Promise<import('@/types/engine').DiagnosticReport> {
+  const params = new URLSearchParams();
+  if (errorCode)   params.set('error_code',   errorCode);
+  if (errorDetail) params.set('error_detail', errorDetail);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  return apiFetch<import('@/types/engine').DiagnosticReport>(
+    `/api/engine/analyze${qs}`,
+    {},
+    tenant,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3: Auto-tuning client methods
+// ---------------------------------------------------------------------------
+
+export async function fetchAutotuneState(
+  tenant: TenantContext,
+): Promise<import('@/types/engine').AutotuneState> {
+  return apiFetch<import('@/types/engine').AutotuneState>(
+    '/api/engine/autotune',
+    {},
+    tenant,
+  );
+}
+
+export async function postAutotuneTick(
+  tenant: TenantContext,
+  action: 'tick' | 'revert',
+): Promise<unknown> {
+  return apiFetch<unknown>(
+    '/api/engine/autotune',
+    {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+    },
+    tenant,
+  );
+}
+
 // EXTENSION_POINT: governance_enhancements
 // Add: fetchDeterminismReport(), triggerDistributedReplay(), exportAuditLogs()

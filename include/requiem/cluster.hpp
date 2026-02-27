@@ -96,6 +96,49 @@ struct ClusterStatus {
 };
 
 // ---------------------------------------------------------------------------
+// VersionMismatch — per-field mismatch record for cluster drift analysis.
+// ---------------------------------------------------------------------------
+struct VersionMismatch {
+  std::string field;          // e.g. "engine_semver"
+  std::string expected;       // value from the local (reference) worker
+  std::string observed;       // value from the mismatched worker
+  std::string worker_id;      // which worker is mismatched
+};
+
+// ---------------------------------------------------------------------------
+// ClusterDriftStatus — version mismatch and replay drift across the cluster.
+// ---------------------------------------------------------------------------
+// Returned by ClusterRegistry::cluster_drift_status().
+//
+// INVARIANT: if engine_version_mismatch || hash_version_mismatch ||
+//            protocol_version_mismatch || auth_version_mismatch, then ok=false.
+//            No new executions should be accepted in this state.
+//
+// Startup enforcement: if REQUIEM_FAIL_ON_VERSION_MISMATCH=1, init_cluster_from_env()
+// will call cluster_drift_status() and abort if !ok.
+struct ClusterDriftStatus {
+  bool ok{true};              // false if any version mismatch detected
+  bool engine_version_mismatch{false};
+  bool hash_version_mismatch{false};
+  bool protocol_version_mismatch{false};
+  bool auth_version_mismatch{false};
+
+  // cluster.replay.drift_rate = replay_divergences / replay_verifications
+  // -1.0 if no replay verifications have been performed yet.
+  double   replay_drift_rate{-1.0};
+  uint64_t replay_divergences{0};
+  uint64_t replay_verifications{0};
+
+  std::vector<VersionMismatch> mismatches;
+
+  uint32_t total_workers{0};
+  uint32_t compatible_workers{0};
+
+  // Serialize to compact JSON.
+  std::string to_json() const;
+};
+
+// ---------------------------------------------------------------------------
 // ClusterRegistry — worker registration and heartbeat tracking.
 // ---------------------------------------------------------------------------
 // Thread-safe. Singleton accessed via global_cluster_registry().
@@ -132,6 +175,18 @@ class ClusterRegistry {
   // Serialize worker list to compact JSON array.
   std::string workers_to_json() const;
 
+  // Compute cluster drift status: version mismatches + replay drift rate.
+  // Thread-safe. Uses global EngineStats for replay counters.
+  ClusterDriftStatus cluster_drift_status() const;
+
+  // Serialize cluster drift status to compact JSON.
+  std::string cluster_drift_to_json() const;
+
+  // Validate that all registered workers are version-compatible with the local worker.
+  // Returns true if all compatible. On mismatch, writes details to *status.
+  // Called on cluster join and periodically by health checks.
+  bool validate_version_compatibility(ClusterDriftStatus* status = nullptr) const;
+
  private:
   mutable std::mutex         mu_;
   std::vector<WorkerRecord>  workers_;
@@ -159,5 +214,20 @@ void init_cluster_from_env();
 // Register the local worker with the global registry and emit a startup event.
 // Call after init_cluster_from_env().
 void register_local_worker();
+
+// ---------------------------------------------------------------------------
+// Startup version enforcement.
+// ---------------------------------------------------------------------------
+// If REQUIEM_FAIL_ON_VERSION_MISMATCH=1 is set AND cluster_mode is active,
+// check all registered workers for version compatibility.
+// Calls std::abort() with a structured diagnostic message if incompatible
+// workers are detected. Intended to be called after register_local_worker().
+//
+// INVARIANT: this function never silently ignores mismatches in strict mode.
+// In non-strict mode (default), logs a warning to stderr and continues.
+//
+// Returns true if all workers are compatible (or cluster_mode is off).
+// Returns false (or aborts in strict mode) if incompatible workers found.
+bool enforce_cluster_version_compatibility(bool strict = false);
 
 }  // namespace requiem
