@@ -73,6 +73,9 @@ add_library(requiem
   src/audit.cpp               # Phase F: Immutable audit log
   src/worker.cpp              # Phase H: Worker identity + cluster mode
   src/cluster.cpp             # Distributed cluster platform: shard router + registry
+  src/rbac.cpp                # Phase 2+7: RBAC roles, permissions, node auth
+  src/autotune.cpp            # Phase 3: Performance auto-tuning feedback loop
+  src/diagnostics.cpp         # Phase 4: AI-assisted root cause diagnostics
 )
 
 target_include_directories(requiem

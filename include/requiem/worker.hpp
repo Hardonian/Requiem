@@ -49,6 +49,23 @@ struct WorkerIdentity {
   uint32_t    shard_id{0};    // Assigned shard (0 = unsharded/standalone)
   uint32_t    total_shards{1};// Total shards in cluster (1 = standalone)
 
+  // Phase 7: Security — node-to-node authentication scheme version.
+  // All workers in a cluster must agree on auth_version.
+  // Mismatched auth_version causes cluster join to fail (startup guard).
+  // EXTENSION_POINT: node_auth_upgrade
+  //   version 1 = bearer token stub (current).
+  //   version 2 = mutual TLS (upgrade path).
+  //   version 3 = SPIFFE/SPIRE SVID.
+  uint32_t    auth_version{1};
+
+  // Version stamps for cluster compatibility checking.
+  // Populated from version.hpp constants at init time.
+  // Allows the ClusterRegistry to detect mixed-version deployments.
+  std::string engine_semver;          // e.g. "0.8.0"
+  uint32_t    engine_abi_version{0};
+  uint32_t    hash_algorithm_version{0};
+  uint32_t    protocol_framing_version{0};
+
   // EXTENSION_POINT: cluster_coordinator
   // Add: coordinator_endpoint, heartbeat_interval_ms, last_heartbeat_ts
 };

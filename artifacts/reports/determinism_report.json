@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-02-27T16:39:30Z",
+  "engine_version": "0.8.0",
+  "hash_algorithm": "blake3",
+  "hash_algorithm_version": 1,
+  "cas_format_version": 2,
+  "determinism_contract": "contracts/determinism.contract.json",
+  "release_gates_passed": true,
+  "pass_count": 13,
+  "fail_count": 0
+}
