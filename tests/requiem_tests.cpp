@@ -12,6 +12,7 @@
 #endif
 #include "requiem/audit.hpp"
 #include "requiem/cas.hpp"
+#include "requiem/cluster.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
 #include "requiem/metering.hpp"
@@ -1204,6 +1205,199 @@ void test_worker_identity() {
   expect(!health.worker_id.empty(), "health worker_id must be non-empty");
 }
 
+// ============================================================================
+// Distributed Cluster Platform tests
+// ============================================================================
+
+void test_shard_router_standalone() {
+  // In standalone mode (total_shards=1), all tenants → shard 0.
+  expect(requiem::ShardRouter::shard_for_tenant("tenant-a", 1) == 0,
+         "standalone: all tenants map to shard 0");
+  expect(requiem::ShardRouter::shard_for_tenant("tenant-b", 1) == 0,
+         "standalone: all tenants map to shard 0");
+  expect(requiem::ShardRouter::shard_for_tenant("", 1) == 0,
+         "standalone: empty tenant maps to shard 0");
+  // total_shards=0 → safe default shard 0.
+  expect(requiem::ShardRouter::shard_for_tenant("tenant-a", 0) == 0,
+         "total_shards=0 → safe default 0");
+}
+
+void test_shard_router_determinism() {
+  // Same tenant + same total_shards → same shard every time (determinism invariant).
+  const uint32_t n = 8;
+  for (const auto& tenant : std::vector<std::string>{"alpha", "beta", "gamma", "delta"}) {
+    const uint32_t s1 = requiem::ShardRouter::shard_for_tenant(tenant, n);
+    const uint32_t s2 = requiem::ShardRouter::shard_for_tenant(tenant, n);
+    const uint32_t s3 = requiem::ShardRouter::shard_for_tenant(tenant, n);
+    expect(s1 == s2, "shard must be deterministic (same tenant)");
+    expect(s1 == s3, "shard must be deterministic across three calls");
+    expect(s1 < n, "shard must be in range [0, total_shards)");
+  }
+}
+
+void test_shard_router_distribution() {
+  // With enough tenants, multiple shards should be assigned (not all → 0).
+  const uint32_t total_shards = 4;
+  std::vector<uint32_t> counts(total_shards, 0);
+  for (int i = 0; i < 100; ++i) {
+    const std::string tenant = "tenant-" + std::to_string(i);
+    const uint32_t shard = requiem::ShardRouter::shard_for_tenant(tenant, total_shards);
+    expect(shard < total_shards, "shard must be in range");
+    counts[shard]++;
+  }
+  // With FNV-1a and 100 tenants across 4 shards, all shards should receive ≥1 assignment.
+  for (uint32_t s = 0; s < total_shards; ++s) {
+    expect(counts[s] > 0, "each shard should receive at least one tenant assignment");
+  }
+}
+
+void test_cluster_registry_register() {
+  requiem::ClusterRegistry reg;
+
+  requiem::WorkerIdentity w1;
+  w1.worker_id   = "w-test-cluster-1";
+  w1.node_id     = "node-1";
+  w1.cluster_mode = true;
+  w1.shard_id    = 0;
+  w1.total_shards = 2;
+
+  requiem::WorkerHealth h1;
+  h1.worker_id = w1.worker_id;
+  h1.alive = true;
+  h1.executions_total = 10;
+
+  reg.register_worker(w1, h1);
+  expect(reg.worker_count() == 1, "registry must have 1 worker after registration");
+  expect(reg.healthy_count() == 1, "registry must have 1 healthy worker");
+
+  // Idempotent registration — re-registering same worker_id updates, doesn't duplicate.
+  h1.executions_total = 20;
+  reg.register_worker(w1, h1);
+  expect(reg.worker_count() == 1, "re-registration must not duplicate workers");
+
+  // Register second worker.
+  requiem::WorkerIdentity w2;
+  w2.worker_id   = "w-test-cluster-2";
+  w2.node_id     = "node-2";
+  w2.cluster_mode = true;
+  w2.shard_id    = 1;
+  w2.total_shards = 2;
+  requiem::WorkerHealth h2;
+  h2.worker_id = w2.worker_id;
+  h2.alive = true;
+  reg.register_worker(w2, h2);
+  expect(reg.worker_count() == 2, "registry must have 2 workers");
+  expect(reg.healthy_count() == 2, "registry must have 2 healthy workers");
+}
+
+void test_cluster_registry_mark_unhealthy() {
+  requiem::ClusterRegistry reg;
+
+  requiem::WorkerIdentity w;
+  w.worker_id   = "w-health-test";
+  w.node_id     = "node-h";
+  w.cluster_mode = true;
+  w.shard_id    = 0;
+  w.total_shards = 1;
+  requiem::WorkerHealth h;
+  h.worker_id = w.worker_id;
+  h.alive = true;
+
+  reg.register_worker(w, h);
+  expect(reg.healthy_count() == 1, "must be healthy after registration");
+
+  reg.mark_unhealthy("w-health-test");
+  expect(reg.healthy_count() == 0, "must be unhealthy after mark_unhealthy");
+  expect(reg.worker_count() == 1, "worker_count must remain 1 after mark_unhealthy");
+
+  // Mark unknown worker — must not crash.
+  reg.mark_unhealthy("nonexistent-worker");
+  expect(reg.worker_count() == 1, "worker_count must be unchanged after no-op mark_unhealthy");
+}
+
+void test_cluster_registry_json() {
+  requiem::ClusterRegistry reg;
+
+  requiem::WorkerIdentity w;
+  w.worker_id    = "w-json-test";
+  w.node_id      = "node-json";
+  w.cluster_mode = false;
+  w.shard_id     = 0;
+  w.total_shards = 1;
+  requiem::WorkerHealth h;
+  h.worker_id          = w.worker_id;
+  h.alive              = true;
+  h.executions_total   = 42;
+  h.executions_inflight = 0;
+  h.queue_depth        = 0;
+  h.utilization_pct    = 0.0;
+  reg.register_worker(w, h);
+
+  const auto workers_json = reg.workers_to_json();
+  expect(workers_json.front() == '[' && workers_json.back() == ']',
+         "workers_to_json must be a JSON array");
+  expect(workers_json.find("w-json-test") != std::string::npos,
+         "workers_json must contain worker_id");
+  expect(workers_json.find("executions_total") != std::string::npos,
+         "workers_json must contain executions_total");
+}
+
+void test_cluster_status_snapshot() {
+  // After init_worker_identity, cluster_status must reflect the local worker.
+  requiem::init_worker_identity("w-status-test", "node-status", false);
+  requiem::init_cluster_from_env();
+  requiem::register_local_worker();
+
+  const auto& reg = requiem::global_cluster_registry();
+  const auto status = reg.cluster_status();
+
+  expect(status.local_worker_id == "w-status-test", "cluster status must reflect local worker_id");
+  expect(status.local_node_id   == "node-status",   "cluster status must reflect local node_id");
+  expect(status.total_workers   >= 1, "cluster must have at least 1 worker after register");
+  expect(status.healthy_workers >= 1, "cluster must have at least 1 healthy worker");
+
+  const auto json = reg.cluster_status_to_json();
+  expect(json.front() == '{' && json.back() == '}', "cluster status JSON must be object");
+  expect(json.find("cluster_mode") != std::string::npos, "JSON: cluster_mode");
+  expect(json.find("total_workers") != std::string::npos, "JSON: total_workers");
+  expect(json.find("total_shards") != std::string::npos, "JSON: total_shards");
+}
+
+void test_worker_shard_update() {
+  requiem::init_worker_identity("w-shard-upd", "node-shard", true);
+  requiem::update_worker_shard(3, 8);
+  const auto& w = requiem::global_worker_identity();
+  expect(w.shard_id == 3, "shard_id must be updated to 3");
+  expect(w.total_shards == 8, "total_shards must be updated to 8");
+}
+
+void test_shard_is_local() {
+  // Set up a 4-shard cluster where this worker owns shard 0.
+  requiem::init_worker_identity("w-local-shard", "node-ls", true);
+  requiem::update_worker_shard(0, 4);
+
+  // Find a tenant that maps to shard 0.
+  std::string local_tenant, remote_tenant;
+  for (int i = 0; i < 1000; ++i) {
+    const std::string t = "t-" + std::to_string(i);
+    if (requiem::ShardRouter::shard_for_tenant(t, 4) == 0) {
+      local_tenant = t;
+    } else if (remote_tenant.empty()) {
+      remote_tenant = t;
+    }
+    if (!local_tenant.empty() && !remote_tenant.empty()) break;
+  }
+
+  if (!local_tenant.empty()) {
+    expect(requiem::ShardRouter::is_local_shard(local_tenant),
+           "tenant that maps to shard 0 must be local when worker owns shard 0");
+  }
+  if (!remote_tenant.empty()) {
+    expect(!requiem::ShardRouter::is_local_shard(remote_tenant),
+           "tenant that maps to non-0 shard must not be local when worker owns shard 0");
+  }
+}
+
 int main() {
   std::cout << "=== Requiem Engine Test Suite ===\n";
 
@@ -1304,6 +1498,17 @@ int main() {
 
   std::cout << "\n[Phase H] Worker identity\n";
   run_test("worker identity init + JSON", test_worker_identity);
+
+  std::cout << "\n[Distributed Cluster Platform]\n";
+  run_test("shard router: standalone mode", test_shard_router_standalone);
+  run_test("shard router: determinism", test_shard_router_determinism);
+  run_test("shard router: distribution across shards", test_shard_router_distribution);
+  run_test("cluster registry: register workers", test_cluster_registry_register);
+  run_test("cluster registry: mark unhealthy", test_cluster_registry_mark_unhealthy);
+  run_test("cluster registry: JSON serialization", test_cluster_registry_json);
+  run_test("cluster status snapshot", test_cluster_status_snapshot);
+  run_test("worker shard update", test_worker_shard_update);
+  run_test("shard is_local detection", test_shard_is_local);
 
   std::cout << "\n=== " << g_tests_passed << "/" << g_tests_run << " tests passed ===\n";
   return g_tests_passed == g_tests_run ? 0 : 1;

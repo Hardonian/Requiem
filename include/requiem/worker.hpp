@@ -92,4 +92,9 @@ std::string worker_identity_to_json(const WorkerIdentity& w);
 // Serialize WorkerHealth to compact JSON.
 std::string worker_health_to_json(const WorkerHealth& h);
 
+// Update the shard assignment in the global worker identity.
+// Must be called after init_worker_identity().
+// Used by init_cluster_from_env() to apply REQUIEM_SHARD_ID / REQUIEM_TOTAL_SHARDS.
+void update_worker_shard(uint32_t shard_id, uint32_t total_shards);
+
 }  // namespace requiem
