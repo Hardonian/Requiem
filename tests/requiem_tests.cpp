@@ -7,7 +7,10 @@
 #include <thread>
 #include <vector>
 
+#ifndef REQUIEM_NO_C_API
 #include "requiem/c_api.h"
+#endif
+#include "requiem/audit.hpp"
 #include "requiem/cas.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
@@ -15,6 +18,8 @@
 #include "requiem/observability.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
+#include "requiem/version.hpp"
+#include "requiem/worker.hpp"
 
 namespace fs = std::filesystem;
 
@@ -801,6 +806,7 @@ void test_s3_backend_scaffold() {
 // ============================================================================
 // Phase 5: C ABI
 // ============================================================================
+#ifndef REQUIEM_NO_C_API
 
 void test_c_api_lifecycle() {
   requiem_ctx_t* ctx = requiem_init("{}", REQUIEM_ABI_VERSION);
@@ -863,6 +869,8 @@ void test_c_api_null_safety() {
   requiem_free_string(nullptr);  // Must not crash.
   requiem_shutdown(nullptr);     // Must not crash.
 }
+
+#endif  // REQUIEM_NO_C_API
 
 // ============================================================================
 // Phase 6: Verify escape_inner optimization determinism
@@ -934,6 +942,268 @@ void test_tenant_id_excluded_from_digest() {
          "canonical request must not contain tenant string");
 }
 
+// ============================================================================
+// Phase C: Boundary Contract Tests
+// Each boundary: Engine↔CLI, Engine↔CAS, Engine↔Replay, Engine↔ABI
+// ============================================================================
+
+// Boundary: Engine ↔ CLI — version manifest contract
+void test_version_manifest_contract() {
+  // The version manifest must be stable and contain all required fields.
+  auto m = requiem::version::current_manifest("0.8.0");
+  expect(m.engine_abi   == requiem::version::ENGINE_ABI_VERSION,    "ABI version must match constant");
+  expect(m.hash_algorithm == requiem::version::HASH_ALGORITHM_VERSION, "hash version must match constant");
+  expect(m.cas_format   == requiem::version::CAS_FORMAT_VERSION,    "CAS format version must match constant");
+  expect(m.protocol_framing == requiem::version::PROTOCOL_FRAMING_VERSION, "protocol version must match constant");
+  expect(m.engine_semver == "0.8.0",  "semver must pass through");
+  expect(m.hash_primitive == "blake3","hash primitive must be blake3");
+  expect(!m.build_timestamp.empty(),  "build timestamp must be non-empty");
+
+  // JSON serialization must be valid (starts/ends with braces, contains all keys)
+  const auto json = requiem::version::manifest_to_json(m);
+  expect(json.front() == '{' && json.back() == '}', "manifest JSON must be an object");
+  expect(json.find("engine_abi") != std::string::npos,     "JSON: engine_abi");
+  expect(json.find("hash_algorithm") != std::string::npos, "JSON: hash_algorithm");
+  expect(json.find("cas_format") != std::string::npos,     "JSON: cas_format");
+  expect(json.find("protocol_framing") != std::string::npos, "JSON: protocol_framing");
+}
+
+// Boundary: Engine ↔ ABI — compatibility check contract
+void test_abi_compatibility_check() {
+  // Correct ABI version: must succeed.
+  auto r = requiem::version::check_compatibility(requiem::version::ENGINE_ABI_VERSION);
+  expect(r.ok,                "correct ABI version must pass compatibility check");
+  expect(r.error_code.empty(),"no error on correct ABI version");
+
+  // Wrong ABI version: must fail with structured error.
+  auto bad = requiem::version::check_compatibility(requiem::version::ENGINE_ABI_VERSION + 99);
+  expect(!bad.ok,              "wrong ABI version must fail compatibility check");
+  expect(bad.error_code == "abi_version_mismatch", "error_code must be abi_version_mismatch");
+  expect(!bad.description.empty(),                 "description must be non-empty on failure");
+}
+
+// Boundary: Engine ↔ CAS — failure mode: CAS corruption detected
+void test_cas_failure_mode_corruption() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_fail_test";
+  fs::create_directories(tmp);
+
+  requiem::CasStore cas(tmp.string());
+
+  // Put a valid object.
+  const std::string data = "corruption test data";
+  const std::string digest = cas.put(data);
+  expect(!digest.empty(), "put must succeed");
+
+  // Corrupt the stored file.
+  const std::string obj_dir = tmp.string() + "/objects/" + digest.substr(0, 2) + "/" + digest.substr(2, 2);
+  const std::string obj_path = obj_dir + "/" + digest;
+  {
+    std::ofstream ofs(obj_path, std::ios::binary | std::ios::trunc);
+    ofs << "CORRUPTED_CONTENT_THAT_WONT_MATCH_DIGEST";
+  }
+
+  // Read must fail gracefully (integrity check catches corruption).
+  auto result = cas.get(digest);
+  // Per CAS invariant: returns nullopt on integrity failure, never corrupted data.
+  // (Implementation may return the corrupt data if it doesn't re-verify on read;
+  //  in that case, the test verifies data was at least returned, not crashed.)
+  // The key invariant: get() must NOT crash or throw.
+  // The stronger invariant (integrity verification): result == nullopt.
+  // CAS.get() does verify stored_blob_hash, so expect nullopt:
+  expect(!result.has_value(), "CAS get must return nullopt on corrupt object");
+
+  fs::remove_all(tmp);
+}
+
+// Boundary: Engine ↔ Replay — failure mode: replay mismatch detected
+void test_replay_failure_mode_mismatch() {
+  requiem::ExecutionRequest req;
+  req.request_id     = "replay-mismatch-test";
+  req.command        = "/bin/sh";
+  req.argv           = {"-c", "echo replay-test"};
+  req.workspace_root = "/tmp";
+  req.policy.scheduler_mode = "turbo";
+  req.nonce = 0;
+
+  const auto res = requiem::execute(req);
+  expect(res.ok, "execution must succeed for replay test");
+
+  // Tamper with the result digest.
+  requiem::ExecutionResult tampered = res;
+  tampered.result_digest = std::string(64, 'a');  // wrong digest
+
+  // Replay validation must detect the mismatch.
+  const bool valid = requiem::validate_replay(req, tampered);
+  expect(!valid, "replay must fail on tampered result_digest");
+}
+
+// Boundary: Engine ↔ Replay — failure mode: partial/empty request
+void test_replay_failure_mode_empty_request() {
+  requiem::ExecutionRequest empty_req;  // empty command
+  requiem::ExecutionResult empty_res;
+
+  // Must not crash — graceful failure.
+  const bool valid = requiem::validate_replay(empty_req, empty_res);
+  // Both digests are empty strings — technically matching (both "")
+  // but the important invariant is no crash or exception.
+  (void)valid;  // result doesn't matter; crash = test fail
+}
+
+// Boundary: Engine ↔ CAS — put/get round-trip under worker identity
+void test_cas_with_worker_context() {
+  requiem::init_worker_identity("test-worker-1", "test-node-1", false);
+  const auto& w = requiem::global_worker_identity();
+  expect(w.worker_id == "test-worker-1", "worker_id must be set");
+  expect(w.node_id   == "test-node-1",   "node_id must be set");
+  expect(!w.cluster_mode,                "cluster_mode must be false");
+
+  // CAS operations are worker-identity-agnostic (content-addressed).
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_worker_test";
+  fs::create_directories(tmp);
+  requiem::CasStore cas(tmp.string());
+  const std::string digest = cas.put("worker-context-data");
+  expect(!digest.empty(), "CAS put must succeed with worker context");
+  expect(cas.contains(digest), "CAS must contain object after put");
+  fs::remove_all(tmp);
+}
+
+// Phase D: Failure category stats — record and serialize
+void test_failure_category_stats() {
+  requiem::FailureCategoryStats stats;
+  expect(stats.cas_corruption == 0, "initial cas_corruption must be 0");
+
+  stats.record(requiem::ErrorCode::cas_corruption);
+  stats.record(requiem::ErrorCode::cas_integrity_failed);  // maps to cas_corruption
+  expect(stats.cas_corruption == 2, "cas_corruption must be 2 after two records");
+
+  stats.record(requiem::ErrorCode::replay_mismatch);
+  expect(stats.replay_mismatch == 1, "replay_mismatch must be 1");
+
+  stats.record(requiem::ErrorCode::out_of_memory);
+  expect(stats.out_of_memory == 1, "out_of_memory must be 1");
+
+  const auto json = stats.to_json();
+  expect(json.front() == '{' && json.back() == '}', "failure stats JSON must be object");
+  expect(json.find("cas_corruption") != std::string::npos, "JSON: cas_corruption");
+  expect(json.find("replay_mismatch") != std::string::npos, "JSON: replay_mismatch");
+  expect(json.find("out_of_memory") != std::string::npos, "JSON: out_of_memory");
+}
+
+// Phase F: Audit log — provenance record serialization
+void test_audit_log_provenance() {
+  requiem::ProvenanceRecord rec;
+  rec.execution_id    = "test-exec-1";
+  rec.tenant_id       = "tenant-audit";
+  rec.request_digest  = std::string(64, 'a');
+  rec.result_digest   = std::string(64, 'b');
+  rec.engine_semver   = "0.8.0";
+  rec.ok              = true;
+  rec.replay_verified = true;
+  rec.duration_ns     = 5'000'000;
+
+  const auto json = requiem::provenance_to_json(rec);
+  expect(json.front() == '{' && json.back() == '}', "provenance JSON must be object");
+  expect(json.find("execution_id") != std::string::npos, "JSON: execution_id");
+  expect(json.find("tenant_id") != std::string::npos, "JSON: tenant_id");
+  expect(json.find("replay_verified") != std::string::npos, "JSON: replay_verified");
+  expect(json.find("engine_abi_version") != std::string::npos, "JSON: engine_abi_version");
+  expect(json.find("hash_algorithm_version") != std::string::npos, "JSON: hash_algorithm_version");
+}
+
+// Phase F: Audit log — append to temp file, verify persistence
+void test_audit_log_append() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_audit_test.ndjson";
+  fs::remove(tmp);
+
+  requiem::ImmutableAuditLog alog(tmp.string());
+
+  requiem::ProvenanceRecord rec1;
+  rec1.execution_id  = "exec-1";
+  rec1.tenant_id     = "t1";
+  rec1.ok            = true;
+  rec1.request_digest = std::string(64, '1');
+  rec1.result_digest  = std::string(64, '2');
+  rec1.engine_semver  = "0.8.0";
+
+  bool w1 = alog.append(rec1);
+  expect(w1, "first append must succeed");
+  expect(rec1.sequence == 1, "first entry must have sequence 1");
+  expect(alog.entry_count() == 1, "entry_count must be 1");
+
+  requiem::ProvenanceRecord rec2;
+  rec2.execution_id  = "exec-2";
+  rec2.tenant_id     = "t1";
+  rec2.ok            = false;
+  rec2.error_code    = "timeout";
+  rec2.request_digest = std::string(64, '3');
+  rec2.result_digest  = std::string(64, '4');
+  rec2.engine_semver  = "0.8.0";
+
+  bool w2 = alog.append(rec2);
+  expect(w2, "second append must succeed");
+  expect(rec2.sequence == 2, "second entry must have sequence 2");
+  expect(alog.entry_count() == 2, "entry_count must be 2");
+  expect(alog.failure_count() == 0, "no failures yet");
+
+  // Verify file exists and has content
+  expect(fs::exists(tmp), "audit log file must exist");
+  std::ifstream ifs(tmp.string());
+  std::string line1, line2;
+  std::getline(ifs, line1);
+  std::getline(ifs, line2);
+  expect(!line1.empty(), "first audit log line must be non-empty");
+  expect(!line2.empty(), "second audit log line must be non-empty");
+  expect(line1.find("exec-1") != std::string::npos, "first line must contain exec-1");
+  expect(line2.find("exec-2") != std::string::npos, "second line must contain exec-2");
+
+  fs::remove(tmp);
+}
+
+// Phase G: Observability stats → JSON includes new Phase I metrics
+void test_observability_new_metrics() {
+  requiem::EngineStats stats;
+  const auto json = stats.to_json();
+  // Phase I: determinism metrics
+  expect(json.find("determinism") != std::string::npos,         "JSON: determinism section");
+  expect(json.find("replay_verified_rate") != std::string::npos,"JSON: replay_verified_rate");
+  expect(json.find("divergence_count") != std::string::npos,    "JSON: divergence_count");
+  // Phase I: CAS metrics
+  expect(json.find("\"cas\"") != std::string::npos,             "JSON: cas section");
+  expect(json.find("hit_rate") != std::string::npos,            "JSON: hit_rate");
+  expect(json.find("dedupe_ratio") != std::string::npos,        "JSON: dedupe_ratio");
+  // Phase I: memory metrics
+  expect(json.find("memory") != std::string::npos,              "JSON: memory section");
+  expect(json.find("peak_bytes_max") != std::string::npos,      "JSON: peak_bytes_max");
+  // Phase I: concurrency metrics
+  expect(json.find("concurrency") != std::string::npos,         "JSON: concurrency section");
+  // Phase I: p50/p95/p99 in ms (latency histogram)
+  expect(json.find("p50_ms") != std::string::npos,              "JSON: p50_ms");
+  expect(json.find("p95_ms") != std::string::npos,              "JSON: p95_ms");
+  expect(json.find("p99_ms") != std::string::npos,              "JSON: p99_ms");
+  // Phase D: failure categories
+  expect(json.find("failure_categories") != std::string::npos,  "JSON: failure_categories");
+}
+
+// Phase H: Worker identity initialization and serialization
+void test_worker_identity() {
+  const auto w = requiem::init_worker_identity("w-test-99", "node-test-1", false);
+  expect(w.worker_id == "w-test-99", "worker_id must be set");
+  expect(w.node_id   == "node-test-1", "node_id must be set");
+  expect(!w.cluster_mode, "cluster_mode must be false");
+  expect(w.shard_id == 0, "shard_id must default to 0");
+  expect(w.total_shards == 1, "total_shards must default to 1");
+
+  const auto json = requiem::worker_identity_to_json(w);
+  expect(json.front() == '{' && json.back() == '}', "worker identity JSON must be object");
+  expect(json.find("worker_id") != std::string::npos,    "JSON: worker_id");
+  expect(json.find("node_id") != std::string::npos,      "JSON: node_id");
+  expect(json.find("cluster_mode") != std::string::npos, "JSON: cluster_mode");
+
+  const auto health = requiem::worker_health_snapshot();
+  expect(health.alive, "worker must be alive");
+  expect(!health.worker_id.empty(), "health worker_id must be non-empty");
+}
+
 int main() {
   std::cout << "=== Requiem Engine Test Suite ===\n";
 
@@ -1000,10 +1270,12 @@ int main() {
   run_test("execution metrics populated", test_execution_metrics_populated);
 
   std::cout << "\n[Phase 5] C ABI\n";
+#ifndef REQUIEM_NO_C_API
   run_test("C API lifecycle", test_c_api_lifecycle);
   run_test("C API execute", test_c_api_execute);
   run_test("C API stats", test_c_api_stats);
   run_test("C API null safety", test_c_api_null_safety);
+#endif
 
   std::cout << "\n[Phase 6] Micro-opt determinism verification\n";
   run_test("escape_inner determinism (fast + slow path)", test_escape_inner_determinism);
@@ -1011,6 +1283,27 @@ int main() {
 
   std::cout << "\n[Phase 7] OSS/Enterprise boundary\n";
   run_test("tenant_id excluded from canonical digest", test_tenant_id_excluded_from_digest);
+
+  std::cout << "\n[Phase C] Boundary contract tests\n";
+  run_test("version manifest contract", test_version_manifest_contract);
+  run_test("ABI compatibility check", test_abi_compatibility_check);
+  run_test("CAS corruption detected gracefully", test_cas_failure_mode_corruption);
+  run_test("replay mismatch detected", test_replay_failure_mode_mismatch);
+  run_test("replay empty request safe", test_replay_failure_mode_empty_request);
+  run_test("CAS with worker context", test_cas_with_worker_context);
+
+  std::cout << "\n[Phase D] Failure category stats\n";
+  run_test("failure category record + serialize", test_failure_category_stats);
+
+  std::cout << "\n[Phase F] Audit log + provenance\n";
+  run_test("provenance record serialization", test_audit_log_provenance);
+  run_test("audit log append + persist", test_audit_log_append);
+
+  std::cout << "\n[Phase G+I] Extended observability metrics\n";
+  run_test("observability new metrics (Phase I)", test_observability_new_metrics);
+
+  std::cout << "\n[Phase H] Worker identity\n";
+  run_test("worker identity init + JSON", test_worker_identity);
 
   std::cout << "\n=== " << g_tests_passed << "/" << g_tests_run << " tests passed ===\n";
   return g_tests_passed == g_tests_run ? 0 : 1;

@@ -1,7 +1,18 @@
 name: ci
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # ASAN/UBSAN nightly: 02:00 UTC (Phase L)
+    - cron: '0 2 * * *'
+    # TSAN weekly: Sunday 03:00 UTC (Phase L)
+    - cron: '0 3 * * 0'
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Primary build + test (Linux + Windows)
+  # ---------------------------------------------------------------------------
   build-test:
     strategy:
       matrix:
@@ -53,3 +64,89 @@ jobs:
       - name: determinism gate (200x repeat)
         if: runner.os == 'Linux'
         run: ./scripts/verify_determinism.sh
+      - name: persona coverage gate (Phase A+E)
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_personas.sh
+      - name: version contracts gate (Phase G)
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_version_contracts.sh
+
+  # ---------------------------------------------------------------------------
+  # ASAN nightly — Phase L
+  # ---------------------------------------------------------------------------
+  asan-nightly:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
+      - name: build (ASAN)
+        run: |
+          mkdir -p build-asan && cd build-asan
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DREQUIEM_WITH_ZSTD=OFF \
+            -DREQUIEM_ASAN=ON \
+            -DREQUIEM_BUILD_C_API=OFF \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+          make -j$(nproc) requiem_tests requiem
+      - name: run tests (ASAN)
+        run: |
+          cd build-asan
+          ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 ./requiem_tests
+      - name: smoke (ASAN)
+        run: REQUIEM_BIN=./build-asan/requiem ./scripts/verify_smoke.sh
+
+  # ---------------------------------------------------------------------------
+  # UBSAN nightly — Phase L
+  # ---------------------------------------------------------------------------
+  ubsan-nightly:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
+      - name: build (UBSAN)
+        run: |
+          mkdir -p build-ubsan && cd build-ubsan
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DREQUIEM_WITH_ZSTD=OFF \
+            -DREQUIEM_UBSAN=ON \
+            -DREQUIEM_BUILD_C_API=OFF \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+          make -j$(nproc) requiem_tests requiem
+      - name: run tests (UBSAN)
+        run: |
+          cd build-ubsan
+          UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 ./requiem_tests
+
+  # ---------------------------------------------------------------------------
+  # TSAN weekly — Phase L
+  # ---------------------------------------------------------------------------
+  tsan-weekly:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
+      - name: build (TSAN)
+        run: |
+          mkdir -p build-tsan && cd build-tsan
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DREQUIEM_WITH_ZSTD=OFF \
+            -DREQUIEM_TSAN=ON \
+            -DREQUIEM_BUILD_C_API=OFF \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+          make -j$(nproc) requiem_tests
+      - name: run tests (TSAN)
+        run: |
+          cd build-tsan
+          TSAN_OPTIONS=halt_on_error=1 ./requiem_tests

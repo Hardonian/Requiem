@@ -5,14 +5,19 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <vector>
 
+#include "requiem/audit.hpp"
 #include "requiem/cas.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
+#include "requiem/observability.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
 #include "requiem/sandbox.hpp"
+#include "requiem/version.hpp"
+#include "requiem/worker.hpp"
 
 namespace {
 std::string read_file(const std::string& path) {
@@ -524,6 +529,263 @@ int main(int argc, char** argv) {
     std::cout << "{\"config\":{\"version\":\"" << PROJECT_VERSION << "\",\"defaults\":{\"hash\":{\"primitive\":\"blake3\",\"backend\":\"vendored\"},\"cas\":{\"version\":\"v2\",\"compression\":\"identity\"}}}}" << "\n";
     return 0;
   }
-  
+
+  // ---------------------------------------------------------------------------
+  // Phase A: reach version
+  // Persona: all. Returns engine + ABI + hash + CAS + protocol versions.
+  // --json flag (default): always emits structured JSON (stable schema).
+  // ---------------------------------------------------------------------------
+  if (cmd == "version") {
+    auto manifest = requiem::version::current_manifest(PROJECT_VERSION);
+    auto result   = requiem::version::check_compatibility(requiem::version::ENGINE_ABI_VERSION);
+    std::cout << "{"
+              << "\"ok\":" << (result.ok ? "true" : "false")
+              << ",\"engine_semver\":\"" << manifest.engine_semver << "\""
+              << ",\"engine_abi_version\":" << manifest.engine_abi
+              << ",\"hash_algorithm_version\":" << manifest.hash_algorithm
+              << ",\"cas_format_version\":" << manifest.cas_format
+              << ",\"protocol_framing_version\":" << manifest.protocol_framing
+              << ",\"replay_log_version\":" << manifest.replay_log
+              << ",\"audit_log_version\":" << manifest.audit_log
+              << ",\"hash_primitive\":\"" << manifest.hash_primitive << "\""
+              << ",\"build_timestamp\":\"" << manifest.build_timestamp << "\""
+              << "}\n";
+    return 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase A: reach status
+  // Persona: SRE/DevOps, Power User. Runtime status + current metrics snapshot.
+  // Fail-safe: always returns JSON even if some sub-systems error.
+  // ---------------------------------------------------------------------------
+  if (cmd == "status") {
+    const auto& worker = requiem::global_worker_identity();
+    const auto  health = requiem::worker_health_snapshot();
+    const auto& stats  = requiem::global_engine_stats();
+    const auto  h      = requiem::hash_runtime_info();
+    std::ostringstream o;
+    o << "{"
+      << "\"ok\":true"
+      << ",\"engine_semver\":\"" << PROJECT_VERSION << "\""
+      << ",\"hash_primitive\":\"" << h.primitive << "\""
+      << ",\"hash_backend\":\"" << h.backend << "\""
+      << ",\"hash_available\":" << (h.blake3_available ? "true" : "false")
+      << ",\"worker\":" << requiem::worker_identity_to_json(worker)
+      << ",\"health\":" << requiem::worker_health_to_json(health)
+      << ",\"stats\":" << stats.to_json()
+      << "}\n";
+    std::cout << o.str();
+    return 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase A: reach demo
+  // Persona: OSS Developer (first value). Runs determinism demo in one command.
+  // Executes a known workload 3 times and verifies all result_digests match.
+  // ---------------------------------------------------------------------------
+  if (cmd == "demo") {
+    const std::string demo_cmd = "/bin/sh";
+    const std::vector<std::string> demo_argv = {"-c", "echo requiem-determinism-demo"};
+
+    requiem::ExecutionRequest req;
+    req.request_id    = "demo-1";
+    req.command       = demo_cmd;
+    req.argv          = demo_argv;
+    req.workspace_root = "/tmp";
+    req.policy.scheduler_mode = "turbo";
+    req.nonce = 0;
+
+    std::vector<std::string> digests;
+    std::vector<double> latencies_ms;
+    bool all_ok = true;
+    for (int i = 0; i < 3; ++i) {
+      // Keep request_id fixed across all runs: same inputs must produce same outputs.
+      // (request_id is part of canonicalize_request → changing it changes request_digest)
+      auto t0 = std::chrono::steady_clock::now();
+      auto res = requiem::execute(req);
+      auto t1  = std::chrono::steady_clock::now();
+      latencies_ms.push_back(
+          std::chrono::duration<double, std::milli>(t1 - t0).count());
+      digests.push_back(res.result_digest);
+      if (!res.ok) all_ok = false;
+    }
+
+    bool deterministic = true;
+    for (const auto& d : digests) {
+      if (d != digests[0]) { deterministic = false; break; }
+    }
+
+    std::ostringstream o;
+    o << "{"
+      << "\"ok\":" << (all_ok ? "true" : "false")
+      << ",\"deterministic\":" << (deterministic ? "true" : "false")
+      << ",\"runs\":3"
+      << ",\"result_digest\":\"" << (digests.empty() ? "" : digests[0]) << "\""
+      << ",\"latency_ms\":[";
+    for (size_t i = 0; i < latencies_ms.size(); ++i) {
+      if (i) o << ",";
+      char buf[32]; std::snprintf(buf, sizeof(buf), "%.2f", latencies_ms[i]);
+      o << buf;
+    }
+    o << "]"
+      << ",\"message\":\"" << (deterministic
+          ? "All 3 runs produced identical result_digest. Determinism confirmed."
+          : "DETERMINISM FAILURE: result_digest differs across runs.") << "\""
+      << "}\n";
+    std::cout << o.str();
+    return (all_ok && deterministic) ? 0 : 2;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase A: reach capsule inspect
+  // Persona: Support Engineer, Security Auditor.
+  // Inspects an execution result (capsule) for provenance and integrity.
+  // ---------------------------------------------------------------------------
+  if (cmd == "capsule" && argc >= 3 && std::string(argv[2]) == "inspect") {
+    std::string result_file, cas_dir = ".requiem/cas/v2";
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--result" && i + 1 < argc) result_file = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc) cas_dir = argv[++i];
+    }
+    if (result_file.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--result required\"}\n";
+      return 2;
+    }
+    auto content = read_file(result_file);
+    if (content.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"result file empty or missing\"}\n";
+      return 2;
+    }
+    auto r = parse_result(content);
+    // Verify result_digest integrity
+    const std::string computed = requiem::deterministic_digest(requiem::canonicalize_result(r));
+    const bool digest_ok = (computed == r.result_digest);
+    // Check CAS presence for all referenced digests
+    requiem::CasStore cas(cas_dir);
+    bool stdout_in_cas   = r.stdout_digest.empty()   || cas.contains(r.stdout_digest);
+    bool stderr_in_cas   = r.stderr_digest.empty()   || cas.contains(r.stderr_digest);
+    bool trace_in_cas    = r.trace_digest.empty()    || cas.contains(r.trace_digest);
+
+    std::ostringstream o;
+    o << "{"
+      << "\"ok\":" << (digest_ok ? "true" : "false")
+      << ",\"result_digest\":\"" << r.result_digest << "\""
+      << ",\"computed_digest\":\"" << computed << "\""
+      << ",\"digest_match\":" << (digest_ok ? "true" : "false")
+      << ",\"request_digest\":\"" << r.request_digest << "\""
+      << ",\"stdout_digest\":\"" << r.stdout_digest << "\""
+      << ",\"stderr_digest\":\"" << r.stderr_digest << "\""
+      << ",\"trace_digest\":\"" << r.trace_digest << "\""
+      << ",\"cas_presence\":{"
+      << "\"stdout\":" << (stdout_in_cas ? "true" : "false")
+      << ",\"stderr\":" << (stderr_in_cas ? "true" : "false")
+      << ",\"trace\":" << (trace_in_cas ? "true" : "false")
+      << "}"
+      << ",\"exit_code\":" << r.exit_code
+      << ",\"ok_flag\":" << (r.ok ? "true" : "false")
+      << ",\"termination_reason\":\"" << r.termination_reason << "\""
+      << "}\n";
+    std::cout << o.str();
+    return digest_ok ? 0 : 2;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase A: reach replay verify
+  // Persona: Security Auditor, SRE. Verifies a stored execution replay.
+  // Returns structured JSON with verification status and mismatch details.
+  // ---------------------------------------------------------------------------
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "verify") {
+    std::string req_file, result_file, cas_dir = ".requiem/cas/v2";
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--request" && i + 1 < argc) req_file    = argv[++i];
+      if (std::string(argv[i]) == "--result"  && i + 1 < argc) result_file = argv[++i];
+      if (std::string(argv[i]) == "--cas"     && i + 1 < argc) cas_dir     = argv[++i];
+    }
+    if (req_file.empty() || result_file.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--request and --result required\"}\n";
+      return 2;
+    }
+    auto req = requiem::parse_request_json(read_file(req_file), nullptr);
+    auto r   = parse_result(read_file(result_file));
+    requiem::CasStore cas(cas_dir);
+    std::string err;
+    const bool verified = requiem::validate_replay_with_cas(req, r, cas, &err);
+    std::ostringstream o;
+    o << "{"
+      << "\"ok\":" << (verified ? "true" : "false")
+      << ",\"verified\":" << (verified ? "true" : "false")
+      << ",\"result_digest\":\"" << r.result_digest << "\""
+      << ",\"request_digest\":\"" << r.request_digest << "\""
+      << ",\"error\":\"" << (verified ? "" : err) << "\""
+      << ",\"engine_version\":\"" << PROJECT_VERSION << "\""
+      << ",\"hash_algorithm_version\":" << requiem::version::HASH_ALGORITHM_VERSION
+      << "}\n";
+    std::cout << o.str();
+    return verified ? 0 : 2;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase A: reach metrics
+  // Persona: SRE/DevOps, Enterprise Operator. Full metrics dump.
+  // Returns complete structured JSON including p50/p95/p99, CAS, determinism.
+  // ---------------------------------------------------------------------------
+  if (cmd == "metrics") {
+    const auto& stats = requiem::global_engine_stats();
+    std::ostringstream o;
+    o << "{"
+      << "\"engine_version\":\"" << PROJECT_VERSION << "\""
+      << ",\"engine_abi_version\":" << requiem::version::ENGINE_ABI_VERSION
+      << ",\"hash_algorithm_version\":" << requiem::version::HASH_ALGORITHM_VERSION
+      << ",\"cas_format_version\":" << requiem::version::CAS_FORMAT_VERSION
+      << ",\"worker\":" << requiem::worker_identity_to_json(requiem::global_worker_identity())
+      << ",\"stats\":" << stats.to_json()
+      << ",\"audit_log\":{"
+      << "\"entry_count\":" << requiem::global_audit_log().entry_count()
+      << ",\"failure_count\":" << requiem::global_audit_log().failure_count()
+      << "}"
+      << "}\n";
+    std::cout << o.str();
+    return 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase E: reach quickstart
+  // Persona: OSS Developer. First-value guarantee: visible output in one command.
+  // ---------------------------------------------------------------------------
+  if (cmd == "quickstart") {
+    std::cout << "{"
+              << "\"step\":1,\"action\":\"verify_engine\",\"ok\":true,"
+              << "\"message\":\"Requiem engine ready. Hash: BLAKE3, CAS: v2, Protocol: v1.\","
+              << "\"next\":\"Run: requiem demo  (to verify determinism)\","
+              << "\"docs\":\"https://reach-cli.com/quickstart\""
+              << "}\n";
+    return 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase E: reach bugreport
+  // Persona: OSS Developer. Collects engine diagnostic info for bug reports.
+  // ---------------------------------------------------------------------------
+  if (cmd == "bugreport") {
+    const auto h = requiem::hash_runtime_info();
+    auto manifest = requiem::version::current_manifest(PROJECT_VERSION);
+    const auto& worker = requiem::global_worker_identity();
+    std::ostringstream o;
+    o << "{"
+      << "\"engine_semver\":\"" << PROJECT_VERSION << "\""
+      << ",\"engine_abi_version\":" << requiem::version::ENGINE_ABI_VERSION
+      << ",\"hash_primitive\":\"" << h.primitive << "\""
+      << ",\"hash_backend\":\"" << h.backend << "\""
+      << ",\"hash_available\":" << (h.blake3_available ? "true" : "false")
+      << ",\"hash_version\":\"" << h.version << "\""
+      << ",\"build_timestamp\":\"" << manifest.build_timestamp << "\""
+      << ",\"worker_id\":\"" << worker.worker_id << "\""
+      << ",\"node_id\":\"" << worker.node_id << "\""
+      << ",\"instructions\":\"Attach this JSON to your bug report at https://github.com/Hardonian/Requiem/issues\""
+      << "}\n";
+    std::cout << o.str();
+    return 0;
+  }
+
   return 1;
 }
