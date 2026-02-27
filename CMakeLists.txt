@@ -69,6 +69,9 @@ add_library(requiem
   src/sandbox_win.cpp
   src/metering.cpp
   src/observability.cpp       # Phase 4: Observability authority layer
+  src/version.cpp             # Phase G: Version evolution strategy
+  src/audit.cpp               # Phase F: Immutable audit log
+  src/worker.cpp              # Phase H: Worker identity + cluster mode
 )
 
 target_include_directories(requiem
@@ -100,6 +103,8 @@ target_compile_options(requiem
     -Wpedantic
     -fno-omit-frame-pointer   # Retain for perf/flamegraph profiling
 )
+# Enable PIC so librequiem can be linked into shared libraries (librequiem_c).
+set_property(TARGET requiem PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 # Phase 11 (Build tuning): Explicit -O3 for Release builds.
 # MICRO_DOCUMENTED: CMake default Release flags use -O2. -O3 additionally enables:
@@ -174,7 +179,12 @@ endif()
 enable_testing()
 
 add_executable(requiem_tests tests/requiem_tests.cpp)
-target_link_libraries(requiem_tests PRIVATE requiem requiem_c)
+if(REQUIEM_BUILD_C_API)
+  target_link_libraries(requiem_tests PRIVATE requiem requiem_c)
+else()
+  target_link_libraries(requiem_tests PRIVATE requiem)
+  target_compile_definitions(requiem_tests PRIVATE REQUIEM_NO_C_API=1)
+endif()
 add_test(NAME requiem_tests COMMAND requiem_tests)
 
 # ---------------------------------------------------------------------------
