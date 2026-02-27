@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit
+#
+# Routes manifest drift prevention.
+# Runs generate_routes_manifest.sh and auto-stages routes.manifest.json
+# whenever a route.ts file is added or removed in the same commit.
+#
+# Install (one-time, per developer):
+#   git config core.hooksPath .githooks
+#
+# CI runs this automatically via: git config core.hooksPath .githooks
+# in the checkout step (see .github/workflows/ci.yml build-test job).
+#
+# INVARIANT: routes.manifest.json must never drift from the actual filesystem
+# routes. This hook ensures every commit that touches ready-layer/src/app/api/
+# also carries an up-to-date manifest entry.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Only run if a route.ts file is staged (new/modified/deleted)
+ROUTE_CHANGES=$(git diff --cached --name-only --diff-filter=ACMD \
+  | grep -E "ready-layer/src/app/api/.*/route\.ts$" || true)
+
+if [ -z "$ROUTE_CHANGES" ]; then
+  # No route changes in this commit — skip manifest update
+  exit 0
+fi
+
+echo "[pre-commit] Route changes detected:"
+echo "$ROUTE_CHANGES" | sed 's/^/  /'
+echo "[pre-commit] Updating routes.manifest.json..."
+
+# Run the manifest generator
+if ! bash "${REPO_ROOT}/scripts/generate_routes_manifest.sh"; then
+  echo "[pre-commit] ERROR: generate_routes_manifest.sh failed — aborting commit"
+  exit 1
+fi
+
+# If the manifest was modified, stage it so it's included in this commit
+if ! git diff --quiet "${REPO_ROOT}/routes.manifest.json"; then
+  git add "${REPO_ROOT}/routes.manifest.json"
+  echo "[pre-commit] routes.manifest.json updated and staged automatically"
+else
+  echo "[pre-commit] routes.manifest.json already up to date"
+fi
