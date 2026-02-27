@@ -22,6 +22,8 @@ import type {
   ReplayVerifyResponse,
   ExecutionRecord,
   AuditLogEntry,
+  ClusterStatusResponse,
+  ClusterWorkersResponse,
 } from '@/types/engine';
 
 // The Node API base URL. Configured via environment variable.
@@ -139,6 +141,18 @@ export async function fetchAuditLogs(
     {},
     tenant,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Cluster platform client methods
+// ---------------------------------------------------------------------------
+
+export async function fetchClusterStatus(tenant: TenantContext): Promise<ClusterStatusResponse> {
+  return apiFetch<ClusterStatusResponse>('/api/cluster/status', {}, tenant);
+}
+
+export async function fetchClusterWorkers(tenant: TenantContext): Promise<ClusterWorkersResponse> {
+  return apiFetch<ClusterWorkersResponse>('/api/cluster/workers', {}, tenant);
 }
 
 // EXTENSION_POINT: governance_enhancements
