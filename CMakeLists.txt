@@ -72,6 +72,7 @@ add_library(requiem
   src/version.cpp             # Phase G: Version evolution strategy
   src/audit.cpp               # Phase F: Immutable audit log
   src/worker.cpp              # Phase H: Worker identity + cluster mode
+  src/cluster.cpp             # Distributed cluster platform: shard router + registry
 )
 
 target_include_directories(requiem
