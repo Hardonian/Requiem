@@ -43,3 +43,7 @@ build/
 # debug information files
 *.dwo
 formal/__pycache__/
+
+# Dependencies
+node_modules/
+
