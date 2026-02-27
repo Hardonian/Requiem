@@ -4,6 +4,7 @@
 
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -24,6 +25,30 @@ void append_limited(std::string& dst, const char* src, ssize_t n, std::size_t li
     truncated = true;
   }
 }
+
+// v1.2: Set rlimits in child process
+void apply_rlimits(const ProcessSpec& spec) {
+  if (spec.max_memory_bytes > 0) {
+    struct rlimit rl;
+    rl.rlim_cur = spec.max_memory_bytes;
+    rl.rlim_max = spec.max_memory_bytes;
+    setrlimit(RLIMIT_AS, &rl);
+  }
+  if (spec.max_file_descriptors > 0) {
+    struct rlimit rl;
+    rl.rlim_cur = spec.max_file_descriptors;
+    rl.rlim_max = spec.max_file_descriptors;
+    setrlimit(RLIMIT_NOFILE, &rl);
+  }
+  // CPU limit from timeout
+  if (spec.timeout_ms > 0) {
+    struct rlimit rl;
+    rl.rlim_cur = (spec.timeout_ms / 1000) + 5;  // 5 second grace
+    rl.rlim_max = (spec.timeout_ms / 1000) + 10;
+    setrlimit(RLIMIT_CPU, &rl);
+  }
+}
+
 }  // namespace
 
 ProcessResult run_process(const ProcessSpec& spec) {
@@ -49,6 +74,23 @@ ProcessResult run_process(const ProcessSpec& spec) {
 
     if (!spec.cwd.empty()) {
       if (chdir(spec.cwd.c_str()) != 0) _exit(127);
+    }
+
+    // v1.2: Apply rlimits
+    apply_rlimits(spec);
+
+    // v1.2: Apply seccomp if requested (stub - would need libseccomp)
+    if (spec.enforce_seccomp) {
+      // This is where seccomp-bpf would be installed
+      // For now, we report it as attempted but not enforced
+      result.failed_capabilities.push_back("seccomp_bpf");
+    }
+
+    // v1.2: Network namespace isolation
+    if (spec.enforce_network_isolation) {
+      // Network namespaces require CAP_SYS_ADMIN or unshare
+      // Report as unsupported for now
+      result.failed_capabilities.push_back("network_isolation");
     }
 
     std::vector<std::string> all = {spec.command};
@@ -116,8 +158,19 @@ ProcessResult run_process(const ProcessSpec& spec) {
 
   // Report sandbox capabilities applied
   result.sandbox_workspace_confinement = true;  // Path-based confinement
-  result.sandbox_rlimits = true;  // Could set rlimits via setrlimit in child
+  result.sandbox_rlimits = true;  // rlimits applied
   result.sandbox_seccomp = false;  // Not yet implemented
+  result.sandbox_network_isolation = false;  // Not yet implemented
+  
+  result.enforced_capabilities.push_back("workspace_confinement");
+  result.enforced_capabilities.push_back("rlimits");
+  
+  if (spec.enforce_seccomp) {
+    result.failed_capabilities.push_back("seccomp_bpf");
+  }
+  if (spec.enforce_network_isolation) {
+    result.failed_capabilities.push_back("network_isolation");
+  }
 
   if (result.timed_out) {
     result.exit_code = 124;
@@ -129,6 +182,20 @@ ProcessResult run_process(const ProcessSpec& spec) {
   return result;
 }
 
+// v1.2: Seccomp filter installation (stub)
+bool install_seccomp_filter(const std::vector<SeccompRule>& rules) {
+  // Would require libseccomp or raw BPF
+  // For now, report as unsupported
+  (void)rules;
+  return false;
+}
+
+// v1.2: Network namespace (stub)
+bool setup_network_namespace() {
+  // Would require unshare(CLONE_NEWNET) and CAP_SYS_ADMIN
+  return false;
+}
+
 }  // namespace requiem
 
 SandboxCapabilities detect_platform_sandbox_capabilities() {
@@ -137,10 +204,12 @@ SandboxCapabilities detect_platform_sandbox_capabilities() {
   caps.rlimits_cpu = true;  // setrlimit(RLIMIT_CPU) available
   caps.rlimits_mem = true;  // setrlimit(RLIMIT_AS) available
   caps.rlimits_fds = true;  // setrlimit(RLIMIT_NOFILE) available
-  caps.seccomp_baseline = false;  // Not yet implemented
+  caps.seccomp_baseline = false;  // v1.2 target: minimal seccomp
+  caps.seccomp_bpf = false;  // v1.2 target: full BPF filtering
   caps.job_objects = false;  // Linux doesn't have job objects
   caps.restricted_token = false;  // Linux doesn't have Windows tokens
-  caps.process_mitigations = false;  // Not yet implemented
+  caps.process_mitigations = false;  // Not applicable to Linux
+  caps.network_isolation = false;  // v1.2 target: network namespaces
   return caps;
 }
 

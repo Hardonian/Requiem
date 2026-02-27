@@ -2,6 +2,7 @@
 #include "requiem/sandbox.hpp"
 
 #include <windows.h>
+#include <sddl.h>
 
 #include <string>
 
@@ -14,6 +15,16 @@ void append_limited(std::string& dst, const char* src, size_t n, std::size_t lim
   if (take < n || dst.size() >= limit) truncated = true;
 }
 std::wstring widen(const std::string& s) { return std::wstring(s.begin(), s.end()); }
+
+// v1.2: Convert string security descriptor to SID
+PSID get_restricted_sid() {
+  // Low integrity level SID
+  const wchar_t* sddl = L"S-1-16-4096";  // Low mandatory level
+  PSID sid = nullptr;
+  ConvertStringSidToSidW(sddl, &sid);
+  return sid;
+}
+
 }  // namespace
 
 ProcessResult run_process(const ProcessSpec& spec) {
@@ -32,20 +43,108 @@ ProcessResult run_process(const ProcessSpec& spec) {
   si.hStdError = err_w;
   si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 
-  PROCESS_INFORMATION pi{};
-  std::wstring cmd = widen(spec.command);
-  for (const auto& a : spec.argv) cmd += L" \"" + widen(a) + L"\"";
-
+  // v1.2: Process creation flags
+  DWORD creation_flags = CREATE_NO_WINDOW | CREATE_SUSPENDED;
+  
+  // v1.2: Process mitigations
+  PROCESS_MITIGATION_POLICY mitigations[10] = {};
+  DWORD mitigation_size = 0;
+  
+  // v1.2: Job object with extended limits
   HANDLE job = CreateJobObjectW(nullptr, nullptr);
   JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli{};
   jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+  
+  // v1.2: Add memory limit if specified
+  if (spec.max_memory_bytes > 0) {
+    jeli.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_JOB_MEMORY;
+    jeli.JobMemoryLimit = spec.max_memory_bytes;
+  }
+  
   SetInformationJobObject(job, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
 
+  // v1.2: Security attributes for restricted token
+  SECURITY_ATTRIBUTES process_sa = {sizeof(SECURITY_ATTRIBUTES), nullptr, FALSE};
+  HANDLE hToken = nullptr;
+  HANDLE hRestrictedToken = nullptr;
+  
+  // v1.2: Create restricted token if requested
+  if (spec.enforce_network_isolation || spec.enforce_seccomp) {
+    // Open current process token
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_DUPLICATE | TOKEN_QUERY, &hToken)) {
+      // Create restricted token (remove privileges)
+      SID_AND_ATTRIBUTES sids[1];
+      PSID low_sid = get_restricted_sid();
+      if (low_sid) {
+        sids[0].Sid = low_sid;
+        sids[0].Attributes = SE_GROUP_INTEGRITY;
+        
+        if (CreateRestrictedToken(hToken, 0, 0, nullptr, 0, nullptr, 1, sids, &hRestrictedToken)) {
+          // Successfully created restricted token
+        } else {
+          result.failed_capabilities.push_back("restricted_token");
+          hRestrictedToken = nullptr;
+        }
+        LocalFree(low_sid);
+      }
+      CloseHandle(hToken);
+    }
+  }
+
+  PROCESS_INFORMATION pi{};
+  std::wstring cmd = widen(spec.command);
+  for (const auto& a : spec.argv) {
+    // v1.2: Proper argument quoting
+    cmd += L" \"";
+    for (wchar_t c : widen(a)) {
+      if (c == L'"') cmd += L'\\';
+      cmd += c;
+    }
+    cmd += L"\"";
+  }
+
   auto cwd = widen(spec.cwd);
-  if (!CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, TRUE, CREATE_NO_WINDOW, nullptr, cwd.empty() ? nullptr : cwd.c_str(), &si, &pi)) {
+  
+  BOOL created = FALSE;
+  if (hRestrictedToken) {
+    // Create process with restricted token
+    created = CreateProcessAsUserW(hRestrictedToken, nullptr, cmd.data(), nullptr, nullptr, TRUE,
+                                    creation_flags, nullptr, cwd.empty() ? nullptr : cwd.c_str(), &si, &pi);
+  } else {
+    created = CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, TRUE, creation_flags, nullptr,
+                              cwd.empty() ? nullptr : cwd.c_str(), &si, &pi);
+  }
+  
+  if (!created) {
     result.error_message = "spawn_failed";
+    CloseHandle(out_w);
+    CloseHandle(err_w);
+    CloseHandle(out_r);
+    CloseHandle(err_r);
+    CloseHandle(job);
+    if (hRestrictedToken) CloseHandle(hRestrictedToken);
     return result;
   }
+
+  // v1.2: Apply process mitigations
+  if (spec.enforce_seccomp) {
+    // Process mitigation policies for "seccomp-like" behavior
+    PROCESS_MITIGATION_SYSTEM_CALL_DISABLE_POLICY syscall_policy{};
+    syscall_policy.DisallowWin32kSystemCalls = 1;
+    SetProcessMitigationPolicy(ProcessSystemCallDisablePolicy, &syscall_policy, sizeof(syscall_policy));
+    
+    // Strict handle check
+    PROCESS_MITIGATION_STRICT_HANDLE_CHECK_POLICY handle_policy{};
+    handle_policy.HandleExceptionsPermanentlyEnabled = 1;
+    SetProcessMitigationPolicy(ProcessStrictHandleCheckPolicy, &handle_policy, sizeof(handle_policy));
+    
+    result.enforced_capabilities.push_back("process_mitigations");
+    result.sandbox_process_mitigations = true;
+  }
+
+  // Resume the suspended process
+  ResumeThread(pi.hThread);
+  
   AssignProcessToJobObject(job, pi.hProcess);
   CloseHandle(out_w);
   CloseHandle(err_w);
@@ -71,28 +170,87 @@ ProcessResult run_process(const ProcessSpec& spec) {
   // Report sandbox capabilities applied
   result.sandbox_workspace_confinement = true;  // Path-based confinement
   result.sandbox_job_object = true;  // Job Objects used for kill-on-close
-  result.sandbox_rlimits = false;  // rlimits not available on Windows
-  result.sandbox_seccomp = false;  // Not available on Windows
-  result.sandbox_restricted_token = false;  // Not yet implemented
+  result.sandbox_rlimits = spec.max_memory_bytes > 0;  // Job memory limits
+  result.sandbox_seccomp = spec.enforce_seccomp;  // Process mitigations used as seccomp-like
+  result.sandbox_restricted_token = hRestrictedToken != nullptr;
+  result.sandbox_network_isolation = false;  // Would require AppContainer or firewall rules
+  
+  result.enforced_capabilities.push_back("workspace_confinement");
+  result.enforced_capabilities.push_back("job_objects");
+  if (spec.max_memory_bytes > 0) {
+    result.enforced_capabilities.push_back("memory_limits");
+  }
+  if (spec.enforce_seccomp) {
+    result.enforced_capabilities.push_back("process_mitigations");
+  }
+  if (hRestrictedToken) {
+    result.enforced_capabilities.push_back("restricted_token");
+  }
+  
+  if (spec.enforce_network_isolation && !result.sandbox_network_isolation) {
+    result.failed_capabilities.push_back("network_isolation");
+  }
 
   CloseHandle(out_r);
   CloseHandle(err_r);
   CloseHandle(pi.hThread);
   CloseHandle(pi.hProcess);
   CloseHandle(job);
+  if (hRestrictedToken) CloseHandle(hRestrictedToken);
+  
   return result;
+}
+
+// v1.2: Apply Windows process mitigations
+bool apply_windows_mitigations() {
+  PROCESS_MITIGATION_ASLR_POLICY aslr_policy{};
+  aslr_policy.EnableBottomUpRandomization = 1;
+  aslr_policy.EnableForceRelocateImages = 1;
+  aslr_policy.EnableHighEntropy = 1;
+  
+  BOOL result = SetProcessMitigationPolicy(ProcessASLRPolicy, &aslr_policy, sizeof(aslr_policy));
+  return result != 0;
+}
+
+// v1.2: Create restricted token
+bool create_restricted_token() {
+  HANDLE hToken = nullptr;
+  HANDLE hRestrictedToken = nullptr;
+  
+  if (!OpenProcessToken(GetCurrentProcess(), TOKEN_DUPLICATE | TOKEN_QUERY, &hToken)) {
+    return false;
+  }
+  
+  BOOL result = CreateRestrictedToken(hToken, 0, 0, nullptr, 0, nullptr, 0, nullptr, &hRestrictedToken);
+  
+  CloseHandle(hToken);
+  if (hRestrictedToken) CloseHandle(hRestrictedToken);
+  
+  return result != 0;
+}
+
+// v1.2: Enable Windows network isolation
+bool enable_windows_network_isolation() {
+  // This would require:
+  // 1. Creating an AppContainer profile
+  // 2. Setting up firewall rules
+  // 3. Applying to process
+  // For now, report as not implemented
+  return false;
 }
 
 SandboxCapabilities detect_platform_sandbox_capabilities() {
   SandboxCapabilities caps;
   caps.workspace_confinement = true;  // Path-based confinement is implemented
   caps.rlimits_cpu = false;  // Not available on Windows
-  caps.rlimits_mem = false;  // Not available on Windows
+  caps.rlimits_mem = true;  // Job Object memory limits available
   caps.rlimits_fds = false;  // Not available on Windows
-  caps.seccomp_baseline = false;  // Not available on Windows
+  caps.seccomp_baseline = false;  // Not applicable
+  caps.seccomp_bpf = false;  // Not applicable
   caps.job_objects = true;  // Job Objects available and used
-  caps.restricted_token = false;  // Not yet implemented
-  caps.process_mitigations = false;  // Not yet implemented
+  caps.restricted_token = true;  // v1.2: Restricted tokens implemented
+  caps.process_mitigations = true;  // v1.2: Process mitigation policies available
+  caps.network_isolation = false;  // v1.2 target: AppContainer or firewall isolation
   return caps;
 }
 

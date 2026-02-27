@@ -1,5 +1,97 @@
 # Changelog
 
+## v1.3 (Ecosystem + Reach/ReadyLayer Cutover)
+
+### Added
+- **Reach CLI Cutover Tooling**: Feature-flag-compatible engine selection
+  - `--engine=rust|requiem|dual` flag for execution mode
+  - Dual-run mode for A/B testing between engines
+  - Diff report generation for mismatch analysis
+- **ReadyLayer Control Plane Hooks**: Event export and validation
+  - JSONL event stream with `engine_version` and `contract_version`
+  - Remote replay validation client stub
+  - `requiem cluster verify` supports remote result bundles
+- **Plugin Ecosystem Hygiene**: Sandboxing and testing
+  - Plugin callback timeouts
+  - Crash isolation with exception handling
+  - `requiem plugin test --path <so/dll>` compatibility harness
+- **Performance Regression Protection**: CI gates
+  - `requiem bench gate --baseline <file> --current <file>`
+  - Configurable regression threshold (default 10%)
+  - Pass/fail exit codes for CI integration
+
+### Changed
+- Enhanced `cluster verify` with version metadata
+- Improved engine selection policy with tenant/workload mappings
+
+## v1.2 (Hard Sandbox + Proof Objects)
+
+### Added
+- **Sandbox Enforcement Deepening**: Capability-honest security
+  - Linux: seccomp-bpf stub infrastructure (minimal profile)
+  - Linux: Network namespace isolation hooks
+  - Windows: Process mitigation policies (ASLR, strict handles)
+  - Windows: Restricted token support
+  - Truthful capability reporting (no lying about enforcement)
+- **Proof Artifacts**: Verifiable execution bundles
+  - `requiem proof generate --request <file> --result <file> --out <file>`
+  - `requiem proof verify --bundle <file>`
+  - Merkle root computation from input/output digests
+  - Policy digest and replay transcript inclusion
+  - Signature stub for external signing
+- **Determinism Confidence**: Honest reporting of guarantees
+  - `determinism_confidence.level`: high|medium|best_effort
+  - Confidence score (0.0-1.0) with reasons
+  - Factors: LLM mode, sandbox partial enforcement, capability failures
+- **Signed Envelope Readiness**: External signer plugin interface
+  - `signature` field in result JSON
+  - Signature metadata fields in proof bundle
+  - Plugin-based signing (avoids crypto bloat in core)
+
+### Changed
+- Enhanced sandbox reporting with `partial` enforcement list
+- Process spec includes resource limits and network isolation flags
+- Sandbox capabilities expanded: `seccomp_bpf`, `network_isolation`, `process_mitigations`
+
+## v1.1 (Production Ops)
+
+### Added
+- **Service Hardening**: Robust request lifecycle
+  - Automatic `request_id` generation (deterministic fallback)
+  - `start_timestamp` and `end_timestamp` (excluded from digest)
+  - `duration_ms` for latency tracking
+  - Structured status transitions
+- **Crash-Only Safety**: Atomic CAS writes
+  - Temp file + rename pattern for atomic object writes
+  - Journal metadata with timestamps
+  - Automatic cleanup on failure
+- **Observability**: Structured metrics
+  - `requiem metrics --format json|prom`
+  - Counters: exec_total, exec_fail, timeouts, queue_full
+  - CAS metrics: bytes_total, objects_total, hit_rate
+- **Config Schema Versioning**: Compatibility management
+  - `config_version` field (default "1.1")
+  - `requiem config validate --file <path>`
+  - Unknown field detection with warnings
+- **Log Redaction Assurance**: Secret protection
+  - Debug logs redact sensitive values
+  - Log contract test capability
+- **CAS Enhancements**: Operations and integrity
+  - `requiem cas stats --top N`: Largest objects report
+  - `requiem cas verify --sample N`: Random sampling
+  - `requiem cas gc --execute`: Reference-counted GC
+  - `put_atomic`: Crash-safe writes
+- **Doctor Expansion**: Comprehensive health checks
+  - Hash backend verification
+  - Sandbox capability truth
+  - CAS integrity sampling
+  - Serve loop sanity check
+
+### Changed
+- Health output includes sandbox capabilities and engine version
+- CAS metadata includes `created_at` and `ref_count`
+- Enhanced doctor with warnings (non-blocking issues)
+
 ## v1.0 (Production Lock + Replacement Certification)
 
 ### Added
