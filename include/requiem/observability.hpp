@@ -162,12 +162,22 @@ class EngineStats {
   LatencyHistogram latency_histogram;
 
   // --- Recent events ring buffer (last kMaxRecentEvents) ---
+  // MICRO_OPT: O(1) circular buffer replaces O(N) vector+erase(begin()).
+  // MICRO_DOCUMENTED: At kMaxRecentEvents=1000 full capacity, the old
+  // erase(begin()) shifted ~999 elements (~4 KB memcpy equivalent) per insertion.
+  // The new circular buffer uses modular-index overwrite: O(1) regardless of size.
+  // ring_head_ always points to the next slot to be overwritten (oldest entry when full).
+  // EXTENSION_POINT: replace with boost::circular_buffer or a lock-free ring if
+  //   event emission rate exceeds ~100k/s and ring_mu_ becomes contended.
   static constexpr size_t kMaxRecentEvents = 1000;
   std::vector<ExecutionEvent> recent_events_snapshot() const;
 
  private:
   mutable std::mutex ring_mu_;
   std::vector<ExecutionEvent> ring_buffer_;
+  size_t ring_head_{0};  // MICRO_OPT: next-write index for O(1) circular eviction
+  // MICRO_DOCUMENTED: ring_head_ is always in [0, kMaxRecentEvents).
+  // Invariant: ring_buffer_.size() <= kMaxRecentEvents at all times.
 };
 
 // Singleton accessor

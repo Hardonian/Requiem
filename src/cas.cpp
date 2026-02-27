@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <random>
+#include <string_view>  // MICRO_OPT: zero-alloc key lookup in info() lambda
 
 #if defined(REQUIEM_WITH_ZSTD)
 #include <zstd.h>
@@ -151,28 +152,40 @@ std::optional<CasObjectInfo> CasStore::info(const std::string& digest) const {
   std::string meta((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
   CasObjectInfo obj_info;
   obj_info.digest = digest;
-  auto find = [&](const std::string& k) {
-    const auto p = meta.find("\"" + k + "\"");
-    if (p == std::string::npos) return std::string{};
+
+  // MICRO_OPT: Accept string_view (not std::string) to avoid heap allocation per key.
+  // MICRO_DOCUMENTED: Old lambda took `const std::string& k` and constructed
+  //   `"\"" + k + "\""` on each call — 4 heap allocations for 4 fields = 4 alloc+free pairs.
+  // New lambda takes string_view of a pre-quoted compile-time key literal.
+  //   Caller passes `"\"encoding\""` as a string_view → zero heap allocation for key lookup.
+  // Assumption: meta JSON is compact (single-line, no whitespace between tokens).
+  //   This is guaranteed by the put() implementation which generates the meta JSON inline.
+  // EXTENSION_POINT: data_layout_strategy — if meta parsing becomes hot (e.g. scan_objects()
+  //   on large CAS stores), replace ad-hoc search with a minimal JSON tokenizer that
+  //   walks the string once and extracts all fields in a single pass.
+  auto find_field = [&](std::string_view quoted_key) -> std::string {
+    const auto p = meta.find(quoted_key.data(), 0, quoted_key.size());
+    if (p == std::string::npos) return {};
     const auto c = meta.find(':', p);
-    if (c == std::string::npos) return std::string{};
+    if (c == std::string::npos) return {};
     if (c + 1 < meta.size() && meta[c + 1] == '"') {
       const auto e = meta.find('"', c + 2);
-      if (e == std::string::npos) return std::string{};
+      if (e == std::string::npos) return {};
       return meta.substr(c + 2, e - c - 2);
     }
     const auto e = meta.find_first_of(",}", c + 1);
-    if (e == std::string::npos) return std::string{};
+    if (e == std::string::npos) return {};
     return meta.substr(c + 1, e - c - 1);
   };
-  obj_info.encoding = find("encoding");
+
+  obj_info.encoding = find_field("\"encoding\"");
   try {
-    obj_info.original_size = static_cast<std::size_t>(std::stoull(find("original_size")));
-    obj_info.stored_size = static_cast<std::size_t>(std::stoull(find("stored_size")));
+    obj_info.original_size = static_cast<std::size_t>(std::stoull(find_field("\"original_size\"")));
+    obj_info.stored_size   = static_cast<std::size_t>(std::stoull(find_field("\"stored_size\"")));
   } catch (...) {
     return std::nullopt;
   }
-  obj_info.stored_blob_hash = find("stored_blob_hash");
+  obj_info.stored_blob_hash = find_field("\"stored_blob_hash\"");
   return obj_info;
 }
 
