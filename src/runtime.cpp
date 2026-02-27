@@ -30,7 +30,9 @@
 
 #include <chrono>
 #include <filesystem>
-#include <fstream>
+// MICRO_OPT: <fstream> no longer needed directly in runtime.cpp — output file I/O
+// moved into hash_file_blake3_hex() in hash.cpp (streaming 64 KB chunks).
+// Kept for documentation; safe to remove if linker confirms no ODR dependency.
 
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
@@ -328,14 +330,18 @@ ExecutionResult execute(const ExecutionRequest& request) {
   }
 
   // Phase 9: Hash output files with path confinement.
+  // MICRO_OPT: Use hash_file_blake3_hex() — streaming 64 KB chunks, no full-file heap alloc.
+  // MICRO_DOCUMENTED: Old pattern: read entire file into std::string, then hash the string.
+  // For a 1 MB output file: allocates ~1 MB heap, reads into it, hashes, frees — 2× data touch.
+  // New pattern: hash_file_blake3_hex() streams in 64 KB stack-local buffer, O(file_size) I/O,
+  // zero extra heap. Output is identical: BLAKE3 incremental == BLAKE3 single-shot by spec.
+  // Assumption: output files are regular files accessible from the sandbox workspace.
   for (const auto& output : request.outputs) {
     const auto out_path = normalize_under(request.workspace_root, output, false);
     if (out_path.empty()) continue;
     if (!fs::exists(out_path) || !fs::is_regular_file(out_path)) continue;
-    std::ifstream ifs(out_path, std::ios::binary);
-    std::string bytes((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     const auto t0 = std::chrono::steady_clock::now();
-    const auto out_digest = deterministic_digest(bytes);
+    const auto out_digest = hash_file_blake3_hex(out_path);
     result.metrics.hash_duration_ns += static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - t0).count());

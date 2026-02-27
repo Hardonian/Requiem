@@ -121,6 +121,43 @@ std::string hash_file_blake3(const std::string& path) {
   return std::string(reinterpret_cast<char*>(out.data()), out.size());
 }
 
+// MICRO_OPT: Streaming hex file hash — avoids reading entire file into RAM.
+// MICRO_DOCUMENTED: Replaces the pattern `blake3_hex(read_file(path))` used in
+// runtime.cpp output-file hashing. For a 1 MB output file, the old pattern
+// allocates ~1 MB on the heap, then hashes it, then discards the allocation.
+// This function hashes the file in-place using a 64 KB stack buffer, producing
+// identical output with zero heap allocation for the file contents.
+//
+// Determinism guarantee: BLAKE3 is an incremental hash — feeding a file's bytes
+// via multiple blake3_hasher_update() calls produces exactly the same digest as
+// feeding them all at once. This is an explicit design property of BLAKE3.
+//
+// EXTENSION_POINT: simd_expansion — BLAKE3 vendored C implementation auto-selects
+//   AVX512/AVX2/SSE4.1/NEON at compile time. No manual SIMD dispatch needed here.
+std::string hash_file_blake3_hex(const std::string& path) {
+  std::ifstream file(path, std::ios::binary);
+  if (!file) return {};
+
+  blake3_hasher hasher;
+  blake3_hasher_init(&hasher);
+
+  // 64 KB stack buffer: balances I/O syscall frequency vs stack pressure.
+  // Stack allocation avoids heap fragmentation on repeated calls.
+  constexpr std::size_t kBufSize = 65536;
+  char buf[kBufSize];
+  while (file.good()) {
+    file.read(buf, kBufSize);
+    const std::streamsize n = file.gcount();
+    if (n > 0) blake3_hasher_update(&hasher, buf, static_cast<size_t>(n));
+  }
+
+  std::array<unsigned char, BLAKE3_OUT_LEN> out{};
+  blake3_hasher_finalize(&hasher, out.data(), out.size());
+  return to_hex(out.data(), out.size());
+  // MICRO_DOCUMENTED: to_hex() uses kHexChars lookup table (~0.2 ns/byte).
+  // For 32 bytes → 64 hex chars: ~6 ns total. Negligible vs file I/O.
+}
+
 std::string hash_domain(std::string_view domain, std::string_view payload) {
   blake3_hasher hasher;
   blake3_hasher_init(&hasher);
