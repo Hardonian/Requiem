@@ -138,6 +138,90 @@
       "description": "Trigger a manual auto-tune tick or revert-to-baseline. Admin only. Never changes hash semantics or observable output.",
       "invariants": ["INV-7"],
       "persona": "admin"
+    },
+    {
+      "path": "/api/tenant/usage",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenant/usage/route.ts",
+      "auth_required": true,
+      "rbac_required": "operator",
+      "probe": false,
+      "description": "Returns current resource unit usage for the authenticated tenant (compute, memory, CAS I/O, replay, storage, network). Observational only; enforcement gated by enable_economic_quotas flag.",
+      "invariants": ["INV-7"],
+      "persona": "operator",
+      "phase": 2
+    },
+    {
+      "path": "/api/tenant/export",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/tenant/export/route.ts",
+      "auth_required": true,
+      "rbac_required": "admin",
+      "probe": false,
+      "description": "Initiates an export of all tenant data (execution records, replay logs, audit log, optionally CAS objects). Export is read-only and never modifies stored state.",
+      "invariants": ["INV-7"],
+      "persona": "admin",
+      "phase": 5
+    },
+    {
+      "path": "/api/tenant/retention",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenant/retention/route.ts",
+      "auth_required": true,
+      "rbac_required": "admin",
+      "probe": false,
+      "description": "Returns the current data retention policy for the authenticated tenant.",
+      "invariants": ["INV-7"],
+      "persona": "admin",
+      "phase": 5
+    },
+    {
+      "path": "/api/tenant/retention",
+      "method": "PUT",
+      "file": "ready-layer/src/app/api/tenant/retention/route.ts",
+      "auth_required": true,
+      "rbac_required": "admin",
+      "probe": false,
+      "description": "Updates the data retention policy for the authenticated tenant. Changes are logged to the audit stream.",
+      "invariants": ["INV-7"],
+      "persona": "admin",
+      "phase": 5
+    },
+    {
+      "path": "/api/executions/{id}/bundle",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/executions/[id]/bundle/route.ts",
+      "auth_required": true,
+      "rbac_required": "auditor",
+      "probe": false,
+      "description": "Export a signed replay bundle for the given execution: provenance record, request inputs, replay log, metrics snapshot, determinism proof, and optional signature scaffold.",
+      "invariants": ["INV-7", "INV-1"],
+      "persona": "auditor",
+      "phase": 3
+    },
+    {
+      "path": "/api/cluster/regions",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cluster/regions/route.ts",
+      "auth_required": true,
+      "rbac_required": "operator",
+      "probe": false,
+      "description": "Returns current multi-region status: all configured regions, replication health, and cross-region replay equivalence status.",
+      "invariants": ["INV-7"],
+      "persona": "operator",
+      "phase": 6
+    },
+    {
+      "path": "/api/engine/policy",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/policy/route.ts",
+      "auth_required": true,
+      "rbac_required": "auditor",
+      "probe": false,
+      "description": "Returns the currently active platform policy (redacted). Allows auditors to verify what policy is enforced without access to the raw policy file.",
+      "invariants": ["INV-7"],
+      "persona": "auditor",
+      "phase": 1
     }
   ],
 

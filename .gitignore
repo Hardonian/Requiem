@@ -42,3 +42,4 @@ build/
 
 # debug information files
 *.dwo
+formal/__pycache__/

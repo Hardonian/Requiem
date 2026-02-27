@@ -236,6 +236,18 @@ set_tests_properties(shadow_runner  PROPERTIES LABELS "slow")
 set_tests_properties(memory_harness PROPERTIES LABELS "slow")
 
 # ---------------------------------------------------------------------------
+# Phase 12: Chaos engineering harness
+# ---------------------------------------------------------------------------
+option(REQUIEM_BUILD_CHAOS "Build chaos engineering harness binary" OFF)
+
+if(REQUIEM_BUILD_CHAOS)
+  add_executable(chaos_harness src/chaos_harness.cpp)
+  target_link_libraries(chaos_harness PRIVATE requiem)
+  target_compile_definitions(chaos_harness PRIVATE REQUIEM_CHAOS_MAIN=1)
+  message(STATUS "Requiem: Chaos harness enabled")
+endif()
+
+# ---------------------------------------------------------------------------
 # Phase 6: Fuzz targets (LLVM libFuzzer, clang only)
 # EXTENSION_POINT: seccomp_profile — run fuzz targets inside seccomp sandbox
 # ---------------------------------------------------------------------------
