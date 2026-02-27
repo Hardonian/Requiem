@@ -77,6 +77,15 @@ bool ImmutableAuditLog::append(ProvenanceRecord& record) {
     return true;
   }
 
+  // INV-3 ENFORCEMENT: Seek to end before writing to guarantee append-only.
+  // This prevents any accidental overwrite if the file position was changed externally.
+  std::fseek(impl->file, 0, SEEK_END);
+  const long pre_write_pos = std::ftell(impl->file);
+  if (pre_write_pos < 0) {
+    ++impl->failure_count;
+    return false;
+  }
+
   // Assign monotonic sequence number.
   record.sequence = ++impl->seq;
 
@@ -96,7 +105,14 @@ bool ImmutableAuditLog::append(ProvenanceRecord& record) {
   const bool written = (std::fwrite(line.data(), 1, line.size(), impl->file) == line.size());
   std::fflush(impl->file);  // minimize data loss on crash
 
+  // INV-3 ENFORCEMENT: Verify the write appended (file grew by expected amount).
   if (written) {
+    const long post_write_pos = std::ftell(impl->file);
+    if (post_write_pos >= 0 && post_write_pos < pre_write_pos + static_cast<long>(line.size())) {
+      // File was truncated or write was incomplete — append-only violation.
+      ++impl->failure_count;
+      return false;
+    }
     ++impl->entry_count;
   } else {
     ++impl->failure_count;
