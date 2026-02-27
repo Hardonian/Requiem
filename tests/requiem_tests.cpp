@@ -1747,6 +1747,159 @@ void test_diagnostics_readonly() {
          "diagnostics readonly: analyze_failure does not modify execution counter");
 }
 
+// ==========================================================================
+// Claims Enforcement Tests
+// ==========================================================================
+
+// CLAIM: Domain-separated hashing — req:/res:/cas: must produce different digests
+void test_enforce_domain_separation_divergence() {
+  const std::string data = "identical-input-data";
+  const std::string req_hash = requiem::canonical_json_hash(data);
+  const std::string res_hash = requiem::result_json_hash(data);
+  const std::string cas_hash = requiem::cas_content_hash(data);
+  const std::string raw_hash = requiem::blake3_hex(data);
+
+  expect(req_hash != res_hash, "req: and res: domain hashes must differ for same input");
+  expect(req_hash != cas_hash, "req: and cas: domain hashes must differ for same input");
+  expect(res_hash != cas_hash, "res: and cas: domain hashes must differ for same input");
+  expect(req_hash != raw_hash, "req: domain hash must differ from raw BLAKE3");
+  expect(res_hash != raw_hash, "res: domain hash must differ from raw BLAKE3");
+  expect(cas_hash != raw_hash, "cas: domain hash must differ from raw BLAKE3");
+}
+
+// CLAIM: CAS uses "cas:" domain prefix — put() digest must match cas_content_hash()
+void test_enforce_cas_domain_hash() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_domain_test";
+  fs::create_directories(tmp);
+  requiem::CasStore cas(tmp.string());
+
+  const std::string data = "cas-domain-test-data";
+  const std::string expected_digest = requiem::cas_content_hash(data);
+  const std::string actual_digest = cas.put(data);
+
+  expect(!actual_digest.empty(), "CAS put must succeed");
+  expect(actual_digest == expected_digest,
+         "CAS put() must use cas: domain-separated hash");
+
+  // Verify get() round-trips correctly
+  auto retrieved = cas.get(actual_digest);
+  expect(retrieved.has_value(), "CAS get must succeed for valid digest");
+  expect(*retrieved == data, "CAS get must return original data");
+
+  fs::remove_all(tmp);
+}
+
+// CLAIM: CAS immutability — duplicate put() with same content returns same digest
+void test_enforce_cas_immutability_dedup() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_immut_test";
+  fs::create_directories(tmp);
+  requiem::CasStore cas(tmp.string());
+
+  const std::string data = "immutability-test-data";
+  const std::string d1 = cas.put(data);
+  const std::string d2 = cas.put(data);  // should dedup via integrity check
+
+  expect(!d1.empty(), "first CAS put must succeed");
+  expect(d1 == d2, "CAS dedup must return same digest for same content");
+
+  fs::remove_all(tmp);
+}
+
+// CLAIM: Runtime uses domain-separated hashes for request and result digests
+void test_enforce_runtime_domain_hashes() {
+  requiem::ExecutionRequest req;
+  req.request_id     = "domain-hash-test";
+  req.command        = "/bin/echo";
+  req.argv           = {"domain-test"};
+  req.workspace_root = "/tmp";
+  req.policy.scheduler_mode = "turbo";
+  req.nonce = 0;
+
+  const auto res = requiem::execute(req);
+  expect(res.ok, "execution must succeed");
+
+  // Verify request_digest uses canonical_json_hash (req: domain)
+  const std::string canon_req = requiem::canonicalize_request(req);
+  const std::string expected_req_digest = requiem::canonical_json_hash(canon_req);
+  expect(res.request_digest == expected_req_digest,
+         "request_digest must use req: domain separation");
+
+  // Verify it's NOT the raw blake3
+  const std::string raw_req_digest = requiem::deterministic_digest(canon_req);
+  expect(res.request_digest != raw_req_digest,
+         "request_digest must NOT be raw BLAKE3 (must be domain-separated)");
+}
+
+// CLAIM: Replay validation uses matching domain-separated hashes
+void test_enforce_replay_domain_consistency() {
+  requiem::ExecutionRequest req;
+  req.request_id     = "replay-domain-test";
+  req.command        = "/bin/echo";
+  req.argv           = {"replay-domain"};
+  req.workspace_root = "/tmp";
+  req.policy.scheduler_mode = "turbo";
+  req.nonce = 0;
+
+  const auto res = requiem::execute(req);
+  expect(res.ok, "execution must succeed for replay test");
+
+  // Replay validation must agree with execute's domain-separated hashes
+  const bool valid = requiem::validate_replay(req, res);
+  expect(valid, "replay must validate correctly with domain-separated hashes");
+
+  // Tamper with result_digest — replay must fail
+  requiem::ExecutionResult tampered = res;
+  tampered.result_digest = std::string(64, 'b');
+  const bool invalid = requiem::validate_replay(req, tampered);
+  expect(!invalid, "replay must reject tampered result_digest");
+}
+
+// CLAIM: Audit log is append-only (INV-3)
+void test_enforce_audit_append_only() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_audit_append_test.ndjson";
+  fs::remove(tmp);
+
+  requiem::ImmutableAuditLog alog(tmp.string());
+
+  // Write first entry
+  requiem::ProvenanceRecord rec1;
+  rec1.execution_id  = "append-test-1";
+  rec1.tenant_id     = "t-append";
+  rec1.ok            = true;
+  rec1.request_digest = std::string(64, 'a');
+  rec1.result_digest  = std::string(64, 'b');
+  rec1.engine_semver  = "0.8.0";
+  bool w1 = alog.append(rec1);
+  expect(w1, "first append must succeed");
+  expect(rec1.sequence == 1, "first entry must have sequence 1");
+
+  // Write second entry
+  requiem::ProvenanceRecord rec2;
+  rec2.execution_id  = "append-test-2";
+  rec2.tenant_id     = "t-append";
+  rec2.ok            = true;
+  rec2.request_digest = std::string(64, 'c');
+  rec2.result_digest  = std::string(64, 'd');
+  rec2.engine_semver  = "0.8.0";
+  bool w2 = alog.append(rec2);
+  expect(w2, "second append must succeed");
+  expect(rec2.sequence == 2, "second entry must have sequence 2");
+
+  // Verify monotonic sequence
+  expect(rec2.sequence > rec1.sequence, "sequences must be monotonically increasing");
+
+  // Verify file contains both entries (not overwritten)
+  std::ifstream ifs(tmp.string());
+  std::string line1, line2;
+  std::getline(ifs, line1);
+  std::getline(ifs, line2);
+  expect(!line1.empty() && !line2.empty(), "both audit entries must exist in file");
+  expect(line1.find("append-test-1") != std::string::npos, "first entry preserved");
+  expect(line2.find("append-test-2") != std::string::npos, "second entry preserved");
+
+  fs::remove(tmp);
+}
+
 int main() {
   std::cout << "=== Requiem Engine Test Suite ===\n";
 
@@ -1890,6 +2043,14 @@ int main() {
   run_test("tenant isolation: CAS namespace separation", test_multitenant_cas_isolation);
   run_test("tenant isolation: fingerprint determinism across tenants", test_multitenant_fingerprint_determinism);
   run_test("tenant isolation: concurrent execution no bleed", test_multitenant_concurrent_isolation);
+
+  std::cout << "\n[Claims Enforcement] Domain separation, CAS immutability, audit append-only\n";
+  run_test("enforce: domain separation divergence", test_enforce_domain_separation_divergence);
+  run_test("enforce: CAS uses cas: domain hash", test_enforce_cas_domain_hash);
+  run_test("enforce: CAS immutability dedup", test_enforce_cas_immutability_dedup);
+  run_test("enforce: runtime domain-separated hashes", test_enforce_runtime_domain_hashes);
+  run_test("enforce: replay domain consistency", test_enforce_replay_domain_consistency);
+  run_test("enforce: audit append-only (INV-3)", test_enforce_audit_append_only);
 
   std::cout << "\n=== " << g_tests_passed << "/" << g_tests_run << " tests passed ===\n";
   return g_tests_passed == g_tests_run ? 0 : 1;

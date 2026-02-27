@@ -105,13 +105,22 @@ std::string CasStore::meta_path(const std::string& digest) const {
 }
 
 std::string CasStore::put(const std::string& data, const std::string& compression) {
-  const std::string digest = deterministic_digest(data);
+  // INV-2 ENFORCEMENT: CAS key uses "cas:" domain prefix per determinism contract.
+  const std::string digest = cas_content_hash(data);
   if (digest.empty() || !valid_digest(digest)) return {};
 
-  // Dedup: already stored, verified via meta presence.
+  // Dedup: already stored — verify content integrity before returning (INV-2).
   const fs::path target = object_path(digest);
   const fs::path meta = meta_path(digest);
-  if (fs::exists(target) && fs::exists(meta)) return digest;
+  if (fs::exists(target) && fs::exists(meta)) {
+    // INV-2 ENFORCEMENT: Verify existing content matches — detect silent mutation.
+    auto existing = get(digest);
+    if (!existing.has_value() || *existing != data) {
+      // Content mismatch or integrity failure on existing object.
+      return {};
+    }
+    return digest;
+  }
 
   std::string stored = data;
   std::string encoding = "identity";
@@ -131,10 +140,12 @@ std::string CasStore::put(const std::string& data, const std::string& compressio
   if (!atomic_write(target, stored)) return {};
 
   // Write metadata atomically.
+  // stored_blob_hash uses plain BLAKE3 (no domain prefix) since it hashes the
+  // potentially-compressed blob, not the original CAS content.
   const std::string meta_json = "{\"digest\":\"" + digest + "\",\"encoding\":\"" + encoding +
                                 "\",\"original_size\":" + std::to_string(data.size()) +
                                 ",\"stored_size\":" + std::to_string(stored.size()) +
-                                ",\"stored_blob_hash\":\"" + deterministic_digest(stored) + "\"}";
+                                ",\"stored_blob_hash\":\"" + blake3_hex(stored) + "\"}";
   if (!atomic_write(meta, meta_json)) {
     // Rollback blob on meta write failure.
     std::error_code ec;
@@ -199,16 +210,16 @@ std::optional<std::string> CasStore::get(const std::string& digest) const {
   auto meta = info(digest);
   if (!meta) return std::nullopt;
 
-  // Verify stored blob integrity.
-  const auto stored_digest = deterministic_digest(data);
-  if (stored_digest != meta->stored_blob_hash) return std::nullopt;
+  // Verify stored blob integrity (plain BLAKE3, no domain prefix for blob hash).
+  const auto stored_hash = blake3_hex(data);
+  if (stored_hash != meta->stored_blob_hash) return std::nullopt;
 
 #if defined(REQUIEM_WITH_ZSTD)
   if (meta->encoding == "zstd") data = decompress_zstd(data, meta->original_size);
 #endif
 
-  // Verify original content integrity.
-  const auto orig_digest = deterministic_digest(data);
+  // INV-2 ENFORCEMENT: Verify original content integrity using cas: domain hash.
+  const auto orig_digest = cas_content_hash(data);
   if (orig_digest != digest) return std::nullopt;
 
   return data;

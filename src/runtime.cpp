@@ -221,7 +221,8 @@ ExecutionResult execute(const ExecutionRequest& request) {
   // Phase 2: Compute request digest (determinism anchor).
   {
     const auto t0 = std::chrono::steady_clock::now();
-    result.request_digest = deterministic_digest(canonicalize_request(request));
+    // INV-1 ENFORCEMENT: Use "req:" domain-separated hash per determinism contract.
+    result.request_digest = canonical_json_hash(canonicalize_request(request));
     result.metrics.hash_duration_ns += static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - t0).count());
@@ -251,6 +252,9 @@ ExecutionResult execute(const ExecutionRequest& request) {
 
   ProcessSpec spec{request.command, request.argv, {}, cwd, request.timeout_ms,
                    request.max_output_bytes, request.policy.deterministic};
+  // CLAIM ENFORCEMENT: Pass rlimit values from policy to sandbox.
+  spec.max_memory_bytes = request.policy.max_memory_bytes;
+  spec.max_file_descriptors = request.policy.max_file_descriptors;
   result.policy_applied.mode = request.policy.mode;
   result.policy_applied.time_mode = request.policy.time_mode;
 
@@ -388,7 +392,8 @@ ExecutionResult execute(const ExecutionRequest& request) {
 
   {
     const auto t0 = std::chrono::steady_clock::now();
-    result.result_digest = deterministic_digest(canonicalize_result(result));
+    // INV-1 ENFORCEMENT: Use "res:" domain-separated hash per determinism contract.
+    result.result_digest = result_json_hash(canonicalize_result(result));
     result.metrics.hash_duration_ns += static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - t0).count());

@@ -4,6 +4,7 @@
 
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -57,6 +58,28 @@ ProcessResult run_process(const ProcessSpec& spec) {
     argv.reserve(all.size() + 1);
     for (auto& s : all) argv.push_back(s.data());
     argv.push_back(nullptr);
+
+    // CLAIM ENFORCEMENT: Apply rlimits in child process.
+    // Previously claimed rlimits_cpu/mem/fds=true but never called setrlimit().
+    if (spec.max_memory_bytes > 0) {
+      struct rlimit rl;
+      rl.rlim_cur = spec.max_memory_bytes;
+      rl.rlim_max = spec.max_memory_bytes;
+      setrlimit(RLIMIT_AS, &rl);
+    }
+    if (spec.max_file_descriptors > 0) {
+      struct rlimit rl;
+      rl.rlim_cur = spec.max_file_descriptors;
+      rl.rlim_max = spec.max_file_descriptors;
+      setrlimit(RLIMIT_NOFILE, &rl);
+    }
+    // Apply CPU time limit derived from timeout (ceiling to seconds).
+    if (spec.timeout_ms > 0) {
+      struct rlimit rl;
+      rl.rlim_cur = (spec.timeout_ms + 999) / 1000;  // ceil to seconds
+      rl.rlim_max = rl.rlim_cur + 1;  // hard limit slightly above soft
+      setrlimit(RLIMIT_CPU, &rl);
+    }
 
     std::vector<std::string> envs;
     for (const auto& [k, v] : spec.env) envs.push_back(k + "=" + v);
@@ -114,9 +137,9 @@ ProcessResult run_process(const ProcessSpec& spec) {
   if (result.stdout_truncated) result.stdout_text += "(truncated)";
   if (result.stderr_truncated) result.stderr_text += "(truncated)";
 
-  // Report sandbox capabilities applied
-  result.sandbox_workspace_confinement = true;  // Path-based confinement
-  result.sandbox_rlimits = true;  // Could set rlimits via setrlimit in child
+  // Report sandbox capabilities actually applied (CLAIM ENFORCEMENT: truthful reporting).
+  result.sandbox_workspace_confinement = true;  // Path-based confinement via normalize_under()
+  result.sandbox_rlimits = (spec.max_memory_bytes > 0 || spec.max_file_descriptors > 0 || spec.timeout_ms > 0);
   result.sandbox_seccomp = false;  // Not yet implemented
 
   if (result.timed_out) {

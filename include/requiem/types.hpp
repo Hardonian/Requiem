@@ -294,4 +294,21 @@ struct ExecutionResult {
   ExecutionMetrics metrics;
 };
 
+// ---------------------------------------------------------------------------
+// ProofBundle — verifiable execution artifact (v1.2)
+// ---------------------------------------------------------------------------
+// A self-contained proof that a specific execution occurred with specific
+// inputs and produced specific outputs, anchored by a Merkle root.
+struct ProofBundle {
+  std::string request_digest;                        // BLAKE3 of canonical request
+  std::string result_digest;                         // BLAKE3 of canonical result
+  std::string merkle_root;                           // BLAKE3 of request_digest + result_digest + output digests
+  std::map<std::string, std::string> input_digests;  // path → digest
+  std::map<std::string, std::string> output_digests; // path → digest
+  std::string engine_semver;
+  uint32_t    engine_abi_version{0};
+  uint32_t    hash_algorithm_version{0};
+  uint64_t    timestamp_unix_ms{0};
+};
+
 }  // namespace requiem
