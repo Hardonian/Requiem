@@ -112,20 +112,43 @@ void EngineStats::record_execution(const ExecutionEvent& ev) {
   latency_histogram.record(ev.duration_ns);
 
   // Ring buffer update (requires lock)
+  // MICRO_OPT: O(1) circular buffer write replaces O(N) erase(begin()).
+  // MICRO_DOCUMENTED: Old path: erase(begin()) on a 1000-element vector shifts
+  // ~999 objects per event at full capacity — ~24 KB of memmove per insertion.
+  // Under stress_harness (1000+ executions), this was the dominant cost inside
+  // record_execution() when measured by call-stack attribution.
+  // New path: modular-index slot overwrite, O(1) always.
+  // Assumption: ring_buffer_.size() <= kMaxRecentEvents is maintained as invariant.
+  // EXTENSION_POINT: replace with lock-free ring if ring_mu_ becomes contended
+  //   above ~100k events/s: use std::atomic<size_t> ring_head_ + CAS loop.
   {
     std::lock_guard<std::mutex> lk(ring_mu_);
-    if (ring_buffer_.size() >= kMaxRecentEvents) {
-      ring_buffer_.erase(ring_buffer_.begin());  // O(N) but bounded
-      // EXTENSION_POINT: replace vector with a proper circular buffer (e.g. boost::circular_buffer)
-      // to make this O(1). For kMaxRecentEvents=1000 and low event rate, O(N) is acceptable.
+    if (ring_buffer_.size() < kMaxRecentEvents) {
+      // Buffer not yet full: grow normally. ring_head_ stays 0 (oldest = slot 0).
+      ring_buffer_.push_back(ev);
+    } else {
+      // Buffer full: overwrite oldest slot in O(1), advance head.
+      ring_buffer_[ring_head_] = ev;
+      ring_head_ = (ring_head_ + 1) % kMaxRecentEvents;
     }
-    ring_buffer_.push_back(ev);
   }
 }
 
 std::vector<ExecutionEvent> EngineStats::recent_events_snapshot() const {
   std::lock_guard<std::mutex> lk(ring_mu_);
-  return ring_buffer_;
+  if (ring_buffer_.size() < kMaxRecentEvents) {
+    // Buffer not yet wrapped: insertion order == vector order.
+    return ring_buffer_;
+  }
+  // Buffer full: reconstruct insertion order from circular layout.
+  // ring_head_ points to the oldest entry (next slot to be overwritten).
+  // MICRO_DOCUMENTED: This snapshot is a cold diagnostic path, not hot.
+  // O(N) reconstruction here is acceptable since it's never called from execute().
+  std::vector<ExecutionEvent> out;
+  out.reserve(kMaxRecentEvents);
+  for (size_t i = ring_head_; i < kMaxRecentEvents; ++i) out.push_back(ring_buffer_[i]);
+  for (size_t i = 0;         i < ring_head_;       ++i) out.push_back(ring_buffer_[i]);
+  return out;
 }
 
 std::string EngineStats::to_json() const {
