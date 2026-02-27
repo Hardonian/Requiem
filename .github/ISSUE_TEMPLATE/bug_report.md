@@ -6,25 +6,26 @@ labels: bug
 
 # Bug Report
 
-**Description**
+## Description
+
 A clear and concise description of what the bug is.
 
-### Reproduction Steps
+## Reproduction Steps
 
 1. Run command '...'
 2. See error '...'
 
+## Expected Behavior
 
-**Expected Behavior**
 A clear and concise description of what you expected to happen.
 
-**Environment Info**
+## Environment Info
 
 Please run `requiem doctor` and paste the output here.
 
 - OS: [e.g. Windows 11, Ubuntu 22.04]
 - Requiem Version: [e.g. 1.3.0]
 
+## Additional Context
 
-**Additional Context**
 Add any other context about the problem here, such as if this is causing a determinism drift.

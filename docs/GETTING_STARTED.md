@@ -5,6 +5,7 @@ Requiem is a native C++ runtime for deterministic process execution. This guide 
 ## Prerequisites
 
 Ensure you have the following installed:
+
 - **CMake** (3.20+)
 - **C++20 Compiler** (GCC 11+, Clang 14+, or MSVC 2022+)
 - **Node.js** (18+ for UI components)
