@@ -15,7 +15,7 @@ jobs:
       - name: deps (windows)
         if: runner.os == 'Windows'
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
-      - name: verify
+      - name: verify (build + test)
         run: ./scripts/verify.sh
       - name: contract
         if: runner.os == 'Linux'
@@ -41,3 +41,15 @@ jobs:
       - name: secrets scan
         if: runner.os == 'Linux'
         run: ./scripts/verify_secrets.sh
+      - name: protocol gate
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_protocol.sh
+      - name: security gate
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_security.sh
+      - name: CAS gate
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_cas.sh
+      - name: determinism gate (200x repeat)
+        if: runner.os == 'Linux'
+        run: ./scripts/verify_determinism.sh

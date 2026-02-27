@@ -1,9 +1,13 @@
 #include "requiem/cas.hpp"
 
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <random>
 
+#if defined(REQUIEM_WITH_ZSTD)
 #include <zstd.h>
+#endif
 
 #include "requiem/hash.hpp"
 
@@ -12,6 +16,7 @@ namespace fs = std::filesystem;
 namespace requiem {
 
 namespace {
+#if defined(REQUIEM_WITH_ZSTD)
 std::string compress_zstd(const std::string& data) {
   std::string out;
   out.resize(ZSTD_compressBound(data.size()));
@@ -29,26 +34,73 @@ std::string decompress_zstd(const std::string& data, std::size_t original_size) 
   out.resize(n);
   return out;
 }
+#endif
+
+// Generate a unique temporary filename to avoid collisions during concurrent writes.
+std::string make_tmp_name(const fs::path& dir) {
+  static thread_local std::mt19937 rng(std::random_device{}());
+  std::uniform_int_distribution<uint64_t> dist;
+  return (dir / (".tmp_" + std::to_string(dist(rng)))).string();
+}
+
+// Atomic write: write to temp file, then rename into place.
+// On POSIX, rename() is atomic within the same filesystem.
+bool atomic_write(const fs::path& target, const std::string& data) {
+  fs::create_directories(target.parent_path());
+  const std::string tmp = make_tmp_name(target.parent_path());
+  {
+    std::ofstream ofs(tmp, std::ios::binary | std::ios::trunc);
+    if (!ofs) return false;
+    ofs.write(data.data(), static_cast<std::streamsize>(data.size()));
+    if (!ofs) {
+      std::remove(tmp.c_str());
+      return false;
+    }
+  }
+  std::error_code ec;
+  fs::rename(tmp, target, ec);
+  if (ec) {
+    std::remove(tmp.c_str());
+    return false;
+  }
+  return true;
+}
+
+// Validate digest is a 64-char hex string.
+bool valid_digest(const std::string& d) {
+  if (d.size() != 64) return false;
+  for (char c : d) {
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+  }
+  return true;
+}
+
 }  // namespace
 
-CasStore::CasStore(std::string root) : root_(std::move(root)) { fs::create_directories(fs::path(root_) / "objects"); }
+CasStore::CasStore(std::string root) : root_(std::move(root)) {
+  fs::create_directories(fs::path(root_) / "objects");
+}
 
 std::string CasStore::object_path(const std::string& digest) const {
   return (fs::path(root_) / "objects" / digest.substr(0, 2) / digest.substr(2, 2) / digest).string();
 }
 
-std::string CasStore::meta_path(const std::string& digest) const { return object_path(digest) + ".meta"; }
+std::string CasStore::meta_path(const std::string& digest) const {
+  return object_path(digest) + ".meta";
+}
 
 std::string CasStore::put(const std::string& data, const std::string& compression) {
   const std::string digest = deterministic_digest(data);
-  if (digest.empty()) return {};
+  if (digest.empty() || !valid_digest(digest)) return {};
+
+  // Dedup: already stored, verified via meta presence.
   const fs::path target = object_path(digest);
   const fs::path meta = meta_path(digest);
-  fs::create_directories(target.parent_path());
   if (fs::exists(target) && fs::exists(meta)) return digest;
 
   std::string stored = data;
   std::string encoding = "identity";
+#if defined(REQUIEM_WITH_ZSTD)
   if (compression == "zstd") {
     auto c = compress_zstd(data);
     if (!c.empty()) {
@@ -56,61 +108,89 @@ std::string CasStore::put(const std::string& data, const std::string& compressio
       encoding = "zstd";
     }
   }
+#else
+  (void)compression;
+#endif
 
-  std::ofstream ofs(target, std::ios::binary | std::ios::trunc);
-  ofs.write(stored.data(), static_cast<std::streamsize>(stored.size()));
+  // Write blob atomically.
+  if (!atomic_write(target, stored)) return {};
 
+  // Write metadata atomically.
   const std::string meta_json = "{\"digest\":\"" + digest + "\",\"encoding\":\"" + encoding +
                                 "\",\"original_size\":" + std::to_string(data.size()) +
                                 ",\"stored_size\":" + std::to_string(stored.size()) +
                                 ",\"stored_blob_hash\":\"" + deterministic_digest(stored) + "\"}";
-  std::ofstream mfs(meta, std::ios::binary | std::ios::trunc);
-  mfs << meta_json;
+  if (!atomic_write(meta, meta_json)) {
+    // Rollback blob on meta write failure.
+    std::error_code ec;
+    fs::remove(target, ec);
+    return {};
+  }
   return digest;
 }
 
 std::optional<CasObjectInfo> CasStore::info(const std::string& digest) const {
+  if (!valid_digest(digest)) return std::nullopt;
   const fs::path mp = meta_path(digest);
   if (!fs::exists(mp)) return std::nullopt;
   std::ifstream ifs(mp, std::ios::binary);
   std::string meta((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-  CasObjectInfo info;
-  info.digest = digest;
+  CasObjectInfo obj_info;
+  obj_info.digest = digest;
   auto find = [&](const std::string& k) {
     const auto p = meta.find("\"" + k + "\"");
     if (p == std::string::npos) return std::string{};
     const auto c = meta.find(':', p);
     if (c == std::string::npos) return std::string{};
-    if (meta[c + 1] == '"') {
+    if (c + 1 < meta.size() && meta[c + 1] == '"') {
       const auto e = meta.find('"', c + 2);
+      if (e == std::string::npos) return std::string{};
       return meta.substr(c + 2, e - c - 2);
     }
     const auto e = meta.find_first_of(",}", c + 1);
+    if (e == std::string::npos) return std::string{};
     return meta.substr(c + 1, e - c - 1);
   };
-  info.encoding = find("encoding");
-  info.original_size = static_cast<std::size_t>(std::stoull(find("original_size")));
-  info.stored_size = static_cast<std::size_t>(std::stoull(find("stored_size")));
-  info.stored_blob_hash = find("stored_blob_hash");
-  return info;
+  obj_info.encoding = find("encoding");
+  try {
+    obj_info.original_size = static_cast<std::size_t>(std::stoull(find("original_size")));
+    obj_info.stored_size = static_cast<std::size_t>(std::stoull(find("stored_size")));
+  } catch (...) {
+    return std::nullopt;
+  }
+  obj_info.stored_blob_hash = find("stored_blob_hash");
+  return obj_info;
 }
 
 std::optional<std::string> CasStore::get(const std::string& digest) const {
+  if (!valid_digest(digest)) return std::nullopt;
   const fs::path p = object_path(digest);
   if (!fs::exists(p)) return std::nullopt;
   std::ifstream ifs(p, std::ios::binary);
   std::string data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+
   auto meta = info(digest);
   if (!meta) return std::nullopt;
+
+  // Verify stored blob integrity.
   const auto stored_digest = deterministic_digest(data);
-  if (stored_digest.empty() || stored_digest != meta->stored_blob_hash) return std::nullopt;
+  if (stored_digest != meta->stored_blob_hash) return std::nullopt;
+
+#if defined(REQUIEM_WITH_ZSTD)
   if (meta->encoding == "zstd") data = decompress_zstd(data, meta->original_size);
+#endif
+
+  // Verify original content integrity.
   const auto orig_digest = deterministic_digest(data);
-  if (orig_digest.empty() || orig_digest != digest) return std::nullopt;
+  if (orig_digest != digest) return std::nullopt;
+
   return data;
 }
 
-bool CasStore::contains(const std::string& digest) const { return fs::exists(object_path(digest)); }
+bool CasStore::contains(const std::string& digest) const {
+  if (!valid_digest(digest)) return false;
+  return fs::exists(object_path(digest));
+}
 
 std::size_t CasStore::size() const { return scan_objects().size(); }
 
