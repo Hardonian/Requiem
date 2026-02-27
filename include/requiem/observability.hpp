@@ -30,6 +30,8 @@
 #include <string>
 #include <vector>
 
+#include "requiem/types.hpp"
+
 namespace requiem {
 
 // ---------------------------------------------------------------------------
@@ -146,6 +148,16 @@ class EngineStats {
   //   future: engine.thread.contention_count, engine.queue.depth, engine.worker.utilization
   //   Implement by adding a WorkerPool with per-worker stats and a shared queue.
 
+  // --- Concurrency metrics (Phase I) ---
+  alignas(64) std::atomic<uint64_t> contention_count{0};    // lock/resource contention events
+  alignas(64) std::atomic<uint64_t> queue_depth_samples{0}; // sum of queue depth snapshots (divide by samples for avg)
+  alignas(64) std::atomic<uint64_t> queue_depth_count{0};   // number of queue depth snapshots
+
+  // --- Memory metrics (Phase I) ---
+  alignas(64) std::atomic<uint64_t> peak_memory_bytes_total{0};   // sum across all executions
+  alignas(64) std::atomic<uint64_t> peak_memory_bytes_max{0};     // max observed peak per execution
+  alignas(64) std::atomic<uint64_t> rss_bytes_last{0};            // last observed total RSS
+
   // --- Cache miss rates (hardware PMU, not yet activated) ---
   // EXTENSION_POINT: cache_miss_counters
   //   Activation: call perf_event_open(PERF_TYPE_HW_CACHE, PERF_COUNT_HW_CACHE_L1D)
@@ -157,6 +169,18 @@ class EngineStats {
     double l1_miss_rate{-1.0};     // -1.0 = not measured
     double branch_miss_rate{-1.0}; // -1.0 = not measured
   } cache_metrics;
+
+  // --- Failure category counters (Phase D) ---
+  // engine.failure.category_count — breakdown by failure type
+  // Protected by failure_mu_ for non-atomic struct access.
+  FailureCategoryStats failure_categories;
+  mutable std::mutex failure_mu_;
+
+  void record_failure(ErrorCode code);
+
+  // --- Determinism metrics (Phase I) ---
+  // replay_verified_rate = replay_verifications / total_executions (computed in to_json)
+  // divergence_count = replay_divergences (already present above)
 
   // --- Latency histogram ---
   LatencyHistogram latency_histogram;
