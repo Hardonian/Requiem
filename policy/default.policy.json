@@ -1,0 +1,95 @@
+{
+  "$schema": "../policy/policy.schema.json",
+  "policy_schema_version": 1,
+  "policy_id": "requiem.default.v1",
+  "description": "Default production policy for Requiem platform. Enforced at engine startup, Node API boundary, CLI, and CI. Violations cause hard failure — no fallback, no silent bypass.",
+  "effective_date": "2026-02-27",
+
+  "hash": {
+    "allowed_algorithm_versions": [1],
+    "required_hex_chars": 64,
+    "required_hex_encoding": "lowercase"
+  },
+
+  "protocol": {
+    "allowed_framing_versions": [1],
+    "allowed_frame_types": ["start", "event", "end", "result", "error"],
+    "require_ndjson": true
+  },
+
+  "cas": {
+    "allowed_format_versions": [2],
+    "allowed_backends": ["filesystem"],
+    "require_content_prefix": true
+  },
+
+  "licenses": {
+    "prohibited": [
+      "GPL-2.0",
+      "GPL-2.0-only",
+      "GPL-2.0-or-later",
+      "GPL-3.0",
+      "GPL-3.0-only",
+      "GPL-3.0-or-later",
+      "AGPL-3.0",
+      "AGPL-3.0-only",
+      "AGPL-3.0-or-later",
+      "SSPL-1.0",
+      "Commons-Clause"
+    ],
+    "allowed_copyleft_with_review": ["LGPL-2.1", "LGPL-3.0", "MPL-2.0"],
+    "runtime_allowlist_only": true
+  },
+
+  "tenant": {
+    "isolation_level": "strict",
+    "cross_tenant_data_access": false,
+    "require_tenant_id_on_exec": false,
+    "max_concurrent_executions_per_tenant": null,
+    "default_quota": {
+      "compute_units_per_hour": null,
+      "memory_units_per_hour": null,
+      "cas_io_units_per_hour": null,
+      "replay_units_per_hour": null,
+      "storage_units_total": null,
+      "network_units_per_hour": null
+    }
+  },
+
+  "routes": {
+    "require_auth_on_non_probe_routes": true,
+    "deny_unauthenticated_write": true,
+    "no_hard_500_routes": true,
+    "rbac_required_per_route": true
+  },
+
+  "pr_invariants": {
+    "require_determinism_contract_ref_on_version_bump": true,
+    "require_migration_entry_on_version_bump": true,
+    "require_compat_matrix_update_on_version_bump": true,
+    "require_golden_corpus_regen_on_hash_change": true,
+    "blocked_merge_on_policy_violation": true
+  },
+
+  "feature_flags": {
+    "unknown_flags_fail_ci": true,
+    "kill_switch_protocol_writer": false,
+    "kill_switch_cas_writer": false
+  },
+
+  "supply_chain": {
+    "require_sbom": true,
+    "require_binary_checksum": true,
+    "require_release_signature": false,
+    "sbom_format": "CycloneDX",
+    "allowed_sbom_schema_versions": ["1.4", "1.5", "1.6"]
+  },
+
+  "incident": {
+    "auto_capture_on_replay_mismatch": true,
+    "auto_capture_on_cas_corruption": true,
+    "auto_capture_on_cluster_incompatibility": true,
+    "p99_spike_threshold_ms": 5000.0,
+    "bundle_retention_days": 30
+  }
+}

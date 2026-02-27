@@ -1,0 +1,14 @@
+{
+  "schema": "migration_audit_v1",
+  "generated_at": "2026-02-27T16:39:28.926090Z",
+  "pass": true,
+  "violations": 0,
+  "versions": {
+    "cas_format_version": 2,
+    "protocol_framing_version": 1,
+    "hash_algorithm_version": 1,
+    "engine_abi_version": 2,
+    "replay_log_version": 1,
+    "audit_log_version": 1
+  }
+}

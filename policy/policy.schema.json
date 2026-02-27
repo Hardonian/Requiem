@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://requiem.internal/policy/policy.schema.json",
+  "title": "RequiemPolicy",
+  "description": "JSON Schema for Requiem platform policy files. All policy files must validate against this schema before being loaded by the engine. Version mismatch or schema violation causes a hard startup failure.",
+  "type": "object",
+  "required": ["policy_schema_version", "policy_id", "hash", "protocol", "cas", "licenses", "tenant", "routes", "pr_invariants"],
+  "additionalProperties": false,
+
+  "properties": {
+    "policy_schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Version of this schema. Must match POLICY_SCHEMA_VERSION in version.hpp."
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{2,63}$",
+      "description": "Unique identifier for this policy document."
+    },
+    "description": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "hash": {
+      "type": "object",
+      "required": ["allowed_algorithm_versions", "required_hex_chars", "required_hex_encoding"],
+      "additionalProperties": false,
+      "properties": {
+        "allowed_algorithm_versions": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1},
+          "minItems": 1,
+          "description": "Allowed HASH_ALGORITHM_VERSION values. Engine rejects any other value at startup."
+        },
+        "required_hex_chars": {
+          "type": "integer",
+          "enum": [64],
+          "description": "Required hex digest length. Must be 64 (BLAKE3 256-bit)."
+        },
+        "required_hex_encoding": {
+          "type": "string",
+          "enum": ["lowercase"],
+          "description": "Hex encoding must be lowercase."
+        }
+      }
+    },
+
+    "protocol": {
+      "type": "object",
+      "required": ["allowed_framing_versions", "allowed_frame_types", "require_ndjson"],
+      "additionalProperties": false,
+      "properties": {
+        "allowed_framing_versions": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1},
+          "minItems": 1
+        },
+        "allowed_frame_types": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1
+        },
+        "require_ndjson": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "cas": {
+      "type": "object",
+      "required": ["allowed_format_versions", "allowed_backends"],
+      "additionalProperties": false,
+      "properties": {
+        "allowed_format_versions": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1},
+          "minItems": 1
+        },
+        "allowed_backends": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["filesystem", "s3", "gcs", "memory"]},
+          "minItems": 1
+        },
+        "require_content_prefix": {
+          "type": "boolean",
+          "description": "If true, all CAS entries must be hashed with 'cas:' prefix."
+        }
+      }
+    },
+
+    "licenses": {
+      "type": "object",
+      "required": ["prohibited", "allowed_copyleft_with_review"],
+      "additionalProperties": false,
+      "properties": {
+        "prohibited": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "SPDX license identifiers that are categorically banned."
+        },
+        "allowed_copyleft_with_review": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Weak copyleft licenses that require legal review before inclusion."
+        },
+        "runtime_allowlist_only": {
+          "type": "boolean",
+          "description": "If true, only licenses explicitly in the allowlist may be used in runtime deps."
+        }
+      }
+    },
+
+    "tenant": {
+      "type": "object",
+      "required": ["isolation_level", "cross_tenant_data_access", "require_tenant_id_on_exec"],
+      "additionalProperties": false,
+      "properties": {
+        "isolation_level": {
+          "type": "string",
+          "enum": ["strict", "permissive"],
+          "description": "strict: every execution must carry tenant_id; cross-tenant rejected. permissive: tenant_id optional."
+        },
+        "cross_tenant_data_access": {
+          "type": "boolean",
+          "description": "Must be false in all production policies."
+        },
+        "require_tenant_id_on_exec": {
+          "type": "boolean"
+        },
+        "max_concurrent_executions_per_tenant": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "default_quota": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "compute_units_per_hour": {"type": ["integer", "null"], "minimum": 0},
+            "memory_units_per_hour":  {"type": ["integer", "null"], "minimum": 0},
+            "cas_io_units_per_hour":  {"type": ["integer", "null"], "minimum": 0},
+            "replay_units_per_hour":  {"type": ["integer", "null"], "minimum": 0},
+            "storage_units_total":    {"type": ["integer", "null"], "minimum": 0},
+            "network_units_per_hour": {"type": ["integer", "null"], "minimum": 0}
+          }
+        }
+      }
+    },
+
+    "routes": {
+      "type": "object",
+      "required": ["require_auth_on_non_probe_routes", "deny_unauthenticated_write"],
+      "additionalProperties": false,
+      "properties": {
+        "require_auth_on_non_probe_routes": {
+          "type": "boolean",
+          "description": "Every non-probe route must carry a valid auth token."
+        },
+        "deny_unauthenticated_write": {
+          "type": "boolean",
+          "description": "POST/PUT/DELETE with no auth token must be rejected 401."
+        },
+        "no_hard_500_routes": {
+          "type": "boolean",
+          "description": "If true, CI fails on any route that returns 5xx with no structured error body."
+        },
+        "rbac_required_per_route": {
+          "type": "boolean",
+          "description": "Every authenticated route must declare minimum RBAC role."
+        }
+      }
+    },
+
+    "pr_invariants": {
+      "type": "object",
+      "required": ["require_determinism_contract_ref_on_version_bump", "require_migration_entry_on_version_bump"],
+      "additionalProperties": false,
+      "properties": {
+        "require_determinism_contract_ref_on_version_bump": {
+          "type": "boolean"
+        },
+        "require_migration_entry_on_version_bump": {
+          "type": "boolean"
+        },
+        "require_compat_matrix_update_on_version_bump": {
+          "type": "boolean"
+        },
+        "require_golden_corpus_regen_on_hash_change": {
+          "type": "boolean"
+        },
+        "blocked_merge_on_policy_violation": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "feature_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unknown_flags_fail_ci": {
+          "type": "boolean",
+          "description": "If true, CI fails when code references a flag not registered in flags/flags.registry.json."
+        },
+        "kill_switch_protocol_writer": {
+          "type": "boolean",
+          "description": "Emergency kill switch: disables new protocol writer. Replay and audit still function."
+        },
+        "kill_switch_cas_writer": {
+          "type": "boolean",
+          "description": "Emergency kill switch: disables new CAS write operations. Reads still function."
+        }
+      }
+    },
+
+    "supply_chain": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "require_sbom": {"type": "boolean"},
+        "require_binary_checksum": {"type": "boolean"},
+        "require_release_signature": {"type": "boolean"},
+        "sbom_format": {"type": "string", "enum": ["CycloneDX", "SPDX"]},
+        "allowed_sbom_schema_versions": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+
+    "incident": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auto_capture_on_replay_mismatch": {"type": "boolean"},
+        "auto_capture_on_cas_corruption": {"type": "boolean"},
+        "auto_capture_on_cluster_incompatibility": {"type": "boolean"},
+        "p99_spike_threshold_ms": {"type": "number", "minimum": 0},
+        "bundle_retention_days": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

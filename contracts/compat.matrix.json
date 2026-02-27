@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "matrix_version": "1.0.0",
+  "description": "Compatibility matrix for Requiem platform versions. Tracks which engine, hash, protocol, CAS format, ABI, and audit log versions can interoperate. CI fails on version changes without a matrix update. Runtime rejects incompatible clients/nodes.",
+  "last_updated": "2026-02-27",
+  "enforced_by": ["scripts/verify_compat_matrix.sh", ".github/workflows/ci.yml"],
+
+  "current_versions": {
+    "engine_semver": "0.8.0",
+    "engine_abi_version": 2,
+    "hash_algorithm_version": 1,
+    "cas_format_version": 2,
+    "protocol_framing_version": 1,
+    "replay_log_version": 1,
+    "audit_log_version": 1,
+    "cluster_auth_version": 1,
+    "policy_schema_version": 1
+  },
+
+  "compatibility_rules": {
+    "description": "Rules governing which version combinations are valid for cluster membership and client connections.",
+    "engine_abi": {
+      "rule": "exact_match",
+      "description": "Engine ABI version must match exactly between all cluster nodes. Mismatched ABI causes startup rejection.",
+      "min_supported": 2,
+      "max_supported": 2
+    },
+    "hash_algorithm": {
+      "rule": "exact_match",
+      "description": "Hash algorithm version must be identical across the cluster. A node with a different hash version cannot join.",
+      "min_supported": 1,
+      "max_supported": 1
+    },
+    "protocol_framing": {
+      "rule": "exact_match",
+      "description": "Protocol framing version must match for correct NDJSON frame parsing. Cross-version protocol is not supported without explicit negotiation.",
+      "min_supported": 1,
+      "max_supported": 1
+    },
+    "cas_format": {
+      "rule": "monotonic_read_support",
+      "description": "CAS nodes can read objects written by any version >= min_supported. Writes always use the current version.",
+      "min_supported": 2,
+      "max_supported": 2
+    },
+    "cluster_auth": {
+      "rule": "exact_match",
+      "description": "Node-to-node auth scheme version must match. Prevents downgrade attacks in heterogeneous clusters.",
+      "min_supported": 1,
+      "max_supported": 1
+    },
+    "replay_log": {
+      "rule": "monotonic_read_support",
+      "description": "Replay log readers must support all versions >= min_supported. Writers always emit current version.",
+      "min_supported": 1,
+      "max_supported": 1
+    },
+    "audit_log": {
+      "rule": "monotonic_read_support",
+      "description": "Audit log readers must support all versions >= min_supported for forensic queries across version upgrades.",
+      "min_supported": 1,
+      "max_supported": 1
+    }
+  },
+
+  "version_history": [
+    {
+      "entry": 1,
+      "engine_semver": "0.1.0",
+      "engine_abi_version": 1,
+      "hash_algorithm_version": 1,
+      "cas_format_version": 1,
+      "protocol_framing_version": 1,
+      "replay_log_version": 1,
+      "audit_log_version": 1,
+      "cluster_auth_version": 1,
+      "status": "eol",
+      "eol_date": "2025-06-01",
+      "notes": "Initial release. CAS format v1 used SHA-256. Replaced by v0.8.0."
+    },
+    {
+      "entry": 2,
+      "engine_semver": "0.8.0",
+      "engine_abi_version": 2,
+      "hash_algorithm_version": 1,
+      "cas_format_version": 2,
+      "protocol_framing_version": 1,
+      "replay_log_version": 1,
+      "audit_log_version": 1,
+      "cluster_auth_version": 1,
+      "policy_schema_version": 1,
+      "status": "current",
+      "release_date": "2026-02-27",
+      "notes": "Migrated CAS from SHA-256 to BLAKE3. ABI bumped to 2. Policy-as-code layer added. Feature flags registry added. Compat matrix added."
+    }
+  ],
+
+  "incompatible_combinations": [
+    {
+      "reason": "CAS v1 (SHA-256) and CAS v2 (BLAKE3) digests are incompatible — different hash functions",
+      "field_a": "cas_format_version",
+      "value_a": 1,
+      "field_b": "cas_format_version",
+      "value_b": 2,
+      "action": "reject_cluster_join"
+    },
+    {
+      "reason": "ABI v1 callers pass incorrect struct layouts to ABI v2 functions",
+      "field_a": "engine_abi_version",
+      "value_a": 1,
+      "field_b": "engine_abi_version",
+      "value_b": 2,
+      "action": "reject_init"
+    }
+  ],
+
+  "cluster_validation": {
+    "check_on_startup": true,
+    "check_on_join": true,
+    "check_periodically_seconds": 300,
+    "action_on_mismatch": "warn_and_reject_new_executions",
+    "action_on_auth_mismatch": "immediate_reject",
+    "enforcement_script": "scripts/verify_compat_matrix.sh"
+  },
+
+  "bump_procedure": {
+    "steps": [
+      "1. Increment the version constant in include/requiem/version.hpp",
+      "2. Add a new entry to version_history[] in this file with status='current'",
+      "3. Mark the previous entry as status='deprecated' or status='eol' with eol_date",
+      "4. Update current_versions{} to reflect the new values",
+      "5. Add any new incompatible_combinations[] entries if cross-version is invalid",
+      "6. Update compatibility_rules[].min_supported and max_supported as appropriate",
+      "7. Update contracts/migration.policy.json locked_versions",
+      "8. PR footer must include: 'Compat-Matrix: bumped <field> <old> -> <new>'"
+    ],
+    "ci_gate": "scripts/verify_compat_matrix.sh checks version constants in version.hpp match current_versions in this file"
+  }
+}

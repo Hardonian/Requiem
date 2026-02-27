@@ -1,3 +1,6 @@
+# Build directory
+build/
+
 # Prerequisites
 *.d
 
@@ -39,3 +42,4 @@
 
 # debug information files
 *.dwo
+formal/__pycache__/

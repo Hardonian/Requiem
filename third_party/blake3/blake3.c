@@ -1,7 +1,5 @@
 #include <assert.h>
 #include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 
 #include "blake3.h"
@@ -91,7 +89,7 @@ INLINE void output_chaining_value(const output_t *self, uint8_t cv[32]) {
 INLINE void output_root_bytes(const output_t *self, uint64_t seek, uint8_t *out,
                               size_t out_len) {
   if (out_len == 0) {
-    return;
+      return;
   }
   uint64_t output_block_counter = seek / 64;
   size_t offset_within_block = seek % 64;
@@ -160,10 +158,10 @@ INLINE output_t parent_output(const uint8_t block[BLAKE3_BLOCK_LEN],
 // Given some input larger than one chunk, return the number of bytes that
 // should go in the left subtree. This is the largest power-of-2 number of
 // chunks that leaves at least 1 byte for the right subtree.
-INLINE size_t left_subtree_len(size_t input_len) {
-  // Subtract 1 to reserve at least one byte for the right side. input_len
+INLINE size_t left_len(size_t content_len) {
+  // Subtract 1 to reserve at least one byte for the right side. content_len
   // should always be greater than BLAKE3_CHUNK_LEN.
-  size_t full_chunks = (input_len - 1) / BLAKE3_CHUNK_LEN;
+  size_t full_chunks = (content_len - 1) / BLAKE3_CHUNK_LEN;
   return round_down_to_power_of_2(full_chunks) * BLAKE3_CHUNK_LEN;
 }
 
@@ -221,151 +219,151 @@ INLINE size_t compress_parents_parallel(const uint8_t *child_chaining_values,
                                         uint8_t *out) {
 #if defined(BLAKE3_TESTING)
   assert(2 <= num_chaining_values);
-  assert(num_chaining_values <= 2 * MAX_SIMD_DEGREE);
+  assert(num_chaining_values <= 2 * MAX_SIMD_DEGREE_OR_2);
 #endif
-  const uint8_t *parent_block_ptrs[MAX_SIMD_DEGREE];
-  size_t parent_block_ptrs_len = 0;
-  while (num_chaining_values - (2 * parent_block_ptrs_len) >= 2) {
-    parent_block_ptrs[parent_block_ptrs_len] =
-        &child_chaining_values[2 * parent_block_ptrs_len * BLAKE3_OUT_LEN];
-    parent_block_ptrs_len += 1;
+
+  const uint8_t *parents_array[MAX_SIMD_DEGREE_OR_2];
+  size_t parents_array_len = 0;
+  while (num_chaining_values - (2 * parents_array_len) >= 2) {
+    parents_array[parents_array_len] =
+        &child_chaining_values[2 * parents_array_len * BLAKE3_OUT_LEN];
+    parents_array_len += 1;
   }
-  blake3_hash_many(parent_block_ptrs, parent_block_ptrs_len, 1, key,
-                   0,  // Parents always use counter 0
-                   false, flags, PARENT, PARENT, out);
-  // If there's an odd child chaining value left over, it becomes an output.
-  if (num_chaining_values % 2 == 1) {
-    memcpy(&out[parent_block_ptrs_len * BLAKE3_OUT_LEN],
-           &child_chaining_values[(num_chaining_values - 1) * BLAKE3_OUT_LEN],
+
+  blake3_hash_many(parents_array, parents_array_len, 1, key,
+                   0, // Parents always use counter 0.
+                   false, flags | PARENT,
+                   0, // Parents have no start flags.
+                   0, // Parents have no end flags.
+                   out);
+
+  // If there's an odd child left over, it becomes an output.
+  if (num_chaining_values > 2 * parents_array_len) {
+    memcpy(&out[parents_array_len * BLAKE3_OUT_LEN],
+           &child_chaining_values[2 * parents_array_len * BLAKE3_OUT_LEN],
            BLAKE3_OUT_LEN);
-    return parent_block_ptrs_len + 1;
+    return parents_array_len + 1;
   } else {
-    return parent_block_ptrs_len;
+    return parents_array_len;
   }
 }
 
-// The wide helper function returns (writes out) chaining values for each
-// chunk and each SIMD degree parent grouping. It doesn't do any merging, so
-// there might be more outputs than expected. The number of outputs is always
-// less than or equal to the number of chunks, i.e., ceil(input_len / 1024).
+// The wide helper function returns (writes out) an array of chaining values
+// and returns the length of that array. The number of chaining values returned
+// is the dynamically detected SIMD degree, at most MAX_SIMD_DEGREE. Or fewer,
+// if the input is shorter than that many chunks. The reason for maintaining a
+// wide array of chaining values going back up the tree, is to allow the
+// implementation to hash as many parents in parallel as possible.
+//
+// As a special case when the SIMD degree is 1, this function will still return
+// at least 2 outputs. This guarantees that this function doesn't perform the
+// root compression. (If it did, it would use the wrong flags, and also we
+// wouldn't be able to implement extendable output.) Note that this function is
+// not used when the whole input is only 1 chunk long; that's a different
+// codepath.
+//
+// Why not just have the caller split the input on the first update(), instead
+// of implementing this special rule? Because we don't want to limit SIMD or
+// multi-threading parallelism for that update().
+static size_t blake3_compress_subtree_wide(const uint8_t *input,
+                                           size_t input_len,
+                                           const uint32_t key[8],
+                                           uint64_t chunk_counter,
+                                           uint8_t flags, uint8_t *out) {
+  // Note that the single chunk case does *not* bump the SIMD degree up to 2
+  // when it is 1. If this implementation adds multi-threading in the future,
+  // this gives us the option of multi-threading even the 2-chunk case, which
+  // can help performance on smaller platforms.
+  if (input_len <= blake3_simd_degree() * BLAKE3_CHUNK_LEN) {
+    return compress_chunks_parallel(input, input_len, key, chunk_counter, flags,
+                                    out);
+  }
+
+  // With more than simd_degree chunks, we need to recurse. Start by dividing
+  // the input into left and right subtrees. (Note that this is only optimal
+  // as long as the SIMD degree is a power of 2. If we ever get a SIMD degree
+  // of 3 or something, we'll need a more complicated strategy.)
+  size_t left_input_len = left_len(input_len);
+  size_t right_input_len = input_len - left_input_len;
+  const uint8_t *right_input = &input[left_input_len];
+  uint64_t right_chunk_counter =
+      chunk_counter + (uint64_t)(left_input_len / BLAKE3_CHUNK_LEN);
+
+  // Make space for the child outputs. Here we use MAX_SIMD_DEGREE_OR_2 to
+  // account for the special case of returning 2 outputs when the SIMD degree
+  // is 1.
+  uint8_t cv_array[2 * MAX_SIMD_DEGREE_OR_2 * BLAKE3_OUT_LEN];
+  size_t degree = blake3_simd_degree();
+  if (left_input_len > BLAKE3_CHUNK_LEN && degree == 1) {
+    // The special case: We always use a degree of at least two, to make
+    // sure there are two outputs. Except, as noted above, at the chunk
+    // level, where we allow degree=1. (Note that the 1-chunk-input case is
+    // a different codepath.)
+    degree = 2;
+  }
+  uint8_t *right_cvs = &cv_array[degree * BLAKE3_OUT_LEN];
+
+  // Recurse! If this implementation adds multi-threading support in the
+  // future, this is where it will go.
+  size_t left_n = blake3_compress_subtree_wide(input, left_input_len, key,
+                                               chunk_counter, flags, cv_array);
+  size_t right_n = blake3_compress_subtree_wide(
+      right_input, right_input_len, key, right_chunk_counter, flags, right_cvs);
+
+  // The special case again. If simd_degree=1, then we'll have left_n=1 and
+  // right_n=1. Rather than compressing them into a single output, return
+  // them directly, to make sure we always have at least two outputs.
+  if (left_n == 1) {
+    memcpy(out, cv_array, 2 * BLAKE3_OUT_LEN);
+    return 2;
+  }
+
+  // Otherwise, do one layer of parent node compression.
+  size_t num_chaining_values = left_n + right_n;
+  return compress_parents_parallel(cv_array, num_chaining_values, key, flags,
+                                   out);
+}
+
+// Hash a subtree with compress_subtree_wide(), and then condense the resulting
+// list of chaining values down to a single parent node. Don't compress that
+// last parent node, however. Instead, return its message bytes (the
+// concatenated chaining values of its children). This is necessary when the
+// first call to update() supplies a complete subtree, because the topmost
+// parent node of that subtree could end up being the root. It's also necessary
+// for extended output in the general case.
+//
+// As with compress_subtree_wide(), this function is not used on inputs of 1
+// chunk or less. That's a different codepath.
 INLINE void compress_subtree_to_parent_node(
     const uint8_t *input, size_t input_len, const uint32_t key[8],
-    uint64_t chunk_counter, uint8_t flags, uint8_t *out, size_t *out_n) {
+    uint64_t chunk_counter, uint8_t flags, uint8_t out[2 * BLAKE3_OUT_LEN]) {
 #if defined(BLAKE3_TESTING)
   assert(input_len > BLAKE3_CHUNK_LEN);
 #endif
-  size_t max_output_n = (input_len + BLAKE3_CHUNK_LEN - 1) / BLAKE3_CHUNK_LEN;
 
-  uint8_t cv[MAX_SIMD_DEGREE_OR_2 * BLAKE3_OUT_LEN / 2];
-  size_t num_cvs = 0;
-  while (input_len > 0) {
-    size_t subtree_len = input_len;
-    if (subtree_len > (MAX_SIMD_DEGREE_OR_2 * BLAKE3_CHUNK_LEN)) {
-      subtree_len = MAX_SIMD_DEGREE_OR_2 * BLAKE3_CHUNK_LEN;
-    }
-    size_t chunk_n = compress_chunks_parallel(input, subtree_len, key,
-                                              chunk_counter, flags, cv);
-    chunk_counter += (uint64_t)chunk_n;
-    size_t parent_n = chunk_n;
-    // The second condition here is the "wide root" special case, where we have
-    // a parent node but it's too wide to finalize.
-    while (parent_n > 2 && parent_n <= MAX_SIMD_DEGREE_OR_2) {
-      parent_n = compress_parents_parallel(cv, parent_n, key, flags, cv);
-    }
-    memcpy(&out[num_cvs * BLAKE3_OUT_LEN], cv, parent_n * BLAKE3_OUT_LEN);
-    num_cvs += parent_n;
-    input += subtree_len;
-    input_len -= subtree_len;
+  uint8_t cv_array[MAX_SIMD_DEGREE_OR_2 * BLAKE3_OUT_LEN];
+  size_t num_cvs = blake3_compress_subtree_wide(input, input_len, key,
+                                                chunk_counter, flags, cv_array);
+  assert(num_cvs <= MAX_SIMD_DEGREE_OR_2);
+  // The following loop never executes when MAX_SIMD_DEGREE_OR_2 is 2, because
+  // as we just asserted, num_cvs will always be <=2 in that case. But GCC
+  // (particularly GCC 8.5) can't tell that it never executes, and if NDEBUG is
+  // set then it emits incorrect warnings here. We tried a few different
+  // hacks to silence these, but in the end our hacks just produced different
+  // warnings (see https://github.com/BLAKE3-team/BLAKE3/pull/380). Out of
+  // desperation, we ifdef out this entire loop when we know it's not needed.
+#if MAX_SIMD_DEGREE_OR_2 > 2
+  // If MAX_SIMD_DEGREE_OR_2 is greater than 2 and there's enough input,
+  // compress_subtree_wide() returns more than 2 chaining values. Condense
+  // them into 2 by forming parent nodes repeatedly.
+  uint8_t out_array[MAX_SIMD_DEGREE_OR_2 * BLAKE3_OUT_LEN / 2];
+  while (num_cvs > 2) {
+    num_cvs =
+        compress_parents_parallel(cv_array, num_cvs, key, flags, out_array);
+    memcpy(cv_array, out_array, num_cvs * BLAKE3_OUT_LEN);
   }
-#if defined(BLAKE3_TESTING)
-  assert(num_cvs <= max_output_n);
-  (void)max_output_n;
 #endif
-  *out_n = num_cvs;
-}
-
-// Hash a subtree with explicit SIMD parallelism. The `out` pointer must point
-// to at least 32 bytes. The number of output chaining values is returned.
-// `use_tbb` enables Intel Threading Building Blocks for additional
-// parallelism.
-BLAKE3_PRIVATE size_t blake3_compress_subtree_wide(const uint8_t *input,
-                                                   size_t input_len,
-                                                   const uint32_t key[8],
-                                                   uint64_t chunk_counter,
-                                                   uint8_t flags, uint8_t *out,
-                                                   bool use_tbb) {
-#if defined(BLAKE3_USE_TBB)
-  if (use_tbb) {
-    size_t mid = left_subtree_len(input_len);
-    size_t left_n, right_n;
-    blake3_compress_subtree_wide_join_tbb(
-        key, flags, true, input, mid, chunk_counter, out, &left_n,
-        input + mid, input_len - mid, chunk_counter + (mid / BLAKE3_CHUNK_LEN),
-        out + left_n * BLAKE3_OUT_LEN, &right_n);
-    return left_n + right_n;
-  }
-#else
-  (void)use_tbb;
-#endif
-  return blake3_simd_degree();
-}
-
-// Hash a subtree with explicit platform parallelism. The `out` pointer must
-// point to at least 32 bytes.
-INLINE void compress_subtree_wide(const uint8_t *input, size_t input_len,
-                                  const uint32_t key[8],
-                                  uint64_t chunk_counter, uint8_t flags,
-                                  uint8_t out[BLAKE3_OUT_LEN]) {
-  // The compress_subtree_wide function assumes it's hashing more than one
-  // chunk. Use the platform-independent compress_subtree_to_parent_node for
-  // the rest.
-#if defined(BLAKE3_TESTING)
-  assert(input_len > BLAKE3_CHUNK_LEN);
-#endif
-  uint8_t cv[MAX_SIMD_DEGREE_OR_2 * BLAKE3_OUT_LEN / 2];
-  size_t num_cvs = 0;
-  blake3_compress_subtree_to_parent_node(input, input_len, key, chunk_counter,
-                                         flags, cv, &num_cvs);
-  assert(num_cvs > 1);
-  // If MAX_SIMD_DEGREE is greater than 1, then:
-  // - The subtree fits in MAX_SIMD_DEGREE_OR_2 chunks.
-  // - We did a "wide" compression at the end of
-  //   compress_subtree_to_parent_node.
-  // - There are at most MAX_SIMD_DEGREE_OR_2 parent CVs.
-  // - The final CV is always the root output.
-  // - The second-to-last CV is a parent.
-  // - Parent nodes are never root.
-  // - The number of outputs is always at least 2.
-  // - Thus, the last two outputs are always a parent and then the root, and
-  //   we merge them with parent CV merging.
-  //
-  // If MAX_SIMD_DEGREE is 1, then:
-  // - The subtree doesn't fit in MAX_SIMD_DEGREE_OR_2 chunks (because that
-  //   equals 2).
-  // - Thus compress_subtree_to_parent_node will never do a "wide"
-  //   compression.
-  // - Thus the number of outputs is equal to the number of chunks.
-  // - Chunks are never root.
-  // - The number of outputs is always greater than 1.
-  // - Thus, the last output is always the root, and the output before that
-  //   is a parent.
-  // - Thus we merge them with parent CV merging.
-  //
-  // In both cases, there are at least 2 outputs. At least one of the
-  // non-root outputs might be a parent, but we don't need to worry about
-  // that because parent CV merging is associative.
-  size_t total_parents = num_cvs - 1;
-  while (total_parents > 1) {
-#if defined(BLAKE3_TESTING)
-    assert(num_cvs <= MAX_SIMD_DEGREE_OR_2);
-#endif
-    num_cvs = compress_parents_parallel(cv, num_cvs, key, flags, cv);
-    total_parents = num_cvs - 1;
-  }
-  assert(num_cvs == 2);
-  // Root is always the last output.
-  output_t root_output = parent_output(cv, key, flags);
-  output_chaining_value(&root_output, out);
+  memcpy(out, cv_array, 2 * BLAKE3_OUT_LEN);
 }
 
 INLINE void hasher_init_base(blake3_hasher *self, const uint32_t key[8],
@@ -375,9 +373,7 @@ INLINE void hasher_init_base(blake3_hasher *self, const uint32_t key[8],
   self->cv_stack_len = 0;
 }
 
-void blake3_hasher_init(blake3_hasher *self) {
-  hasher_init_base(self, IV, 0);
-}
+void blake3_hasher_init(blake3_hasher *self) { hasher_init_base(self, IV, 0); }
 
 void blake3_hasher_init_keyed(blake3_hasher *self,
                               const uint8_t key[BLAKE3_KEY_LEN]) {
@@ -402,193 +398,223 @@ void blake3_hasher_init_derive_key(blake3_hasher *self, const char *context) {
   blake3_hasher_init_derive_key_raw(self, context, strlen(context));
 }
 
-// Increment the counter for the current chunk.
-INLINE void hasher_increment_counter(blake3_hasher *self) {
-  self->chunk.chunk_counter += 1;
-}
-
-// Given some new input bytes that we know will create a complete chunk,
-// combine them with any buffered input and hash them. Do not finalize the
-// chunk (i.e. don't set CHUNK_END). Store the resulting chaining value in
-// the CV stack.
-INLINE void hasher_push_chunk_cv(blake3_hasher *self,
-                                 const uint8_t chunk_cv[BLAKE3_OUT_LEN],
-                                 uint8_t *block, uint8_t block_len) {
-  assert(block_len > 0);
-  assert(block_len <= BLAKE3_BLOCK_LEN);
-  // Increment the counter to keep track of how many chunks we've hashed.
-  hasher_increment_counter(self);
-  // Compute the parent node for this chunk and the previous chunk(s) if
-  // any. This loop merges adjacent chunks together, maintaining the
-  // following invariant:
-  // - The CV stack always represents a left-heavy binary tree.
-  // - The number of trailing 1s in the total number of chunks hashed so
-  //   far equals the number of CVs in the stack.
-  // - The total number of chunks hashed so far equals
-  //   1 << (cv_stack_len - 1).
-  // - CVs are stored in the stack from low to high, so the lowest CV is
-  //   at the front of the stack.
-  size_t post_merge_stack_len = self->cv_stack_len;
-  while ((post_merge_stack_len & 1) == 1) {
-    size_t parent_block_offset = (post_merge_stack_len - 1) * BLAKE3_OUT_LEN;
-    // Make a new parent block by concatenating the previous CV with the
-    // new chunk CV.
-    uint8_t parent_block[BLAKE3_BLOCK_LEN];
-    memcpy(parent_block, &self->cv_stack[parent_block_offset], BLAKE3_OUT_LEN);
-    memcpy(&parent_block[BLAKE3_OUT_LEN], chunk_cv, BLAKE3_OUT_LEN);
-    // Hash the parent block.
-    output_t parent_output = parent_output(parent_block, self->key,
-                                           self->chunk.flags);
-    output_chaining_value(&parent_output, &self->cv_stack[parent_block_offset]);
-    post_merge_stack_len -= 1;
+// As described in hasher_push_cv() below, we do "lazy merging", delaying
+// merges until right before the next CV is about to be added. This is
+// different from the reference implementation. Another difference is that we
+// aren't always merging 1 chunk at a time. Instead, each CV might represent
+// any power-of-two number of chunks, as long as the smaller-above-larger stack
+// order is maintained. Instead of the "count the trailing 0-bits" algorithm
+// described in the spec, we use a "count the total number of 1-bits" variant
+// that doesn't require us to retain the subtree size of the CV on top of the
+// stack. The principle is the same: each CV that should remain in the stack is
+// represented by a 1-bit in the total number of chunks (or bytes) so far.
+INLINE void hasher_merge_cv_stack(blake3_hasher *self, uint64_t total_len) {
+  size_t post_merge_stack_len = (size_t)popcnt(total_len);
+  while (self->cv_stack_len > post_merge_stack_len) {
+    uint8_t *parent_node =
+        &self->cv_stack[(self->cv_stack_len - 2) * BLAKE3_OUT_LEN];
+    output_t output = parent_output(parent_node, self->key, self->chunk.flags);
+    output_chaining_value(&output, parent_node);
+    self->cv_stack_len -= 1;
   }
-  // If the stack is now empty, store the new chunk CV. Otherwise, add the
-  // new chunk CV to the front of the stack. Note that merging might have
-  // freed up a slot.
-  memcpy(&self->cv_stack[post_merge_stack_len * BLAKE3_OUT_LEN], chunk_cv,
-         BLAKE3_OUT_LEN);
-  post_merge_stack_len += 1;
-  self->cv_stack_len = (uint8_t)post_merge_stack_len;
 }
 
-// Given the bytes in the current chunk (possibly empty), hash them and add
-// the resulting chaining value to the CV stack. Then increment the counter.
-INLINE void hasher_chunk_finalize(blake3_hasher *self, uint8_t *block,
-                                  uint8_t block_len) {
-  assert(block_len > 0);
-  assert(block_len <= BLAKE3_BLOCK_LEN);
-  output_t chunk_output = chunk_state_output(&self->chunk);
-  uint8_t chunk_cv[BLAKE3_OUT_LEN];
-  output_chaining_value(&chunk_output, chunk_cv);
-  hasher_push_chunk_cv(self, chunk_cv, block, block_len);
-  // Reset the chunk state for the next chunk.
-  chunk_state_reset(&self->chunk, self->key, self->chunk.chunk_counter);
+// In reference_impl.rs, we merge the new CV with existing CVs from the stack
+// before pushing it. We can do that because we know more input is coming, so
+// we know none of the merges are root.
+//
+// This setting is different. We want to feed as much input as possible to
+// compress_subtree_wide(), without setting aside anything for the chunk_state.
+// If the user gives us 64 KiB, we want to parallelize over all 64 KiB at once
+// as a single subtree, if at all possible.
+//
+// This leads to two problems:
+// 1) This 64 KiB input might be the only call that ever gets made to update.
+//    In this case, the root node of the 64 KiB subtree would be the root node
+//    of the whole tree, and it would need to be ROOT finalized. We can't
+//    compress it until we know.
+// 2) This 64 KiB input might complete a larger tree, whose root node is
+//    similarly going to be the root of the whole tree. For example, maybe
+//    we have 196 KiB (that is, 128 + 64) hashed so far. We can't compress the
+//    node at the root of the 256 KiB subtree until we know how to finalize it.
+//
+// The second problem is solved with "lazy merging". That is, when we're about
+// to add a CV to the stack, we don't merge it with anything first, as the
+// reference impl does. Instead we do merges using the *previous* CV that was
+// added, which is sitting on top of the stack, and we put the new CV
+// (unmerged) on top of the stack afterwards. This guarantees that we never
+// merge the root node until finalize().
+//
+// Solving the first problem requires an additional tool,
+// compress_subtree_to_parent_node(). That function always returns the top
+// *two* chaining values of the subtree it's compressing. We then do lazy
+// merging with each of them separately, so that the second CV will always
+// remain unmerged. (That also helps us support extendable output when we're
+// hashing an input all-at-once.)
+INLINE void hasher_push_cv(blake3_hasher *self, uint8_t new_cv[BLAKE3_OUT_LEN],
+                           uint64_t chunk_counter) {
+  hasher_merge_cv_stack(self, chunk_counter);
+  memcpy(&self->cv_stack[self->cv_stack_len * BLAKE3_OUT_LEN], new_cv,
+         BLAKE3_OUT_LEN);
+  self->cv_stack_len += 1;
 }
 
 void blake3_hasher_update(blake3_hasher *self, const void *input,
                           size_t input_len) {
+  // Explicitly checking for zero avoids causing UB by passing a null pointer
+  // to memcpy. This comes up in practice with things like:
+  //   std::vector<uint8_t> v;
+  //   blake3_hasher_update(&hasher, v.data(), v.size());
+  if (input_len == 0) {
+    return;
+  }
+
   const uint8_t *input_bytes = (const uint8_t *)input;
 
-  // If we already have a partial chunk in the buffer, we need to fill
-  // that first.
-  if (self->chunk.buf_len > 0) {
-    size_t take = BLAKE3_CHUNK_LEN - ((size_t)self->chunk.buf_len);
+  // If we have some partial chunk bytes in the internal chunk_state, we need
+  // to finish that chunk first.
+  if (chunk_state_len(&self->chunk) > 0) {
+    size_t take = BLAKE3_CHUNK_LEN - chunk_state_len(&self->chunk);
     if (take > input_len) {
       take = input_len;
     }
     chunk_state_update(&self->chunk, input_bytes, take);
     input_bytes += take;
     input_len -= take;
+    // If we've filled the current chunk and there's more coming, finalize this
+    // chunk and proceed. In this case we know it's not the root.
     if (input_len > 0) {
-      // We've filled the buffer, so now we can hash it.
-      hasher_chunk_finalize(self, self->chunk.buf, self->chunk.buf_len);
+      output_t output = chunk_state_output(&self->chunk);
+      uint8_t chunk_cv[32];
+      output_chaining_value(&output, chunk_cv);
+      hasher_push_cv(self, chunk_cv, self->chunk.chunk_counter);
+      chunk_state_reset(&self->chunk, self->key, self->chunk.chunk_counter + 1);
     } else {
-      // We've consumed all the input.
       return;
     }
   }
 
-  // Hash as many whole chunks as we can.
+  // Now the chunk_state is clear, and we have more input. If there's more than
+  // a single chunk (so, definitely not the root chunk), hash the largest whole
+  // subtree we can, with the full benefits of SIMD (and maybe in the future,
+  // multi-threading) parallelism. Two restrictions:
+  // - The subtree has to be a power-of-2 number of chunks. Only subtrees along
+  //   the right edge can be incomplete, and we don't know where the right edge
+  //   is going to be until we get to finalize().
+  // - The subtree must evenly divide the total number of chunks up until this
+  //   point (if total is not 0). If the current incomplete subtree is only
+  //   waiting for 1 more chunk, we can't hash a subtree of 4 chunks. We have
+  //   to complete the current subtree first.
+  // Because we might need to break up the input to form powers of 2, or to
+  // evenly divide what we already have, this part runs in a loop.
   while (input_len > BLAKE3_CHUNK_LEN) {
     size_t subtree_len = round_down_to_power_of_2(input_len);
-    uint64_t count_so_far = self->chunk.chunk_counter;
-    // Shrink the subtree_len until it's evenly divided by the chunk size,
-    // and also until it's no more than MAX_SIMD_DEGREE_OR_2 chunks.
-    while (((subtree_len - 1) & subtree_len) != 0 ||
-           subtree_len / BLAKE3_CHUNK_LEN > MAX_SIMD_DEGREE_OR_2) {
+    uint64_t count_so_far = self->chunk.chunk_counter * BLAKE3_CHUNK_LEN;
+    // Shrink the subtree_len until it evenly divides the count so far. We know
+    // that subtree_len itself is a power of 2, so we can use a bitmasking
+    // trick instead of an actual remainder operation. (Note that if the caller
+    // consistently passes power-of-2 inputs of the same size, as is hopefully
+    // typical, this loop condition will always fail, and subtree_len will
+    // always be the full length of the input.)
+    //
+    // An aside: We don't have to shrink subtree_len quite this much. For
+    // example, if count_so_far is 1, we could pass 2 chunks to
+    // compress_subtree_to_parent_node. Since we'll get 2 CVs back, we'll still
+    // get the right answer in the end, and we might get to use 2-way SIMD
+    // parallelism. The problem with this optimization, is that it gets us
+    // stuck always hashing 2 chunks. The total number of chunks will remain
+    // odd, and we'll never graduate to higher degrees of parallelism. See
+    // https://github.com/BLAKE3-team/BLAKE3/issues/69.
+    while ((((uint64_t)(subtree_len - 1)) & count_so_far) != 0) {
       subtree_len /= 2;
     }
-    uint64_t subtree_chunks = (uint64_t)(subtree_len / BLAKE3_CHUNK_LEN);
+    // The shrunken subtree_len might now be 1 chunk long. If so, hash that one
+    // chunk by itself. Otherwise, compress the subtree into a pair of CVs.
+    uint64_t subtree_chunks = subtree_len / BLAKE3_CHUNK_LEN;
     if (subtree_len <= BLAKE3_CHUNK_LEN) {
-      chunk_state_update(&self->chunk, input_bytes, subtree_len);
-      hasher_chunk_finalize(self, self->chunk.buf, self->chunk.buf_len);
+      blake3_chunk_state chunk_state;
+      chunk_state_init(&chunk_state, self->key, self->chunk.flags);
+      chunk_state.chunk_counter = self->chunk.chunk_counter;
+      chunk_state_update(&chunk_state, input_bytes, subtree_len);
+      output_t output = chunk_state_output(&chunk_state);
+      uint8_t cv[BLAKE3_OUT_LEN];
+      output_chaining_value(&output, cv);
+      hasher_push_cv(self, cv, chunk_state.chunk_counter);
     } else {
-      // The subtree is more than one chunk, so hash it using
-      // compress_subtree_wide.
-      compress_subtree_wide(input_bytes, subtree_len, self->key,
-                            count_so_far, self->chunk.flags, self->cv_stack);
-      self->cv_stack_len = 1;
-      // Update the chunk counter and input pointer.
-      self->chunk.chunk_counter += subtree_chunks;
+      // This is the high-performance happy path, though getting here depends
+      // on the caller giving us a long enough input.
+      uint8_t cv_pair[2 * BLAKE3_OUT_LEN];
+      compress_subtree_to_parent_node(input_bytes, subtree_len, self->key,
+                                      self->chunk.chunk_counter,
+                                      self->chunk.flags, cv_pair);
+      hasher_push_cv(self, cv_pair, self->chunk.chunk_counter);
+      hasher_push_cv(self, &cv_pair[BLAKE3_OUT_LEN],
+                     self->chunk.chunk_counter + (subtree_chunks / 2));
     }
+    self->chunk.chunk_counter += subtree_chunks;
     input_bytes += subtree_len;
     input_len -= subtree_len;
   }
 
-  // If there's any remaining input less than a full chunk, buffer it.
+  // If there's any remaining input less than a full chunk, add it to the chunk
+  // state. In that case, also do a final merge loop to make sure the subtree
+  // stack doesn't contain any unmerged pairs. The remaining input means we
+  // know these merges are non-root. This merge loop isn't strictly necessary
+  // here, because hasher_push_chunk_cv already does its own merge loop, but it
+  // simplifies blake3_hasher_finalize below.
   if (input_len > 0) {
     chunk_state_update(&self->chunk, input_bytes, input_len);
+    hasher_merge_cv_stack(self, self->chunk.chunk_counter);
   }
 }
 
 void blake3_hasher_finalize(const blake3_hasher *self, uint8_t *out,
                             size_t out_len) {
-  // If the subtree is a single chunk, finalize that chunk without
-  // making a parent node.
-  if (self->cv_stack_len == 0) {
-    output_t output = chunk_state_output(&self->chunk);
-    output_root_bytes(&output, 0, out, out_len);
-    return;
-  }
-  // Otherwise, we need to make parent nodes to represent the subtree
-  // roots. Start with the rightmost child.
-  output_t output = chunk_state_output(&self->chunk);
-  // The rightmost child is always a chunk, and we need to merge it with
-  // all the parent nodes in the CV stack, from right to left.
-  size_t parent_block_offset = ((size_t)self->cv_stack_len - 1) * BLAKE3_OUT_LEN;
-  while (parent_block_offset > 0) {
-    // Make a new parent block by concatenating the previous CV with the
-    // new chunk CV.
-    uint8_t parent_block[BLAKE3_BLOCK_LEN];
-    memcpy(parent_block, &self->cv_stack[parent_block_offset], BLAKE3_OUT_LEN);
-    output_chaining_value(&output, &parent_block[BLAKE3_OUT_LEN]);
-    // Hash the parent block.
-    output = parent_output(parent_block, self->key, self->chunk.flags);
-    parent_block_offset -= BLAKE3_OUT_LEN;
-  }
-  // The root output is the hash of the concatenation of the first CV in
-  // the stack and the output of the rightmost child.
-  uint8_t parent_block[BLAKE3_BLOCK_LEN];
-  memcpy(parent_block, self->cv_stack, BLAKE3_OUT_LEN);
-  output_chaining_value(&output, &parent_block[BLAKE3_OUT_LEN]);
-  output_root_bytes(&parent_output(parent_block, self->key,
-                                   self->chunk.flags | ROOT),
-                    0, out, out_len);
+  blake3_hasher_finalize_seek(self, 0, out, out_len);
 }
 
 void blake3_hasher_finalize_seek(const blake3_hasher *self, uint64_t seek,
                                  uint8_t *out, size_t out_len) {
-  // If the subtree is a single chunk, finalize that chunk without
-  // making a parent node.
+  // Explicitly checking for zero avoids causing UB by passing a null pointer
+  // to memcpy. This comes up in practice with things like:
+  //   std::vector<uint8_t> v;
+  //   blake3_hasher_finalize(&hasher, v.data(), v.size());
+  if (out_len == 0) {
+    return;
+  }
+
+  // If the subtree stack is empty, then the current chunk is the root.
   if (self->cv_stack_len == 0) {
     output_t output = chunk_state_output(&self->chunk);
     output_root_bytes(&output, seek, out, out_len);
     return;
   }
-  // Otherwise, we need to make parent nodes to represent the subtree
-  // roots. Start with the rightmost child.
-  output_t output = chunk_state_output(&self->chunk);
-  // The rightmost child is always a chunk, and we need to merge it with
-  // all the parent nodes in the CV stack, from right to left.
-  size_t parent_block_offset = ((size_t)self->cv_stack_len - 1) * BLAKE3_OUT_LEN;
-  while (parent_block_offset > 0) {
-    // Make a new parent block by concatenating the previous CV with the
-    // new chunk CV.
-    uint8_t parent_block[BLAKE3_BLOCK_LEN];
-    memcpy(parent_block, &self->cv_stack[parent_block_offset], BLAKE3_OUT_LEN);
-    output_chaining_value(&output, &parent_block[BLAKE3_OUT_LEN]);
-    // Hash the parent block.
-    output = parent_output(parent_block, self->key, self->chunk.flags);
-    parent_block_offset -= BLAKE3_OUT_LEN;
+  // If there are any bytes in the chunk state, finalize that chunk and do a
+  // roll-up merge between that chunk hash and every subtree in the stack. In
+  // this case, the extra merge loop at the end of blake3_hasher_update
+  // guarantees that none of the subtrees in the stack need to be merged with
+  // each other first. Otherwise, if there are no bytes in the chunk state,
+  // then the top of the stack is a chunk hash, and we start the merge from
+  // that.
+  output_t output;
+  size_t cvs_remaining;
+  if (chunk_state_len(&self->chunk) > 0) {
+    cvs_remaining = self->cv_stack_len;
+    output = chunk_state_output(&self->chunk);
+  } else {
+    // There are always at least 2 CVs in the stack in this case.
+    cvs_remaining = self->cv_stack_len - 2;
+    output = parent_output(&self->cv_stack[cvs_remaining * 32], self->key,
+                           self->chunk.flags);
   }
-  // The root output is the hash of the concatenation of the first CV in
-  // the stack and the output of the rightmost child.
-  uint8_t parent_block[BLAKE3_BLOCK_LEN];
-  memcpy(parent_block, self->cv_stack, BLAKE3_OUT_LEN);
-  output_chaining_value(&output, &parent_block[BLAKE3_OUT_LEN]);
-  output_root_bytes(&parent_output(parent_block, self->key,
-                                   self->chunk.flags | ROOT),
-                    seek, out, out_len);
+  while (cvs_remaining > 0) {
+    cvs_remaining -= 1;
+    uint8_t parent_block[BLAKE3_BLOCK_LEN];
+    memcpy(parent_block, &self->cv_stack[cvs_remaining * 32], 32);
+    output_chaining_value(&output, &parent_block[32]);
+    output = parent_output(parent_block, self->key, self->chunk.flags);
+  }
+  output_root_bytes(&output, seek, out, out_len);
 }
 
 void blake3_hasher_reset(blake3_hasher *self) {

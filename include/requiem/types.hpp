@@ -1,5 +1,41 @@
 #pragma once
 
+// requiem/types.hpp — Core data structures for the Requiem deterministic execution engine.
+//
+// ARCHITECTURE NOTES (Phase 0 — Repo Truth Extraction):
+//
+// DETERMINISM GUARANTEES:
+//   - ExecutionRequest canonicalization is deterministic: same inputs → same canonical JSON
+//     → same request_digest. This is tested by verify_determinism.sh (200x repeat gate).
+//   - ExecPolicy.required_env injects PYTHONHASHSEED=0 unconditionally, preventing Python
+//     hash randomization from leaking into outputs.
+//   - time_mode="fixed_zero" suppresses wall-clock injection into child processes.
+//
+// DETERMINISM ASSUMPTIONS (not yet proven, only assumed):
+//   - Filesystem ordering of scan_objects() is NOT guaranteed deterministic on all filesystems.
+//     Future: sort by digest after scan. EXTENSION_POINT: deterministic_directory_iteration
+//   - Output file hashing order follows request.outputs vector order (deterministic: good).
+//
+// CONCURRENCY NOTES:
+//   - ExecutionRequest/ExecutionResult are value types — no shared state per execution.
+//   - ExecPolicy.env_denylist is read-only after construction — safe for concurrent reads.
+//   - Global MeterLog (metering.hpp) uses a mutex — sharding candidate for high throughput.
+//     EXTENSION_POINT: sharded_meter_log
+//
+// MEMORY OWNERSHIP:
+//   - All string members are value-owned. No borrowed references.
+//   - execute() returns ExecutionResult by value. Caller owns it.
+//   - No raw pointer members in any public API type.
+//
+// EXTENSION_POINT: allocator_strategy
+//   Current: all allocations use the default system allocator.
+//   Upgrade path: replace with per-execution arena allocators to:
+//     1. Eliminate fragmentation in long-running daemon mode.
+//     2. Enable O(1) teardown (bulk-free the arena after each execution).
+//     3. Improve cache locality by keeping execution state contiguous.
+//   Invariant to preserve: ExecutionResult must be fully owned (no arena-internal pointers
+//   escape to the caller). Use a copy-on-return strategy.
+
 #include <cstdint>
 #include <map>
 #include <optional>
@@ -22,9 +58,15 @@ enum class ErrorCode {
   hash_unavailable_blake3,
   sandbox_unavailable,
   quota_exceeded,
-  config_invalid,
-  proof_verification_failed,
-  signature_unavailable,
+  // Phase D: Failure mode completeness additions
+  cas_corruption,             // CAS object hash mismatch on read
+  partial_journal_write,      // CAS object write incomplete (crash during put)
+  replay_mismatch,            // Replay digest differs from original
+  worker_crash,               // Worker process terminated unexpectedly
+  out_of_memory,              // Execution exceeded memory limit
+  hash_version_mismatch,      // Hash format version incompatible
+  backend_latency_spike,      // Backend I/O timeout or slowdown
+  network_partition,          // Enterprise: inter-node communication loss
 };
 
 std::string to_string(ErrorCode code);
@@ -36,24 +78,104 @@ struct SandboxCapabilities {
   bool rlimits_mem{false};
   bool rlimits_fds{false};
   bool seccomp_baseline{false};
-  bool seccomp_bpf{false};        // v1.2: Full seccomp-bpf filtering
   bool job_objects{false};
   bool restricted_token{false};
-  bool process_mitigations{false}; // v1.2: Windows process mitigations
-  bool network_isolation{false};   // v1.2: True network isolation
-  
+  bool process_mitigations{false};
+
+  // EXTENSION_POINT: seccomp_profile
+  // Current: seccomp_baseline is always false (not implemented).
+  // Upgrade path: add seccomp-bpf profile loading and apply via PR_SET_SECCOMP.
+  // Landlock LSM for path-based sandboxing is also a candidate here.
+  // Invariant: capability detection must never throw — uses error_code paths.
+
   std::vector<std::string> enforced() const;
   std::vector<std::string> unsupported() const;
-  // v1.2: Report partial enforcement (truthful capability reporting)
-  std::vector<std::string> partial() const;
 };
 
 SandboxCapabilities detect_sandbox_capabilities();
 
-// v1.1: Config schema versioning
-struct ConfigSchema {
-  std::string config_version{"1.1"};  // Added in v1.1
-  bool strict_mode{true};              // Reject unknown fields if true
+// ---------------------------------------------------------------------------
+// HashEnvelope — Phase 2: Versioned hash schema
+// ---------------------------------------------------------------------------
+// Wraps a BLAKE3 digest with version metadata to enable future algorithm
+// upgrades without silent compatibility breaks.
+//
+// EXTENSION_POINT: hash_algorithm_upgrade
+//   Current: hash_version=1, algorithm="blake3", BLAKE3_OUT_LEN=32 bytes.
+//   Upgrade path: increment hash_version and update algorithm[] when migrating.
+//   Invariant: ALL components that verify digests must check hash_version first.
+//   Migration strategy: dual-verify during transition window, then cut over.
+//
+// Memory layout: fixed-size, copyable, no heap allocation. Safe for C ABI crossing.
+struct HashEnvelope {
+  uint32_t hash_version{1};          // Bump when algorithm changes
+  char     algorithm[16]{"blake3"};  // Null-terminated algorithm name
+  char     engine_version[32]{};     // Set by hash.cpp from blake3_version()
+  uint8_t  payload_hash[32]{};       // Raw 32-byte BLAKE3 output (not hex)
+};
+
+// Populate a HashEnvelope from a hex digest string (64 chars → 32 bytes).
+// Returns false if hex string is invalid.
+bool hash_envelope_from_hex(HashEnvelope& env, const std::string& hex_digest);
+
+// Render a HashEnvelope to a 64-char hex string.
+std::string hash_envelope_to_hex(const HashEnvelope& env);
+
+// ---------------------------------------------------------------------------
+// Per-execution metrics — Phase 1 / Phase 4
+// ---------------------------------------------------------------------------
+// Captured during execute() for observability and billing.
+//
+// EXTENSION_POINT: arena_high_water_metric
+//   Current: stack-allocated, zero-overhead.
+//   Upgrade: add arena_high_water_bytes when per-execution arena allocator is added.
+struct ExecutionMetrics {
+  uint64_t total_duration_ns{0};     // Wall-clock time of entire execute() call
+  uint64_t hash_duration_ns{0};      // Time spent in BLAKE3 operations
+  uint64_t sandbox_duration_ns{0};   // Time from process spawn to collection
+  uint64_t canonicalize_ns{0};       // Time spent canonicalizing request/result
+  size_t   bytes_stdin{0};           // Input payload size (request JSON)
+  size_t   bytes_stdout{0};          // Output captured from process
+  size_t   bytes_stderr{0};          // Stderr captured from process
+  size_t   cas_puts{0};              // CAS write operations
+  size_t   cas_hits{0};              // CAS dedup hits (skipped writes)
+  size_t   output_files_hashed{0};   // Number of output files hashed post-execution
+
+  // Phase D+I: Memory metrics
+  // EXTENSION_POINT: arena_high_water_metric
+  //   peak_memory_bytes: currently 0 (requires /proc/<pid>/status RSS sampling or
+  //   getrusage() RUSAGE_CHILDREN after process wait). Activate by reading
+  //   ru_maxrss from struct rusage after waitpid() in sandbox_posix.cpp.
+  size_t   peak_memory_bytes{0};     // Peak RSS of child process (bytes)
+  size_t   total_rss_bytes{0};       // Total RSS at execution end (process + child)
+  size_t   arena_high_water_bytes{0};// Arena allocator high-water (0 = not measured)
+};
+
+// ---------------------------------------------------------------------------
+// FailureCategoryStats — per-category failure counters (Phase D)
+// ---------------------------------------------------------------------------
+// engine.failure.category_count[N] — incremented whenever an execution fails
+// due to the corresponding failure category.
+//
+// EXTENSION_POINT: failure_alerting
+//   Current: counters only (polled via /api/engine/metrics).
+//   Upgrade: add threshold-based alerting hook that fires when a category
+//   exceeds N failures per minute. Wire to PagerDuty/OpsGenie via webhook.
+struct FailureCategoryStats {
+  uint64_t cas_corruption{0};
+  uint64_t partial_journal_write{0};
+  uint64_t replay_mismatch{0};
+  uint64_t worker_crash{0};
+  uint64_t out_of_memory{0};
+  uint64_t hash_version_mismatch{0};
+  uint64_t backend_latency_spike{0};
+  uint64_t network_partition{0};
+  uint64_t other{0};
+
+  // Increment the appropriate counter for a given ErrorCode.
+  void record(ErrorCode code);
+  // Serialize to compact JSON.
+  std::string to_json() const;
 };
 
 struct ExecPolicy {
@@ -63,6 +185,14 @@ struct ExecPolicy {
   std::string mode{"strict"};
   std::string time_mode{"fixed_zero"};
   std::string scheduler_mode{"turbo"};  // "repro" or "turbo"
+
+  // EXTENSION_POINT: scheduler_strategy
+  //   "repro": single-worker FIFO — maximum isolation, lowest throughput.
+  //   "turbo": worker pool — maximum throughput, requires determinism enforcement.
+  //   Future: "dag" mode for dependency-aware parallel execution.
+  //   Invariant: scheduler_mode appears in canonicalize_request() — changing it
+  //   changes the request_digest. Never change mode silently mid-session.
+
   std::vector<std::string> env_allowlist;
   std::vector<std::string> env_denylist{"RANDOM", "TZ", "HOSTNAME", "PWD", "OLDPWD", "SHLVL"};
   std::map<std::string, std::string> required_env{{"PYTHONHASHSEED", "0"}};
@@ -70,8 +200,6 @@ struct ExecPolicy {
   bool enforce_sandbox{true};
   std::uint64_t max_memory_bytes{0};  // 0 = unlimited
   std::uint64_t max_file_descriptors{0};  // 0 = unlimited
-  // v1.2: Network isolation
-  bool deny_network{false};  // Request network isolation
 };
 
 struct PolicyApplied {
@@ -88,14 +216,22 @@ struct SandboxApplied {
   bool seccomp{false};
   bool job_object{false};
   bool restricted_token{false};
-  bool network_isolation{false};  // v1.2
   std::vector<std::string> enforced;
   std::vector<std::string> unsupported;
-  std::vector<std::string> partial;  // v1.2: Partial enforcement
 };
 
 struct LlmOptions {
   std::string mode{"none"};  // "none", "subprocess", "sidecar", "freeze_then_compute", "attempt_deterministic"
+
+  // EXTENSION_POINT: ai_model_integration
+  //   Current: mode="none" is the only fully implemented path.
+  //   "subprocess": spawn model runner as child process, capture deterministic output via seed.
+  //   "freeze_then_compute": snapshot model weights, hash, then run inference.
+  //   "attempt_deterministic": best-effort with determinism_confidence score.
+  //   Hook for Kimi/Codex/Gemini: each model runner plugs in via runner_argv + model_ref.
+  //   Invariant: if include_in_digest=true, LLM output MUST be captured before result_digest
+  //   is computed. Failing to do so creates a silent digest mismatch.
+
   std::vector<std::string> runner_argv;
   std::string model_ref;
   std::uint64_t seed{0};
@@ -103,14 +239,6 @@ struct LlmOptions {
   std::map<std::string, std::string> sampler;
   bool include_in_digest{false};
   double determinism_confidence{0.0};  // 0.0-1.0, only for attempt_deterministic
-};
-
-// v1.1: Request lifecycle metadata
-struct RequestLifecycle {
-  std::string request_id;
-  std::string start_timestamp;   // ISO8601 format (excluded from digest)
-  std::string end_timestamp;     // ISO8601 format (excluded from digest)
-  std::string status;            // pending|running|completed|failed|cancelled
 };
 
 struct ExecutionRequest {
@@ -129,10 +257,9 @@ struct ExecutionRequest {
   LlmOptions llm;
   // Multi-tenant support
   std::string tenant_id;
-  // v1.1: Config version for compatibility
-  std::string config_version{"1.1"};
-  // v1.3: Engine selection for dual-run
-  std::string engine_mode{"requiem"};  // "requiem", "rust", "dual"
+  // NOTE: tenant_id is intentionally excluded from canonicalize_request().
+  // Tenant isolation is enforced at the infrastructure layer (separate CAS stores,
+  // separate result stores, separate billing meters). The engine itself is tenant-agnostic.
 };
 
 struct TraceEvent {
@@ -140,13 +267,6 @@ struct TraceEvent {
   std::uint64_t t_ns{0};
   std::string type;
   std::map<std::string, std::string> data;
-};
-
-// v1.2: Determinism confidence reporting
-struct DeterminismConfidence {
-  std::string level;  // "high"|"medium"|"best_effort"
-  std::vector<std::string> reasons;
-  double score{0.0};  // 0.0-1.0
 };
 
 struct ExecutionResult {
@@ -167,57 +287,11 @@ struct ExecutionResult {
   std::map<std::string, std::string> output_digests;
   PolicyApplied policy_applied;
   SandboxApplied sandbox_applied;
-  // v1.2: Determinism confidence
-  DeterminismConfidence determinism_confidence;
   // Enterprise features
-  std::string signature;  // Stub for signed result envelope
+  std::string signature;     // Stub for signed result envelope
   std::string audit_log_id;
-  // v1.1: Lifecycle metadata (excluded from digest)
-  std::string request_id;
-  std::string start_timestamp;
-  std::string end_timestamp;
-  std::uint64_t duration_ms{0};
-};
-
-// v1.2: Proof bundle for verification
-struct ProofBundle {
-  std::string merkle_root;
-  std::vector<std::string> input_digests;
-  std::vector<std::string> output_digests;
-  std::string policy_digest;
-  std::string replay_transcript_digest;
-  std::string signature_stub;  // Optional signature metadata
-  std::string engine_version;
-  std::string contract_version;
-  
-  std::string to_json() const;
-  static std::optional<ProofBundle> from_json(const std::string& json);
-};
-
-// v1.1: Metrics counters
-struct ExecutionMetrics {
-  std::uint64_t exec_total{0};
-  std::uint64_t exec_fail{0};
-  std::uint64_t timeouts{0};
-  std::uint64_t queue_full{0};
-  // Latency histogram buckets (ms)
-  std::map<std::string, std::uint64_t> latency_buckets;
-  // CAS metrics
-  std::uint64_t cas_bytes_total{0};
-  std::uint64_t cas_objects_total{0};
-  double cas_hit_rate{0.0};
-  
-  std::string to_json() const;
-  std::string to_prometheus() const;
-};
-
-// v1.3: Engine selection policy
-struct EngineSelectionPolicy {
-  std::string default_engine{"requiem"};
-  std::map<std::string, std::string> tenant_engines;  // tenant_id -> engine
-  std::map<std::string, std::string> workload_engines; // workload_type -> engine
-  double dual_run_sampling_rate{0.0};  // 0.0-1.0
-  std::string dual_run_diff_output;    // Path to write diffs
+  // Per-execution metrics (Phase 1/4)
+  ExecutionMetrics metrics;
 };
 
 }  // namespace requiem

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "requiem/types.hpp"
+
 namespace requiem {
 
 // v1.2: Seccomp filter actions
