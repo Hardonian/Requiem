@@ -58,6 +58,15 @@ enum class ErrorCode {
   hash_unavailable_blake3,
   sandbox_unavailable,
   quota_exceeded,
+  // Phase D: Failure mode completeness additions
+  cas_corruption,             // CAS object hash mismatch on read
+  partial_journal_write,      // CAS object write incomplete (crash during put)
+  replay_mismatch,            // Replay digest differs from original
+  worker_crash,               // Worker process terminated unexpectedly
+  out_of_memory,              // Execution exceeded memory limit
+  hash_version_mismatch,      // Hash format version incompatible
+  backend_latency_spike,      // Backend I/O timeout or slowdown
+  network_partition,          // Enterprise: inter-node communication loss
 };
 
 std::string to_string(ErrorCode code);
@@ -131,6 +140,42 @@ struct ExecutionMetrics {
   size_t   cas_puts{0};              // CAS write operations
   size_t   cas_hits{0};              // CAS dedup hits (skipped writes)
   size_t   output_files_hashed{0};   // Number of output files hashed post-execution
+
+  // Phase D+I: Memory metrics
+  // EXTENSION_POINT: arena_high_water_metric
+  //   peak_memory_bytes: currently 0 (requires /proc/<pid>/status RSS sampling or
+  //   getrusage() RUSAGE_CHILDREN after process wait). Activate by reading
+  //   ru_maxrss from struct rusage after waitpid() in sandbox_posix.cpp.
+  size_t   peak_memory_bytes{0};     // Peak RSS of child process (bytes)
+  size_t   total_rss_bytes{0};       // Total RSS at execution end (process + child)
+  size_t   arena_high_water_bytes{0};// Arena allocator high-water (0 = not measured)
+};
+
+// ---------------------------------------------------------------------------
+// FailureCategoryStats — per-category failure counters (Phase D)
+// ---------------------------------------------------------------------------
+// engine.failure.category_count[N] — incremented whenever an execution fails
+// due to the corresponding failure category.
+//
+// EXTENSION_POINT: failure_alerting
+//   Current: counters only (polled via /api/engine/metrics).
+//   Upgrade: add threshold-based alerting hook that fires when a category
+//   exceeds N failures per minute. Wire to PagerDuty/OpsGenie via webhook.
+struct FailureCategoryStats {
+  uint64_t cas_corruption{0};
+  uint64_t partial_journal_write{0};
+  uint64_t replay_mismatch{0};
+  uint64_t worker_crash{0};
+  uint64_t out_of_memory{0};
+  uint64_t hash_version_mismatch{0};
+  uint64_t backend_latency_spike{0};
+  uint64_t network_partition{0};
+  uint64_t other{0};
+
+  // Increment the appropriate counter for a given ErrorCode.
+  void record(ErrorCode code);
+  // Serialize to compact JSON.
+  std::string to_json() const;
 };
 
 struct ExecPolicy {

@@ -70,22 +70,36 @@ double LatencyHistogram::percentile(double p) const {
 std::string LatencyHistogram::to_json() const {
   const uint64_t n = count_.load(std::memory_order_relaxed);
   // MICRO_OPT: Pre-reserved string for JSON serialization of histogram.
+  // Include p50/p95/p99 in ms for dashboard consumption (Phase I).
   std::string out;
-  out.reserve(256);
+  out.reserve(384);
+  char buf[32];
   out += "{\"count\":";
   out += std::to_string(n);
   out += ",\"mean_us\":";
-  char buf[32];
   std::snprintf(buf, sizeof(buf), "%.2f", mean_us());
   out += buf;
   out += ",\"p50_us\":";
-  std::snprintf(buf, sizeof(buf), "%.2f", percentile(0.50));
+  const double p50_us = percentile(0.50);
+  std::snprintf(buf, sizeof(buf), "%.2f", p50_us);
   out += buf;
   out += ",\"p95_us\":";
-  std::snprintf(buf, sizeof(buf), "%.2f", percentile(0.95));
+  const double p95_us = percentile(0.95);
+  std::snprintf(buf, sizeof(buf), "%.2f", p95_us);
   out += buf;
   out += ",\"p99_us\":";
-  std::snprintf(buf, sizeof(buf), "%.2f", percentile(0.99));
+  const double p99_us = percentile(0.99);
+  std::snprintf(buf, sizeof(buf), "%.2f", p99_us);
+  out += buf;
+  // Also emit ms variants (Phase I requirement: p50/p95/p99 in ms for dashboards)
+  out += ",\"p50_ms\":";
+  std::snprintf(buf, sizeof(buf), "%.3f", p50_us / 1000.0);
+  out += buf;
+  out += ",\"p95_ms\":";
+  std::snprintf(buf, sizeof(buf), "%.3f", p95_us / 1000.0);
+  out += buf;
+  out += ",\"p99_ms\":";
+  std::snprintf(buf, sizeof(buf), "%.3f", p99_us / 1000.0);
   out += buf;
   out += '}';
   return out;
@@ -94,6 +108,11 @@ std::string LatencyHistogram::to_json() const {
 // ---------------------------------------------------------------------------
 // EngineStats
 // ---------------------------------------------------------------------------
+
+void EngineStats::record_failure(ErrorCode code) {
+  std::lock_guard<std::mutex> lk(failure_mu_);
+  failure_categories.record(code);
+}
 
 void EngineStats::record_execution(const ExecutionEvent& ev) {
   total_executions.fetch_add(1, std::memory_order_relaxed);
@@ -131,27 +150,96 @@ std::vector<ExecutionEvent> EngineStats::recent_events_snapshot() const {
 std::string EngineStats::to_json() const {
   // MICRO_OPT: pre-reserved string avoids multiple reallocations.
   std::string out;
-  out.reserve(512);
+  out.reserve(1024);
   char buf[64];
 
+  const uint64_t total = total_executions.load(std::memory_order_relaxed);
+  const uint64_t replayed = replay_verifications.load(std::memory_order_relaxed);
+  const uint64_t diverged = replay_divergences.load(std::memory_order_relaxed);
+
+  // Determinism metrics: replay_verified_rate, divergence_count (Phase I)
+  const double replay_verified_rate = (total > 0)
+      ? (static_cast<double>(replayed) / static_cast<double>(total))
+      : 0.0;
+
+  // CAS dedupe ratio (Phase I)
+  const uint64_t total_cas_gets = cas_gets.load(std::memory_order_relaxed);
+  const uint64_t total_cas_hits = cas_hits.load(std::memory_order_relaxed);
+  const double cas_hit_rate = (total_cas_gets > 0)
+      ? (static_cast<double>(total_cas_hits) / static_cast<double>(total_cas_gets))
+      : 0.0;
+
   out += "{\"total_executions\":";
-  out += std::to_string(total_executions.load(std::memory_order_relaxed));
+  out += std::to_string(total);
   out += ",\"successful_executions\":";
   out += std::to_string(successful_executions.load(std::memory_order_relaxed));
   out += ",\"failed_executions\":";
   out += std::to_string(failed_executions.load(std::memory_order_relaxed));
-  out += ",\"replay_verifications\":";
-  out += std::to_string(replay_verifications.load(std::memory_order_relaxed));
+
+  // Top-level replay_divergences for backward compatibility (existing test gate)
   out += ",\"replay_divergences\":";
-  out += std::to_string(replay_divergences.load(std::memory_order_relaxed));
-  out += ",\"cas_puts\":";
+  out += std::to_string(diverged);
+
+  // Determinism metrics (Phase I) — also nested for dashboard consumption
+  out += ",\"determinism\":{\"replay_verifications\":";
+  out += std::to_string(replayed);
+  out += ",\"divergence_count\":";
+  out += std::to_string(diverged);
+  out += ",\"replay_verified_rate\":";
+  std::snprintf(buf, sizeof(buf), "%.6f", replay_verified_rate);
+  out += buf;
+  out += "}";
+
+  // CAS metrics (Phase I: hit_rate, dedupe_ratio)
+  out += ",\"cas\":{\"puts\":";
   out += std::to_string(cas_puts.load(std::memory_order_relaxed));
-  out += ",\"cas_gets\":";
-  out += std::to_string(cas_gets.load(std::memory_order_relaxed));
-  out += ",\"cas_hits\":";
-  out += std::to_string(cas_hits.load(std::memory_order_relaxed));
+  out += ",\"gets\":";
+  out += std::to_string(total_cas_gets);
+  out += ",\"hits\":";
+  out += std::to_string(total_cas_hits);
+  out += ",\"hit_rate\":";
+  std::snprintf(buf, sizeof(buf), "%.6f", cas_hit_rate);
+  out += buf;
+  out += ",\"dedupe_ratio\":";
+  std::snprintf(buf, sizeof(buf), "%.6f", cas_hit_rate);  // same metric, different label
+  out += buf;
+  out += "}";
+
+  // Latency histogram (Phase I: p50/p95/p99 in ms)
   out += ",\"latency\":";
   out += latency_histogram.to_json();
+
+  // Memory metrics (Phase I)
+  out += ",\"memory\":{\"peak_bytes_total\":";
+  out += std::to_string(peak_memory_bytes_total.load(std::memory_order_relaxed));
+  out += ",\"peak_bytes_max\":";
+  out += std::to_string(peak_memory_bytes_max.load(std::memory_order_relaxed));
+  out += ",\"rss_bytes_last\":";
+  out += std::to_string(rss_bytes_last.load(std::memory_order_relaxed));
+  out += "}";
+
+  // Concurrency metrics (Phase I)
+  const uint64_t qd_count = queue_depth_count.load(std::memory_order_relaxed);
+  const double avg_queue_depth = (qd_count > 0)
+      ? (static_cast<double>(queue_depth_samples.load(std::memory_order_relaxed)) /
+         static_cast<double>(qd_count))
+      : 0.0;
+  out += ",\"concurrency\":{\"contention_count\":";
+  out += std::to_string(contention_count.load(std::memory_order_relaxed));
+  out += ",\"avg_queue_depth\":";
+  std::snprintf(buf, sizeof(buf), "%.2f", avg_queue_depth);
+  out += buf;
+  // EXTENSION_POINT: scheduler_strategy — add worker_utilization, active_workers
+  out += "}";
+
+  // Failure categories (Phase D)
+  out += ",\"failure_categories\":";
+  {
+    std::lock_guard<std::mutex> lk(failure_mu_);
+    out += failure_categories.to_json();
+  }
+
+  // Cache metrics (hardware PMU, Phase J)
   out += ",\"cache_metrics\":{\"l1_miss_rate\":";
   std::snprintf(buf, sizeof(buf), "%.4f", cache_metrics.l1_miss_rate);
   out += buf;
