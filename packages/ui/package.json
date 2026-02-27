@@ -1,0 +1,75 @@
+{
+  "name": "@requiem/ui",
+  "version": "0.1.0",
+  "description": "Requiem UI Kit - Deterministic design system for operational interfaces",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles": "./dist/styles/tokens.css",
+    "./enterprise": {
+      "types": "./dist/enterprise/index.d.ts",
+      "import": "./dist/enterprise/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && npm run copy-styles",
+    "copy-styles": "Copy-Item -Path src/styles -Destination dist/styles -Recurse -Force",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "verify": "npm run typecheck && npm run lint && npm run build"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "tailwindcss": "^3.0.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-tabs": "^1.0.4",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0 || ^19.0.0",
+    "@types/react-dom": "^18.2.0 || ^19.0.0",
+    "eslint": "^8.0.0",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.300.0",
+    "recharts": "^2.10.0",
+    "typescript": "^5.3.0"
+  },
+  "optionalDependencies": {
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.300.0",
+    "recharts": "^2.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reachhq/requiem.git",
+    "directory": "packages/ui"
+  },
+  "keywords": [
+    "ui",
+    "design-system",
+    "tailwindcss",
+    "react",
+    "components",
+    "deterministic"
+  ]
+}
