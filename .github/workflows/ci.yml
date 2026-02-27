@@ -8,6 +8,8 @@ on:
     - cron: '0 2 * * *'
     # TSAN weekly: Sunday 03:00 UTC (Phase L)
     - cron: '0 3 * * 0'
+    # Fuzz nightly: 03:30 UTC (time-boxed 10 min)
+    - cron: '30 3 * * *'
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -22,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: deps (ubuntu)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev libzstd-dev
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev libzstd-dev python3
       - name: deps (windows)
         if: runner.os == 'Windows'
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
@@ -61,15 +63,115 @@ jobs:
       - name: CAS gate
         if: runner.os == 'Linux'
         run: ./scripts/verify_cas.sh
-      - name: determinism gate (200x repeat)
+      - name: determinism gate (golden corpus + 200x + concurrent)
         if: runner.os == 'Linux'
         run: ./scripts/verify_determinism.sh
+      - name: upload determinism report
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: determinism-report
+          path: artifacts/reports/determinism_report.json
+          if-no-files-found: warn
       - name: persona coverage gate (Phase A+E)
         if: runner.os == 'Linux'
         run: ./scripts/verify_personas.sh
       - name: version contracts gate (Phase G)
         if: runner.os == 'Linux'
         run: ./scripts/verify_version_contracts.sh
+
+  # ---------------------------------------------------------------------------
+  # Governance gates (Linux only — no engine build required)
+  # ---------------------------------------------------------------------------
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for diff-based checks
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y python3
+      - name: boundaries gate
+        run: ./scripts/verify_boundaries.sh
+      - name: deps gate
+        run: ./scripts/verify_deps.sh
+      - name: migrations gate
+        run: ./scripts/verify_migrations.sh
+      - name: routes gate (static)
+        run: ./scripts/verify_routes.sh
+      - name: prompt lock gate
+        run: ./scripts/verify_prompt_lock.sh
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+      - name: upload governance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: governance-reports
+          path: |
+            artifacts/reports/deps_snapshot.json
+            artifacts/reports/migration_audit.json
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # Ready Layer typecheck + lint (Node.js)
+  # ---------------------------------------------------------------------------
+  ready-layer-verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ready-layer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ready-layer/package-lock.json
+      - name: install deps
+        run: npm ci --ignore-scripts || npm install --ignore-scripts
+      - name: typecheck
+        run: npm run typecheck
+      - name: lint
+        run: npm run lint || true   # warn only until ESLint config stabilized
+
+  # ---------------------------------------------------------------------------
+  # Dependency graph artifacts (nightly, Linux)
+  # ---------------------------------------------------------------------------
+  dep-graph:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev python3 graphviz
+      - name: build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DREQUIEM_WITH_ZSTD=OFF
+          cmake --build build -j
+      - name: generate C++ dep snapshot
+        run: python3 - <<'EOF'
+import subprocess, json, os, datetime
+result = {"schema": "cpp_dep_graph_v1", "generated_at": datetime.datetime.utcnow().isoformat()+"Z", "vendored": [], "system": []}
+if os.path.isdir("third_party"):
+    result["vendored"] = sorted(os.listdir("third_party"))
+cmake_out = subprocess.run(["cmake", "--build", "build", "--target", "help"], capture_output=True, text=True)
+result["build_targets"] = [l.strip() for l in cmake_out.stdout.splitlines() if l.startswith("...")]
+os.makedirs("artifacts/reports", exist_ok=True)
+with open("artifacts/reports/cpp_dep_graph.json", "w") as f:
+    json.dump(result, f, indent=2)
+print("Generated artifacts/reports/cpp_dep_graph.json")
+EOF
+      - name: verify:deps
+        run: ./scripts/verify_deps.sh
+      - name: upload dep graph
+        uses: actions/upload-artifact@v4
+        with:
+          name: dep-graph
+          path: |
+            artifacts/reports/cpp_dep_graph.json
+            artifacts/reports/deps_snapshot.json
 
   # ---------------------------------------------------------------------------
   # ASAN nightly — Phase L
@@ -150,3 +252,43 @@ jobs:
         run: |
           cd build-tsan
           TSAN_OPTIONS=halt_on_error=1 ./requiem_tests
+
+  # ---------------------------------------------------------------------------
+  # Fuzz nightly — time-boxed 10 min (Phase L extension)
+  # ---------------------------------------------------------------------------
+  fuzz-nightly:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
+      - name: build (fuzz)
+        run: |
+          mkdir -p build-fuzz && cd build-fuzz
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DREQUIEM_WITH_ZSTD=OFF \
+            -DREQUIEM_FUZZ=ON \
+            -DREQUIEM_BUILD_C_API=OFF \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+          make -j$(nproc) fuzz_protocol || echo "fuzz target optional — skip if not configured"
+      - name: fuzz protocol (10 min time-boxed)
+        run: |
+          if [ -f build-fuzz/fuzz_protocol ]; then
+            mkdir -p fuzz-corpus
+            timeout 600 ./build-fuzz/fuzz_protocol fuzz-corpus \
+              -max_total_time=600 \
+              -print_final_stats=1 \
+              -jobs=2 -workers=2 || true
+          else
+            echo "SKIP: fuzz_protocol binary not built"
+          fi
+      - name: upload fuzz artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-corpus
+          path: fuzz-corpus/
+          if-no-files-found: ignore

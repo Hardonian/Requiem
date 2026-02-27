@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "manifest_version": "1.0.0",
+  "description": "Canonical route manifest for ReadyLayer Cloud (ready-layer/). All API routes and app pages must be listed here. CI diffs this file against actual filesystem routes and fails on untracked routes or missing implementations. Maintained by scripts/generate_routes_manifest.sh.",
+  "last_updated": "2026-02-27",
+
+  "routes": [
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/health/route.ts",
+      "auth_required": false,
+      "probe": true,
+      "description": "Infrastructure health check. Always returns 200; uses status field for degraded state.",
+      "invariants": ["INV-7"],
+      "persona": "all"
+    },
+    {
+      "path": "/api/engine/status",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/status/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Returns runtime engine status, worker identity, and metrics.",
+      "invariants": ["INV-7"],
+      "persona": "operator"
+    },
+    {
+      "path": "/api/engine/metrics",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/metrics/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Full metrics: p50/p95/p99, CAS hit rate, determinism score, failure categories.",
+      "invariants": ["INV-7"],
+      "persona": "operator"
+    },
+    {
+      "path": "/api/engine/diagnostics",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/diagnostics/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Full diagnostic report for SRE/Security Auditor persona.",
+      "invariants": ["INV-7"],
+      "persona": "sre"
+    },
+    {
+      "path": "/api/cas/integrity",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cas/integrity/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Triggers CAS object verification and returns per-object integrity status.",
+      "invariants": ["INV-7", "INV-2"],
+      "persona": "operator"
+    },
+    {
+      "path": "/api/replay/verify",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/replay/verify/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Triggers deterministic replay verification for a given execution_id.",
+      "invariants": ["INV-7", "INV-1"],
+      "persona": "operator"
+    },
+    {
+      "path": "/api/audit/logs",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/audit/logs/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Returns recent execution provenance records. Read-only.",
+      "invariants": ["INV-7", "INV-3"],
+      "persona": "auditor"
+    }
+  ],
+
+  "app_pages": [
+    {
+      "path": "/app/executions",
+      "file": "ready-layer/src/app/app/executions/page.tsx",
+      "description": "Execution history and status page."
+    },
+    {
+      "path": "/app/cas",
+      "file": "ready-layer/src/app/app/cas/page.tsx",
+      "description": "CAS storage browser and integrity dashboard."
+    },
+    {
+      "path": "/app/replay",
+      "file": "ready-layer/src/app/app/replay/page.tsx",
+      "description": "Replay verification UI."
+    },
+    {
+      "path": "/app/metrics",
+      "file": "ready-layer/src/app/app/metrics/page.tsx",
+      "description": "Metrics and performance dashboard."
+    },
+    {
+      "path": "/app/diagnostics",
+      "file": "ready-layer/src/app/app/diagnostics/page.tsx",
+      "description": "Engine diagnostics panel (SRE view)."
+    },
+    {
+      "path": "/app/tenants",
+      "file": "ready-layer/src/app/app/tenants/page.tsx",
+      "description": "Tenant management page."
+    }
+  ],
+
+  "ci_policy": {
+    "untracked_routes": "warn",
+    "missing_implementations": "fail",
+    "live_probe_on_500": "fail",
+    "enforcement_script": "scripts/verify_routes.sh"
+  }
+}

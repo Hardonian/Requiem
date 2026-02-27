@@ -30,9 +30,13 @@ requiem health | jq '.hash_primitive'
 # If "sha256" or "blake2s", proceed with CAS migration
 ```
 
-#### 2. CAS Migration
+#### 2. CAS Migration (CAS_FORMAT_VERSION 1 → 2)
 
-If you have existing CAS objects with non-BLAKE3 hashes:
+Current CAS format: **v2** (BLAKE3 + AB/CD/digest shard layout).
+This version is tracked in `include/requiem/version.hpp` as `CAS_FORMAT_VERSION = 2`
+and locked in `contracts/migration.policy.json`.
+
+If you have existing CAS objects with non-BLAKE3 hashes or v1 flat layout:
 
 ```bash
 # Rehash all CAS objects with BLAKE3
