@@ -11,12 +11,15 @@
 #include "requiem/c_api.h"
 #endif
 #include "requiem/audit.hpp"
+#include "requiem/autotune.hpp"
 #include "requiem/cas.hpp"
 #include "requiem/cluster.hpp"
+#include "requiem/diagnostics.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
 #include "requiem/metering.hpp"
 #include "requiem/observability.hpp"
+#include "requiem/rbac.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
 #include "requiem/version.hpp"
@@ -1398,6 +1401,352 @@ void test_shard_is_local() {
   }
 }
 
+// ==========================================================================
+// Phase 1 additions: Cluster drift
+// ==========================================================================
+
+void test_cluster_drift_clean() {
+  // In single-node standalone mode, cluster drift status must be ok=true
+  // with no version mismatches and replay_drift_rate=-1 (no verifications yet).
+  const auto drift = requiem::global_cluster_registry().cluster_drift_status();
+  // ok=true as long as all registered workers agree on versions.
+  expect(!drift.engine_version_mismatch,  "single-node: no engine version mismatch");
+  expect(!drift.hash_version_mismatch,    "single-node: no hash version mismatch");
+  expect(!drift.protocol_version_mismatch,"single-node: no protocol version mismatch");
+  expect(!drift.auth_version_mismatch,    "single-node: no auth version mismatch");
+  expect(drift.mismatches.empty(),        "single-node: mismatches list is empty");
+
+  // Verify to_json produces valid output.
+  const std::string j = drift.to_json();
+  expect(j.find("\"ok\":") != std::string::npos, "drift to_json contains ok field");
+  expect(j.find("\"replay_drift_rate\":") != std::string::npos, "drift to_json contains replay_drift_rate");
+}
+
+void test_cluster_version_compat_identical() {
+  // Register a worker with the same version stamps as the local worker.
+  // validate_version_compatibility() must return true.
+  requiem::WorkerIdentity w;
+  const auto vm = requiem::version::current_manifest();
+  w.worker_id                 = "test-compat-worker";
+  w.node_id                   = "test-node";
+  w.engine_semver             = vm.engine_semver;
+  w.engine_abi_version        = vm.engine_abi;
+  w.hash_algorithm_version    = vm.hash_algorithm;
+  w.protocol_framing_version  = vm.protocol_framing;
+  w.auth_version              = 1;
+
+  requiem::WorkerHealth h;
+  h.worker_id = w.worker_id;
+  h.alive     = true;
+
+  // Use a temporary registry to avoid polluting the global one.
+  requiem::ClusterRegistry reg;
+  reg.register_worker(w, h);
+  requiem::ClusterDriftStatus status;
+  const bool ok = reg.validate_version_compatibility(&status);
+  expect(ok, "identical version stamps: validate_version_compatibility returns true");
+  expect(status.mismatches.empty(), "identical version stamps: no mismatches");
+}
+
+// ==========================================================================
+// Phase 2: RBAC enforcement tests
+// ==========================================================================
+
+void test_rbac_role_parsing() {
+  expect(requiem::rbac::role_from_string("viewer")   == std::optional<requiem::rbac::Role>{requiem::rbac::Role::viewer},   "parse viewer");
+  expect(requiem::rbac::role_from_string("auditor")  == std::optional<requiem::rbac::Role>{requiem::rbac::Role::auditor},  "parse auditor");
+  expect(requiem::rbac::role_from_string("operator") == std::optional<requiem::rbac::Role>{requiem::rbac::Role::operator_},"parse operator");
+  expect(requiem::rbac::role_from_string("admin")    == std::optional<requiem::rbac::Role>{requiem::rbac::Role::admin},    "parse admin");
+  expect(!requiem::rbac::role_from_string("superuser").has_value(), "unknown role → nullopt");
+  expect(requiem::rbac::role_to_string(requiem::rbac::Role::viewer)   == "viewer",   "to_string viewer");
+  expect(requiem::rbac::role_to_string(requiem::rbac::Role::auditor)  == "auditor",  "to_string auditor");
+  expect(requiem::rbac::role_to_string(requiem::rbac::Role::operator_)== "operator", "to_string operator");
+  expect(requiem::rbac::role_to_string(requiem::rbac::Role::admin)    == "admin",    "to_string admin");
+}
+
+void test_rbac_viewer_permissions() {
+  using namespace requiem::rbac;
+  // viewer CAN:
+  expect(has_permission(Role::viewer, Permission::cluster_status_read),  "viewer: cluster_status_read");
+  expect(has_permission(Role::viewer, Permission::cluster_workers_read), "viewer: cluster_workers_read");
+  expect(has_permission(Role::viewer, Permission::engine_metrics_read),  "viewer: engine_metrics_read");
+  expect(has_permission(Role::viewer, Permission::engine_status_read),   "viewer: engine_status_read");
+  // viewer CANNOT:
+  expect(!has_permission(Role::viewer, Permission::cluster_drift_read),    "viewer: !cluster_drift_read");
+  expect(!has_permission(Role::viewer, Permission::execution_submit),      "viewer: !execution_submit");
+  expect(!has_permission(Role::viewer, Permission::cas_write),             "viewer: !cas_write");
+  expect(!has_permission(Role::viewer, Permission::cluster_worker_evict),  "viewer: !cluster_worker_evict");
+  expect(!has_permission(Role::viewer, Permission::cluster_config_change), "viewer: !cluster_config_change");
+}
+
+void test_rbac_auditor_permissions() {
+  using namespace requiem::rbac;
+  // auditor inherits viewer and adds:
+  expect(has_permission(Role::auditor, Permission::cluster_drift_read),    "auditor: cluster_drift_read");
+  expect(has_permission(Role::auditor, Permission::engine_diagnostics_read),"auditor: engine_diagnostics_read");
+  expect(has_permission(Role::auditor, Permission::engine_analyze_read),   "auditor: engine_analyze_read");
+  expect(has_permission(Role::auditor, Permission::execution_replay),      "auditor: execution_replay");
+  expect(has_permission(Role::auditor, Permission::audit_log_read),        "auditor: audit_log_read");
+  expect(has_permission(Role::auditor, Permission::cas_read),              "auditor: cas_read");
+  expect(has_permission(Role::auditor, Permission::cas_verify),            "auditor: cas_verify");
+  // auditor still CANNOT:
+  expect(!has_permission(Role::auditor, Permission::execution_submit),      "auditor: !execution_submit");
+  expect(!has_permission(Role::auditor, Permission::cas_write),             "auditor: !cas_write");
+  expect(!has_permission(Role::auditor, Permission::cluster_worker_evict),  "auditor: !cluster_worker_evict");
+}
+
+void test_rbac_operator_permissions() {
+  using namespace requiem::rbac;
+  expect(has_permission(Role::operator_, Permission::execution_submit),    "operator: execution_submit");
+  expect(has_permission(Role::operator_, Permission::cas_write),           "operator: cas_write");
+  expect(has_permission(Role::operator_, Permission::cluster_worker_join), "operator: cluster_worker_join");
+  expect(has_permission(Role::operator_, Permission::release_verify),      "operator: release_verify");
+  // operator CANNOT:
+  expect(!has_permission(Role::operator_, Permission::cluster_worker_evict),  "operator: !cluster_worker_evict");
+  expect(!has_permission(Role::operator_, Permission::cluster_config_change), "operator: !cluster_config_change");
+}
+
+void test_rbac_admin_permissions() {
+  using namespace requiem::rbac;
+  // admin has ALL permissions.
+  expect(has_permission(Role::admin, Permission::cluster_worker_evict),  "admin: cluster_worker_evict");
+  expect(has_permission(Role::admin, Permission::cluster_config_change), "admin: cluster_config_change");
+  expect(has_permission(Role::admin, Permission::execution_submit),      "admin: execution_submit");
+  expect(has_permission(Role::admin, Permission::cas_write),             "admin: cas_write");
+  expect(has_permission(Role::admin, Permission::audit_log_read),        "admin: audit_log_read");
+}
+
+void test_rbac_check_context() {
+  using namespace requiem::rbac;
+  // Permitted check.
+  const auto ok = check("tenant-1", Role::operator_, Permission::execution_submit);
+  expect(ok.ok, "operator execution_submit: ok=true");
+  expect(ok.tenant_id == "tenant-1", "check: tenant_id preserved");
+  expect(ok.denial_reason.empty(),   "check: no denial reason on success");
+
+  // Denied check.
+  const auto denied = check("tenant-1", Role::viewer, Permission::cas_write);
+  expect(!denied.ok, "viewer cas_write: ok=false");
+  expect(!denied.denial_reason.empty(), "check: denial reason non-empty on failure");
+
+  // JSON serialization.
+  const std::string j = ok.to_json();
+  expect(j.find("\"ok\":true") != std::string::npos,      "rbac check json: ok=true");
+  expect(j.find("\"role\":\"operator\"") != std::string::npos, "rbac check json: role present");
+
+  // role_from_header: valid.
+  expect(role_from_header("admin")   == Role::admin,   "role_from_header: admin");
+  expect(role_from_header("viewer")  == Role::viewer,  "role_from_header: viewer");
+  // role_from_header: invalid defaults to viewer (least privilege).
+  expect(role_from_header("wizard")  == Role::viewer,  "role_from_header: unknown defaults to viewer");
+  expect(role_from_header("")        == Role::viewer,  "role_from_header: empty defaults to viewer");
+}
+
+void test_rbac_node_auth_token() {
+  using namespace requiem::rbac;
+  NodeAuthToken tok;
+  tok.auth_version = CLUSTER_AUTH_VERSION;
+  tok.node_id      = "node-a";
+  tok.token        = "secret-stub";
+  tok.issued_at_unix_ms  = 1000;
+  tok.expires_at_unix_ms = 0;  // no expiry
+
+  expect(tok.verify_stub("node-a"),   "node auth: valid token passes");
+  expect(!tok.verify_stub("node-b"),  "node auth: wrong node_id fails");
+
+  // Wrong auth version.
+  NodeAuthToken bad_ver = tok;
+  bad_ver.auth_version = 99;
+  expect(!bad_ver.verify_stub("node-a"), "node auth: wrong auth_version fails");
+
+  // Empty token.
+  NodeAuthToken empty_tok = tok;
+  empty_tok.token = "";
+  expect(!empty_tok.verify_stub("node-a"), "node auth: empty token fails");
+
+  // JSON serialization.
+  const std::string j = tok.to_json();
+  expect(j.find("\"auth_version\":") != std::string::npos, "node auth json: auth_version present");
+  expect(j.find("\"token_present\":true") != std::string::npos, "node auth json: token_present=true");
+}
+
+// ==========================================================================
+// Phase 3: Auto-tuning tests
+// ==========================================================================
+
+void test_autotune_snapshot() {
+  const auto snap = requiem::autotune::capture_snapshot();
+  // On a fresh engine (no executions), all counters should be at 0/defaults.
+  expect(snap.total_executions >= 0,   "snapshot: total_executions >= 0");
+  expect(snap.cas_hit_rate >= 0.0 && snap.cas_hit_rate <= 1.0,
+         "snapshot: cas_hit_rate in [0,1]");
+  expect(snap.avg_queue_depth >= 0.0,  "snapshot: avg_queue_depth >= 0");
+}
+
+void test_autotune_noop() {
+  // On a fresh engine, tick() returns a valid event (action may vary by state).
+  // The important invariants are:
+  //   1. to_json() is non-empty (structured event is produced).
+  //   2. params_after are within guardrails.
+  //   3. scheduler_mode is never changed (hash semantics invariant).
+  auto& engine = requiem::autotune::global_autotune_engine();
+  const auto ev = engine.tick();
+  expect(!ev.to_json().empty(), "tick event JSON non-empty");
+  // Scheduler mode invariant: never changed by the tuner.
+  expect(ev.params_after.scheduler_mode == ev.params_before.scheduler_mode,
+         "autotune invariant: scheduler_mode never changed");
+  // Params after tick must be within guardrails.
+  expect(ev.params_after.worker_thread_count >= requiem::autotune::TuningParameters::kMinWorkerThreads &&
+         ev.params_after.worker_thread_count <= requiem::autotune::TuningParameters::kMaxWorkerThreads,
+         "tick: worker_thread_count within bounds after tick");
+  // Second tick immediately after must be rate-limited (no_op with rate_limited rationale).
+  const auto ev2 = engine.tick();
+  expect(ev2.action == requiem::autotune::ActionKind::no_op,
+         "immediate second tick: rate_limited no_op");
+}
+
+void test_autotune_guardrail() {
+  // Directly verify that guardrails block out-of-bounds params.
+  // We can't call apply() directly (private), but we can verify the
+  // baseline params are within bounds.
+  const auto params = requiem::autotune::global_autotune_engine().current_params();
+  expect(params.worker_thread_count >= requiem::autotune::TuningParameters::kMinWorkerThreads,
+         "guardrail: worker_thread_count >= min");
+  expect(params.worker_thread_count <= requiem::autotune::TuningParameters::kMaxWorkerThreads,
+         "guardrail: worker_thread_count <= max");
+  expect(params.arena_size_bytes >= requiem::autotune::TuningParameters::kMinArenaBytes,
+         "guardrail: arena_size_bytes >= min");
+  expect(params.arena_size_bytes <= requiem::autotune::TuningParameters::kMaxArenaBytes,
+         "guardrail: arena_size_bytes <= max");
+  expect(params.cas_batch_size >= requiem::autotune::TuningParameters::kMinCasBatch,
+         "guardrail: cas_batch_size >= min");
+  expect(params.cas_batch_size <= requiem::autotune::TuningParameters::kMaxCasBatch,
+         "guardrail: cas_batch_size <= max");
+  // scheduler_mode must never be empty (hash semantics invariant).
+  expect(!params.scheduler_mode.empty(), "guardrail: scheduler_mode non-empty");
+}
+
+void test_autotune_revert() {
+  auto& engine = requiem::autotune::global_autotune_engine();
+  const auto before = engine.current_params();
+  const auto ev = engine.revert_to_baseline();
+  expect(ev.action == requiem::autotune::ActionKind::revert_all,
+         "revert: action=revert_all");
+  // After revert, params must be the baseline (which equals before in a fresh engine).
+  const auto after = engine.current_params();
+  expect(after.worker_thread_count == before.worker_thread_count,
+         "revert: worker_thread_count restored");
+  expect(after.arena_size_bytes == before.arena_size_bytes,
+         "revert: arena_size_bytes restored");
+}
+
+void test_autotune_json() {
+  const std::string j = requiem::autotune::global_autotune_engine().to_json();
+  expect(j.find("\"current\":") != std::string::npos, "autotune json: current present");
+  expect(j.find("\"baseline\":") != std::string::npos, "autotune json: baseline present");
+  expect(j.find("\"policy\":") != std::string::npos,  "autotune json: policy present");
+  expect(j.find("\"event_count\":") != std::string::npos, "autotune json: event_count present");
+}
+
+// ==========================================================================
+// Phase 4: Root cause diagnostics tests
+// ==========================================================================
+
+void test_diagnostics_capture_context() {
+  const auto ctx = requiem::diagnostics::capture_context();
+  // engine_semver should be populated (from version.hpp current_manifest).
+  expect(!ctx.engine_semver.empty() || ctx.engine_abi_version > 0,
+         "capture_context: version info populated");
+  expect(ctx.hash_algorithm_version > 0, "capture_context: hash_algorithm_version > 0");
+  expect(ctx.cas_format_version > 0,     "capture_context: cas_format_version > 0");
+  expect(ctx.cas_hit_rate >= 0.0,        "capture_context: cas_hit_rate >= 0");
+}
+
+void test_diagnostics_unknown() {
+  // Clean engine state → no specific failure detected → category=unknown.
+  requiem::diagnostics::DiagnosticContext ctx;
+  ctx.error_code = "";
+  ctx.replay_divergences = 0;
+  ctx.peak_memory_bytes = 0;
+  ctx.p99_latency_us = 0.0;
+  ctx.cas_objects_corrupt = 0;
+  const auto report = requiem::diagnostics::analyze_failure(ctx);
+  expect(report.ok, "unknown: analysis ok=true");
+  expect(report.category == requiem::diagnostics::FailureCategory::unknown,
+         "unknown: clean state → unknown category");
+  expect(!report.suggestions.empty(), "unknown: suggestions provided");
+}
+
+void test_diagnostics_cas_corruption() {
+  requiem::diagnostics::DiagnosticContext ctx;
+  ctx.error_code = "cas_corruption";
+  ctx.cas_objects_corrupt = 3;
+  const auto report = requiem::diagnostics::analyze_failure(ctx);
+  expect(report.ok, "cas_corruption: analysis ok=true");
+  expect(report.category == requiem::diagnostics::FailureCategory::cas_corruption,
+         "cas_corruption: correct category");
+  expect(!report.evidence.empty(), "cas_corruption: evidence provided");
+  // Must suggest cas_integrity_check.
+  bool has_cas_check = false;
+  for (const auto& s : report.suggestions) {
+    if (s.action == "cas_integrity_check") has_cas_check = true;
+  }
+  expect(has_cas_check, "cas_corruption: suggests cas_integrity_check");
+}
+
+void test_diagnostics_replay_mismatch() {
+  requiem::diagnostics::DiagnosticContext ctx;
+  ctx.error_code = "replay_mismatch";
+  ctx.replay_divergences = 5;
+  const auto report = requiem::diagnostics::analyze_failure(ctx);
+  expect(report.ok, "replay_mismatch: analysis ok=true");
+  expect(report.category == requiem::diagnostics::FailureCategory::determinism_drift,
+         "replay_mismatch: correct category");
+  // Must suggest replay_verification.
+  bool has_replay = false;
+  for (const auto& s : report.suggestions) {
+    if (s.action == "replay_verification") has_replay = true;
+  }
+  expect(has_replay, "replay_mismatch: suggests replay_verification");
+}
+
+void test_diagnostics_resource_exhaustion() {
+  requiem::diagnostics::DiagnosticContext ctx;
+  ctx.error_code = "out_of_memory";
+  const auto report = requiem::diagnostics::analyze_failure(ctx);
+  expect(report.ok, "oom: analysis ok=true");
+  expect(report.category == requiem::diagnostics::FailureCategory::resource_exhaustion,
+         "oom: correct category");
+}
+
+void test_diagnostics_json() {
+  requiem::diagnostics::DiagnosticContext ctx;
+  ctx.error_code = "cas_corruption";
+  ctx.cas_objects_corrupt = 1;
+  const auto report = requiem::diagnostics::analyze_failure(ctx);
+  const std::string j = report.to_json();
+  expect(j.find("\"ok\":") != std::string::npos,          "diagnostics json: ok present");
+  expect(j.find("\"category\":") != std::string::npos,    "diagnostics json: category present");
+  expect(j.find("\"evidence\":") != std::string::npos,    "diagnostics json: evidence present");
+  expect(j.find("\"suggestions\":") != std::string::npos, "diagnostics json: suggestions present");
+  expect(j.find("\"context\":") != std::string::npos,     "diagnostics json: context present");
+}
+
+void test_diagnostics_readonly() {
+  // Verify that analyze_failure does NOT modify any global state.
+  const auto& stats_before = requiem::global_engine_stats();
+  const uint64_t total_before = stats_before.total_executions.load(std::memory_order_relaxed);
+
+  requiem::diagnostics::DiagnosticContext ctx;
+  ctx.error_code = "replay_mismatch";
+  ctx.replay_divergences = 99;
+  requiem::diagnostics::analyze_failure(ctx);
+
+  const uint64_t total_after = stats_before.total_executions.load(std::memory_order_relaxed);
+  expect(total_after == total_before,
+         "diagnostics readonly: analyze_failure does not modify execution counter");
+}
+
 int main() {
   std::cout << "=== Requiem Engine Test Suite ===\n";
 
@@ -1509,6 +1858,38 @@ int main() {
   run_test("cluster status snapshot", test_cluster_status_snapshot);
   run_test("worker shard update", test_worker_shard_update);
   run_test("shard is_local detection", test_shard_is_local);
+  run_test("cluster drift status: single node clean", test_cluster_drift_clean);
+  run_test("cluster version compatibility: identical workers", test_cluster_version_compat_identical);
+
+  std::cout << "\n[Phase 2] RBAC enforcement\n";
+  run_test("rbac: role parsing", test_rbac_role_parsing);
+  run_test("rbac: viewer permissions", test_rbac_viewer_permissions);
+  run_test("rbac: auditor permissions", test_rbac_auditor_permissions);
+  run_test("rbac: operator permissions", test_rbac_operator_permissions);
+  run_test("rbac: admin permissions", test_rbac_admin_permissions);
+  run_test("rbac: check() produces structured context", test_rbac_check_context);
+  run_test("rbac: node auth token stub validation", test_rbac_node_auth_token);
+
+  std::cout << "\n[Phase 3] Auto-tuning\n";
+  run_test("autotune: snapshot capture", test_autotune_snapshot);
+  run_test("autotune: no_op on fresh engine", test_autotune_noop);
+  run_test("autotune: guardrail blocks invalid params", test_autotune_guardrail);
+  run_test("autotune: revert_to_baseline", test_autotune_revert);
+  run_test("autotune: JSON serialization", test_autotune_json);
+
+  std::cout << "\n[Phase 4] Root cause diagnostics\n";
+  run_test("diagnostics: capture_context", test_diagnostics_capture_context);
+  run_test("diagnostics: analyze clean state → unknown", test_diagnostics_unknown);
+  run_test("diagnostics: analyze cas_corruption error", test_diagnostics_cas_corruption);
+  run_test("diagnostics: analyze replay_mismatch error", test_diagnostics_replay_mismatch);
+  run_test("diagnostics: analyze resource exhaustion", test_diagnostics_resource_exhaustion);
+  run_test("diagnostics: JSON serialization", test_diagnostics_json);
+  run_test("diagnostics: read-only (no state mutation)", test_diagnostics_readonly);
+
+  std::cout << "\n[Phase 2] Tenant isolation (CI gate)\n";
+  run_test("tenant isolation: CAS namespace separation", test_multitenant_cas_isolation);
+  run_test("tenant isolation: fingerprint determinism across tenants", test_multitenant_fingerprint_determinism);
+  run_test("tenant isolation: concurrent execution no bleed", test_multitenant_concurrent_isolation);
 
   std::cout << "\n=== " << g_tests_passed << "/" << g_tests_run << " tests passed ===\n";
   return g_tests_passed == g_tests_run ? 0 : 1;

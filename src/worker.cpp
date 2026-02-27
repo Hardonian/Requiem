@@ -1,5 +1,6 @@
 #include "requiem/worker.hpp"
 #include "requiem/observability.hpp"
+#include "requiem/version.hpp"
 
 #include <cstdlib>
 #include <mutex>
@@ -55,6 +56,15 @@ WorkerIdentity init_worker_identity(const std::string& worker_id,
   g_worker_identity.shard_id     = 0;
   g_worker_identity.total_shards = 1;
 
+  // Populate version stamps for cluster compatibility enforcement (Phase 5+7).
+  // These allow the ClusterRegistry to detect mixed-version deployments.
+  const auto vm = version::current_manifest();
+  g_worker_identity.engine_semver            = vm.engine_semver;
+  g_worker_identity.engine_abi_version       = vm.engine_abi;
+  g_worker_identity.hash_algorithm_version   = vm.hash_algorithm;
+  g_worker_identity.protocol_framing_version = vm.protocol_framing;
+  // auth_version defaults to CLUSTER_AUTH_VERSION (1) from the struct default.
+
   g_initialized = true;
   return g_worker_identity;
 }
@@ -86,6 +96,11 @@ std::string worker_identity_to_json(const WorkerIdentity& w) {
     << ",\"cluster_mode\":" << (w.cluster_mode ? "true" : "false")
     << ",\"shard_id\":" << w.shard_id
     << ",\"total_shards\":" << w.total_shards
+    << ",\"auth_version\":" << w.auth_version
+    << ",\"engine_semver\":\"" << w.engine_semver << "\""
+    << ",\"engine_abi_version\":" << w.engine_abi_version
+    << ",\"hash_algorithm_version\":" << w.hash_algorithm_version
+    << ",\"protocol_framing_version\":" << w.protocol_framing_version
     << "}";
   return o.str();
 }
