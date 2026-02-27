@@ -2,6 +2,7 @@
 //
 // Phase B: Health route — /api/health
 // No auth required. No engine call. Pure infra check.
+// verify:routes:no-try-catch — this handler reads only process.env; no external calls can throw.
 // INVARIANT: This route must NEVER call the engine directly.
 // INVARIANT: Must return 200 even when engine is degraded (to allow load-balancer pass-through);
 //            use status: "degraded" to signal impairment.
