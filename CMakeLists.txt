@@ -65,6 +65,7 @@ target_compile_options(requiem
 # CLI executable
 add_executable(requiem_cli src/cli.cpp)
 target_link_libraries(requiem_cli PRIVATE requiem)
+target_compile_definitions(requiem_cli PRIVATE PROJECT_VERSION="${PROJECT_VERSION}")
 set_target_properties(requiem_cli PROPERTIES OUTPUT_NAME "requiem")
 
 # Tests

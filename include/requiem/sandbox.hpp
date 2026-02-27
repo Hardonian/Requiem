@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "requiem/types.hpp"
+
 namespace requiem {
 
 struct ProcessSpec {
