@@ -90,6 +90,12 @@ std::string worker_identity_to_json(const WorkerIdentity& w) {
   return o.str();
 }
 
+void update_worker_shard(uint32_t shard_id, uint32_t total_shards) {
+  std::lock_guard<std::mutex> lk(g_init_mu);
+  g_worker_identity.shard_id     = shard_id;
+  g_worker_identity.total_shards = total_shards > 0 ? total_shards : 1;
+}
+
 std::string worker_health_to_json(const WorkerHealth& h) {
   std::ostringstream o;
   char buf[32];

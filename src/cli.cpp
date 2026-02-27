@@ -10,6 +10,7 @@
 
 #include "requiem/audit.hpp"
 #include "requiem/cas.hpp"
+#include "requiem/cluster.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
 #include "requiem/observability.hpp"
@@ -505,6 +506,71 @@ int main(int argc, char** argv) {
     return 0;
   }
   
+  // ---------------------------------------------------------------------------
+  // Cluster commands — distributed cluster platform.
+  // INVARIANT: cluster commands never modify execution state; read-only probes.
+  // ---------------------------------------------------------------------------
+
+  if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "status") {
+    // Initialize cluster from environment before querying.
+    requiem::init_cluster_from_env();
+    requiem::register_local_worker();
+    std::cout << requiem::global_cluster_registry().cluster_status_to_json() << "\n";
+    return 0;
+  }
+
+  if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "workers") {
+    requiem::init_cluster_from_env();
+    requiem::register_local_worker();
+    const auto workers_json = requiem::global_cluster_registry().workers_to_json();
+    std::cout << "{\"workers\":" << workers_json << "}\n";
+    return 0;
+  }
+
+  if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "shard") {
+    std::string tenant_id;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc) tenant_id = argv[++i];
+    }
+    if (tenant_id.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--tenant required\"}\n";
+      return 2;
+    }
+    requiem::init_cluster_from_env();
+    const auto& w = requiem::global_worker_identity();
+    const uint32_t shard = requiem::ShardRouter::shard_for_tenant(tenant_id, w.total_shards);
+    const bool is_local  = requiem::ShardRouter::is_local_shard(tenant_id);
+    std::ostringstream o;
+    o << "{"
+      << "\"ok\":true"
+      << ",\"tenant_id\":\"" << requiem::jsonlite::escape(tenant_id) << "\""
+      << ",\"shard_id\":" << shard
+      << ",\"total_shards\":" << w.total_shards
+      << ",\"is_local_shard\":" << (is_local ? "true" : "false")
+      << ",\"local_shard_id\":" << w.shard_id
+      << "}\n";
+    std::cout << o.str();
+    return 0;
+  }
+
+  if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "join") {
+    // Self-register in the local registry. In a full multi-node deployment,
+    // this would POST to a cluster coordinator endpoint.
+    requiem::init_cluster_from_env();
+    requiem::register_local_worker();
+    const auto& w = requiem::global_worker_identity();
+    std::cout << "{"
+              << "\"ok\":true"
+              << ",\"worker_id\":\"" << w.worker_id << "\""
+              << ",\"node_id\":\"" << w.node_id << "\""
+              << ",\"shard_id\":" << w.shard_id
+              << ",\"total_shards\":" << w.total_shards
+              << ",\"cluster_mode\":" << (w.cluster_mode ? "true" : "false")
+              << ",\"message\":\"Worker registered in local cluster registry\""
+              << "}\n";
+    return 0;
+  }
+
   if (cmd == "cluster" && argc >= 3 && std::string(argv[2]) == "verify") {
     std::string results_dir;
     for (int i = 3; i < argc; ++i) {

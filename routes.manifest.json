@@ -74,6 +74,26 @@
       "description": "Returns recent execution provenance records. Read-only.",
       "invariants": ["INV-7", "INV-3"],
       "persona": "auditor"
+    },
+    {
+      "path": "/api/cluster/status",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cluster/status/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Returns distributed cluster coordination status: worker count, shard assignment, cluster mode.",
+      "invariants": ["INV-7"],
+      "persona": "operator"
+    },
+    {
+      "path": "/api/cluster/workers",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cluster/workers/route.ts",
+      "auth_required": true,
+      "probe": false,
+      "description": "Returns the list of all registered cluster workers with health and shard assignments.",
+      "invariants": ["INV-7"],
+      "persona": "operator"
     }
   ],
 

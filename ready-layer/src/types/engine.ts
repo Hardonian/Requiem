@@ -155,3 +155,44 @@ export interface AuditLogEntry extends ExecutionRecord {
   hash_algorithm_version: number;
   cas_format_version: number;
 }
+
+// ---------------------------------------------------------------------------
+// Distributed Cluster Platform types
+// ---------------------------------------------------------------------------
+
+export interface ClusterWorkerRecord {
+  worker_id: string;
+  node_id: string;
+  cluster_mode: boolean;
+  shard_id: number;
+  total_shards: number;
+  healthy: boolean;
+  executions_total: number;
+  executions_inflight: number;
+  queue_depth: number;
+  registered_at_unix_ms: number;
+  last_heartbeat_unix_ms: number;
+}
+
+export interface ClusterStatusResponse {
+  cluster_mode: boolean;
+  total_workers: number;
+  healthy_workers: number;
+  total_shards: number;
+  local_worker_id: string;
+  local_node_id: string;
+  local_shard_id: number;
+}
+
+export interface ClusterWorkersResponse {
+  workers: ClusterWorkerRecord[];
+}
+
+export interface ShardRouteResponse {
+  ok: boolean;
+  tenant_id: string;
+  shard_id: number;
+  total_shards: number;
+  is_local_shard: boolean;
+  local_shard_id: number;
+}
