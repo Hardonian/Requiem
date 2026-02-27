@@ -1,0 +1,16 @@
+{
+  "request_id": "golden-medium-pipeline",
+  "workspace_root": ".",
+  "command": "/bin/sh",
+  "argv": ["-c", "printf 'step1\\n'; printf 'step2\\n'; printf 'step3\\n'; expr 6 + 7; printf 'done\\n'"],
+  "timeout_ms": 5000,
+  "max_output_bytes": 8192,
+  "policy": {
+    "deterministic": true,
+    "mode": "strict",
+    "time_mode": "fixed_zero",
+    "inherit_env": false,
+    "required_env": {"PYTHONHASHSEED": "0"},
+    "env_denylist": ["RANDOM", "TZ", "HOSTNAME", "PWD", "OLDPWD", "SHLVL", "TMPDIR"]
+  }
+}
