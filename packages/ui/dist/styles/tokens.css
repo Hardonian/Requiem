@@ -1,0 +1,258 @@
+/**
+ * Requiem UI Design Tokens
+ * 
+ * HARVESTED_FROM: ReadyLayer/app/globals.css (primary), Reach/apps/arcade/src/styles (secondary)
+ * EXTENSION_POINT: Add new semantic tokens following the --category-subcategory pattern
+ * 
+ * These CSS custom properties form the foundation of the Requiem design system.
+ * They support light, dark, and high-contrast modes.
+ */
+
+@layer base {
+  /**
+   * LIGHT MODE - Professional, IDE-grade palette
+   * Softened whites, clear hierarchy, reduced chroma
+   */
+  :root {
+    /* TYPOGRAPHY - system-safe font stacks */
+    --font-display: "Inter", "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-body: "Inter", "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* SURFACES - Layered elevation system */
+    --surface: 0 0% 100%;
+    --surface-muted: 210 40% 98%;
+    --surface-raised: 0 0% 100%;
+    --surface-overlay: 0 0% 100%;
+    --surface-hover: 210 40% 96%;
+    --surface-dark: 220 13% 9%;
+    --surface-code: 220 13% 7%;
+    
+    /* TEXT - Clear hierarchy */
+    --text: 222.2 84% 4.9%;
+    --text-muted: 215.4 16.3% 46.9%;
+    --text-subtle: 215.4 16.3% 65%;
+    --text-inverse: 0 0% 100%;
+    
+    /* BORDERS & DIVIDERS */
+    --border: 214.3 31.8% 91.4%;
+    --border-strong: 214.3 31.8% 85%;
+    --ring: 221.2 83.2% 53.3%;
+    
+    /* ACCENT / BRAND - Requiem blue */
+    --accent: 217 91% 60%;
+    --accent-hover: 217 91% 55%;
+    --accent-muted: 217 91% 96%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* PRIMARY VARIANTS */
+    --primary: 217 91% 60%;
+    --primary-light: 217 91% 70%;
+    --primary-dark: 217 91% 45%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* STATUS COLORS - WCAG AA compliant */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 142 71% 95%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 38 92% 95%;
+    
+    --danger: 0 84.2% 60.2%;
+    --danger-foreground: 0 0% 100%;
+    --danger-muted: 0 84.2% 96%;
+    
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --info-muted: 217 91% 96%;
+    
+    /* LEGACY COMPATIBILITY - Map to new tokens */
+    --background: var(--surface);
+    --foreground: var(--text);
+    --card: var(--surface-raised);
+    --card-foreground: var(--text);
+    --popover: var(--surface-overlay);
+    --popover-foreground: var(--text);
+    --secondary: var(--surface-muted);
+    --secondary-foreground: var(--text);
+    --muted: var(--surface-muted);
+    --muted-foreground: var(--text-muted);
+    --destructive: var(--danger);
+    --destructive-foreground: var(--danger-foreground);
+    --input: var(--border);
+    
+    /* RADIUS */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius: var(--radius-md);
+  }
+
+  /**
+   * DARK MODE - Separately tuned, lower chroma, clearer hierarchy
+   */
+  .dark {
+    /* SURFACES */
+    --surface: 222 84% 5%;
+    --surface-muted: 222 32% 8%;
+    --surface-raised: 222 32% 12%;
+    --surface-overlay: 222 32% 15%;
+    --surface-hover: 222 32% 18%;
+    --surface-dark: 222 26% 10%;
+    --surface-code: 222 26% 7%;
+
+    /* TEXT - Improved contrast for WCAG AA */
+    --text: 210 40% 98%;
+    --text-muted: 215 20.2% 71%;
+    --text-subtle: 215 20.2% 54%;
+    --text-inverse: 222.2 84% 4.9%;
+    
+    /* BORDERS */
+    --border: 217.2 32.6% 20%;
+    --border-strong: 217.2 32.6% 30%;
+    --ring: 224.3 76.3% 48%;
+    
+    /* ACCENT */
+    --accent: 217 91% 60%;
+    --accent-hover: 217 91% 65%;
+    --accent-muted: 217 32% 18%;
+    --accent-foreground: 222 47% 11%;
+    
+    /* PRIMARY */
+    --primary: 217 91% 60%;
+    --primary-light: 217 91% 70%;
+    --primary-dark: 217 91% 45%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* STATUS */
+    --success: 142 71% 50%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 142 71% 15%;
+    
+    --warning: 38 92% 55%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 38 92% 15%;
+    
+    --danger: 0 72% 50%;
+    --danger-foreground: 0 0% 100%;
+    --danger-muted: 0 72% 15%;
+    
+    --info: 217 91% 65%;
+    --info-foreground: 0 0% 100%;
+    --info-muted: 217 91% 15%;
+
+    /* LEGACY */
+    --background: var(--surface);
+    --foreground: var(--text);
+    --card: var(--surface-raised);
+    --card-foreground: var(--text);
+    --popover: var(--surface-overlay);
+    --popover-foreground: var(--text);
+    --secondary: var(--surface-muted);
+    --secondary-foreground: var(--text);
+    --muted: var(--surface-muted);
+    --muted-foreground: var(--text-muted);
+    --destructive: var(--danger);
+    --destructive-foreground: var(--danger-foreground);
+    --input: var(--border);
+  }
+
+  /**
+   * HIGH CONTRAST MODE - Maximum accessibility
+   */
+  .hc, [data-contrast="high"] {
+    --surface: 0 0% 100%;
+    --surface-muted: 0 0% 95%;
+    --surface-raised: 0 0% 100%;
+    --surface-overlay: 0 0% 100%;
+    --surface-hover: 0 0% 90%;
+    
+    --text: 0 0% 0%;
+    --text-muted: 0 0% 30%;
+    --text-subtle: 0 0% 40%;
+    --text-inverse: 0 0% 100%;
+    
+    --border: 0 0% 60%;
+    --border-strong: 0 0% 40%;
+    --ring: 221.2 83.2% 40%;
+    
+    --accent: 221.2 83.2% 40%;
+    --accent-hover: 221.2 83.2% 35%;
+    --accent-muted: 221.2 83.2% 95%;
+    --accent-foreground: 0 0% 100%;
+    
+    --success: 142 71% 35%;
+    --warning: 38 92% 40%;
+    --danger: 0 84.2% 45%;
+    --info: 217 91% 45%;
+  }
+
+  .dark.hc, .dark[data-contrast="high"] {
+    --surface: 0 0% 0%;
+    --surface-muted: 0 0% 10%;
+    --surface-raised: 0 0% 15%;
+    --surface-overlay: 0 0% 20%;
+    --surface-hover: 0 0% 25%;
+    
+    --text: 0 0% 100%;
+    --text-muted: 0 0% 80%;
+    --text-subtle: 0 0% 70%;
+    --text-inverse: 0 0% 0%;
+    
+    --border: 0 0% 50%;
+    --border-strong: 0 0% 70%;
+    --ring: 224.3 76.3% 60%;
+    
+    --accent: 217.2 91.2% 70%;
+    --success: 142 71% 60%;
+    --warning: 38 92% 65%;
+    --danger: 0 72% 60%;
+    --info: 217 91% 70%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    background-color: hsl(var(--surface));
+    color: hsl(var(--text));
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  :focus-visible {
+    outline: none;
+    ring: 2px;
+    ring-color: hsl(var(--ring));
+    ring-offset: 2px;
+    ring-offset-color: hsl(var(--surface));
+  }
+
+  :disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/**
+ * Respect reduced motion preferences
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

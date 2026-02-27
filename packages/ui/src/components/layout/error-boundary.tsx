@@ -111,4 +111,3 @@ function DefaultErrorFallback({ error, onReset, className }: ErrorFallbackProps)
 }
 
 export { ErrorBoundary, DefaultErrorFallback }
-export type { ErrorFallbackProps }

@@ -1,0 +1,33 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "requiem",
+    "blake3",
+    "vendored",
+    "zstd",
+    "merkle",
+    "sandboxing",
+    "cutover",
+    "rlimits",
+    "seccomp",
+    "jsonlite",
+    "typechecks",
+    "DCMAKE",
+    "ctest",
+    "MSVC",
+    "radix",
+    "clsx",
+    "tailwindcss",
+    "lucide",
+    "recharts",
+    "cgroups",
+    "rqr",
+    "PYTHONHASHSEED"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "build",
+    ".git"
+  ]
+}

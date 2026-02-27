@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(requiem VERSION 0.7.0 LANGUAGES CXX C)
+project(requiem VERSION 1.3.0 LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
