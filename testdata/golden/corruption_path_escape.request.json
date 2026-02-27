@@ -1,0 +1,12 @@
+{
+  "request_id": "golden-corruption-path-escape",
+  "workspace_root": "/tmp/safe-workspace",
+  "command": "/bin/sh",
+  "argv": ["-c", "cat /etc/passwd"],
+  "timeout_ms": 2000,
+  "policy": {
+    "deterministic": true,
+    "mode": "strict",
+    "allow_outside_workspace": false
+  }
+}

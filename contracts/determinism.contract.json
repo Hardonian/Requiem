@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "contract_id": "requiem.determinism.v1",
+  "contract_version": "1.0.0",
+  "description": "Formal determinism contract for the Requiem engine. Any change to hash algorithm, serialization rules, protocol framing, CAS format, or observable output schema REQUIRES a version bump in the corresponding field AND a corresponding update to the golden corpus under testdata/golden/.",
+  "enforced_by": ["scripts/verify_determinism.sh", "scripts/verify_version_contracts.sh", ".github/workflows/ci.yml"],
+
+  "hash": {
+    "algorithm": "blake3",
+    "algorithm_version": 1,
+    "output_bytes": 32,
+    "hex_chars": 64,
+    "hex_encoding": "lowercase",
+    "domain_prefixes": {
+      "request_canonicalization": "req:",
+      "result_canonicalization":  "res:",
+      "cas_content":              "cas:"
+    },
+    "known_vectors": [
+      {
+        "description": "empty string",
+        "input_hex":   "",
+        "blake3_hex":  "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262"
+      },
+      {
+        "description": "hello",
+        "input_utf8":  "hello",
+        "blake3_hex":  "ea8f163db38682925e4491c5e58d4bb3506ef8c14eb78a86e908c5624a67200f"
+      }
+    ],
+    "change_gate": "Changing algorithm requires: (1) increment hash_algorithm_version in include/requiem/version.hpp, (2) add migration path to docs/MIGRATION.md, (3) update known_vectors above, (4) regenerate all golden fixtures."
+  },
+
+  "serialization": {
+    "format": "canonical_json",
+    "rules": [
+      "Object keys sorted lexicographically (byte order, not locale)",
+      "No insignificant whitespace (no spaces or newlines outside strings)",
+      "No duplicate keys — rejected with json_duplicate_key error code",
+      "Integers serialized as integers (no trailing .0)",
+      "Floats serialized with exactly 6 decimal places (e.g. 1.500000)",
+      "Scientific notation preserved when originally parsed as such",
+      "Strings: UTF-8 encoded, escape sequences: \\n \\t \\r \\b \\f \\\" \\\\",
+      "No escaped Unicode code points in output strings",
+      "NaN and Infinity rejected at parse time (use null)",
+      "Numbers outside uint64 range stored as double (precision loss possible)"
+    ],
+    "fields_excluded_from_request_digest": ["tenant_id", "nonce"],
+    "fields_excluded_from_result_digest":  ["audit_log_id", "signature"],
+    "change_gate": "Any change to serialization rules requires: (1) increment PROTOCOL_FRAMING_VERSION in version.hpp, (2) update this contract, (3) regenerate golden corpus, (4) add regression test."
+  },
+
+  "protocol_framing": {
+    "format": "ndjson",
+    "version": 1,
+    "frame_types": ["start", "event", "end", "result", "error"],
+    "required_fields_per_type": {
+      "start":  ["type", "request_id"],
+      "event":  ["type", "seq", "t_ns"],
+      "end":    ["type", "request_id", "exit_code"],
+      "result": ["type", "result_digest"],
+      "error":  ["type", "error_code"]
+    },
+    "change_gate": "Adding/removing required frame fields requires: (1) increment PROTOCOL_FRAMING_VERSION, (2) update this contract, (3) add forward/backward compatibility test."
+  },
+
+  "cas": {
+    "format_version": 2,
+    "shard_depth": 2,
+    "shard_chars": 2,
+    "path_template": "{shard_ab}/{shard_cd}/{full_64_char_digest}",
+    "meta_sidecar": "{path}.meta",
+    "meta_format": "json",
+    "compression": "zstd_optional",
+    "content_prefix": "cas:",
+    "change_gate": "Changing CAS layout requires: (1) increment CAS_FORMAT_VERSION in version.hpp, (2) provide migration script in scripts/, (3) update docs/CAS.md, (4) add migration test."
+  },
+
+  "replay_log": {
+    "version": 1,
+    "format": "json_array_of_trace_events",
+    "required_fields": ["seq", "t_ns", "type"],
+    "time_mode_in_deterministic_runs": "fixed_zero",
+    "change_gate": "Changes to replay log format require: (1) increment REPLAY_LOG_VERSION, (2) update contract, (3) verify replay gate still passes."
+  },
+
+  "observable_output_schema": {
+    "required_result_fields": [
+      "ok", "exit_code", "stdout", "stderr",
+      "request_digest", "result_digest",
+      "stdout_digest", "stderr_digest",
+      "policy_applied", "sandbox_applied"
+    ],
+    "digest_pattern": "^[a-f0-9]{64}$",
+    "determinism_assertion": "For identical inputs (request_id excluded from digest), result_digest MUST be byte-for-byte identical across any number of sequential or concurrent re-executions on the same platform.",
+    "known_non_deterministic_fields": ["trace_events[].t_ns in wall_clock time_mode"],
+    "change_gate": "Any new field added to result output requires: (1) update this schema, (2) update docs/CONTRACT.md, (3) add golden fixture asserting new field presence."
+  },
+
+  "golden_corpus": {
+    "location": "testdata/golden/",
+    "categories": {
+      "small":      "Single echo / arithmetic workload — fast; used in 200x determinism loop",
+      "medium":     "Multi-step pipeline with environment isolation assertions",
+      "large":      "Longer workload stressing output truncation and CAS storage",
+      "corruption": "Invalid / partially-corrupted inputs asserting correct error codes"
+    },
+    "invariant": "All files under testdata/golden/ are regenerated by scripts/generate_golden_corpus.sh and committed to the repo. CI verifies they produce identical digests across runs."
+  },
+
+  "version_bump_checklist": [
+    "Update the relevant constant in include/requiem/version.hpp",
+    "Update this contract (contracts/determinism.contract.json)",
+    "Update docs/CONTRACT.md or relevant docs/ file",
+    "Regenerate golden corpus (scripts/generate_golden_corpus.sh)",
+    "Add or update a regression test in tests/requiem_tests.cpp",
+    "Update scripts/verify_version_contracts.sh if numeric assertions change",
+    "PR description must reference this checklist and include: 'Determinism-Contract: bumped <field> <old> -> <new>'"
+  ]
+}

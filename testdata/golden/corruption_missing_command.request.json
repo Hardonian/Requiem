@@ -1,0 +1,7 @@
+{
+  "request_id": "golden-corruption-missing-command",
+  "workspace_root": ".",
+  "argv": ["-c", "echo should-never-run"],
+  "timeout_ms": 2000,
+  "policy": {"deterministic": true}
+}
