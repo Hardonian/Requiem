@@ -1,0 +1,15 @@
+{
+  "request_id": "golden-small-echo",
+  "workspace_root": ".",
+  "command": "/bin/sh",
+  "argv": ["-c", "printf 'golden-small-output\\n'"],
+  "timeout_ms": 2000,
+  "max_output_bytes": 4096,
+  "policy": {
+    "deterministic": true,
+    "mode": "strict",
+    "time_mode": "fixed_zero",
+    "inherit_env": false,
+    "env_denylist": ["RANDOM", "TZ", "HOSTNAME", "PWD", "OLDPWD", "SHLVL"]
+  }
+}

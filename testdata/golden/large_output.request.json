@@ -1,0 +1,15 @@
+{
+  "request_id": "golden-large-output",
+  "workspace_root": ".",
+  "command": "/bin/sh",
+  "argv": ["-c", "i=0; while [ $i -lt 50 ]; do printf 'line-%03d: stable-deterministic-content-abcdefghijklmnopqrstuvwxyz\\n' $i; i=$((i+1)); done"],
+  "timeout_ms": 10000,
+  "max_output_bytes": 65536,
+  "policy": {
+    "deterministic": true,
+    "mode": "strict",
+    "time_mode": "fixed_zero",
+    "inherit_env": false,
+    "env_denylist": ["RANDOM", "TZ", "HOSTNAME", "PWD", "OLDPWD", "SHLVL"]
+  }
+}
