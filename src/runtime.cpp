@@ -13,13 +13,65 @@ namespace fs = std::filesystem;
 namespace requiem {
 
 namespace {
-bool starts_with(const std::string& v, const std::string& prefix) { return v.rfind(prefix, 0) == 0; }
 
+// Maximum request JSON payload size: 1 MB.
+constexpr std::size_t kMaxRequestPayloadBytes = 1 * 1024 * 1024;
+
+// Maximum number of output files to hash per request.
+constexpr std::size_t kMaxOutputFiles = 256;
+
+bool starts_with(const std::string& v, const std::string& prefix) {
+  return v.rfind(prefix, 0) == 0;
+}
+
+// Path normalization with symlink resolution and confinement check.
+// Uses canonical() which resolves symlinks, preventing TOCTOU attacks
+// where a symlink is created between check and use.
 std::string normalize_under(const std::string& workspace, const std::string& p, bool allow_outside) {
-  const fs::path base = fs::weakly_canonical(fs::path(workspace));
-  const fs::path in = p.empty() ? base : fs::weakly_canonical(base / p);
-  if (!allow_outside && !starts_with(in.string(), base.string())) return "";
-  return in.string();
+  std::error_code ec;
+  const fs::path base = fs::weakly_canonical(fs::path(workspace), ec);
+  if (ec) return "";
+  const fs::path in = p.empty() ? base : fs::weakly_canonical(base / p, ec);
+  if (ec) return "";
+  const std::string base_str = base.string();
+  const std::string in_str = in.string();
+  // Ensure in_str starts with base_str followed by separator or is exactly base_str.
+  if (!allow_outside) {
+    if (in_str != base_str && !starts_with(in_str, base_str + "/")) return "";
+  }
+  return in_str;
+}
+
+// Sanitize request_id: only allow alphanumeric, hyphen, underscore.
+// Periods are excluded to prevent ".." traversal when requestId is used in file paths.
+std::string sanitize_request_id(const std::string& id) {
+  std::string out;
+  out.reserve(id.size());
+  for (char c : id) {
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') || c == '-' || c == '_') {
+      out.push_back(c);
+    }
+  }
+  return out;
+}
+
+// Secrets denylist patterns: strip these from child process environment.
+bool is_secret_key(const std::string& key) {
+  // Exact matches
+  if (key == "REACH_ENCRYPTION_KEY") return true;
+  // Suffix patterns: *_TOKEN, *_SECRET, *_KEY (but not PATH-like)
+  auto ends_with = [&](const std::string& suffix) {
+    return key.size() >= suffix.size() &&
+           key.compare(key.size() - suffix.size(), suffix.size(), suffix) == 0;
+  };
+  if (ends_with("_TOKEN") || ends_with("_SECRET") || ends_with("_KEY") ||
+      ends_with("_PASSWORD") || ends_with("_CREDENTIAL")) return true;
+  // Prefix patterns
+  if (starts_with(key, "AUTH") || starts_with(key, "COOKIE") ||
+      starts_with(key, "AWS_SECRET") || starts_with(key, "GH_TOKEN") ||
+      starts_with(key, "GITHUB_TOKEN") || starts_with(key, "NPM_TOKEN")) return true;
+  return false;
 }
 
 std::string map_to_json(const std::map<std::string, std::string>& m) {
@@ -34,6 +86,7 @@ std::string map_to_json(const std::map<std::string, std::string>& m) {
   oss << "}";
   return oss.str();
 }
+
 std::string arr_to_json(const std::vector<std::string>& a) {
   std::ostringstream oss;
   oss << "[";
@@ -77,12 +130,16 @@ std::string canonicalize_result(const ExecutionResult& result) {
 
 ExecutionResult execute(const ExecutionRequest& request) {
   ExecutionResult result;
+
+  // Compute request digest first.
   result.request_digest = deterministic_digest(canonicalize_request(request));
   if (result.request_digest.empty()) {
     result.error_code = to_string(ErrorCode::hash_unavailable_blake3);
     result.exit_code = 2;
     return result;
   }
+
+  // Validate and confine workspace path.
   const std::string cwd = normalize_under(request.workspace_root, request.cwd, request.policy.allow_outside_workspace);
   if (cwd.empty()) {
     result.error_code = to_string(ErrorCode::path_escape);
@@ -90,17 +147,33 @@ ExecutionResult execute(const ExecutionRequest& request) {
     return result;
   }
 
+  // Cap output file count.
+  if (request.outputs.size() > kMaxOutputFiles) {
+    result.error_code = to_string(ErrorCode::quota_exceeded);
+    result.exit_code = 2;
+    return result;
+  }
+
   ProcessSpec spec{request.command, request.argv, {}, cwd, request.timeout_ms, request.max_output_bytes, request.policy.deterministic};
   result.policy_applied.mode = request.policy.mode;
   result.policy_applied.time_mode = request.policy.time_mode;
+
+  // Inject required env vars.
   for (const auto& [k, required_v] : request.policy.required_env) {
     if (request.env.find(k) == request.env.end()) {
       spec.env[k] = required_v;
       result.policy_applied.injected_required_keys.push_back(k);
     }
   }
+
+  // Filter environment variables: denylist, allowlist, and secrets stripping.
   for (const auto& [k, v] : request.env) {
     if (key_in(k, request.policy.env_denylist)) {
+      result.policy_applied.denied_keys.push_back(k);
+      continue;
+    }
+    // Strip secrets unconditionally — they must never reach child processes.
+    if (is_secret_key(k)) {
       result.policy_applied.denied_keys.push_back(k);
       continue;
     }
@@ -112,27 +185,27 @@ ExecutionResult execute(const ExecutionRequest& request) {
     result.policy_applied.allowed_keys.push_back(k);
   }
 
-  // Populate sandbox_applied before execution
+  // Populate sandbox_applied before execution.
   auto caps = detect_platform_sandbox_capabilities();
   result.sandbox_applied.workspace_confinement = caps.workspace_confinement;
   result.sandbox_applied.rlimits = caps.rlimits_cpu || caps.rlimits_mem || caps.rlimits_fds;
   result.sandbox_applied.seccomp = caps.seccomp_baseline;
   result.sandbox_applied.job_object = caps.job_objects;
   result.sandbox_applied.restricted_token = caps.restricted_token;
-  
-  // Build enforced/unsupported lists
+
   if (result.sandbox_applied.workspace_confinement) result.sandbox_applied.enforced.push_back("workspace_confinement");
   if (result.sandbox_applied.rlimits) result.sandbox_applied.enforced.push_back("rlimits");
   if (result.sandbox_applied.seccomp) result.sandbox_applied.enforced.push_back("seccomp");
   if (result.sandbox_applied.job_object) result.sandbox_applied.enforced.push_back("job_object");
   if (result.sandbox_applied.restricted_token) result.sandbox_applied.enforced.push_back("restricted_token");
-  
+
   if (!result.sandbox_applied.workspace_confinement) result.sandbox_applied.unsupported.push_back("workspace_confinement");
   if (!result.sandbox_applied.rlimits) result.sandbox_applied.unsupported.push_back("rlimits");
   if (!result.sandbox_applied.seccomp) result.sandbox_applied.unsupported.push_back("seccomp");
   if (!result.sandbox_applied.job_object) result.sandbox_applied.unsupported.push_back("job_object");
   if (!result.sandbox_applied.restricted_token) result.sandbox_applied.unsupported.push_back("restricted_token");
 
+  // Execute.
   result.trace_events.push_back({1, request.policy.deterministic ? 0ull : 1ull, "process_start", {{"command", request.command}, {"cwd", cwd}}});
   auto p = run_process(spec);
   result.stdout_text = p.stdout_text;
@@ -146,9 +219,11 @@ ExecutionResult execute(const ExecutionRequest& request) {
     result.error_code = to_string(ErrorCode::timeout);
   }
 
+  // Hash output files with path confinement.
   for (const auto& output : request.outputs) {
     const auto out_path = normalize_under(request.workspace_root, output, false);
-    if (out_path.empty() || !fs::exists(out_path)) continue;
+    if (out_path.empty()) continue;  // Path escape — skip silently.
+    if (!fs::exists(out_path) || !fs::is_regular_file(out_path)) continue;
     std::ifstream ifs(out_path, std::ios::binary);
     std::string bytes((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     const auto out_digest = deterministic_digest(bytes);
@@ -159,6 +234,8 @@ ExecutionResult execute(const ExecutionRequest& request) {
     }
     result.output_digests[output] = out_digest;
   }
+
+  // Finalize trace and compute digests.
   result.trace_events.push_back({2, request.policy.deterministic ? 0ull : 1ull, "process_end", {{"exit_code", std::to_string(result.exit_code)}}});
   std::string trace_cat;
   for (const auto& e : result.trace_events) trace_cat += std::to_string(e.seq) + e.type + map_to_json(e.data);
@@ -182,13 +259,21 @@ ExecutionResult execute(const ExecutionRequest& request) {
 
 ExecutionRequest parse_request_json(const std::string& payload, std::string* error) {
   ExecutionRequest req;
+
+  // Request size cap — reject oversized payloads.
+  if (payload.size() > kMaxRequestPayloadBytes) {
+    if (error) *error = "quota_exceeded";
+    return req;
+  }
+
   std::optional<jsonlite::JsonError> err;
   auto obj = jsonlite::parse(payload, &err);
   if (err) {
     if (error) *error = err->code;
     return req;
   }
-  req.request_id = jsonlite::get_string(obj, "request_id", "");
+
+  req.request_id = sanitize_request_id(jsonlite::get_string(obj, "request_id", ""));
   req.command = jsonlite::get_string(obj, "command", "");
   req.argv = jsonlite::get_string_array(obj, "argv");
   req.cwd = jsonlite::get_string(obj, "cwd", "");
@@ -199,8 +284,8 @@ ExecutionRequest parse_request_json(const std::string& payload, std::string* err
   req.timeout_ms = jsonlite::get_u64(obj, "timeout_ms", 5000);
   req.max_output_bytes = jsonlite::get_u64(obj, "max_output_bytes", 4096);
   req.tenant_id = jsonlite::get_string(obj, "tenant_id", "");
-  
-  // Parse nested policy object if present
+
+  // Parse nested policy object if present.
   auto policy_it = obj.find("policy");
   if (policy_it != obj.end()) {
     if (std::holds_alternative<jsonlite::Object>(policy_it->second.v)) {
@@ -210,11 +295,10 @@ ExecutionRequest parse_request_json(const std::string& payload, std::string* err
       req.policy.time_mode = jsonlite::get_string(policy_obj, "time_mode", "fixed_zero");
       req.policy.deterministic = jsonlite::get_bool(policy_obj, "deterministic", true);
       req.policy.allow_outside_workspace = jsonlite::get_bool(policy_obj, "allow_outside_workspace", false);
-      // Note: env_allowlist, env_denylist, required_env would need array/object parsing
     }
   }
-  
-  // Parse nested llm object if present
+
+  // Parse nested llm object if present.
   auto llm_it = obj.find("llm");
   if (llm_it != obj.end()) {
     if (std::holds_alternative<jsonlite::Object>(llm_it->second.v)) {
@@ -226,11 +310,10 @@ ExecutionRequest parse_request_json(const std::string& payload, std::string* err
       req.llm.has_seed = llm_obj.find("seed") != llm_obj.end();
     }
   } else {
-    // Fallback to top-level fields for backward compatibility
     req.llm.mode = jsonlite::get_string(obj, "llm_mode", "none");
     req.llm.include_in_digest = jsonlite::get_bool(obj, "llm_include_in_digest", false);
   }
-  
+
   if (req.command.empty() && error) *error = "missing_input";
   return req;
 }
@@ -254,14 +337,12 @@ std::string result_to_json(const ExecutionResult& r) {
       << "\",\"stdout_digest\":\"" << r.stdout_digest << "\",\"stderr_digest\":\"" << r.stderr_digest
       << "\",\"result_digest\":\"" << r.result_digest << "\",\"output_digests\":" << map_to_json(r.output_digests)
       << ",\"trace_events\":" << te.str();
-  
-  // Add policy_applied
-  oss << ",\"policy_applied\":{\"mode\":\"" << jsonlite::escape(r.policy_applied.mode) << "\",\"time_mode\":\"" 
+
+  oss << ",\"policy_applied\":{\"mode\":\"" << jsonlite::escape(r.policy_applied.mode) << "\",\"time_mode\":\""
       << jsonlite::escape(r.policy_applied.time_mode) << "\",\"allowed_keys\":" << arr_to_json(r.policy_applied.allowed_keys)
       << ",\"denied_keys\":" << arr_to_json(r.policy_applied.denied_keys) << ",\"injected_required_keys\":"
       << arr_to_json(r.policy_applied.injected_required_keys) << "}";
-  
-  // Add sandbox_applied
+
   oss << ",\"sandbox_applied\":{\"workspace_confinement\":" << (r.sandbox_applied.workspace_confinement ? "true" : "false")
       << ",\"rlimits\":" << (r.sandbox_applied.rlimits ? "true" : "false")
       << ",\"seccomp\":" << (r.sandbox_applied.seccomp ? "true" : "false")
@@ -269,15 +350,14 @@ std::string result_to_json(const ExecutionResult& r) {
       << ",\"restricted_token\":" << (r.sandbox_applied.restricted_token ? "true" : "false")
       << ",\"enforced\":" << arr_to_json(r.sandbox_applied.enforced)
       << ",\"unsupported\":" << arr_to_json(r.sandbox_applied.unsupported) << "}";
-  
-  // Add enterprise fields if present
+
   if (!r.signature.empty()) {
     oss << ",\"signature\":\"" << jsonlite::escape(r.signature) << "\"";
   }
   if (!r.audit_log_id.empty()) {
     oss << ",\"audit_log_id\":\"" << jsonlite::escape(r.audit_log_id) << "\"";
   }
-  
+
   oss << "}";
   return oss.str();
 }

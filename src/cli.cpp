@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -10,6 +12,7 @@
 #include "requiem/jsonlite.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
+#include "requiem/sandbox.hpp"
 
 namespace {
 std::string read_file(const std::string& path) {
@@ -93,11 +96,14 @@ bool verify_hash_vectors() {
 }  // namespace
 
 int main(int argc, char** argv) {
-  bool allow_hash_fallback = false;
-  for (int i = 1; i < argc; ++i) {
-    if (std::string(argv[i]) == "--allow-hash-fallback") allow_hash_fallback = true;
+  // Honor FORCE_RUST: if set, refuse to run so the caller falls back to Rust engine.
+  const char* force_rust = std::getenv("FORCE_RUST");
+  if (force_rust && std::string(force_rust) == "1") {
+    std::cerr << "{\"error\":\"FORCE_RUST=1: Requiem engine disabled by environment\"}\n";
+    return 3;
   }
-  requiem::set_hash_fallback_allowed(allow_hash_fallback);
+
+  requiem::set_hash_fallback_allowed(false);
   std::string cmd;
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]).rfind("--", 0) == 0) continue;
@@ -125,33 +131,35 @@ int main(int argc, char** argv) {
   
   if (cmd == "doctor") {
     std::vector<std::string> blockers;
-    
-    // Check hash primitive
+
     const auto h = requiem::hash_runtime_info();
-    if (h.primitive != "blake3") {
-      blockers.push_back("hash_primitive_not_blake3");
-    }
-    if (h.backend != "vendored") {
-      blockers.push_back("hash_backend_not_vendored");
-    }
-    if (!h.blake3_available) {
-      blockers.push_back("blake3_not_available");
-    }
-    if (h.compat_warning) {
-      blockers.push_back("hash_compat_warning");
-    }
-    
-    // Verify hash vectors
-    if (!verify_hash_vectors()) {
-      blockers.push_back("hash_vectors_failed");
-    }
-    
+    if (h.primitive != "blake3") blockers.push_back("hash_primitive_not_blake3");
+    if (h.backend != "vendored") blockers.push_back("hash_backend_not_vendored");
+    if (!h.blake3_available) blockers.push_back("blake3_not_available");
+    if (h.compat_warning) blockers.push_back("hash_compat_warning");
+    if (!verify_hash_vectors()) blockers.push_back("hash_vectors_failed");
+
+    // Detect sandbox capabilities
+    auto caps = requiem::detect_platform_sandbox_capabilities();
+
     std::cout << "{\"ok\":" << (blockers.empty() ? "true" : "false") << ",\"blockers\":[";
     for (size_t i = 0; i < blockers.size(); ++i) {
       if (i > 0) std::cout << ",";
       std::cout << "\"" << blockers[i] << "\"";
     }
-    std::cout << "]}" << "\n";
+    std::cout << "]";
+    std::cout << ",\"engine_version\":\"" << PROJECT_VERSION << "\"";
+    std::cout << ",\"protocol_version\":\"v1\"";
+    std::cout << ",\"hash_primitive\":\"" << h.primitive << "\"";
+    std::cout << ",\"hash_backend\":\"" << h.backend << "\"";
+    std::cout << ",\"hash_version\":\"" << h.version << "\"";
+    std::cout << ",\"sandbox\":{\"workspace_confinement\":" << (caps.workspace_confinement ? "true" : "false")
+              << ",\"rlimits\":" << (caps.rlimits_cpu ? "true" : "false")
+              << ",\"seccomp\":" << (caps.seccomp_baseline ? "true" : "false")
+              << ",\"job_objects\":" << (caps.job_objects ? "true" : "false")
+              << ",\"restricted_token\":" << (caps.restricted_token ? "true" : "false") << "}";
+    std::cout << ",\"rollback\":\"set FORCE_RUST=1 to revert to Rust engine\"";
+    std::cout << "}" << "\n";
     return blockers.empty() ? 0 : 2;
   }
   
