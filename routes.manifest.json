@@ -94,6 +94,50 @@
       "description": "Returns the list of all registered cluster workers with health and shard assignments.",
       "invariants": ["INV-7"],
       "persona": "operator"
+    },
+    {
+      "path": "/api/cluster/drift",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cluster/drift/route.ts",
+      "auth_required": true,
+      "rbac_required": "auditor",
+      "probe": false,
+      "description": "Returns cluster-level version drift status: engine/hash/protocol/auth version mismatches and replay drift rate (cluster.replay.drift_rate).",
+      "invariants": ["INV-7"],
+      "persona": "auditor"
+    },
+    {
+      "path": "/api/engine/analyze",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/analyze/route.ts",
+      "auth_required": true,
+      "rbac_required": "auditor",
+      "probe": false,
+      "description": "AI-assisted root cause diagnostics. Captures engine context and runs evidence-based failure analysis. Read-only: never modifies state.",
+      "invariants": ["INV-7"],
+      "persona": "auditor"
+    },
+    {
+      "path": "/api/engine/autotune",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/autotune/route.ts",
+      "auth_required": true,
+      "rbac_required": "operator",
+      "probe": false,
+      "description": "Read current auto-tuning parameters, policy, and recent events. GET=operator+, POST=admin only.",
+      "invariants": ["INV-7"],
+      "persona": "operator"
+    },
+    {
+      "path": "/api/engine/autotune",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/engine/autotune/route.ts",
+      "auth_required": true,
+      "rbac_required": "admin",
+      "probe": false,
+      "description": "Trigger a manual auto-tune tick or revert-to-baseline. Admin only. Never changes hash semantics or observable output.",
+      "invariants": ["INV-7"],
+      "persona": "admin"
     }
   ],
 

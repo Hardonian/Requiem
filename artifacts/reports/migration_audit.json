@@ -1,6 +1,6 @@
 {
   "schema": "migration_audit_v1",
-  "generated_at": "2026-02-27T11:27:00.018392Z",
+  "generated_at": "2026-02-27T16:39:28.926090Z",
   "pass": true,
   "violations": 0,
   "versions": {
