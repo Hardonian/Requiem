@@ -1,5 +1,19 @@
 #include "requiem/cas.hpp"
 
+// PHASE 3: CAS Hardening + Abstraction
+//
+// CasStore (LocalFSBackend) now implements ICASBackend.
+// S3CompatibleBackend is scaffolded — all methods return empty/false.
+//
+// EXTENSION_POINT: append_only_journal
+//   See cas.hpp for design notes on adding a crash-recovery journal.
+//
+// EXTENSION_POINT: multi-region_cas_replication
+//   To implement: create a ReplicatingBackend that wraps two ICASBackend
+//   instances and writes to both atomically. On primary success + secondary
+//   failure, schedule async retry on secondary. Invariant: return success
+//   only after primary write confirms.
+
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -204,6 +218,44 @@ std::vector<CasObjectInfo> CasStore::scan_objects() const {
     if (inf) out.push_back(*inf);
   }
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// S3CompatibleBackend — scaffold (not yet implemented)
+// ---------------------------------------------------------------------------
+// EXTENSION_POINT: s3_backend_implementation
+// See include/requiem/cas.hpp for detailed implementation notes.
+
+S3CompatibleBackend::S3CompatibleBackend(std::string endpoint, std::string bucket,
+                                         std::string prefix)
+    : endpoint_(std::move(endpoint))
+    , bucket_(std::move(bucket))
+    , prefix_(std::move(prefix)) {}
+
+std::string S3CompatibleBackend::put(const std::string& /*data*/,
+                                     const std::string& /*compression*/) {
+  // Not yet implemented. See cas.hpp EXTENSION_POINT: s3_backend_implementation.
+  return {};
+}
+
+std::optional<std::string> S3CompatibleBackend::get(const std::string& /*digest*/) const {
+  return std::nullopt;
+}
+
+bool S3CompatibleBackend::contains(const std::string& /*digest*/) const {
+  return false;
+}
+
+std::optional<CasObjectInfo> S3CompatibleBackend::info(const std::string& /*digest*/) const {
+  return std::nullopt;
+}
+
+std::vector<CasObjectInfo> S3CompatibleBackend::scan_objects() const {
+  return {};
+}
+
+std::size_t S3CompatibleBackend::size() const {
+  return 0;
 }
 
 }  // namespace requiem

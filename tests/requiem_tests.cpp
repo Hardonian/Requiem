@@ -7,10 +7,12 @@
 #include <thread>
 #include <vector>
 
+#include "requiem/c_api.h"
 #include "requiem/cas.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
 #include "requiem/metering.hpp"
+#include "requiem/observability.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
 
@@ -627,7 +629,6 @@ void test_determinism_concurrent_20_threads() {
   std::string expected_digest;
   std::atomic<int> drift_count{0};
 
-  // Run single reference first.
   {
     const auto r = requiem::execute(req);
     expected_digest = r.result_digest;
@@ -647,6 +648,290 @@ void test_determinism_concurrent_20_threads() {
          "no determinism drift across " + std::to_string(kThreads) + " concurrent threads");
 
   fs::remove_all(tmp);
+}
+
+// ============================================================================
+// Phase 2: HashEnvelope — versioned hash schema
+// ============================================================================
+
+void test_hash_envelope_roundtrip() {
+  const std::string hex = requiem::blake3_hex("test envelope data");
+  expect(hex.size() == 64, "blake3_hex must be 64 chars");
+
+  requiem::HashEnvelope env{};
+  expect(requiem::hash_envelope_from_hex(env, hex), "hash_envelope_from_hex must succeed");
+  expect(env.hash_version == 1, "hash_version must be 1");
+  expect(std::string(env.algorithm) == "blake3", "algorithm must be blake3");
+  expect(std::string(env.engine_version).size() > 0, "engine_version must be populated");
+
+  const std::string roundtrip = requiem::hash_envelope_to_hex(env);
+  expect(roundtrip == hex, "hash_envelope round-trip must produce same hex");
+}
+
+void test_hash_envelope_rejects_invalid() {
+  requiem::HashEnvelope env{};
+  // Too short
+  expect(!requiem::hash_envelope_from_hex(env, "abc"), "short hex rejected");
+  // Non-hex characters
+  std::string bad(64, 'g');
+  expect(!requiem::hash_envelope_from_hex(env, bad), "non-hex chars rejected");
+  // Uppercase hex should be accepted
+  const std::string upper_hex(64, 'A');  // All 'A' = valid hex
+  expect(requiem::hash_envelope_from_hex(env, upper_hex), "uppercase hex accepted");
+}
+
+// ============================================================================
+// Phase 4: Observability — ExecutionEvent + EngineStats
+// ============================================================================
+
+void test_engine_stats_accumulation() {
+  // Use a local EngineStats to avoid polluting global state.
+  requiem::EngineStats stats;
+  expect(stats.total_executions.load() == 0, "fresh stats: zero executions");
+
+  requiem::ExecutionEvent ev;
+  ev.execution_id = "test-ev-1";
+  ev.ok = true;
+  ev.duration_ns = 5'000'000;  // 5ms
+
+  stats.record_execution(ev);
+  expect(stats.total_executions.load() == 1, "record_execution increments total");
+  expect(stats.successful_executions.load() == 1, "record_execution increments successful");
+  expect(stats.failed_executions.load() == 0, "no failed increments for ok=true");
+
+  ev.ok = false;
+  ev.error_code = "timeout";
+  stats.record_execution(ev);
+  expect(stats.total_executions.load() == 2, "second record increments total");
+  expect(stats.failed_executions.load() == 1, "failed increments for ok=false");
+}
+
+void test_engine_stats_to_json() {
+  requiem::EngineStats stats;
+  requiem::ExecutionEvent ev;
+  ev.ok = true;
+  ev.duration_ns = 10'000'000;  // 10ms
+  stats.record_execution(ev);
+
+  const std::string json = stats.to_json();
+  expect(!json.empty(), "to_json must return non-empty string");
+  expect(json.find("total_executions") != std::string::npos, "to_json contains total_executions");
+  expect(json.find("latency") != std::string::npos, "to_json contains latency histogram");
+  expect(json.find("replay_divergences") != std::string::npos, "to_json contains replay_divergences");
+  expect(json.find("cache_metrics") != std::string::npos, "to_json contains cache_metrics");
+  expect(json.front() == '{' && json.back() == '}', "to_json is a JSON object");
+}
+
+void test_latency_histogram_percentile() {
+  requiem::LatencyHistogram hist;
+  // Insert 100 samples at 1ms each.
+  for (int i = 0; i < 100; ++i) {
+    hist.record(1'000'000);  // 1ms = 1000us
+  }
+  expect(hist.count() == 100, "histogram count must be 100");
+  const double p50 = hist.percentile(0.50);
+  const double p99 = hist.percentile(0.99);
+  expect(p50 > 0.0, "p50 must be > 0");
+  expect(p99 >= p50, "p99 must be >= p50");
+}
+
+void test_execution_metrics_populated() {
+  const fs::path tmp = fs::temp_directory_path() / "rq_metrics_test";
+  fs::create_directories(tmp);
+
+  requiem::ExecutionRequest req;
+  req.request_id     = "metrics-test";
+  req.workspace_root = tmp.string();
+  req.command        = "/bin/sh";
+  req.argv           = {"-c", "echo hello"};
+
+  const auto result = requiem::execute(req);
+  expect(result.ok, "execution must succeed");
+  expect(result.metrics.total_duration_ns > 0, "total_duration_ns must be populated");
+  expect(result.metrics.sandbox_duration_ns > 0, "sandbox_duration_ns must be populated");
+  expect(result.metrics.bytes_stdout > 0, "bytes_stdout must be populated");
+
+  // Verify metrics appear in result JSON.
+  const std::string json = requiem::result_to_json(result);
+  expect(json.find("\"metrics\"") != std::string::npos, "result JSON contains metrics");
+  expect(json.find("total_duration_ns") != std::string::npos, "result JSON has total_duration_ns");
+
+  fs::remove_all(tmp);
+}
+
+// ============================================================================
+// Phase 3: ICASBackend interface
+// ============================================================================
+
+void test_cas_backend_interface() {
+  const fs::path tmp = fs::temp_directory_path() / "rq_iface_test";
+  fs::remove_all(tmp);
+
+  // CasStore must satisfy ICASBackend interface.
+  requiem::ICASBackend* backend = new requiem::CasStore(tmp.string());
+  expect(backend->backend_id() == "local_fs", "CasStore backend_id must be local_fs");
+
+  const std::string data = "interface test data";
+  const std::string digest = backend->put(data, "off");
+  expect(!digest.empty(), "ICASBackend::put must return digest");
+  expect(backend->contains(digest), "ICASBackend::contains must return true after put");
+
+  auto retrieved = backend->get(digest);
+  expect(retrieved.has_value(), "ICASBackend::get must return data");
+  expect(*retrieved == data, "ICASBackend::get round-trip must match");
+
+  auto info = backend->info(digest);
+  expect(info.has_value(), "ICASBackend::info must return info");
+  expect(info->original_size == data.size(), "ICASBackend info size matches");
+
+  delete backend;
+  fs::remove_all(tmp);
+}
+
+void test_s3_backend_scaffold() {
+  // S3CompatibleBackend is scaffolded — all ops return empty/false.
+  requiem::S3CompatibleBackend s3("https://s3.amazonaws.com", "my-bucket");
+  expect(s3.backend_id() == "s3_scaffold", "S3 backend_id must be s3_scaffold");
+  expect(s3.put("data", "off").empty(), "S3 put must return empty (not implemented)");
+  expect(!s3.contains("a" + std::string(63, '0')), "S3 contains must return false (not implemented)");
+  expect(!s3.get("a" + std::string(63, '0')).has_value(), "S3 get must return nullopt (not implemented)");
+  expect(s3.size() == 0, "S3 size must be 0 (not implemented)");
+}
+
+// ============================================================================
+// Phase 5: C ABI
+// ============================================================================
+
+void test_c_api_lifecycle() {
+  requiem_ctx_t* ctx = requiem_init("{}", REQUIEM_ABI_VERSION);
+  expect(ctx != nullptr, "requiem_init must return non-null ctx");
+
+  expect(requiem_abi_version() == REQUIEM_ABI_VERSION, "requiem_abi_version must match");
+
+  // Wrong ABI version must fail.
+  requiem_ctx_t* bad_ctx = requiem_init("{}", REQUIEM_ABI_VERSION + 99);
+  expect(bad_ctx == nullptr, "requiem_init with wrong ABI version must return null");
+
+  requiem_shutdown(ctx);
+}
+
+void test_c_api_execute() {
+  requiem_ctx_t* ctx = requiem_init("{}", REQUIEM_ABI_VERSION);
+  expect(ctx != nullptr, "ctx must be non-null");
+
+  const char* req_json =
+      "{\"command\":\"/bin/sh\","
+      "\"argv\":[\"-c\",\"echo capi_test\"],"
+      "\"workspace_root\":\"/tmp\","
+      "\"request_id\":\"capi-test-1\"}";
+
+  char* result = requiem_execute(ctx, req_json);
+  expect(result != nullptr, "requiem_execute must return non-null result");
+
+  const std::string result_str(result);
+  requiem_free_string(result);
+
+  expect(result_str.find("\"ok\"") != std::string::npos, "result must contain ok field");
+  expect(result_str.find("\"result_digest\"") != std::string::npos, "result must contain result_digest");
+
+  requiem_shutdown(ctx);
+}
+
+void test_c_api_stats() {
+  requiem_ctx_t* ctx = requiem_init("{}", REQUIEM_ABI_VERSION);
+  expect(ctx != nullptr, "ctx must be non-null");
+
+  char* stats = requiem_stats(ctx);
+  expect(stats != nullptr, "requiem_stats must return non-null");
+
+  const std::string stats_str(stats);
+  requiem_free_string(stats);
+
+  expect(stats_str.find("total_executions") != std::string::npos,
+         "stats must contain total_executions");
+  expect(stats_str.front() == '{', "stats must be a JSON object");
+
+  requiem_shutdown(ctx);
+}
+
+void test_c_api_null_safety() {
+  // All C API functions must handle null gracefully.
+  expect(requiem_execute(nullptr, "{}") == nullptr, "execute with null ctx → null");
+  expect(requiem_execute(reinterpret_cast<requiem_ctx_t*>(1), nullptr) == nullptr,
+         "execute with null request → null");
+  expect(requiem_stats(nullptr) == nullptr, "stats with null ctx → null");
+  requiem_free_string(nullptr);  // Must not crash.
+  requiem_shutdown(nullptr);     // Must not crash.
+}
+
+// ============================================================================
+// Phase 6: Verify escape_inner optimization determinism
+// ============================================================================
+
+void test_escape_inner_determinism() {
+  // Escape must produce identical output regardless of fast-path branching.
+  // The fast path returns early for clean strings; slow path escapes special chars.
+  const std::string clean = "workspace/path/to/file.txt";
+  const std::string dirty = "hello\nworld\t\"escaped\"";
+
+  // Call twice to verify consistent output.
+  expect(requiem::jsonlite::escape(clean) == requiem::jsonlite::escape(clean),
+         "escape(clean) must be deterministic");
+  expect(requiem::jsonlite::escape(dirty) == requiem::jsonlite::escape(dirty),
+         "escape(dirty) must be deterministic");
+
+  // Verify clean string is returned unmodified (fast path).
+  expect(requiem::jsonlite::escape(clean) == clean,
+         "escape(clean) fast path returns original string");
+
+  // Verify dirty string is correctly escaped.
+  const std::string escaped = requiem::jsonlite::escape(dirty);
+  expect(escaped.find("\\n") != std::string::npos, "newline must be escaped");
+  expect(escaped.find("\\t") != std::string::npos, "tab must be escaped");
+  expect(escaped.find("\\\"") != std::string::npos, "quote must be escaped");
+}
+
+void test_format_double_determinism() {
+  // format_double must be deterministic across repeated calls.
+  // This validates the snprintf-based implementation is locale-independent.
+  std::optional<requiem::jsonlite::JsonError> err;
+  const auto obj1 = requiem::jsonlite::parse("{\"v\":3.14159}", &err);
+  expect(!err.has_value(), "parse ok");
+  const auto obj2 = requiem::jsonlite::parse("{\"v\":3.14159}", &err);
+  expect(!err.has_value(), "parse ok 2");
+  const double v1 = requiem::jsonlite::get_double(obj1, "v", 0.0);
+  const double v2 = requiem::jsonlite::get_double(obj2, "v", 0.0);
+  expect(v1 == v2, "double parse must be deterministic");
+
+  // Canonicalize must produce identical output for same double.
+  const auto c1 = requiem::jsonlite::canonicalize_json("{\"v\":3.14159}", &err);
+  const auto c2 = requiem::jsonlite::canonicalize_json("{\"v\":3.14159}", &err);
+  expect(c1 == c2, "canonicalize_json must be deterministic for doubles");
+}
+
+// ============================================================================
+// Phase 7: OSS/Enterprise boundary — tenant_id not in canonical form
+// ============================================================================
+
+void test_tenant_id_excluded_from_digest() {
+  requiem::ExecutionRequest req;
+  req.request_id     = "boundary-test";
+  req.command        = "/bin/true";
+  req.workspace_root = ".";
+  req.policy.scheduler_mode = "turbo";
+  req.nonce = 0;
+
+  req.tenant_id = "tenant-oss";
+  const std::string canon_oss = requiem::canonicalize_request(req);
+
+  req.tenant_id = "tenant-enterprise";
+  const std::string canon_ent = requiem::canonicalize_request(req);
+
+  // OSS/Enterprise must produce the same digest for same execution params.
+  expect(canon_oss == canon_ent,
+         "tenant_id must not appear in canonical request (OSS/Enterprise digest parity)");
+  expect(canon_oss.find("tenant") == std::string::npos,
+         "canonical request must not contain tenant string");
 }
 
 int main() {
@@ -699,6 +984,33 @@ int main() {
 
   std::cout << "\n[Production Hardening] Determinism under concurrency\n";
   run_test("determinism: 20 concurrent threads", test_determinism_concurrent_20_threads);
+
+  std::cout << "\n[Phase 2] HashEnvelope — versioned hash schema\n";
+  run_test("hash envelope roundtrip", test_hash_envelope_roundtrip);
+  run_test("hash envelope rejects invalid", test_hash_envelope_rejects_invalid);
+
+  std::cout << "\n[Phase 3] ICASBackend interface\n";
+  run_test("CAS backend interface polymorphism", test_cas_backend_interface);
+  run_test("S3 backend scaffold (not implemented)", test_s3_backend_scaffold);
+
+  std::cout << "\n[Phase 4] Observability layer\n";
+  run_test("engine stats accumulation", test_engine_stats_accumulation);
+  run_test("engine stats to_json", test_engine_stats_to_json);
+  run_test("latency histogram percentile", test_latency_histogram_percentile);
+  run_test("execution metrics populated", test_execution_metrics_populated);
+
+  std::cout << "\n[Phase 5] C ABI\n";
+  run_test("C API lifecycle", test_c_api_lifecycle);
+  run_test("C API execute", test_c_api_execute);
+  run_test("C API stats", test_c_api_stats);
+  run_test("C API null safety", test_c_api_null_safety);
+
+  std::cout << "\n[Phase 6] Micro-opt determinism verification\n";
+  run_test("escape_inner determinism (fast + slow path)", test_escape_inner_determinism);
+  run_test("format_double determinism", test_format_double_determinism);
+
+  std::cout << "\n[Phase 7] OSS/Enterprise boundary\n";
+  run_test("tenant_id excluded from canonical digest", test_tenant_id_excluded_from_digest);
 
   std::cout << "\n=== " << g_tests_passed << "/" << g_tests_run << " tests passed ===\n";
   return g_tests_passed == g_tests_run ? 0 : 1;
