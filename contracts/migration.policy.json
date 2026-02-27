@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "policy_version": "1.0.0",
+  "description": "Migration discipline policy for Requiem. Lists currently locked version constants, registered DB migrations, and the rules for safely advancing any versioned surface. Enforced by scripts/verify_migrations.sh.",
+  "last_updated": "2026-02-27",
+
+  "locked_versions": {
+    "cas_format_version":        2,
+    "protocol_framing_version":  1,
+    "hash_algorithm_version":    1,
+    "engine_abi_version":        2,
+    "replay_log_version":        1,
+    "audit_log_version":         1
+  },
+
+  "db_migrations": [],
+
+  "cas_migrations": [
+    {
+      "from_version": 1,
+      "to_version": 2,
+      "description": "Migrated from SHA-256 to BLAKE3. Changed shard layout from flat to AB/CD/digest.",
+      "migration_script": "requiem migrate cas",
+      "documented_in": "docs/MIGRATION.md",
+      "status": "completed"
+    }
+  ],
+
+  "protocol_migrations": [],
+
+  "bump_procedure": {
+    "steps": [
+      "1. Update the constant in include/requiem/version.hpp",
+      "2. Update locked_versions in this file to the new value",
+      "3. Add a migration entry in the appropriate array (cas_migrations / protocol_migrations / db_migrations)",
+      "4. Update docs/MIGRATION.md with migration instructions and compatibility notes",
+      "5. Run scripts/generate_golden_corpus.sh and commit new *.expected_digest files",
+      "6. Add forward-compatibility test in tests/requiem_tests.cpp",
+      "7. PR footer must include: 'Migration: bumped <field> <old> -> <new>'"
+    ],
+    "compatibility_requirement": "New version must be able to read data written by the immediately preceding version. Silent rejection is never acceptable — emit a structured error with the version mismatch.",
+    "rollback_requirement": "Each version bump must document a rollback path. If no rollback is possible, document why and what the recovery procedure is."
+  },
+
+  "append_only_migration_policy": {
+    "description": "DB migration files are append-only. Once a migration file is committed and registered here, it may never be modified or deleted. If a migration needs to be reversed, add a new migration that undoes the previous one.",
+    "enforced_by": "scripts/verify_migrations.sh"
+  }
+}
