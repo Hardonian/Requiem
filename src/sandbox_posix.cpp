@@ -129,8 +129,6 @@ ProcessResult run_process(const ProcessSpec& spec) {
   return result;
 }
 
-}  // namespace requiem
-
 SandboxCapabilities detect_platform_sandbox_capabilities() {
   SandboxCapabilities caps;
   caps.workspace_confinement = true;  // Path-based confinement is implemented
@@ -143,5 +141,7 @@ SandboxCapabilities detect_platform_sandbox_capabilities() {
   caps.process_mitigations = false;  // Not yet implemented
   return caps;
 }
+
+}  // namespace requiem
 
 #endif
