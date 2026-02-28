@@ -186,3 +186,26 @@ export class DecisionRepository {
     return result.changes > 0;
   }
 }
+
+/**
+ * Calibration Repository
+ * Automates the feedback loop for decision improvement.
+ */
+export class CalibrationRepository {
+  /**
+   * Calculates the cumulative accuracy bias for a source type.
+   * This represents the drift between predicted success and actual outcome.
+   */
+  static getAverageDelta(tenantId: string, sourceType: string): number {
+    const db = getDB();
+    const result = db.prepare(`
+      SELECT AVG(calibration_delta) as avg_delta
+      FROM decisions
+      WHERE tenant_id = ? AND source_type = ? AND calibration_delta IS NOT NULL
+      ORDER BY created_at DESC
+      LIMIT 100
+    `).get(tenantId, sourceType) as { avg_delta: number | null };
+
+    return result?.avg_delta || 0;
+  }
+}

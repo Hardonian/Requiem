@@ -1,4 +1,7 @@
-#pragma once
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <vector>
 
 // requiem/audit.hpp — Immutable, append-only audit log for execution
 // provenance.

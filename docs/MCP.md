@@ -1,6 +1,10 @@
 # MCP (Model Context Protocol)
 
-The Model Context Protocol (MCP) for Requiem provides a standardized HTTP interface for AI agents to discover and execute tools safely.
+> Tool registry implementation for Requiem - populated in Phase 1.
+
+## Overview
+
+The Model Context Protocol (MCP) for Requiem provides a standardized interface for AI agents to discover and execute tools safely.
 
 ## Endpoints
 

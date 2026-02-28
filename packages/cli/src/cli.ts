@@ -14,6 +14,7 @@
 import { parseDecideArgs, runDecideCommand } from './commands/decide';
 import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
 import { parseAgentArgs, runAgentCommand } from './commands/agent';
+import { parseAiArgs, runAiCommand } from './commands/ai';
 import { checkEngineAvailability } from './engine/adapter';
 
 const VERSION = '0.1.0';
@@ -29,6 +30,7 @@ COMMANDS:
   decide <subcommand>     Decision engine operations
   junctions <subcommand>  Junction management
   agent <subcommand>      AI Agent orchestration (MCP)
+  ai <subcommand>         AI tools, skills & telemetry management
   doctor                  Validate environment setup
   version                 Show version information
   help                    Show this help message
@@ -47,6 +49,12 @@ JUNCTIONS SUBCOMMANDS:
 
 AGENT SUBCOMMANDS:
   serve --tenant <id>         Start MCP stdio server
+
+AI SUBCOMMANDS:
+  tools list                  List all registered AI tools
+  skills list                 List all AI skills
+  skills run <name>            Run an AI skill
+  telemetry                   Show AI cost and usage telemetry
 
 OPTIONS:
   --json                      Output in JSON format
@@ -123,6 +131,11 @@ async function main(): Promise<number> {
     case 'agent': {
       const agentArgs = parseAgentArgs(subArgs);
       return await runAgentCommand(agentArgs);
+    }
+
+    case 'ai': {
+      const aiArgs = parseAiArgs(subArgs);
+      return await runAiCommand(aiArgs);
     }
 
     case 'doctor':
