@@ -328,10 +328,10 @@ async function handleList(args: DecideCliArgs, tenantId: string): Promise<number
 
     for (const decision of decisions) {
       const output = formatDecisionReport(decision);
-      console.log(`[${output.status.toUpperCase()}] ${output.id}`);
+      console.log(`[${(output.status as string).toUpperCase()}] ${output.id}`);
       console.log(`  Source: ${output.source_type}:${output.source_ref}`);
       console.log(`  Recommended: ${output.recommended_action_id || 'N/A'}`);
-      console.log(`  Outcome: ${output.outcome_status}`);
+      console.log(`  Outcome: ${output.outcome_status || 'unknown'}`);
       console.log('');
     }
   }
@@ -386,11 +386,11 @@ async function handleShow(args: DecideCliArgs, tenantId: string): Promise<number
     }
 
     console.log('\n--- Decision Input ---');
-    console.log(JSON.stringify(JSON.parse(output.decision_input || '{}'), null, 2));
+    console.log(JSON.stringify(JSON.parse((output.decision_input as string) || '{}'), null, 2));
 
     if (output.decision_output) {
       console.log('\n--- Decision Output ---');
-      console.log(JSON.stringify(JSON.parse(output.decision_output), null, 2));
+      console.log(JSON.stringify(JSON.parse(output.decision_output as string), null, 2));
     }
 
     // Show linked action intents
