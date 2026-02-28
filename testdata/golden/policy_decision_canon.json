@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "description": "Canonical policy evaluation input/output pair for determinism verification",
+    "contract_version": "1.0.0",
+    "generated_by": "scripts/generate_golden_corpus.sh",
+    "invariant": "evaluatePolicy(input.ctx, input.toolDef, input.rawInput) must always produce output.decision for these exact inputs."
+  },
+  "input": {
+    "ctx": {
+      "tenant": {
+        "tenantId": "golden-tenant-001",
+        "role": "MEMBER",
+        "derivedAt": "2024-01-01T00:00:00.000Z"
+      },
+      "environment": "production",
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    "toolDef": {
+      "name": "fs.list_dir",
+      "description": "List directory contents",
+      "tenantScoped": true,
+      "sideEffect": false,
+      "requiredCapabilities": ["fs:read"],
+      "costHint": { "costCents": 0 }
+    },
+    "rawInput": { "path": "/tmp" }
+  },
+  "output": {
+    "decision": {
+      "allowed": true,
+      "reason": "All policy checks passed"
+    }
+  },
+  "input_deny_example": {
+    "ctx": {
+      "tenant": {
+        "tenantId": "golden-tenant-002",
+        "role": "VIEWER",
+        "derivedAt": "2024-01-01T00:00:00.000Z"
+      },
+      "environment": "production",
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    "toolDef": {
+      "name": "fs.write_file",
+      "description": "Write a file",
+      "tenantScoped": true,
+      "sideEffect": true,
+      "requiredCapabilities": ["fs:write"],
+      "costHint": { "costCents": 0 }
+    },
+    "rawInput": { "path": "/tmp/out.txt", "content": "hello" }
+  },
+  "output_deny_example": {
+    "decision": {
+      "allowed": false,
+      "reason": "Role VIEWER cannot execute tools with side effects"
+    }
+  }
+}

@@ -21,6 +21,18 @@ Deterministic AI execution platform with tenant isolation, replay, and audit.
 Teams that need **auditable, reproducible AI agent execution** with governance controls:
 policy enforcement at every step, signed artifacts, tenant isolation, and deterministic replay.
 
+## Key Differentiators
+
+- 🔒 **[Deterministic Execution](docs/DETERMINISM.md)** — Cryptographically verified reproducibility with BLAKE3; 200× repeat CI gate
+- 📦 **[Content-Addressable Storage](docs/CAS.md)** — Dual-hash verified (BLAKE3 + SHA-256), zstd-compressed, corruption-detecting CAS
+- 🛡️ **[Policy-as-Code](docs/POLICY.md)** — Machine-enforced guardrails, budgets, and RBAC; every AI request passes the Gate
+- 📐 **[Formally Verified](formal/README.md)** — TLA+ specifications for Determinism, CAS, Protocol, and Replay
+- ⚡ **[Multi-Scheduler](include/requiem/worker.hpp)** — Repro mode (max isolation) or turbo mode (max throughput), selectable per execution
+- 📊 **[Built-in Benchmarking](docs/BENCH.md)** — 200× determinism gate with latency histograms and drift detection
+- 🔍 **[Honest Security Posture](docs/THEATRE_AUDIT.md)** — Theatre audit with transparent implementation status table
+
+See [docs/DIFFERENTIATORS.md](docs/DIFFERENTIATORS.md) for detailed technical analysis and [contracts/competitive.matrix.json](contracts/competitive.matrix.json) for the machine-readable comparison matrix.
+
 ## Quickstart
 
 ```bash

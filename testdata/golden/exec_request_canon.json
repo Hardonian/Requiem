@@ -1,0 +1,30 @@
+{
+  "_meta": {
+    "description": "Canonical execution request fixture for determinism verification",
+    "contract_version": "1.0.0",
+    "generated_by": "scripts/generate_golden_corpus.sh",
+    "note": "The result_digest below is the expected BLAKE3 hex for this exact request on the canonical platform. Regenerate with scripts/generate_golden_corpus.sh after any engine change."
+  },
+  "request": {
+    "request_id": "golden-canon-001",
+    "workspace_root": ".",
+    "command": "/bin/sh",
+    "argv": ["-c", "echo deterministic"],
+    "outputs": [],
+    "timeout_ms": 2000,
+    "max_output_bytes": 1024,
+    "policy": {
+      "deterministic": true
+    }
+  },
+  "expected": {
+    "ok": true,
+    "exit_code": 0,
+    "stdout": "deterministic\n",
+    "stderr": "",
+    "policy_applied": true,
+    "sandbox_applied": true,
+    "result_digest_pattern": "^[a-f0-9]{64}$",
+    "note": "result_digest must be identical across all re-executions with the same inputs. The exact value depends on the compiled engine version; pin it after first run."
+  }
+}

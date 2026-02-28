@@ -1,5 +1,23 @@
 # Security Considerations
 
+## Implementation Status
+
+> **Honest accounting of what is real vs. stub.** See [`docs/THEATRE_AUDIT.md`](THEATRE_AUDIT.md) for full details.
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| BLAKE3 hashing | ✅ Implemented | Domain-separated, vendored |
+| Policy gate | ✅ Implemented | Guardrails wired (Phase 1) |
+| Rate limiting | ✅ Implemented | Token-bucket per tenant (Phase 1) |
+| Workspace confinement | ✅ Implemented | Path-based, fail-closed |
+| Budget enforcement | ⚠️ In-memory only | Resets on restart; no cross-instance coordination |
+| JWT validation | ❌ Stub | MCP transport — `AUTH_STATUS = 'stub'` |
+| Signed bundles | ❌ Stub | `signature` field always `""`; `signing_status: "stub"` |
+| Seccomp sandbox | ❌ Not implemented | Types declared, `install_seccomp_filter()` not wired |
+| Audit persistence | ❌ In-memory / local file | Not replicated or durable; `AUDIT_PERSISTENCE = 'memory'` |
+| Merkle audit chain | ❌ Not implemented | Flag exists in registry; no code |
+| Windows restricted tokens | ⚠️ Partial | Job Objects implemented; token restriction not confirmed wired |
+
 ## Threat Model
 
 ### Assets

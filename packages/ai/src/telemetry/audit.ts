@@ -1,3 +1,4 @@
+// WARNING: Audit events are in-memory only. No durable persistence. See docs/OPERATIONS.md §audit-persistence
 /**
  * @fileoverview Audit log for tool invocations.
  *
@@ -13,6 +14,11 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { logger } from './logger';
 import type { ToolAuditRecord } from '../tools/types';
+
+// ─── Persistence Status ───────────────────────────────────────────────────────
+/** The current audit persistence backend. 'memory' means no durable storage. */
+export const AUDIT_PERSISTENCE = 'memory' as const;
+export type AuditPersistence = typeof AUDIT_PERSISTENCE;
 
 // ─── Audit Sink Interface ─────────────────────────────────────────────────────
 
@@ -42,6 +48,11 @@ export function setAuditSink(sink: AuditSink): void {
 /**
  * Write an audit record for a tool invocation attempt.
  * Never throws — audit failures are logged as warnings only.
+ *
+ * @warning Audit records are NOT durably persisted. AUDIT_PERSISTENCE === 'memory'.
+ * Records written to the file sink (.data/ai-audit/) are local disk only and are
+ * NOT replicated, backed up, or indexed. Do not rely on these for compliance.
+ * See docs/OPERATIONS.md §audit-persistence for the production persistence roadmap.
  */
 export async function writeAuditRecord(record: ToolAuditRecord): Promise<void> {
   try {

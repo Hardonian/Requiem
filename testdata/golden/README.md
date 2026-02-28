@@ -1,34 +1,30 @@
-# Golden Corpus — Requiem Determinism Gate
+# Golden Corpus — Determinism Test Fixtures
 
-This directory contains the canonical golden fixture set for the Requiem
-determinism and regression test suite. **Do not edit fixtures manually.**
-Regenerate with:
+This directory contains canonical input/output pairs used to verify that the
+Requiem engine and its AI control plane produce **byte-for-byte identical outputs**
+for identical inputs across any number of sequential or concurrent re-executions.
 
-```
-scripts/generate_golden_corpus.sh
-```
+## Purpose
 
-## Categories
+Golden fixtures pin the observable behaviour of:
 
-| File Pattern | Category | Purpose |
-|---|---|---|
-| `small_*.request.json` | small | Fast single-command workload; used in the 200x determinism loop |
-| `medium_*.request.json` | medium | Multi-step pipeline; validates env isolation |
-| `large_*.request.json` | large | Stress output sizing and CAS storage paths |
-| `corruption_*.request.json` | corruption tail | Invalid inputs asserting correct error codes (not determinism) |
-| `*.expected_digest` | expected digests | Committed expected `result_digest` values for regression |
+| File | What it pins |
+|---|---|
+| `exec_request_canon.json` | Canonical C++ engine execution request and its expected BLAKE3 `result_digest` |
+| `policy_decision_canon.json` | Canonical policy-gate input → output pair (synchronous `evaluatePolicy`) |
+| `budget_state_canon.json` | Canonical budget check input/output with a fixed clock value |
 
-## Invariants
+## Conventions
 
-1. Every `*.request.json` in `small_` and `medium_` categories **must** produce
-   identical `result_digest` across 200 sequential runs.
-2. Every `*.expected_digest` file must match the live binary output on CI.
-3. Any change to serialization rules or hash algorithm **requires** regenerating
-   all fixtures and committing new `*.expected_digest` files.
-4. Corruption fixtures must produce a non-ok result (exit_code != 0 **or**
-   `ok: false`) — they are NOT expected to be deterministic in digest.
+- All digests are lowercase BLAKE3 hex (64 chars).
+- The `_meta.generated_by` field records the script that produced the fixture.
+- The `_meta.contract_version` must match `contracts/determinism.contract.json → contract_version`.
+- To regenerate: run `scripts/generate_golden_corpus.sh` and commit the result.
+- CI verifies these files unchanged via `scripts/verify_determinism.sh`.
 
-## CI Gate
+## Adding a new fixture
 
-`scripts/verify_determinism.sh` runs the full suite and emits
-`artifacts/determinism_report.json` which is uploaded as a CI artifact.
+1. Add the file to this directory following the existing naming convention.
+2. Record the expected digest in `_meta.expected_digest` (if applicable).
+3. Add a loader + assertion to `packages/ai/src/policy/__tests__/determinism.test.ts`.
+4. Update `contracts/determinism.contract.json → golden_corpus.categories` if a new category is needed.

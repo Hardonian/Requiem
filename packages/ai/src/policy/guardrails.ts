@@ -12,6 +12,53 @@
 import { TenantRole } from '../types/index';
 import type { ToolDefinition } from '../tools/types';
 import type { InvocationContext } from '../types/index';
+import { getCapabilitiesForRole } from './capabilities';
+import { Clock, defaultClock } from './budgets';
+
+// ─── Token Bucket Rate Limiter ────────────────────────────────────────────────
+
+interface TokenBucket {
+  tokens: number;
+  lastRefill: number;
+}
+
+const rateLimitBuckets = new Map<string, TokenBucket>();
+
+/**
+ * Token-bucket rate limiter.
+ * Default: 100 requests per 60-second window per tenant.
+ */
+function checkRateLimit(
+  tenantId: string,
+  maxTokens = 100,
+  windowMs = 60_000,
+  clock: Clock = defaultClock
+): boolean {
+  const now = clock.now();
+  let bucket = rateLimitBuckets.get(tenantId);
+
+  if (!bucket) {
+    bucket = { tokens: maxTokens - 1, lastRefill: now };
+    rateLimitBuckets.set(tenantId, bucket);
+    return true;
+  }
+
+  // Refill tokens proportionally to elapsed time
+  const elapsed = now - bucket.lastRefill;
+  const refill = Math.floor((elapsed / windowMs) * maxTokens);
+
+  if (refill > 0) {
+    bucket.tokens = Math.min(maxTokens, bucket.tokens + refill);
+    bucket.lastRefill = now;
+  }
+
+  if (bucket.tokens <= 0) {
+    return false;
+  }
+
+  bucket.tokens -= 1;
+  return true;
+}
 
 // ─── Guardrail Types ───────────────────────────────────────────────────────────
 
@@ -139,17 +186,32 @@ export const denyDangerousTools: GuardrailRule = {
 };
 
 /**
- * Guardrail: Rate limiting simulation.
- * In production, this would check against actual rate limits.
+ * Guardrail: Token-bucket rate limiter.
+ * Config keys: maxTokens (default 100), windowMs (default 60000).
  */
-export const rateLimitCheck: GuardrailRule = {
+export const rateLimitCheck: GuardrailRule & { clock?: Clock } = {
   id: 'GR_RATE_001',
-  description: 'Rate limiting guardrail',
+  description: 'Rate limiting guardrail (token bucket, 100 req/min per tenant)',
   priority: 300,
-  check: (_ctx, _tool) => {
-    // TODO: Implement actual rate limiting
-    // For now, allow all (rate limiting is handled by budget system)
-    return { effect: 'allow', reason: 'Rate limit not enforced (handled by budget)' };
+  check: (ctx, _tool) => {
+    const tenantId = ctx.tenant?.tenantId;
+    if (!tenantId) {
+      // No tenant — allow (anonymous calls are governed elsewhere)
+      return { effect: 'allow', reason: 'No tenant context; rate limit skipped' };
+    }
+    const allowed = checkRateLimit(
+      tenantId,
+      /* maxTokens */ 100,
+      /* windowMs  */ 60_000,
+      rateLimitCheck.clock ?? defaultClock
+    );
+    if (!allowed) {
+      return {
+        effect: 'deny',
+        reason: `Rate limit exceeded for tenant ${tenantId}`,
+      };
+    }
+    return { effect: 'allow', reason: 'Rate limit check passed' };
   },
 };
 
@@ -190,64 +252,6 @@ export function evaluateGuardrails(
   }
   
   return { effect: 'allow', reason: 'All guardrails passed' };
-}
-
-// ─── Helper Functions ─────────────────────────────────────────────────────────
-
-/**
- * Get capabilities for a role.
- * (Duplicated from capabilities.ts to avoid circular deps)
- */
-function getCapabilitiesForRole(role: TenantRole): string[] {
-  const ROLE_CAPABILITIES: Record<TenantRole, string[]> = {
-    [TenantRole.VIEWER]: [
-      'tools:read',
-      'memory:read',
-      'cost:read',
-    ],
-    [TenantRole.MEMBER]: [
-      'tools:read',
-      'tools:write',
-      'ai:generate',
-      'memory:read',
-      'memory:write',
-      'skills:run',
-      'cost:read',
-      'eval:run',
-    ],
-    [TenantRole.ADMIN]: [
-      'tools:read',
-      'tools:write',
-      'tools:admin',
-      'ai:generate',
-      'ai:admin',
-      'memory:read',
-      'memory:write',
-      'skills:run',
-      'skills:admin',
-      'cost:read',
-      'cost:admin',
-      'eval:run',
-      'eval:admin',
-    ],
-    [TenantRole.OWNER]: [
-      'tools:read',
-      'tools:write',
-      'tools:admin',
-      'ai:generate',
-      'ai:admin',
-      'memory:read',
-      'memory:write',
-      'skills:run',
-      'skills:admin',
-      'cost:read',
-      'cost:admin',
-      'eval:run',
-      'eval:admin',
-    ],
-  };
-  
-  return ROLE_CAPABILITIES[role] ?? [];
 }
 
 // ─── Export ───────────────────────────────────────────────────────────────────

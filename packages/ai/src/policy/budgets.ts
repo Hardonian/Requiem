@@ -12,6 +12,19 @@
  * The AtomicBudgetChecker provides in-process atomic enforcement (no races).
  */
 
+// ─── Clock Interface ──────────────────────────────────────────────────────────
+
+/**
+ * Abstraction for wall-clock time.
+ * INV-9: All time-dependent operations MUST use a Clock, never Date.now() directly.
+ * Defaults to the system clock; inject a fake clock in tests.
+ */
+export interface Clock {
+  now(): number;
+}
+
+export const defaultClock: Clock = { now: () => Date.now() };
+
 // ─── Budget Types ──────────────────────────────────────────────────────────────
 
 export interface BudgetLimit {
@@ -82,9 +95,11 @@ const globalLimits = new Map<string, BudgetLimit>();
 
 export class DefaultBudgetChecker implements BudgetChecker {
   private useAtomic: boolean;
+  private clock: Clock;
 
-  constructor(useAtomicFallback = true) {
+  constructor(useAtomicFallback = true, clock: Clock = defaultClock) {
     this.useAtomic = useAtomicFallback;
+    this.clock = clock;
   }
 
   /**
@@ -180,7 +195,7 @@ export class DefaultBudgetChecker implements BudgetChecker {
     const windowStart = new Date(state.windowStart).getTime();
     const windowEnd = windowStart + (2592000 * 1000); // 30 days
     
-    if (Date.now() > windowEnd) {
+    if (this.clock.now() > windowEnd) {
       this.usageTracker.delete(tenantId);
       return 0;
     }
@@ -195,7 +210,7 @@ export class DefaultBudgetChecker implements BudgetChecker {
     const windowStart = new Date(state.windowStart).getTime();
     const windowEnd = windowStart + (2592000 * 1000);
     
-    if (Date.now() > windowEnd) {
+    if (this.clock.now() > windowEnd) {
       return 0;
     }
     
@@ -206,7 +221,7 @@ export class DefaultBudgetChecker implements BudgetChecker {
     const state = this.usageTracker.get(tenantId) || {
       costCents: 0,
       tokens: 0,
-      windowStart: new Date().toISOString(),
+      windowStart: new Date(this.clock.now()).toISOString(),
     };
     state.costCents += costCents;
     this.usageTracker.set(tenantId, state);
@@ -239,11 +254,16 @@ export class AtomicBudgetChecker implements BudgetChecker {
   private locks = new Map<string, Promise<void>>();
   private lockResolvers = new Map<string, () => void>();
   private limits: Map<string, BudgetLimit>;
+  private clock: Clock;
 
-  constructor(limits: Map<string, BudgetLimit> | Record<string, BudgetLimit> = {}) {
+  constructor(
+    limits: Map<string, BudgetLimit> | Record<string, BudgetLimit> = {},
+    clock: Clock = defaultClock
+  ) {
     this.limits = limits instanceof Map
       ? limits
       : new Map(Object.entries(limits));
+    this.clock = clock;
   }
 
   /** Set a budget limit for a specific tenant. */
@@ -259,7 +279,7 @@ export class AtomicBudgetChecker implements BudgetChecker {
         tenantId,
         usedCostCents: 0,
         usedTokens: 0,
-        windowStart: new Date().toISOString(),
+        windowStart: new Date(this.clock.now()).toISOString(),
         limit: { maxCostCents: Number.MAX_SAFE_INTEGER, windowSeconds: 3600 },
       };
     }
@@ -270,7 +290,7 @@ export class AtomicBudgetChecker implements BudgetChecker {
         tenantId,
         usedCostCents: 0,
         usedTokens: 0,
-        windowStart: new Date().toISOString(),
+        windowStart: new Date(this.clock.now()).toISOString(),
         limit,
       };
       this.states.set(tenantId, state);
@@ -279,10 +299,10 @@ export class AtomicBudgetChecker implements BudgetChecker {
     // Reset window if expired
     const windowStart = new Date(state.windowStart).getTime();
     const windowEndMs = windowStart + limit.windowSeconds * 1000;
-    if (Date.now() > windowEndMs) {
+    if (this.clock.now() > windowEndMs) {
       state.usedCostCents = 0;
       state.usedTokens = 0;
-      state.windowStart = new Date().toISOString();
+      state.windowStart = new Date(this.clock.now()).toISOString();
     }
 
     return state;

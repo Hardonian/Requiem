@@ -24,7 +24,7 @@
 //   request_digest          — the canonical request digest (input fingerprint)
 //   replay_log_digest       — BLAKE3 of the stored replay log
 //   bundle_checksum         — BLAKE3 of all above fields (canonical JSON, sorted keys)
-//   signature               — scaffold for cryptographic signature (empty if flag off)
+//   signature               — STUB: always empty string. See SECURITY.md §signing-roadmap
 //
 // INVARIANTS:
 //   1. bundle_checksum covers all provenance fields except itself and signature.

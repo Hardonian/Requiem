@@ -1,3 +1,4 @@
+// SECURITY-STUB: JWT validation not implemented. See THREAT_MODEL_AI.md §pre-production
 /**
  * @fileoverview Next.js transport adapter for MCP handlers.
  *
@@ -15,6 +16,13 @@ import { newId, now } from '../types/index';
 import { TenantRole } from '../types/index';
 import type { InvocationContext, TenantContext } from '../types/index';
 
+// ─── Auth Status ──────────────────────────────────────────────────────────────
+/** JWT validation is not implemented. Production auth throws NOT_CONFIGURED. */
+export const AUTH_STATUS = 'stub' as const;
+export type AuthStatus = typeof AUTH_STATUS;
+
+let _authWarningFired = false;
+
 // ─── Auth Resolution ──────────────────────────────────────────────────────────
 
 /**
@@ -25,6 +33,10 @@ import type { InvocationContext, TenantContext } from '../types/index';
  * INVARIANT: tenant_id is NEVER read from request body or headers directly.
  */
 async function resolveContext(req: Request): Promise<InvocationContext> {
+  if (!_authWarningFired) {
+    _authWarningFired = true;
+    console.warn('[SECURITY] MCP transport: JWT validation is STUB. Do NOT use in production.');
+  }
   const traceId = newId('trace');
   const env = (process.env.NODE_ENV ?? 'development') as InvocationContext['environment'];
 

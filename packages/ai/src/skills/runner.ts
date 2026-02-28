@@ -26,7 +26,7 @@ export async function runSkill(
   initialInput: unknown
 ): Promise<SkillRunResult> {
   const startedAt = now();
-  const startMs = Date.now();
+  const startMs = Date.now(); // DETERMINISM: observation-only, not in decision path
 
   return withSpan(`skill:${skill.name}@${skill.version}`, ctx.traceId, async (span) => {
     span.attributes['skill'] = skill.name;

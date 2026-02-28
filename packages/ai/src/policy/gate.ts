@@ -12,6 +12,7 @@ import { TenantRole, hasRequiredRole } from '../types/index';
 import { hasCapabilities, capabilitiesFromRole } from './capabilities';
 import { getBudgetChecker } from './budgets';
 import type { ToolDefinition } from '../tools/types';
+import { evaluateGuardrails } from './guardrails';
 
 // ─── Policy Decision ──────────────────────────────────────────────────────────
 
@@ -53,6 +54,12 @@ export function evaluatePolicy(
     if (!hasRequiredRole(ctx.tenant.role, TenantRole.MEMBER)) {
       return deny(`Role ${ctx.tenant.role} cannot execute tools with side effects`);
     }
+  }
+
+  // 4. Guardrail evaluation (runs after basic policy checks)
+  const guardrailDecision = evaluateGuardrails(ctx, toolDef);
+  if (guardrailDecision.effect === 'deny') {
+    return deny(guardrailDecision.reason, guardrailDecision.requiredRole);
   }
 
   return allow();

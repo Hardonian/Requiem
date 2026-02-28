@@ -136,6 +136,8 @@ jobs:
           GITHUB_EVENT_PATH: ${{ github.event_path }}
       - name: policy gate (Phase 1)
         run: ./scripts/verify_policy.sh
+      - name: policy contract verification (Phase 3)
+        run: bash scripts/verify_policy_contract.sh
       - name: feature flags gate (Phase 4)
         run: ./scripts/verify_flags.sh
       - name: compat matrix gate (Phase 10)
@@ -153,6 +155,37 @@ jobs:
             artifacts/reports/deps_snapshot.json
             artifacts/reports/migration_audit.json
           if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # AI layer unit tests (node:test) — Phase 6
+  # ---------------------------------------------------------------------------
+  ai-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Validate golden corpus JSON
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('testdata/golden/exec_request_canon.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('testdata/golden/policy_decision_canon.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('testdata/golden/budget_state_canon.json'))"
+      - name: Validate contract JSON files
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('contracts/determinism.contract.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('contracts/deps.allowlist.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('contracts/migration.policy.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('contracts/compat.matrix.json'))"
+      - name: Run AI layer unit tests (node:test)
+        run: |
+          node --test packages/ai/src/policy/__tests__/determinism.test.ts
+          node --test packages/ai/src/policy/__tests__/adversarial_policy.test.ts
+          node --test packages/ai/src/eval/__tests__/eval_cases.test.ts
+          node --test packages/ai/src/tools/__tests__/adversarial.test.ts
+          node --test wrapper.test.ts
+      - name: Verify differentiator infrastructure
+        run: node --test packages/ai/src/policy/__tests__/differentiators.test.ts
 
   # ---------------------------------------------------------------------------
   # Ready Layer typecheck + lint + build (Node.js / pnpm)

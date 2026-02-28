@@ -53,13 +53,21 @@ struct ProcessResult {
   bool sandbox_workspace_confinement{false};
   bool sandbox_job_object{false};
   bool sandbox_rlimits{false};
+  // STUB: seccomp-BPF is not implemented. The SeccompAction/SeccompRule types exist
+  // but install_seccomp_filter() is not wired into run_process(). See SECURITY.md §seccomp-roadmap.
+  // Capability report will list seccomp as "not_implemented", not false (disabled by choice).
   bool sandbox_seccomp{false};
   bool sandbox_restricted_token{false};
   bool sandbox_network_isolation{false};  // v1.2
   bool sandbox_process_mitigations{false};  // v1.2
   // v1.2: Detailed capability reporting
+  // theatre_audit: lists features that are stubs vs truly available
+  //   "seccomp"      -> "not_implemented" (Linux only, not wired)
+  //   "job_objects"  -> "partial" on Windows (kill-on-close only; restricted tokens are stub)
+  //   "rlimits"      -> "available" on Linux/macOS, "not_applicable" on Windows
   std::vector<std::string> enforced_capabilities;
   std::vector<std::string> failed_capabilities;
+  std::vector<std::string> theatre_audit;  // stub/partial features listed here
 };
 
 ProcessResult run_process(const ProcessSpec& spec);

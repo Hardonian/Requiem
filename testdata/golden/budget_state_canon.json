@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "description": "Canonical budget check input/output pair for determinism verification with fixed clock",
+    "contract_version": "1.0.0",
+    "generated_by": "scripts/generate_golden_corpus.sh",
+    "invariant": "checkBudget(input.tenantId, input.costCents, fixedClock(input.fixed_clock_ms)) must always produce output.result for these exact inputs."
+  },
+  "input": {
+    "tenantId": "golden-tenant-001",
+    "costCents": 10,
+    "fixed_clock_ms": 1704067200000,
+    "budgetState": {
+      "tenantId": "golden-tenant-001",
+      "usedCostCents": 50,
+      "usedTokens": 1000,
+      "windowStart": "2024-01-01T00:00:00.000Z",
+      "limit": {
+        "maxCostCents": 10000,
+        "maxTokens": 100000,
+        "windowSeconds": 3600
+      }
+    }
+  },
+  "output": {
+    "result": {
+      "allowed": true,
+      "remaining": {
+        "costCents": 9940,
+        "tokens": 99000
+      }
+    }
+  },
+  "input_deny_example": {
+    "tenantId": "golden-tenant-002",
+    "costCents": 100,
+    "fixed_clock_ms": 1704067200000,
+    "budgetState": {
+      "tenantId": "golden-tenant-002",
+      "usedCostCents": 9950,
+      "usedTokens": 99000,
+      "windowStart": "2024-01-01T00:00:00.000Z",
+      "limit": {
+        "maxCostCents": 10000,
+        "maxTokens": 100000,
+        "windowSeconds": 3600
+      }
+    }
+  },
+  "output_deny_example": {
+    "result": {
+      "allowed": false,
+      "reason": "Cost limit exceeded"
+    }
+  }
+}

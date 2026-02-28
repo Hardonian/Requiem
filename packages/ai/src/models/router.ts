@@ -19,6 +19,7 @@ import { checkCircuit, recordSuccess, recordFailure } from './circuitBreaker';
 import { recordCost } from '../telemetry/cost';
 import { logger } from '../telemetry/logger';
 import { getModel } from './registry';
+import { loadFlags } from '../flags/index';
 import type { InvocationContext } from '../types/index';
 import type { GenerateTextResponse, Message } from './providers/types';
 
@@ -79,8 +80,19 @@ export function _clearRouterCache(): void {
  * Enforces token + cost ceilings, circuit breaker, and caching.
  */
 export async function routeModelCall(request: RouterRequest): Promise<RouterResponse> {
-  const startMs = Date.now();
+  const startMs = Date.now(); // DETERMINISM: observation-only, not in decision path
   const { ctx } = request;
+
+  // ── Enterprise: multi-model arbitration gate ──────────────────────────────
+  // Multi-model arbitration is enterprise-only. In OSS mode, we log a warning
+  // and continue with single-model routing (graceful degradation, not a crash).
+  const flags = loadFlags();
+  if (!flags.enable_multi_region_replication) {
+    // OSS mode: single-model routing is always available. No arbitration.
+    logger.debug('[router] multi_model_arbitration: enterprise not enabled, using single-model routing', {
+      tenant_id: ctx.tenant.tenantId,
+    });
+  }
 
   const apiKey = process.env['OPENROUTER_API_KEY'];
   if (!apiKey) {

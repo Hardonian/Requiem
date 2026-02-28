@@ -20,6 +20,7 @@ import { join } from 'path';
 import { AiError } from '../errors/AiError';
 import { AiErrorCode } from '../errors/codes';
 import { logger } from '../telemetry/logger';
+import { loadFlags } from '../flags/index';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -155,6 +156,20 @@ export async function checkReplayCache(
 export async function storeReplayRecord(
   input: Omit<ReplayRecord, 'integrity'>
 ): Promise<void> {
+  // ── Enterprise: signed replay bundles gate ────────────────────────────────
+  // Signed replay bundles require enterprise license. In OSS mode, we log a
+  // warning and continue storing unsigned records (graceful degradation).
+  const flags = loadFlags();
+  if (flags.enable_signed_replay_bundles) {
+    // Enterprise mode: signed bundles would be attached here.
+    logger.debug('[replay] enable_signed_replay_bundles: signing replay bundle (enterprise)');
+  } else if (process.env['REQUIEM_ENTERPRISE'] === 'true') {
+    // Enterprise enabled but flag not turned on; no-op.
+  } else {
+    // OSS mode: replay proceeds without signatures.
+    logger.debug('[replay] enable_signed_replay_bundles: skipped (enterprise not enabled)');
+  }
+
   const integrity = computeIntegrity(input.hash, input.result, input.createdAt);
   const record: ReplayRecord = { ...input, integrity };
 

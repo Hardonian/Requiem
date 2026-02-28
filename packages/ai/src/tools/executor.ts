@@ -80,7 +80,7 @@ export async function executeToolEnvelope(
   input: unknown,
   opts?: { version?: string; timeoutMs?: number }
 ): Promise<ExecutionEnvelope> {
-  const startMs = Date.now();
+  const startMs = Date.now(); // DETERMINISM: observation-only, not in decision path
   const tenantId = ctx.tenant.tenantId;
   const timeoutMs = Math.min(opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS);
 

@@ -1,0 +1,157 @@
+{
+  "matrix_version": "1.0.0",
+  "last_updated": "2026-02-28",
+  "description": "Machine-readable comparison of Requiem capabilities vs typical alternatives. Be honest: stubs are marked 'partial' or 'stub'.",
+  "capabilities": [
+    {
+      "name": "Deterministic execution",
+      "category": "core",
+      "requiem": {
+        "status": "implemented",
+        "detail": "200x repeat verification gate in CI; BLAKE3 domain-separated hashing; canonical JSON; env sanitization",
+        "verification": "200x repeat CI gate + TLA+ model checked",
+        "evidence": "contracts/determinism.contract.json",
+        "code": "include/requiem/hash.hpp"
+      },
+      "typical_alternative": {
+        "status": "not_available",
+        "notes": "Most execution engines make no determinism guarantee; outputs vary by wall-clock time, env vars, thread scheduling"
+      }
+    },
+    {
+      "name": "Content-addressable storage with dual-hash verification",
+      "category": "storage",
+      "requiem": {
+        "status": "implemented",
+        "detail": "CAS v2 with BLAKE3 + SHA-256 dual hash, atomic writes, zstd compression, corruption detection on every read",
+        "verification": "scripts/verify_cas.sh + formal/CAS.tla TLA+ spec",
+        "evidence": "formal/CAS.tla",
+        "code": "include/requiem/cas.hpp"
+      },
+      "typical_alternative": {
+        "status": "partial",
+        "notes": "Some systems (e.g. IPFS-based) provide content addressing but not dual-hash verification or atomic write guarantees"
+      }
+    },
+    {
+      "name": "Policy-as-code control plane (Gate → Guardrails → Budgets)",
+      "category": "governance",
+      "requiem": {
+        "status": "implemented",
+        "detail": "Structured Gate→Capabilities→Guardrails→Budget pipeline; every AI request must pass policy before tool invocation",
+        "verification": "adversarial test suite (20+ cases) + scripts/verify_policy.sh",
+        "evidence": "packages/ai/src/policy/gate.ts",
+        "code": "packages/ai/src/policy/"
+      },
+      "typical_alternative": {
+        "status": "partial",
+        "notes": "LangChain/AutoGPT have callback hooks; LlamaIndex has guardrails; none enforce a structured pipeline where policy is the critical path"
+      }
+    },
+    {
+      "name": "Formal TLA+ specifications",
+      "category": "verification",
+      "requiem": {
+        "status": "implemented",
+        "detail": "4 TLA+ specs: Determinism, CAS, Protocol, Replay. Python model checker. Policy linter. Chaos harness.",
+        "verification": "formal/verify_chaos.yml CI workflow",
+        "evidence": "formal/",
+        "code": "formal/Determinism.tla"
+      },
+      "typical_alternative": {
+        "status": "not_available",
+        "notes": "No major open-source AI orchestration platform ships TLA+ specifications for its core protocols"
+      }
+    },
+    {
+      "name": "Multi-scheduler modes (repro vs turbo)",
+      "category": "scheduling",
+      "requiem": {
+        "status": "implemented",
+        "detail": "Repro mode: FIFO queue, max isolation, determinism-first. Turbo mode: worker pool, max throughput. Selectable per execution.",
+        "verification": "determinism tests run in repro mode; throughput benchmarks run in turbo mode",
+        "evidence": "include/requiem/worker.hpp",
+        "code": "include/requiem/worker.hpp"
+      },
+      "typical_alternative": {
+        "status": "partial",
+        "notes": "Most platforms offer only one scheduler mode; determinism/throughput tradeoff is implicit and undocumented"
+      }
+    },
+    {
+      "name": "Built-in benchmark harness with drift detection",
+      "category": "observability",
+      "requiem": {
+        "status": "implemented",
+        "detail": "bench CLI subcommand; 200x determinism gate; p50/p95/p99 latency histograms; regression comparison against baseline snapshots",
+        "verification": "scripts/verify_drift.sh + scripts/verify_bench.sh",
+        "evidence": "docs/BENCH.md",
+        "code": "docs/BENCH.md"
+      },
+      "typical_alternative": {
+        "status": "not_available",
+        "notes": "Most AI orchestration platforms require external benchmark tooling; built-in drift detection is rare"
+      }
+    },
+    {
+      "name": "Cryptographic proof bundles (ProofBundle with Merkle roots)",
+      "category": "auditability",
+      "requiem": {
+        "status": "implemented",
+        "detail": "Every execution produces a signed ProofBundle with Merkle root over all artifacts; enables offline verification without re-running",
+        "verification": "contracts/determinism.contract.json proof_bundle section",
+        "evidence": "contracts/determinism.contract.json",
+        "code": "include/requiem/provenance_bundle.hpp"
+      },
+      "typical_alternative": {
+        "status": "partial",
+        "notes": "Some platforms log execution metadata; none generate cryptographically verified Merkle-rooted proof bundles as first-class output"
+      }
+    },
+    {
+      "name": "Theatre audit (honest implementation status)",
+      "category": "transparency",
+      "requiem": {
+        "status": "implemented",
+        "detail": "Explicit theatre audit distinguishing implemented vs stub vs not_implemented. Published in docs/THEATRE_AUDIT.md.",
+        "verification": "reviewed as part of release readiness process; docs/LAUNCH_GATE_CHECKLIST.md",
+        "evidence": "docs/THEATRE_AUDIT.md",
+        "code": "docs/THEATRE_AUDIT.md"
+      },
+      "typical_alternative": {
+        "status": "not_available",
+        "notes": "Most platforms present aspirational security documentation without distinguishing implemented features from roadmap items"
+      }
+    },
+    {
+      "name": "Feature flags with runtime schema validation",
+      "category": "operations",
+      "requiem": {
+        "status": "implemented",
+        "detail": "flags/flags.registry.json schema-validated on load; loadFlags() with type-safe access; enterprise boundary enforcement",
+        "verification": "scripts/verify_flags.sh",
+        "evidence": "flags/flags.registry.json",
+        "code": "packages/ai/src/flags/index.ts"
+      },
+      "typical_alternative": {
+        "status": "partial",
+        "notes": "Environment variables or basic config files are common; schema validation and enterprise boundary enforcement are uncommon"
+      }
+    },
+    {
+      "name": "Migration policy with compatibility matrix",
+      "category": "operations",
+      "requiem": {
+        "status": "implemented",
+        "detail": "Structured migration policy JSON with version pinning windows, deprecation timeline, and automated CI enforcement",
+        "verification": "scripts/verify_migrations.sh",
+        "evidence": "contracts/migration.policy.json",
+        "code": "packages/ai/src/policy/migration.ts"
+      },
+      "typical_alternative": {
+        "status": "partial",
+        "notes": "CHANGELOG files are common; machine-readable migration policy with CI enforcement is uncommon"
+      }
+    }
+  ]
+}

@@ -63,7 +63,7 @@ export function startSpan(
  * End a span, recording duration and status.
  */
 export function endSpan(span: Span, error?: Error): Span {
-  const now = Date.now();
+  const now = Date.now(); // DETERMINISM: observation-only, not in decision path
   const startMs = new Date(span.startedAt).getTime();
   span.endedAt = new Date().toISOString();
   span.durationMs = now - startMs;

@@ -24,6 +24,24 @@ import type {
   McpToolDescriptor,
 } from './types';
 
+// ─── Output Size Cap ──────────────────────────────────────────────────────────
+
+/** Maximum allowed byte size for a single tool output (2 MB). */
+const MAX_TOOL_OUTPUT_BYTES = 2 * 1024 * 1024;
+
+/**
+ * Enforce the tool output size cap.
+ * Returns the original value if within limits, or a truncation notice string.
+ */
+function capToolOutput(output: unknown): unknown {
+  const serialized = JSON.stringify(output);
+  const byteSize = Buffer.byteLength(serialized, 'utf8');
+  if (byteSize > MAX_TOOL_OUTPUT_BYTES) {
+    return `[TRUNCATED: output exceeded 2MB limit. Original size: ${byteSize} bytes]`;
+  }
+  return output;
+}
+
 // ─── Handler Results ──────────────────────────────────────────────────────────
 
 export interface McpHandlerResult<T> {
@@ -94,7 +112,7 @@ export async function handleCallTool(
     return {
       ok: true,
       data: {
-        content: result.output,
+        content: capToolOutput(result.output),
         latencyMs: result.latencyMs,
         toolVersion: result.toolVersion,
       },

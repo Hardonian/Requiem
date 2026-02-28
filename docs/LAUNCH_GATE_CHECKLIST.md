@@ -55,6 +55,12 @@ Pre-release gate for ReadyLayer / Requiem. Run every item before tagging a relea
 - [ ] **CI uses pnpm with frozen lockfile** — `ready-layer-verify` job in `.github/workflows/ci.yml` uses `pnpm install --frozen-lockfile`
 - [ ] **CI Node version pinned** — `actions/setup-node` uses `node-version: '20'` (or `.nvmrc`)
 - [ ] **`verify:full` in CI** — lint + typecheck + boundaries + routes + build:web all run in `ready-layer-verify` job
+- [ ] **AI layer unit tests pass (node:test)** — `ai-unit-tests` job in CI exits 0; covers determinism, adversarial policy, eval cases, and wrapper tests
+- [ ] **Policy contract verification passes** — `bash scripts/verify_policy_contract.sh` exits 0 in CI `governance` job
+- [ ] **Feature flag verification passes** — `bash scripts/verify_flags.sh` exits 0 in CI `governance` job
+- [ ] **Golden corpus validation passes** — all three canon JSON files parse without error in `ai-unit-tests` job
+- [ ] **Contract JSON validation passes** — all four contract JSON files parse without error in `ai-unit-tests` job
+- [ ] **Theatre audit reviewed** — `docs/THEATRE_AUDIT.md` read and all theatre items acknowledged or resolved
 
 ## 9. Repo Hygiene
 

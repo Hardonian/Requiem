@@ -27,6 +27,7 @@ export type { ToolDefinition, ToolHandler, RegisteredTool, ToolInvocationResult,
 export { evaluatePolicy, evaluatePolicyWithBudget, type PolicyDecision } from './policy/gate';
 export { Capabilities, getCapabilitiesForRole, hasCapabilities, capabilitiesFromRole, type Capability } from './policy/capabilities';
 export { setBudgetChecker, getBudgetChecker, DefaultBudgetChecker, type BudgetChecker, type BudgetCheckResult } from './policy/budgets';
+export { checkMigrationPolicy, _resetPolicyCache, type MigrationCheckResult } from './policy/migration';
 
 // ─── MCP ──────────────────────────────────────────────────────────────────────
 export { handleListTools, handleCallTool, handleHealth, type McpHandlerResult } from './mcp/server';
@@ -63,6 +64,10 @@ export { recordCost, recordToolCost, setCostSink, type CostRecord } from './tele
 export { runEvalCase, runEvalHarness, type EvalRunResult, type HarnessResult } from './eval/harness';
 export { diff, diffValues, type DiffResult, type DiffEntry } from './eval/diff';
 export { loadEvalCases, loadGoldens, type EvalCase, type EvalGolden } from './eval/cases';
+
+// ─── Feature Flags ────────────────────────────────────────────────────────────
+export { loadFlags, requireEnterprise, isKillSwitchActive, _resetFlagCache } from './flags/index';
+export type { FeatureFlags } from './flags/index';
 
 // ─── Replay + Sandbox ─────────────────────────────────────────────────────────
 export { storeReplayRecord, checkReplayCache, getReplayRecord, setReplaySink, InMemoryReplaySink } from './tools/replay';

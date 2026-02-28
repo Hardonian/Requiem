@@ -257,7 +257,7 @@ export async function invokeTool(
   tenantId?: string
 ): Promise<ToolResult> {
   const effectiveTenantId = tenantId ?? ctx.tenant.tenantId ?? SYSTEM_TENANT;
-  const startTime = Date.now();
+  const startTime = Date.now(); // DETERMINISM: observation-only, not in decision path
 
   const tool = getTool(name, effectiveTenantId);
   if (!tool) {
