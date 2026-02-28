@@ -67,8 +67,9 @@ export class AgentRunner {
       const output = await toolRegistry.call(name, input, toolContext);
 
       // Extract usage if present, otherwise default to 0 (Zero-Drift Policy)
-      // We assume the tool output might contain a usage object, or we default.
-      const usage: AgentUsage = (output as any)?.usage || {
+      // Tool output structure is unknown but checked for 'usage' property.
+      const outputObj = (output && typeof output === 'object') ? (output as Record<string, unknown>) : null;
+      const usage: AgentUsage = (outputObj?.usage as AgentUsage) || {
         prompt_tokens: 0,
         completion_tokens: 0,
         cost_usd: 0,

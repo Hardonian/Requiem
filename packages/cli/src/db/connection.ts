@@ -257,6 +257,7 @@ export function getDB(): DB {
         decision_input TEXT,
         decision_output TEXT,
         decision_trace TEXT,
+        usage TEXT,
         recommended_action_id TEXT,
         status TEXT,
         outcome_status TEXT,

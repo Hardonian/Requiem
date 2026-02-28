@@ -20,6 +20,7 @@
     "verify:typecheck": "./node_modules/.bin/tsc --project ready-layer/tsconfig.json --noEmit",
     "verify:routes": "./node_modules/.bin/tsx scripts/verify-routes.ts",
     "verify:determinism": "pwsh scripts/verify_determinism.ps1",
+    "stress:determinism": "npx tsx scripts/stress_test_determinism.ts",
     "verify:boundaries": "node scripts/verify-ui-boundaries.mjs",
     "lint": "cd ready-layer && npm run lint",
     "typecheck": "./node_modules/.bin/tsc --project ready-layer/tsconfig.json --noEmit",
