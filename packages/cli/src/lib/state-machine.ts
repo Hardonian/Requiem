@@ -378,7 +378,7 @@ export function createJunctionStateMachine(): StateMachine<JunctionState> {
         isRetryable: false,
       },
       {
-        name: 'failed' as JunctionState,
+        name: 'failed' as unknown as JunctionState,
         allowedTransitions: [JunctionStates.VALIDATING],
         isTerminal: false,
         isRetryable: true,

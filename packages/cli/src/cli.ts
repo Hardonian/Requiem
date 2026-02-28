@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Requiem CLI
- * 
+ *
  * The unified command-line interface for the Reach ecosystem.
- * 
+ *
  * Commands:
  * - requiem decide <subcommand>    Decision engine operations
  * - requiem junctions <subcommand> Junction management
@@ -13,6 +13,7 @@
 
 import { parseDecideArgs, runDecideCommand } from './commands/decide';
 import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
+import { parseAgentArgs, runAgentCommand } from './commands/agent';
 import { checkEngineAvailability } from './engine/adapter';
 
 const VERSION = '0.1.0';
@@ -27,6 +28,7 @@ USAGE:
 COMMANDS:
   decide <subcommand>     Decision engine operations
   junctions <subcommand>  Junction management
+  agent <subcommand>      AI Agent orchestration (MCP)
   doctor                  Validate environment setup
   version                 Show version information
   help                    Show this help message
@@ -42,6 +44,9 @@ JUNCTIONS SUBCOMMANDS:
   scan --since <time>         Scan for junctions (e.g., 7d, 24h)
   list                        List all junctions
   show <id>                   Show details of a junction
+
+AGENT SUBCOMMANDS:
+  serve --tenant <id>         Start MCP stdio server
 
 OPTIONS:
   --json                      Output in JSON format
@@ -65,9 +70,9 @@ function printVersion(): void {
 
 async function runDoctor(): Promise<number> {
   console.log('Running environment doctor...\n');
-  
+
   const engineCheck = await checkEngineAvailability();
-  
+
   if (engineCheck.available) {
     console.log(`✓ Engine available: ${engineCheck.engineType}`);
     if (engineCheck.error) {
@@ -78,7 +83,7 @@ async function runDoctor(): Promise<number> {
     console.error(`  ${engineCheck.error}`);
     return 1;
   }
-  
+
   // Check Node.js version
   const nodeVersion = process.version;
   const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0], 10);
@@ -88,48 +93,53 @@ async function runDoctor(): Promise<number> {
     console.error(`✗ Node.js version too old: ${nodeVersion} (requires >= 18)`);
     return 1;
   }
-  
+
   console.log('\nEnvironment check complete.');
   return 0;
 }
 
 async function main(): Promise<number> {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     printHelp();
     return 0;
   }
-  
+
   const command = args[0];
   const subArgs = args.slice(1);
-  
+
   switch (command) {
     case 'decide': {
       const decideArgs = parseDecideArgs(subArgs);
       return await runDecideCommand(decideArgs);
     }
-    
+
     case 'junctions': {
       const junctionsArgs = parseJunctionsArgs(subArgs);
       return await runJunctionsCommand(junctionsArgs);
     }
-    
+
+    case 'agent': {
+      const agentArgs = parseAgentArgs(subArgs);
+      return await runAgentCommand(agentArgs);
+    }
+
     case 'doctor':
       return await runDoctor();
-    
+
     case 'version':
     case '--version':
     case '-v':
       printVersion();
       return 0;
-    
+
     case 'help':
     case '--help':
     case '-h':
       printHelp();
       return 0;
-    
+
     default:
       console.error(`Unknown command: ${command}`);
       console.error('Run "requiem help" for usage information.');

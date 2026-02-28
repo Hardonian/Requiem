@@ -308,9 +308,9 @@ export const Errors = {
     meta: { context: { digest: digest.substring(0, 32), expectedHash: expected.substring(0, 32) } },
   }),
 
-  internal: (message: string, cause?: Error) => new RequiemError({
+  internal: (_message: string, cause?: Error) => new RequiemError({
     code: ErrorCode.INTERNAL_ERROR,
-    message: 'An internal error occurred',
+    message: _message || 'An internal error occurred',
     severity: ErrorSeverity.ERROR,
     retryable: true,
     cause,
@@ -351,8 +351,8 @@ export function errorToHttpStatus(code: ErrorCode): number {
   }
 }
 
-// Add missing error code
+// Extended error codes for internal use
 export const ErrorCodeExtended = {
   ...ErrorCode,
-  RATE_LIMITED: 'REQ_RATE_LIMITED',
+  RATE_LIMITED: 'REQ_RATE_LIMITED' as const,
 };
