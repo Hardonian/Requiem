@@ -34,6 +34,16 @@ export interface CostRecord {
 
 export type CostRecordInput = Omit<CostRecord, 'id' | 'traceId' | 'tenantId' | 'actorId' | 'createdAt'>;
 
+/**
+ * Summary of telemetry data for a tenant
+ */
+export interface TelemetrySummary {
+  totalRequests: number;
+  totalCostCents: number;
+  avgLatencyMs: number;
+  errorRate: number;
+}
+
 // ─── Cost Sink ────────────────────────────────────────────────────────────────
 
 type CostSink = (record: CostRecord) => Promise<void>;
@@ -58,8 +68,28 @@ export function setCostSink(sink: CostSink): void {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
+ * Gets telemetry summary for a tenant.
+ * Returns mock data if no database is available.
+ *
+ * @param tenantId The tenant to get summary for.
+ */
+export function getTelemetrySummary(tenantId: string): TelemetrySummary {
+  // In production, this would query the database
+  // For now, return mock data
+  return {
+    totalRequests: 0,
+    totalCostCents: 0,
+    avgLatencyMs: 0,
+    errorRate: 0,
+  };
+}
+
+/**
  * Record cost for an AI operation.
  * Never throws — cost recording failures are warnings only.
+ *
+ * @param ctx The invocation context.
+ * @param data The cost data to record.
  */
 export async function recordCost(
   ctx: InvocationContext,

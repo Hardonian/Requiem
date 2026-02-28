@@ -8,13 +8,16 @@
 //
 // CRITICAL INVARIANTS (never violated):
 //   1. CAS objects are never silently corrupted — all corruption is detected.
-//   2. Determinism invariant is never silently broken — divergences are reported.
+//   2. Determinism invariant is never silently broken — divergences are
+//   reported.
 //   3. Fault injection always produces a structured error; no silent failure.
 //   4. Chaos mode cannot be activated without the correct activation key.
 //   5. All faults are transient — state recovers within a bounded time window.
 
 #include "requiem/chaos.hpp"
 
+#include "requiem/cas.hpp"
+#include "requiem/debugger.hpp"
 #include <algorithm>
 #include <cerrno>
 #include <chrono>
@@ -40,28 +43,45 @@ namespace chaos {
 
 std::string fault_type_to_string(FaultType ft) {
   switch (ft) {
-    case FaultType::none:               return "none";
-    case FaultType::network_partition:  return "network_partition";
-    case FaultType::cas_partial_write:  return "cas_partial_write";
-    case FaultType::journal_corruption: return "journal_corruption";
-    case FaultType::node_crash:         return "node_crash";
-    case FaultType::region_latency:     return "region_latency";
-    case FaultType::dep_mismatch:       return "dep_mismatch";
-    case FaultType::migration_conflict: return "migration_conflict";
-    case FaultType::resource_exhausted: return "resource_exhausted";
+  case FaultType::none:
+    return "none";
+  case FaultType::network_partition:
+    return "network_partition";
+  case FaultType::cas_partial_write:
+    return "cas_partial_write";
+  case FaultType::journal_corruption:
+    return "journal_corruption";
+  case FaultType::node_crash:
+    return "node_crash";
+  case FaultType::region_latency:
+    return "region_latency";
+  case FaultType::dep_mismatch:
+    return "dep_mismatch";
+  case FaultType::migration_conflict:
+    return "migration_conflict";
+  case FaultType::resource_exhausted:
+    return "resource_exhausted";
   }
   return "unknown";
 }
 
-FaultType fault_type_from_string(const std::string& s) {
-  if (s == "network_partition")  return FaultType::network_partition;
-  if (s == "cas_partial_write")  return FaultType::cas_partial_write;
-  if (s == "journal_corruption") return FaultType::journal_corruption;
-  if (s == "node_crash")         return FaultType::node_crash;
-  if (s == "region_latency")     return FaultType::region_latency;
-  if (s == "dep_mismatch")       return FaultType::dep_mismatch;
-  if (s == "migration_conflict") return FaultType::migration_conflict;
-  if (s == "resource_exhausted") return FaultType::resource_exhausted;
+FaultType fault_type_from_string(const std::string &s) {
+  if (s == "network_partition")
+    return FaultType::network_partition;
+  if (s == "cas_partial_write")
+    return FaultType::cas_partial_write;
+  if (s == "journal_corruption")
+    return FaultType::journal_corruption;
+  if (s == "node_crash")
+    return FaultType::node_crash;
+  if (s == "region_latency")
+    return FaultType::region_latency;
+  if (s == "dep_mismatch")
+    return FaultType::dep_mismatch;
+  if (s == "migration_conflict")
+    return FaultType::migration_conflict;
+  if (s == "resource_exhausted")
+    return FaultType::resource_exhausted;
   return FaultType::none;
 }
 
@@ -69,10 +89,11 @@ FaultType fault_type_from_string(const std::string& s) {
 // ChaosController
 // ---------------------------------------------------------------------------
 
-void ChaosController::activate(const std::string& activation_key) {
+void ChaosController::activate(const std::string &activation_key) {
   if (activation_key != ACTIVATION_KEY) {
     // Wrong key: silently refuse. Don't reveal the key.
-    std::cerr << "[chaos] WARN: invalid activation key — chaos mode not activated\n";
+    std::cerr
+        << "[chaos] WARN: invalid activation key — chaos mode not activated\n";
     return;
   }
   enabled_.store(true, std::memory_order_release);
@@ -86,8 +107,9 @@ void ChaosController::deactivate() {
   std::cerr << "[chaos] Chaos mode deactivated\n";
 }
 
-void ChaosController::register_fault(const FaultSpec& spec) {
-  if (!is_enabled()) return;
+void ChaosController::register_fault(const FaultSpec &spec) {
+  if (!is_enabled())
+    return;
   std::lock_guard<std::mutex> lock(mu_);
   faults_.push_back(spec);
 }
@@ -97,17 +119,19 @@ void ChaosController::clear_faults() {
   faults_.clear();
 }
 
-FaultSpec* ChaosController::find_fault(FaultType ft) {
-  for (auto& f : faults_) {
-    if (f.type == ft) return &f;
+FaultSpec *ChaosController::find_fault(FaultType ft) {
+  for (auto &f : faults_) {
+    if (f.type == ft)
+      return &f;
   }
   return nullptr;
 }
 
 bool ChaosController::would_inject(FaultType fault_type) const {
-  if (!is_enabled()) return false;
+  if (!is_enabled())
+    return false;
   std::lock_guard<std::mutex> lock(mu_);
-  for (const auto& f : faults_) {
+  for (const auto &f : faults_) {
     if (f.type == fault_type &&
         (f.max_inject_count == 0 || f.inject_count < f.max_inject_count)) {
       return true;
@@ -123,13 +147,13 @@ ChaosResult ChaosController::inject(FaultType fault_type) {
   result.determinism_intact = true;
 
   if (!is_enabled()) {
-    return result;  // no-op in production
+    return result; // no-op in production
   }
 
   std::lock_guard<std::mutex> lock(mu_);
-  FaultSpec* spec = find_fault(fault_type);
+  FaultSpec *spec = find_fault(fault_type);
   if (!spec) {
-    return result;  // fault not registered
+    return result; // fault not registered
   }
 
   // Probabilistic injection
@@ -137,13 +161,14 @@ ChaosResult ChaosController::inject(FaultType fault_type) {
     static thread_local std::mt19937 rng(std::random_device{}());
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     if (dist(rng) > spec->probability) {
-      return result;  // not triggered this time
+      return result; // not triggered this time
     }
   }
 
   // Check inject count limit
-  if (spec->max_inject_count > 0 && spec->inject_count >= spec->max_inject_count) {
-    return result;  // limit reached
+  if (spec->max_inject_count > 0 &&
+      spec->inject_count >= spec->max_inject_count) {
+    return result; // limit reached
   }
 
   spec->inject_count++;
@@ -155,61 +180,64 @@ ChaosResult ChaosController::inject(FaultType fault_type) {
 
   // Dispatch to fault-specific logic
   switch (fault_type) {
-    case FaultType::network_partition:
-      result.error_code = "chaos_network_partition";
-      if (spec->duration_ms > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(spec->duration_ms));
-      }
-      result.recovered = true;
-      break;
+  case FaultType::network_partition:
+    result.error_code = "chaos_network_partition";
+    if (spec->duration_ms > 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(spec->duration_ms));
+    }
+    result.recovered = true;
+    break;
 
-    case FaultType::cas_partial_write:
-      result.error_code = "chaos_cas_partial_write";
-      // CAS integrity must catch this; cas_intact remains true (detection, not corruption)
-      result.cas_intact = true;   // invariant: CAS detects and rejects partial writes
-      result.recovered = true;
-      break;
+  case FaultType::cas_partial_write:
+    result.error_code = "chaos_cas_partial_write";
+    // CAS integrity must catch this; cas_intact remains true (detection, not
+    // corruption)
+    result.cas_intact =
+        true; // invariant: CAS detects and rejects partial writes
+    result.recovered = true;
+    break;
 
-    case FaultType::journal_corruption:
-      result.error_code = "chaos_journal_corruption";
-      result.recovered = true;
-      break;
+  case FaultType::journal_corruption:
+    result.error_code = "chaos_journal_corruption";
+    result.recovered = true;
+    break;
 
-    case FaultType::node_crash:
-      result.error_code = "chaos_node_crash";
-      // In test context: simulate by returning structured error (not actual abort)
-      result.recovered = false;  // crash is not a self-recovery — requires restart
-      break;
+  case FaultType::node_crash:
+    result.error_code = "chaos_node_crash";
+    // In test context: simulate by returning structured error (not actual
+    // abort)
+    result.recovered = false; // crash is not a self-recovery — requires restart
+    break;
 
-    case FaultType::region_latency:
-      result.error_code = "chaos_region_latency";
-      // Inject latency — must not affect determinism
-      if (spec->duration_ms > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(spec->duration_ms));
-      }
-      result.determinism_intact = true;  // latency never affects result_digest
-      result.recovered = true;
-      break;
+  case FaultType::region_latency:
+    result.error_code = "chaos_region_latency";
+    // Inject latency — must not affect determinism
+    if (spec->duration_ms > 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(spec->duration_ms));
+    }
+    result.determinism_intact = true; // latency never affects result_digest
+    result.recovered = true;
+    break;
 
-    case FaultType::dep_mismatch:
-      result.error_code = "chaos_dep_mismatch";
-      result.recovered = true;
-      break;
+  case FaultType::dep_mismatch:
+    result.error_code = "chaos_dep_mismatch";
+    result.recovered = true;
+    break;
 
-    case FaultType::migration_conflict:
-      result.error_code = "chaos_migration_conflict";
-      result.recovered = true;
-      break;
+  case FaultType::migration_conflict:
+    result.error_code = "chaos_migration_conflict";
+    result.recovered = true;
+    break;
 
-    case FaultType::resource_exhausted:
-      result.error_code = "chaos_resource_exhausted";
-      result.recovered = true;  // graceful degradation, not crash
-      break;
+  case FaultType::resource_exhausted:
+    result.error_code = "chaos_resource_exhausted";
+    result.recovered = true; // graceful degradation, not crash
+    break;
 
-    case FaultType::none:
-    default:
-      result.injected = false;
-      break;
+  case FaultType::none:
+  default:
+    result.injected = false;
+    break;
   }
 
   if (result.recovered) {
@@ -227,8 +255,9 @@ std::string ChaosController::status_to_json() const {
       << ",\"total_recoveries\":" << total_recoveries_.load()
       << ",\"faults\":[";
   for (size_t i = 0; i < faults_.size(); ++i) {
-    if (i > 0) oss << ",";
-    const auto& f = faults_[i];
+    if (i > 0)
+      oss << ",";
+    const auto &f = faults_[i];
     oss << "{\"type\":\"" << fault_type_to_string(f.type) << "\""
         << ",\"probability\":" << f.probability
         << ",\"inject_count\":" << f.inject_count
@@ -248,7 +277,7 @@ uint64_t ChaosController::total_recoveries() const {
   return total_recoveries_.load(std::memory_order_relaxed);
 }
 
-ChaosController& global_chaos() {
+ChaosController &global_chaos() {
   static ChaosController inst;
   return inst;
 }
@@ -259,13 +288,13 @@ ChaosController& global_chaos() {
 
 std::string ChaosRunReport::to_json() const {
   std::ostringstream oss;
-  oss << "{\"tests_run\":" << tests_run
-      << ",\"tests_passed\":" << tests_passed
-      << ",\"tests_failed\":" << tests_failed
-      << ",\"summary\":\"" << summary << "\""
+  oss << "{\"tests_run\":" << tests_run << ",\"tests_passed\":" << tests_passed
+      << ",\"tests_failed\":" << tests_failed << ",\"summary\":\"" << summary
+      << "\""
       << ",\"failures\":[";
   for (size_t i = 0; i < failures.size(); ++i) {
-    if (i > 0) oss << ",";
+    if (i > 0)
+      oss << ",";
     oss << "\"" << failures[i] << "\"";
   }
   oss << "]}";
@@ -276,15 +305,14 @@ std::string ChaosRunReport::to_json() const {
 // ChaosHarness
 // ---------------------------------------------------------------------------
 
-void ChaosHarness::add_test(const ChaosTestCase& tc) {
-  tests_.push_back(tc);
-}
+void ChaosHarness::add_test(const ChaosTestCase &tc) { tests_.push_back(tc); }
 
-ChaosRunReport ChaosHarness::run(std::function<ChaosResult(const FaultSpec&)> workload_fn) {
+ChaosRunReport
+ChaosHarness::run(std::function<ChaosResult(const FaultSpec &)> workload_fn) {
   ChaosRunReport report;
   report.tests_run = static_cast<uint32_t>(tests_.size());
 
-  for (const auto& tc : tests_) {
+  for (const auto &tc : tests_) {
     ChaosResult result = workload_fn(tc.fault);
 
     bool passed = true;
@@ -301,19 +329,23 @@ ChaosRunReport ChaosHarness::run(std::function<ChaosResult(const FaultSpec&)> wo
     // Check CAS invariant
     if (tc.expect_cas_intact && !result.cas_intact) {
       passed = false;
-      failure_reason = "CAS integrity violated during fault: " + fault_type_to_string(tc.fault.type);
+      failure_reason = "CAS integrity violated during fault: " +
+                       fault_type_to_string(tc.fault.type);
     }
 
     // Check determinism invariant
     if (tc.expect_determinism_intact && !result.determinism_intact) {
       passed = false;
-      failure_reason = "determinism violated during fault: " + fault_type_to_string(tc.fault.type);
+      failure_reason = "determinism violated during fault: " +
+                       fault_type_to_string(tc.fault.type);
     }
 
     // Check graceful failure (structured error, not silent)
-    if (result.injected && tc.fault.fail_gracefully && result.error_code.empty()) {
+    if (result.injected && tc.fault.fail_gracefully &&
+        result.error_code.empty()) {
       passed = false;
-      failure_reason = "fault injected but no structured error_code emitted (silent failure)";
+      failure_reason = "fault injected but no structured error_code emitted "
+                       "(silent failure)";
     }
 
     if (passed) {
@@ -332,53 +364,64 @@ ChaosRunReport ChaosHarness::run(std::function<ChaosResult(const FaultSpec&)> wo
 ChaosHarness ChaosHarness::standard_suite() {
   ChaosHarness h;
 
-  h.add_test({
-    "node_crash_mid_execution",
-    {FaultType::node_crash, "abrupt worker termination", 1.0, 0, 1, 0, true},
-    "chaos_node_crash", true, true
-  });
+  h.add_test(
+      {"node_crash_mid_execution",
+       {FaultType::node_crash, "abrupt worker termination", 1.0, 0, 1, 0, true},
+       "chaos_node_crash",
+       true,
+       true});
 
-  h.add_test({
-    "cas_partial_write",
-    {FaultType::cas_partial_write, "truncated CAS write (first 16 bytes only)", 1.0, 0, 1, 0, true},
-    "chaos_cas_partial_write", true, true
-  });
+  h.add_test({"cas_partial_write",
+              {FaultType::cas_partial_write,
+               "truncated CAS write (first 16 bytes only)", 1.0, 0, 1, 0, true},
+              "chaos_cas_partial_write",
+              true,
+              true});
 
-  h.add_test({
-    "journal_corruption",
-    {FaultType::journal_corruption, "corrupted journal tail (last 8 bytes)", 1.0, 0, 1, 0, true},
-    "chaos_journal_corruption", true, true
-  });
+  h.add_test({"journal_corruption",
+              {FaultType::journal_corruption,
+               "corrupted journal tail (last 8 bytes)", 1.0, 0, 1, 0, true},
+              "chaos_journal_corruption",
+              true,
+              true});
 
-  h.add_test({
-    "network_partition_100ms",
-    {FaultType::network_partition, "100ms network partition between cluster nodes", 1.0, 100, 1, 0, true},
-    "chaos_network_partition", true, true
-  });
+  h.add_test(
+      {"network_partition_100ms",
+       {FaultType::network_partition,
+        "100ms network partition between cluster nodes", 1.0, 100, 1, 0, true},
+       "chaos_network_partition",
+       true,
+       true});
 
-  h.add_test({
-    "region_latency_200ms",
-    {FaultType::region_latency, "200ms artificial cross-region latency", 1.0, 200, 1, 0, true},
-    "chaos_region_latency", true, true
-  });
+  h.add_test({"region_latency_200ms",
+              {FaultType::region_latency,
+               "200ms artificial cross-region latency", 1.0, 200, 1, 0, true},
+              "chaos_region_latency",
+              true,
+              true});
 
-  h.add_test({
-    "dep_mismatch_wrong_abi",
-    {FaultType::dep_mismatch, "cluster peer announces wrong engine_abi_version", 1.0, 0, 1, 0, true},
-    "chaos_dep_mismatch", true, true
-  });
+  h.add_test(
+      {"dep_mismatch_wrong_abi",
+       {FaultType::dep_mismatch,
+        "cluster peer announces wrong engine_abi_version", 1.0, 0, 1, 0, true},
+       "chaos_dep_mismatch",
+       true,
+       true});
 
-  h.add_test({
-    "migration_conflict",
-    {FaultType::migration_conflict, "concurrent migration on same schema version", 1.0, 0, 1, 0, true},
-    "chaos_migration_conflict", true, true
-  });
+  h.add_test(
+      {"migration_conflict",
+       {FaultType::migration_conflict,
+        "concurrent migration on same schema version", 1.0, 0, 1, 0, true},
+       "chaos_migration_conflict",
+       true,
+       true});
 
-  h.add_test({
-    "resource_exhausted",
-    {FaultType::resource_exhausted, "simulate ENOMEM during CAS allocation", 1.0, 0, 1, 0, true},
-    "chaos_resource_exhausted", true, true
-  });
+  h.add_test({"resource_exhausted",
+              {FaultType::resource_exhausted,
+               "simulate ENOMEM during CAS allocation", 1.0, 0, 1, 0, true},
+              "chaos_resource_exhausted",
+              true,
+              true});
 
   return h;
 }
@@ -399,11 +442,13 @@ ChaosResult simulate_node_crash() {
   return r;
 }
 
-ChaosResult simulate_cas_partial_write(const std::string& cas_path, size_t truncate_at) {
+ChaosResult simulate_cas_partial_write(const std::string &cas_path,
+                                       size_t truncate_at) {
   ChaosResult r;
   r.fault_type = FaultType::cas_partial_write;
   r.injected = true;
-  r.description = "simulated partial CAS write at offset " + std::to_string(truncate_at);
+  r.description =
+      "simulated partial CAS write at offset " + std::to_string(truncate_at);
 
   // Attempt to write a partial object and verify detection
   std::string partial_data(truncate_at, 'X');
@@ -412,16 +457,18 @@ ChaosResult simulate_cas_partial_write(const std::string& cas_path, size_t trunc
   if (!cas_path.empty()) {
     std::ofstream f(cas_path + ".partial_chaos", std::ios::binary);
     if (f) {
-      f.write(partial_data.data(), static_cast<std::streamsize>(partial_data.size()));
+      f.write(partial_data.data(),
+              static_cast<std::streamsize>(partial_data.size()));
       write_ok = f.good();
     }
   }
 
   // CAS must reject partial objects on integrity check
   r.error_code = "chaos_cas_partial_write";
-  r.cas_intact = true;   // invariant: partial write is DETECTED, not silently accepted
+  r.cas_intact =
+      true; // invariant: partial write is DETECTED, not silently accepted
   r.determinism_intact = true;
-  r.recovered = true;    // CAS self-heals by rejecting the partial write
+  r.recovered = true; // CAS self-heals by rejecting the partial write
 
   // Clean up chaos artifact
   if (!cas_path.empty()) {
@@ -431,19 +478,23 @@ ChaosResult simulate_cas_partial_write(const std::string& cas_path, size_t trunc
   return r;
 }
 
-ChaosResult simulate_journal_corruption(const std::string& journal_path, size_t corrupt_bytes) {
+ChaosResult simulate_journal_corruption(const std::string &journal_path,
+                                        size_t corrupt_bytes) {
   ChaosResult r;
   r.fault_type = FaultType::journal_corruption;
   r.injected = true;
-  r.description = "simulated journal tail corruption (" + std::to_string(corrupt_bytes) + " bytes)";
+  r.description = "simulated journal tail corruption (" +
+                  std::to_string(corrupt_bytes) + " bytes)";
   r.error_code = "chaos_journal_corruption";
   r.cas_intact = true;
   r.determinism_intact = true;
-  r.recovered = true;  // replay verification detects and rejects corrupted journal
+  r.recovered =
+      true; // replay verification detects and rejects corrupted journal
 
   // If path given, actually truncate-and-corrupt for integration testing
   if (!journal_path.empty()) {
-    std::fstream f(journal_path, std::ios::in | std::ios::out | std::ios::binary);
+    std::fstream f(journal_path,
+                   std::ios::in | std::ios::out | std::ios::binary);
     if (f) {
       f.seekg(0, std::ios::end);
       auto size = f.tellg();
@@ -461,7 +512,8 @@ ChaosResult simulate_network_partition(uint64_t duration_ms) {
   ChaosResult r;
   r.fault_type = FaultType::network_partition;
   r.injected = true;
-  r.description = "simulated " + std::to_string(duration_ms) + "ms network partition";
+  r.description =
+      "simulated " + std::to_string(duration_ms) + "ms network partition";
   r.error_code = "chaos_network_partition";
   r.duration_ms = duration_ms;
   r.cas_intact = true;
@@ -478,11 +530,12 @@ ChaosResult simulate_region_latency(uint64_t latency_ms) {
   ChaosResult r;
   r.fault_type = FaultType::region_latency;
   r.injected = true;
-  r.description = "simulated " + std::to_string(latency_ms) + "ms cross-region latency";
+  r.description =
+      "simulated " + std::to_string(latency_ms) + "ms cross-region latency";
   r.error_code = "chaos_region_latency";
   r.duration_ms = latency_ms;
   r.cas_intact = true;
-  r.determinism_intact = true;  // latency NEVER affects result_digest
+  r.determinism_intact = true; // latency NEVER affects result_digest
 
   std::this_thread::sleep_for(std::chrono::milliseconds(latency_ms));
   r.recovered = true;
@@ -493,8 +546,10 @@ ChaosResult simulate_dep_mismatch(uint32_t bad_abi_version) {
   ChaosResult r;
   r.fault_type = FaultType::dep_mismatch;
   r.injected = true;
-  r.description = "simulated peer announcing engine_abi_version=" + std::to_string(bad_abi_version)
-                  + " (current=" + std::to_string(version::ENGINE_ABI_VERSION) + ")";
+  r.description = "simulated peer announcing engine_abi_version=" +
+                  std::to_string(bad_abi_version) +
+                  " (current=" + std::to_string(version::ENGINE_ABI_VERSION) +
+                  ")";
 
   // Register a fake worker with wrong ABI version; cluster must reject it
   WorkerIdentity bad_peer;
@@ -516,10 +571,11 @@ ChaosResult simulate_dep_mismatch(uint32_t bad_abi_version) {
   // Clean up: mark the bad peer as unhealthy (best-effort removal)
   global_cluster_registry().mark_unhealthy(bad_peer.worker_id);
 
-  r.error_code = detected ? "chaos_dep_mismatch" : "chaos_dep_mismatch_undetected";
+  r.error_code =
+      detected ? "chaos_dep_mismatch" : "chaos_dep_mismatch_undetected";
   r.cas_intact = true;
   r.determinism_intact = true;
-  r.recovered = detected;   // recovered = mismatch was detected
+  r.recovered = detected; // recovered = mismatch was detected
 
   return r;
 }
@@ -528,11 +584,12 @@ ChaosResult simulate_migration_conflict() {
   ChaosResult r;
   r.fault_type = FaultType::migration_conflict;
   r.injected = true;
-  r.description = "simulated concurrent migration conflict on same schema version";
+  r.description =
+      "simulated concurrent migration conflict on same schema version";
   r.error_code = "chaos_migration_conflict";
   r.cas_intact = true;
   r.determinism_intact = true;
-  r.recovered = true;  // migration lock prevents double-application
+  r.recovered = true; // migration lock prevents double-application
   return r;
 }
 
@@ -544,28 +601,76 @@ ChaosResult simulate_resource_exhaustion() {
   r.error_code = "chaos_resource_exhausted";
   r.cas_intact = true;
   r.determinism_intact = true;
-  r.recovered = true;  // graceful degradation: error returned, not crash
+  r.recovered = true; // graceful degradation: error returned, not crash
   return r;
 }
 
-}  // namespace chaos
-}  // namespace requiem
+} // namespace chaos
+} // namespace requiem
 
 // ---------------------------------------------------------------------------
 // Main entry point (when built as chaos_harness binary)
 // ---------------------------------------------------------------------------
 #ifdef REQUIEM_CHAOS_MAIN
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 
-int main(int argc, char* argv[]) {
+namespace fs = std::filesystem;
+
+void test_debugger_diff() {
+  std::cerr
+      << "[chaos_harness] Running TimeTravelDebugger::Diff verification...\n";
+
+  std::string test_root = "test_chaos_diff_cas";
+  if (fs::exists(test_root))
+    fs::remove_all(test_root);
+  auto cas = std::make_shared<requiem::CasStore>(test_root);
+
+  // 1. Create Root
+  std::string initial_state = "{\"mem\":0}";
+  std::string state_digest = cas->put(initial_state);
+  std::string root_event = "{\"type\":\"start\",\"state_after\":\"" +
+                           state_digest + "\",\"sequence_id\":0}";
+  std::string root_event_digest = cas->put(root_event);
+  std::string exec_root = "{\"type\":\"execution_root\",\"head_event\":\"" +
+                          root_event_digest + "\"}";
+  std::string exec_digest = cas->put(exec_root);
+
+  // 2. Load Debugger
+  auto debugger = requiem::TimeTravelDebugger::Load(cas, exec_digest);
+
+  // 3. Fork twice to create divergence
+  std::string fork1_digest = debugger->Fork("payload_A");
+  std::string fork2_digest = debugger->Fork("payload_B");
+
+  auto dbg1 = requiem::TimeTravelDebugger::Load(cas, fork1_digest);
+  auto dbg2 = requiem::TimeTravelDebugger::Load(cas, fork2_digest);
+
+  // 4. Diff
+  auto diffs = dbg1->Diff(*dbg2);
+  if (diffs.empty()) {
+    std::cerr << "[chaos_harness] FAIL: Diff found no divergence\n";
+    exit(1);
+  }
+  // Divergence should be at sequence_id 1 (0 is shared root)
+  std::cerr << "[chaos_harness] PASS: Diff verified (divergence at seq "
+            << diffs[0] << ").\n";
+  fs::remove_all(test_root);
+}
+
+int main(int argc, char *argv[]) {
   using namespace requiem::chaos;
 
   std::cerr << "[chaos_harness] Requiem Chaos Engineering Harness\n";
-  std::cerr << "[chaos_harness] INVARIANT: CAS integrity and determinism are inviolable\n\n";
+  std::cerr << "[chaos_harness] INVARIANT: CAS integrity and determinism are "
+               "inviolable\n\n";
 
   // Activate chaos mode with the CI-only key
   global_chaos().activate("chaos-ci-only-not-production");
+
+  // Run functional verification
+  test_debugger_diff();
 
   if (!global_chaos().is_enabled()) {
     std::cerr << "[chaos_harness] FAIL: could not activate chaos mode\n";
@@ -575,16 +680,23 @@ int main(int argc, char* argv[]) {
   // Register all standard fault types with the global controller.
   // Each FaultSpec maps to exactly one of the 8 standard chaos scenarios.
   const std::vector<FaultSpec> standard_faults = {
-    {FaultType::node_crash,         "abrupt worker termination",                    1.0, 0,   1, 0, true},
-    {FaultType::cas_partial_write,  "truncated CAS write (first 16 bytes only)",    1.0, 0,   1, 0, true},
-    {FaultType::journal_corruption, "corrupted journal tail (last 8 bytes)",        1.0, 0,   1, 0, true},
-    {FaultType::network_partition,  "100ms network partition between cluster nodes", 1.0, 100, 1, 0, true},
-    {FaultType::region_latency,     "200ms artificial cross-region latency",        1.0, 200, 1, 0, true},
-    {FaultType::dep_mismatch,       "cluster peer announces wrong engine_abi_version", 1.0, 0, 1, 0, true},
-    {FaultType::migration_conflict, "concurrent migration on same schema version",  1.0, 0,   1, 0, true},
-    {FaultType::resource_exhausted, "simulate ENOMEM during CAS allocation",        1.0, 0,   1, 0, true},
+      {FaultType::node_crash, "abrupt worker termination", 1.0, 0, 1, 0, true},
+      {FaultType::cas_partial_write,
+       "truncated CAS write (first 16 bytes only)", 1.0, 0, 1, 0, true},
+      {FaultType::journal_corruption, "corrupted journal tail (last 8 bytes)",
+       1.0, 0, 1, 0, true},
+      {FaultType::network_partition,
+       "100ms network partition between cluster nodes", 1.0, 100, 1, 0, true},
+      {FaultType::region_latency, "200ms artificial cross-region latency", 1.0,
+       200, 1, 0, true},
+      {FaultType::dep_mismatch,
+       "cluster peer announces wrong engine_abi_version", 1.0, 0, 1, 0, true},
+      {FaultType::migration_conflict,
+       "concurrent migration on same schema version", 1.0, 0, 1, 0, true},
+      {FaultType::resource_exhausted, "simulate ENOMEM during CAS allocation",
+       1.0, 0, 1, 0, true},
   };
-  for (const auto& spec : standard_faults) {
+  for (const auto &spec : standard_faults) {
     global_chaos().register_fault(spec);
   }
 
@@ -592,14 +704,14 @@ int main(int argc, char* argv[]) {
   ChaosHarness harness = ChaosHarness::standard_suite();
 
   // Workload function: inject the specified fault via global controller
-  auto workload = [](const FaultSpec& spec) -> ChaosResult {
+  auto workload = [](const FaultSpec &spec) -> ChaosResult {
     return global_chaos().inject(spec.type);
   };
 
   ChaosRunReport report = harness.run(workload);
 
   std::cerr << "\n[chaos_harness] " << report.summary << "\n";
-  for (const auto& f : report.failures) {
+  for (const auto &f : report.failures) {
     std::cerr << "[chaos_harness] FAIL: " << f << "\n";
   }
 
@@ -613,7 +725,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  std::cerr << "\n[chaos_harness] Status: " << global_chaos().status_to_json() << "\n";
+  std::cerr << "\n[chaos_harness] Status: " << global_chaos().status_to_json()
+            << "\n";
 
   global_chaos().deactivate();
 

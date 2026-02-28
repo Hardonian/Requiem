@@ -18,6 +18,7 @@
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
 #include "requiem/observability.hpp"
+#include "requiem/policy_linter.hpp"
 #include "requiem/rbac.hpp"
 #include "requiem/replay.hpp"
 #include "requiem/runtime.hpp"
@@ -320,6 +321,40 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  if (cmd == "lint" && argc >= 3) {
+    std::string policy_file = argv[2];
+    std::string json_content = read_file(policy_file);
+    if (json_content.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"file not found or empty\"}\n";
+      return 1;
+    }
+    try {
+      auto registry = requiem::PolicyLinter::LoadFromJson(json_content);
+      auto result = requiem::PolicyLinter::Check(registry);
+      std::cout << "{\"valid\":" << (result.valid ? "true" : "false")
+                << ",\"errors\":[";
+      for (size_t i = 0; i < result.errors.size(); ++i) {
+        if (i > 0)
+          std::cout << ",";
+        std::cout << "\"" << requiem::jsonlite::escape(result.errors[i])
+                  << "\"";
+      }
+      std::cout << "],\"warnings\":[";
+      for (size_t i = 0; i < result.warnings.size(); ++i) {
+        if (i > 0)
+          std::cout << ",";
+        std::cout << "\"" << requiem::jsonlite::escape(result.warnings[i])
+                  << "\"";
+      }
+      std::cout << "]}\n";
+      return result.valid ? 0 : 1;
+    } catch (const std::exception &e) {
+      std::cout << "{\"ok\":false,\"error\":\""
+                << requiem::jsonlite::escape(e.what()) << "\"}\n";
+      return 1;
+    }
+  }
+
   if (cmd == "cas" && argc >= 3 && std::string(argv[2]) == "put") {
     std::string in, cas_dir = ".requiem/cas/v2", compress = "off";
     for (int i = 3; i < argc; ++i) {
@@ -619,6 +654,7 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+<<<<<<< HEAD
   // ---------------------------------------------------------------------------
   // Replay & Forking (Time-Travel Debugger)
   // persona: OSS Developer, Auditor, Researcher.

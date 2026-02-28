@@ -1,7 +1,10 @@
 #include "requiem/policy_linter.hpp"
 
 #include <algorithm>
+#include <cctype>
+#include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 namespace requiem {
 
@@ -71,6 +74,144 @@ LintResult PolicyLinter::Check(const PolicyRegistry &registry) {
   }
 
   return result;
+}
+
+namespace {
+
+// Minimal JSON cursor for parsing the specific PolicyRegistry schema.
+// Not a full generic JSON parser.
+class JsonCursor {
+public:
+  explicit JsonCursor(const std::string &json) : json_(json), pos_(0) {
+    skip_ws();
+  }
+
+  char peek() {
+    skip_ws();
+    if (pos_ >= json_.size())
+      return 0;
+    return json_[pos_];
+  }
+
+  bool consume(char c) {
+    if (peek() == c) {
+      pos_++;
+      return true;
+    }
+    return false;
+  }
+
+  void expect(char c) {
+    if (!consume(c)) {
+      throw std::runtime_error(std::string("Expected '") + c + "' at pos " +
+                               std::to_string(pos_));
+    }
+  }
+
+  std::string parse_string() {
+    expect('"');
+    std::string res;
+    while (pos_ < json_.size()) {
+      char c = json_[pos_++];
+      if (c == '"') {
+        return res;
+      }
+      if (c == '\\') {
+        if (pos_ < json_.size()) {
+          res += json_[pos_++]; // Simple escape handling
+        }
+      } else {
+        res += c;
+      }
+    }
+    throw std::runtime_error("Unterminated string");
+  }
+
+  std::vector<std::string> parse_string_array() {
+    std::vector<std::string> res;
+    expect('[');
+    while (peek() != ']') {
+      res.push_back(parse_string());
+      if (peek() == ',')
+        consume(',');
+    }
+    expect(']');
+    return res;
+  }
+
+private:
+  void skip_ws() {
+    while (pos_ < json_.size() &&
+           (std::isspace(static_cast<unsigned char>(json_[pos_])) ||
+            json_[pos_] == ',' || json_[pos_] == ':')) {
+      pos_++;
+    }
+  }
+
+  const std::string &json_;
+  size_t pos_;
+};
+
+} // namespace
+
+PolicyRegistry PolicyLinter::LoadFromJson(const std::string &json_content) {
+  PolicyRegistry reg;
+  JsonCursor cursor(json_content);
+
+  cursor.expect('{');
+
+  while (cursor.peek() != '}' && cursor.peek() != 0) {
+    std::string key = cursor.parse_string();
+
+    if (key == "policies") {
+      reg.policies = cursor.parse_string_array();
+    } else if (key == "constraints") {
+      reg.constraints = cursor.parse_string_array();
+    } else if (key == "map") {
+      cursor.expect('{');
+      while (cursor.peek() != '}') {
+        std::string map_key = cursor.parse_string();
+        reg.mapping[map_key] = cursor.parse_string_array();
+        if (cursor.peek() == ',')
+          cursor.consume(',');
+      }
+      cursor.expect('}');
+    } else if (key == "conflicts") {
+      cursor.expect('[');
+      while (cursor.peek() != ']') {
+        // Conflicts are arrays of strings ["a", "b"]
+        std::vector<std::string> pair = cursor.parse_string_array();
+        if (pair.size() >= 2) {
+          reg.conflicts.push_back({pair[0], pair[1]});
+        }
+        if (cursor.peek() == ',')
+          cursor.consume(',');
+      }
+      cursor.expect(']');
+    } else {
+      // Skip unknown fields (simple skip: assume string or array of strings)
+      // For safety in this minimal parser, we just throw if unknown structure
+      // appears, or we could try to skip. Given the controlled input, we'll
+      // just parse value as string or array and ignore.
+      char c = cursor.peek();
+      if (c == '[')
+        cursor.parse_string_array();
+      else if (c == '"')
+        cursor.parse_string();
+      else if (c == '{') {
+        // Skip object not supported in this minimal version for unknown keys
+        throw std::runtime_error("Unknown object key: " + key);
+      } else {
+        // Numbers/bools not supported
+        throw std::runtime_error("Unknown value type for key: " + key);
+      }
+    }
+
+    if (cursor.peek() == ',')
+      cursor.consume(',');
+  }
+
+  return reg;
 }
 
 } // namespace requiem

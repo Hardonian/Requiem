@@ -8,11 +8,15 @@
 #include <vector>
 
 #include "requiem/cas.hpp"
+#include "requiem/types.hpp"
 
 namespace requiem {
 
 /**
  * @brief Represents a discrete point in an agent's execution timeline.
+ *
+ * In Requiem's deterministic model, a TimeStep is strictly defined by the
+ * sequence of events preceding it.
  */
 struct TimeStep {
   uint64_t sequence_id;  // Monotonic event counter
@@ -47,6 +51,12 @@ struct DebugSessionOptions {
 
 /**
  * @brief The Time-Travel Debugger Interface.
+ *
+ * This is the "Hypervisor Console" for AI agents. It allows developers to:
+ * 1. Replay past executions with perfect fidelity (via CAS + Determinism).
+ * 2. Inspect internal state at any frame.
+ * 3. Fork execution ("What if I changed the prompt here?").
+ * 4. Diff two execution traces to find divergence.
  */
 class TimeTravelDebugger {
 public:
@@ -95,11 +105,21 @@ public:
 
   /**
    * @brief Forks the execution at the current Seek() position.
+   *
+   * This creates a NEW execution branch starting from the current state but
+   * with modified inputs or injection.
+   *
+   * @param injection_payload New prompt, tool output, or system message to
+   * inject.
+   * @return A new execution_digest representing the forked process.
    */
   virtual std::string Fork(const std::string &injection_payload) = 0;
 
   /**
    * @brief Computes the semantic divergence between this session and another.
+   *
+   * Used to detect "drift" between a golden master and a new model version.
+   * @return List of sequence IDs where the traces diverge.
    */
   virtual std::vector<uint64_t>
   Diff(const TimeTravelDebugger &other_session) const = 0;

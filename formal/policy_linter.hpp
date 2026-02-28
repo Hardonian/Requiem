@@ -30,6 +30,13 @@ public:
    * 2. Unreachable configurations (Policy A and Policy B cannot coexist).
    */
   static LintResult Check(const PolicyRegistry &registry);
+
+  /**
+   * @brief Parses a JSON string into a PolicyRegistry structure.
+   * Supports the schema defined in policies/*.json (policies, constraints, map,
+   * conflicts).
+   */
+  static PolicyRegistry LoadFromJson(const std::string &json_content);
 };
 
 } // namespace requiem

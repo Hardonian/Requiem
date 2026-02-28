@@ -68,6 +68,8 @@ ENVIRONMENT VARIABLES:
 EXAMPLES:
   requiem decide evaluate --junction junction_abc123
   requiem junctions scan --since 7d --json
+  requiem ai tools list
+  requiem ai skills list
   requiem doctor
 `);
 }

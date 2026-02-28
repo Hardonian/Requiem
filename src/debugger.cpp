@@ -75,7 +75,6 @@ public:
     // 2. Array Mode (Requiem ExecutionResult)
     else if (obj.count("trace_events")) {
       mode_ = Mode::Array;
-      // Start at seq 0 or end? Let's seek to 0 by default.
     }
   }
 
@@ -136,8 +135,6 @@ public:
 
         StateSnapshot snapshot;
         snapshot.memory_digest = step.state_digest;
-        // In linked mode, we can hydrate more details.
-        // In array mode, we might just have the digest.
         return snapshot;
       }
     }
@@ -158,7 +155,6 @@ public:
   InspectMemory(const std::string &key) const override {
     if (current_state_digest_.empty())
       return std::nullopt;
-    // Assume a state is a JSON object in CAS
     auto state_json = cas_->get(current_state_digest_);
     if (!state_json)
       return std::nullopt;
@@ -167,8 +163,6 @@ public:
     if (std::holds_alternative<jsonlite::Object>(val.v)) {
       const auto &obj = std::get<jsonlite::Object>(val.v);
       if (obj.count(key)) {
-        // Return the value as a string (if it's not a string, might need to
-        // re-serialize)
         return jsonlite::get_string(obj, key, "");
       }
     }
