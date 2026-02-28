@@ -1,0 +1,6 @@
+{
+  "framework": "nextjs",
+  "rootDirectory": "ready-layer",
+  "buildCommand": "next build",
+  "installCommand": "npm install"
+}
