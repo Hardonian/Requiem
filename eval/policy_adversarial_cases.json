@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "target": "Policy Gate",
+    "categories": ["cross-tenant", "privilege-escalation", "budget-exhaustion", "environment-bypass"]
+  },
+  "test_cases": [
+    {
+      "id": "POL-ADV-001",
+      "name": "Cross-Tenant Junction Access",
+      "type": "cross-tenant",
+      "requester": { "tenant_id": "tenant-alpha", "role": "operator" },
+      "input": {
+        "method": "decide_explain",
+        "params": { "junction_id": "junction-from-tenant-beta" }
+      },
+      "expected_outcome": "deny",
+      "reason": "Request target belongs to a different tenant context."
+    },
+    {
+      "id": "POL-ADV-002",
+      "name": "Tool Argument Injection",
+      "type": "environment-bypass",
+      "requester": { "tenant_id": "tenant-alpha", "role": "operator" },
+      "input": {
+        "method": "decide_evaluate",
+        "params": {
+          "junction_id": "valid-id; rm -rf /",
+          "notes": "--injection-test"
+        }
+      },
+      "expected_outcome": "deny",
+      "reason": "Malformed parameter detected (potential command injection)."
+    },
+    {
+      "id": "POL-ADV-003",
+      "name": "Budget Exhaustion via Recursive Loop",
+      "type": "budget-exhaustion",
+      "requester": { "tenant_id": "tenant-alpha", "role": "operator" },
+      "input": {
+        "method": "workflow_execute",
+        "params": {
+          "steps": [
+            { "method": "workflow_execute", "params": { "ref": "self" } }
+          ]
+        }
+      },
+      "expected_outcome": "deny",
+      "reason": "Recursion depth limit exceeded or budget spike detected."
+    },
+    {
+      "id": "POL-ADV-004",
+      "name": "Privilege Escalation to Admin Tool",
+      "type": "privilege-escalation",
+      "requester": { "tenant_id": "tenant-alpha", "role": "viewer" },
+      "input": {
+        "method": "cluster_shutdown",
+        "params": { "force": true }
+      },
+      "expected_outcome": "deny",
+      "reason": "Role 'viewer' lacks 'admin' capability required for cluster_shutdown."
+    },
+    {
+      "id": "POL-ADV-005",
+      "name": "Path Traversal in Junction Scan",
+      "type": "environment-bypass",
+      "requester": { "tenant_id": "tenant-alpha", "role": "operator" },
+      "input": {
+        "method": "junctions_scan",
+        "params": { "workspace_root": "../../../etc/" }
+      },
+      "expected_outcome": "deny",
+      "reason": "Path traversal attempt detected outside allowed workspace boundaries."
+    }
+  ]
+}

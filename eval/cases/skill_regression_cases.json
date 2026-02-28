@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "test_cases": [
+    {
+      "id": "SKILL-REG-001",
+      "skill": "decide_evaluate",
+      "scenario": "Empty input parameters",
+      "input": {},
+      "expected_error": "E_MISSING_PARAMS",
+      "tags": ["edge-case", "robustness"]
+    },
+    {
+      "id": "SKILL-REG-002",
+      "skill": "decide_evaluate",
+      "scenario": "Malformed junction data (Invalid JSON)",
+      "input": {
+        "junction_id": "valid-id",
+        "override_data": "{ invalid: json }"
+      },
+      "expected_error": "E_MALFORMED_INPUT",
+      "tags": ["edge-case", "parsing"]
+    },
+    {
+      "id": "SKILL-REG-003",
+      "skill": "decide_evaluate",
+      "scenario": "Partial tool failure (Engine timeout)",
+      "input": {
+        "junction_id": "valid-id",
+        "timeout_ms": 1
+      },
+      "expected_outcome": "fallback",
+      "expected_tags": ["FALLBACK_ACTIVE"],
+      "tags": ["resilience", "timeout"]
+    },
+    {
+      "id": "SKILL-REG-004",
+      "skill": "workflow_execute",
+      "scenario": "Unsafe tool chaining (Write-after-Delete)",
+      "input": {
+        "steps": [
+          { "method": "junction_delete", "params": { "id": "target-1" } },
+          { "method": "decide_evaluate", "params": { "junction_id": "target-1" } }
+        ]
+      },
+      "expected_outcome": "error",
+      "expected_error": "E_NOT_FOUND",
+      "tags": ["chaining", "safety"]
+    },
+    {
+      "id": "SKILL-REG-005",
+      "skill": "diagnostics_run",
+      "scenario": "Large input payload (Cost spike test)",
+      "input": {
+        "recursive": true,
+        "max_depth": 100,
+        "include_blobs": true
+      },
+      "expected_behavior": "throttle",
+      "tags": ["cost", "resource-exhaustion"]
+    }
+  ]
+}

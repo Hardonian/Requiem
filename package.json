@@ -18,7 +18,9 @@
     "lint": "cd packages/ui && npm run lint",
     "typecheck": "cd packages/ui && npm run typecheck",
     "format": "cd packages/ui && npx prettier --write .",
-    "format:check": "cd packages/ui && npx prettier --check ."
+    "format:check": "cd packages/ui && npx prettier --check .",
+    "start:mcp": "cd ready-layer && npm run dev",
+    "verify:mcp": "echo 'MCP verification script not yet implemented. Requires a running server.'"
   },
   "devDependencies": {
     "prettier": "^3.0.0",

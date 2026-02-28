@@ -1,66 +1,19 @@
 {
   "name": "@requiem/ai",
   "version": "0.1.0",
-  "description": "Requiem AI - Tool registry, MCP server, and AI integration layer",
-  "private": false,
+  "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./tools": {
-      "types": "./dist/tools/index.d.ts",
-      "import": "./dist/tools/index.js"
-    },
-    "./tools/registry": {
-      "types": "./dist/tools/registry.d.ts",
-      "import": "./dist/tools/registry.js"
-    },
-    "./tools/types": {
-      "types": "./dist/tools/types.d.ts",
-      "import": "./dist/tools/types.js"
-    },
-    "./tools/schema": {
-      "types": "./dist/tools/schema.d.ts",
-      "import": "./dist/tools/schema.js"
-    }
-  },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
-    "verify": "npm run typecheck && npm run lint && npm run build"
+    "lint": "eslint src"
   },
   "dependencies": {
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "eslint": "^8.0.0",
-    "typescript": "^5.3.0",
-    "typescript-eslint": "^7.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/reachhq/requiem.git",
-    "directory": "packages/ai"
-  },
-  "keywords": [
-    "ai",
-    "mcp",
-    "tool-registry",
-    "requiem"
-  ]
+    "typescript": "^5.3.0"
+  }
 }

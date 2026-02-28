@@ -74,5 +74,67 @@ export { newId, uuid } from './db/helpers';
 // Utilities
 export { hash, hashShort } from './lib/hash';
 
+// Errors (Structured Error Envelope)
+export {
+  RequiemError,
+  ErrorCode,
+  ErrorSeverity,
+  Errors,
+  errorToHttpStatus,
+  type ErrorEnvelope,
+  type ErrorMeta,
+  type RequiemErrorOptions,
+} from './lib/errors';
+
+// Tenant Resolution
+export {
+  DefaultTenantResolver,
+  MockTenantResolver,
+  TenantRole,
+  hasRequiredRole,
+  requireTenantContext,
+  requireTenantContextCli,
+  setGlobalTenantResolver,
+  getGlobalTenantResolver,
+  type TenantContext,
+  type TenantResolver,
+  type TenantResolutionOptions,
+  type TenantMembership,
+} from './lib/tenant';
+
+// State Machine
+export {
+  StateMachine,
+  createExecutionStateMachine,
+  createJunctionStateMachine,
+  ExecutionStates,
+  JunctionStates,
+  transitionEntity,
+  generateStateCheckConstraint,
+  type StateDefinition,
+  type StateTransition,
+  type StatefulEntity,
+  type ExecutionState,
+  type JunctionState,
+} from './lib/state-machine';
+
+// Clock (Deterministic Time)
+export {
+  SystemClock,
+  SeededClock,
+  FrozenClock,
+  OffsetClock,
+  setGlobalClock,
+  getGlobalClock,
+  ClockUtil,
+  seedFromString,
+  captureConfigSnapshot,
+  hashConfigSnapshot,
+  verifyConfigSnapshot,
+  withTimeout,
+  type Clock,
+  type ConfigSnapshot,
+} from './lib/clock';
+
 // Version
 export const VERSION = '0.1.0';

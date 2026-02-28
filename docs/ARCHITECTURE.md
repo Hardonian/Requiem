@@ -1,226 +1,304 @@
 # Requiem Architecture
 
+> **Version:** 1.3.0  
+> **Last Updated:** 2026-02-27  
+> **Status:** Production
+
 ## Overview
 
-Requiem is a deterministic execution engine designed for reproducible builds, test isolation, and cryptographic verification of computation. It provides:
+Requiem is a deterministic execution engine designed for reproducible builds, test isolation, and cryptographic verification of computation. It provides a multi-layered architecture that separates concerns between core logic, server-side operations, and user interfaces.
 
-1. **Deterministic Execution**: Same inputs always produce same outputs
-2. **Content-Addressable Storage**: CAS for efficient storage and retrieval
-3. **Replay Validation**: Verify executions match recorded traces
-4. **Sandboxing**: Cross-platform process isolation
+### Core Principles
 
-## Core Components
+1. **Determinism First**: Same inputs always produce identical outputs
+2. **Defense in Depth**: Multiple layers of validation and enforcement
+3. **Explicit Over Implicit**: State machines, error codes, and boundaries are explicit
+4. **Server-Side Authority**: Tenant resolution and access control are server-side only
 
-### 1. Hash Module (`hash.cpp`)
+---
 
-Uses vendored BLAKE3 for all cryptographic operations.
+## Layer Architecture
 
-**Key Functions:**
-- `blake3_hex(data)` - Compute hex-encoded BLAKE3 hash
-- `hash_bytes_blake3(data)` - Compute binary BLAKE3 hash
-- `hash_file_blake3(path)` - Hash file contents
-- `hash_domain(prefix, data)` - Domain-separated hashing
-
-**Domain Separation:**
-- `"req:"` - Request canonicalization
-- `"res:"` - Result canonicalization
-- `"cas:"` - CAS content addressing
-
-### 2. CAS Module (`cas.cpp`)
-
-Content-addressable storage with integrity verification.
-
-**Features:**
-- Object storage by BLAKE3 digest
-- Sharded directory structure (`/objects/AB/CD/ABCDEF...`)
-- Metadata with encoding info
-- zstd compression support
-- Integrity verification on read
-
-**Storage Format:**
 ```
-.cas/
-└── v2/
-    └── objects/
-        ├── AB/
-        │   └── CD/
-        │       ├── ABCDEF...      # Stored blob
-        │       └── ABCDEF....meta # Metadata
+┌─────────────────────────────────────────────────────────────┐
+│  UI Layer (packages/ui, ready-layer)                        │
+│  - React components, design system                          │
+│  - API route handlers (Next.js)                             │
+│  - No direct DB access; calls server layer                  │
+├─────────────────────────────────────────────────────────────┤
+│  Server Layer (packages/cli/lib, ready-layer/api)           │
+│  - Tenant resolution (server-side only)                     │
+│  - Database access (Supabase/Prisma)                        │
+│  - External service integration                             │
+│  - Error envelope serialization                             │
+├─────────────────────────────────────────────────────────────┤
+│  Core Layer (packages/cli/lib, src/)                        │
+│  - Deterministic algorithms                                 │
+│  - State machines                                           │
+│  - Clock abstractions                                       │
+│  - Structured errors (types only)                           │
+│  - No I/O, no side effects                                  │
+├─────────────────────────────────────────────────────────────┤
+│  Native Layer (src/*.cpp)                                   │
+│  - BLAKE3 hashing                                           │
+│  - CAS storage                                              │
+│  - Sandbox execution                                        │
+│  - Replay validation                                        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Runtime Module (`runtime.cpp`)
+---
 
-Execution engine with policy enforcement.
+## Module Boundaries
 
-**Process:**
-1. Parse and validate request JSON
-2. Canonicalize request for hashing
-3. Apply execution policy (env filtering, workspace confinement)
-4. Spawn sandboxed process
-5. Capture stdout/stderr with limits
-6. Hash outputs
-7. Compute result digest
+### Import Rules (Enforced by ESLint)
 
-**Policy Enforcement:**
-- Workspace path normalization and confinement
-- Environment variable allowlist/denylist
-- Timeout enforcement
-- Output size limits
+| From ↓ \ To → | Core | Server | UI | Native |
+|---------------|------|--------|-----|--------|
+| **Core** | ✅ | ❌ | ❌ | ❌ |
+| **Server** | ✅ | ✅ | ❌ | ✅ (via adapter) |
+| **UI** | ✅ | ❌ | ✅ | ❌ |
+| **CLI** | ✅ | ✅ | ❌ | ✅ (via adapter) |
 
-### 4. Sandbox Module (`sandbox_posix.cpp`, `sandbox_win.cpp`)
+### Rule Details
 
-Platform-specific process isolation.
+- **Core** (`packages/cli/src/lib/errors.ts`, `clock.ts`, `state-machine.ts`):
+  - Pure logic, deterministic
+  - No filesystem, network, or environment access
+  - May be imported by any layer
 
-**Linux:**
-- Process groups for signal management
-- Timeout with SIGKILL
-- Path-based workspace confinement
+- **Server** (`packages/cli/src/lib/tenant.ts`, `db/`):
+  - Database access, auth, external APIs
+  - Never imported by UI layer
+  - Tenant resolution is server-side only
 
-**Windows:**
-- Job Objects for kill-on-close
-- Timeout with TerminateJobObject
-- Named pipe I/O
+- **UI** (`packages/ui/`, `ready-layer/src/app/`):
+  - React components, route handlers
+  - Never imports server-only modules directly
+  - Communicates via HTTP/API boundaries
 
-### 5. Replay Module (`replay.cpp`)
+---
 
-Validation of execution results.
+## Key Components
 
-**Checks:**
-- Request digest matches
-- Output digests match
-- Trace events match
-- CAS objects exist and are valid
+### 1. Structured Error Envelope (`packages/cli/src/lib/errors.ts`)
+
+Unified error handling with stable identifiers:
+
+```typescript
+interface ErrorEnvelope {
+  code: ErrorCode;           // Stable identifier
+  message: string;           // Safe for UI display
+  severity: ErrorSeverity;   // DEBUG, INFO, WARNING, ERROR, CRITICAL
+  retryable: boolean;        // Client guidance
+  phase?: string;            // Operation phase
+  cause?: ErrorEnvelope;     // Chain preservation
+  meta?: ErrorMeta;          // Safe context (no secrets)
+  timestamp: string;         // ISO 8601
+}
+```
+
+### 2. Tenant Resolution (`packages/cli/src/lib/tenant.ts`)
+
+Single source of truth for tenant context:
+
+```typescript
+interface TenantContext {
+  readonly tenantId: string;      // UUID
+  readonly userId: string;        // User UUID
+  readonly role: TenantRole;      // VIEWER | MEMBER | ADMIN | OWNER
+  readonly derivedAt: string;     // ISO timestamp
+  readonly derivedFrom: 'jwt' | 'api_key' | 'service_account';
+}
+```
+
+**Invariant:** Tenant derivation is ALWAYS server-side. Client input is NEVER trusted.
+
+### 3. State Machine (`packages/cli/src/lib/state-machine.ts`)
+
+Explicit state transitions prevent impossible states:
+
+```typescript
+const machine = createExecutionStateMachine();
+machine.transition('running', 'succeeded'); // ✅ Valid
+machine.transition('succeeded', 'running'); // ❌ Throws (terminal state)
+```
+
+**Execution States:**
+```
+PENDING → QUEUED → RUNNING → SUCCEEDED
+                      ↓
+              [FAILED, TIMEOUT, CANCELLED, PAUSED]
+                      ↓
+                   QUEUED (retry)
+```
+
+### 4. Clock Abstraction (`packages/cli/src/lib/clock.ts`)
+
+Deterministic time for reproducible execution:
+
+```typescript
+// Production
+setGlobalClock(new SystemClock());
+
+// Testing/Replay
+setGlobalClock(new SeededClock(seedFromString(requestId), 1));
+```
+
+### 5. Native Engine (`src/`)
+
+C++ core providing:
+- **Hash**: BLAKE3 for all cryptographic operations
+- **CAS**: Content-addressable storage with integrity
+- **Sandbox**: Cross-platform process isolation
+- **Replay**: Execution trace validation
+
+---
 
 ## Data Flow
 
+### Request Processing
+
 ```
-┌─────────────────┐
-│  Request JSON   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│ Parse & Validate│────▶│ Canonical JSON  │
-└────────┬────────┘     └────────┬────────┘
-         │                       │
-         ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐
-│ Apply Policy    │     │ Request Digest  │
-│ (env, paths)    │     │ (BLAKE3)        │
-└────────┬────────┘     └─────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Sandbox Spawn   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Execute Process │
-│ (with timeout)  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Capture Outputs │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│ Hash Outputs    │────▶│ Output Digests  │
-└────────┬────────┘     └─────────────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│ Build Result    │────▶│ Result Digest   │
-└────────┬────────┘     └─────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Result JSON     │
-└─────────────────┘
+┌──────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────┐
+│  Client  │───▶│  API Route   │───▶│   Tenant     │───▶│  Handler │
+│  Request │    │   Handler    │    │  Resolution  │    │          │
+└──────────┘    └──────────────┘    └──────────────┘    └────┬─────┘
+                                                             │
+                         ┌───────────────────────────────────┘
+                         ▼
+┌──────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────┐
+│  Client  │◄───│  Structured  │◄───│   Engine     │◄───│  Core    │
+│ Response │    │    Error     │    │  (Native)    │    │  Logic   │
+└──────────┘    └──────────────┘    └──────────────┘    └──────────┘
 ```
 
-## Security Architecture
+### Determinism Guarantee
 
-### Threat Model
+```
+Request JSON
+    │
+    ▼
+Canonical JSON (sorted keys, no timestamps)
+    │
+    ▼
+BLAKE3 Hash = Request Digest
+    │
+    ▼
+Sandbox Execution (with seeded clock if replay)
+    │
+    ▼
+Output Hash + Result Hash
+    │
+    ▼
+Replay Validation: Recompute and verify
+```
 
-**Trusted:**
-- Requiem binary
-- Vendored BLAKE3 implementation
-- System libraries (OpenSSL for TLS only)
+---
 
-**Untrusted:**
-- Executed commands
-- Input data
-- Environment variables
-- Workspace contents
+## Error Handling Strategy
 
-### Mitigations
+### Layer-Specific Handling
 
-1. **Hash Unavailability**: Fail-closed behavior, explicit fallback required
-2. **Path Traversal**: Workspace confinement with canonicalization
-3. **Resource Exhaustion**: Timeouts, memory limits, FD limits
-4. **Environment Leakage**: Allowlist/denylist filtering
-5. **Output Leakage**: Size limits, truncation indicators
+| Layer | Strategy |
+|-------|----------|
+| **Core** | Throw `RequiemError` with codes |
+| **Server** | Catch and wrap; log with context |
+| **API** | Return structured JSON with HTTP status |
+| **UI** | Display safe message; log correlation ID |
 
-## Scheduler Modes
+### HTTP Status Mapping
 
-### Repro Mode (`scheduler_mode: "repro"`)
+| Error Code | HTTP Status |
+|------------|-------------|
+| TENANT_NOT_FOUND | 404 |
+| TENANT_ACCESS_DENIED | 403 |
+| UNAUTHORIZED | 401 |
+| VALIDATION_FAILED | 400 |
+| ENGINE_UNAVAILABLE | 503 |
+| DETERMINISM_VIOLATION | 500 |
 
-- Single-worker execution
-- Strict FIFO ordering
-- Deterministic dispatch
-- Use for: Reproducible builds, verification
-
-### Turbo Mode (`scheduler_mode: "turbo"`)
-
-- Worker pool for concurrent execution
-- Performance optimized
-- Same digest semantics
-- Use for: Development, CI, load testing
+---
 
 ## Multi-Tenancy
 
-Enterprise features for shared deployments:
+### Tenant Isolation
 
-- `tenant_id` isolation
-- Namespaced CAS (optional)
-- Resource quotas:
-  - `max_concurrent`
-  - `max_output_bytes`
-  - `max_cas_bytes`
+1. **Request Level**: JWT/API key → TenantContext
+2. **Query Level**: All queries include `tenant_id` filter
+3. **Database Level**: RLS policies enforce tenant boundaries
+4. **Cache Level**: Keys prefixed with `tenant:{id}:`
 
-## Plugin ABI (v1)
+### Role Hierarchy
 
-C ABI for extending Requiem:
+```
+OWNER (3)
+  └─ Full control, billing access
 
-```c
-typedef struct {
-    uint32_t version;
-    const char* name;
-} requiem_plugin_info_t;
+ADMIN (2)
+  └─ Manage users, settings
 
-typedef struct {
-    int (*on_engine_start)(const requiem_context_t* ctx);
-    int (*on_request_received)(const requiem_request_t* req);
-    int (*on_policy_applied)(const requiem_policy_t* policy);
-    int (*on_result_ready)(const requiem_result_t* result);
-} requiem_plugin_hooks_t;
+MEMBER (1)
+  └─ Create runs, view data
+
+VIEWER (0)
+  └─ Read-only access
 ```
 
-## Version Compatibility
+---
 
-| Version | Hash Primitive | CAS Version | ABI Version |
-|---------|---------------|-------------|-------------|
-| v1.0    | BLAKE3        | v2          | v1          |
-| v0.9    | BLAKE3/fallback| v2         | v1          |
-| v0.5    | BLAKE3/fallback| v2         | -           |
-| v0.1    | SHA-256       | v1          | -           |
+## Configuration
 
-## Future Directions
+### Environment Variables
 
-1. **Seccomp**: Fine-grained syscall filtering on Linux
-2. **Landlock**: Path-based sandboxing
-3. **Namespaces**: PID/network isolation
-4. **WebAssembly**: Deterministic execution environment
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `REQUIEM_TENANT_ID` | CLI tenant context | CLI only |
+| `REQUIEM_API_KEY` | CLI authentication | CLI only |
+| `REQUIEM_ENGINE_PATH` | Native binary path | Optional |
+| `REQUIEM_CAS_PATH` | CAS storage directory | Optional |
+
+### Config Snapshots
+
+Captured at execution start for replay verification:
+
+```typescript
+interface ConfigSnapshot {
+  version: string;          // Config schema version
+  values: Record<string, unknown>;  // Relevant config
+  capturedAt: string;       // ISO timestamp
+  clockSeed?: number;       // If using seeded clock
+}
+```
+
+---
+
+## Extension Points
+
+### Adding New Error Codes
+
+1. Add to `ErrorCode` enum in `packages/cli/src/lib/errors.ts`
+2. Add HTTP status mapping in `errorToHttpStatus()`
+3. Add factory method in `Errors` object (optional)
+
+### Adding New States
+
+1. Define state in state machine config
+2. Add transitions to `allowedTransitions`
+3. Generate SQL CHECK constraint
+4. Update documentation
+
+### Adding New Tenant Sources
+
+1. Implement `TenantResolver` interface
+2. Add to `derivedFrom` type
+3. Update `requireTenantContext()` helper
+
+---
+
+## References
+
+- [INVARIANTS.md](./INVARIANTS.md) — Hard system constraints
+- [OPERATIONS.md](./OPERATIONS.md) — Runbooks and procedures
+- [THREAT_MODEL.md](./THREAT_MODEL.md) — Security analysis
+- [DETERMINISM.md](./DETERMINISM.md) — Determinism guarantees
