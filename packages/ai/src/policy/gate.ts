@@ -25,7 +25,7 @@ export interface PolicyDecision {
 
 /**
  * Synchronous policy evaluation (fast path — no async budget check).
- * Budget checks are separate (async) and handled in invokeToolWithPolicy.
+ * Budget checks are separate (async) and handled in evaluatePolicyWithBudget.
  */
 export function evaluatePolicy(
   ctx: InvocationContext,
@@ -41,7 +41,6 @@ export function evaluatePolicy(
 
   // 2. RBAC capability check
   if (toolDef.requiredCapabilities.length > 0) {
-    // Derive capabilities from tenant role
     const actorCaps = capabilitiesFromRole(ctx.tenant?.role ?? TenantRole.VIEWER);
     if (!hasCapabilities(actorCaps, toolDef.requiredCapabilities)) {
       const missing = toolDef.requiredCapabilities.filter(c => !actorCaps.includes(c));
@@ -56,19 +55,12 @@ export function evaluatePolicy(
     }
   }
 
-  // 4. Environment restrictions
-  const env = ctx.environment;
-  if (env === 'production' && toolDef.sideEffect && !toolDef.idempotent) {
-    // Non-idempotent side-effect tools in prod still allowed,
-    // but we could add additional checks here (e.g., approval workflows)
-  }
-
   return allow();
 }
 
 /**
  * Async policy evaluation including budget check.
- * Used when budget enforcement is needed.
+ * Used when budget enforcement is needed (every tool execution).
  */
 export async function evaluatePolicyWithBudget(
   ctx: InvocationContext,
@@ -90,36 +82,6 @@ export async function evaluatePolicyWithBudget(
   }
 
   return allow();
-  toolName: string,
-  input: z.infer<T>
-): Promise<any> {
-  const tool = getTool(toolName, ctx.tenant.id);
-  if (!tool) {
-    auditLog(ctx, toolName, input, { allowed: false, reason: 'Tool not found.' });
-    throw new Error(`Tool "${toolName}" not found.`);
-  }
-
-  // 1. Evaluate Policy
-  const policyDecision = evaluateToolCall(ctx, tool.definition, input);
-  auditLog(ctx, toolName, input, policyDecision);
-
-  if (!policyDecision.allowed) {
-    throw new Error(`Policy denied tool invocation: ${policyDecision.reason}`);
-  }
-
-  // 2. Validate Input
-  const validatedInput = tool.definition.inputSchema.parse(input);
-
-  // 3. Execute Handler
-  const output = await tool.handler(validatedInput);
-
-  // 4. Validate Output
-  const validatedOutput = tool.definition.outputSchema.parse(output);
-
-  // 5. Audit Log Cost (Phase 5)
-  // recordCost(ctx, tool.definition, output);
-
-  return validatedOutput;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

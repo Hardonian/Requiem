@@ -22,8 +22,7 @@
 
 export const ENTERPRISE_MARKER = 'enterprise-ui-components'
 
-// Stub implementations - actual components would be developed here
-// based on specific enterprise requirements
+// ─── Stub interfaces ──────────────────────────────────────────────────────────
 
 export interface TenantInfo {
   id: string
@@ -35,3 +34,16 @@ export interface EnterpriseProps {
   tenantId: string
   userRole: 'admin' | 'member' | 'viewer'
 }
+
+// ─── Web IDE Bridge ───────────────────────────────────────────────────────────
+// Visualization-only components for the AI control-plane Web IDE.
+// INVARIANT: These components NEVER execute client-side code.
+
+export type {
+  ExecutionTrace,
+  ExecutionTracePanelProps,
+  TraceSpan,
+  WebIDETrace,
+} from './execution-trace-panel.js'
+
+export { ExecutionTracePanel } from './execution-trace-panel.js'

@@ -2,25 +2,31 @@
  * @fileoverview Tool invocation entry point.
  *
  * INVARIANT: All tool invocations MUST use invokeToolWithPolicy.
- * Direct handler calls bypass the policy gate and are FORBIDDEN in app paths.
+ * INVARIANT: Direct handler calls bypass the policy gate — FORBIDDEN in app paths.
+ * INVARIANT: Tenant context is ALWAYS mandatory (no implicit default).
+ * INVARIANT: ctx.tenant.tenantId MUST be a non-empty string — no fallback.
+ *
+ * This module provides the legacy-compatible `invokeToolWithPolicy` wrapper
+ * that delegates to the full ExecutionEnvelope pipeline in executor.ts.
  */
 
-import { getTool } from './registry.js';
-import { validateInputOrThrow, validateOutputOrThrow } from './schema.js';
-import { evaluatePolicy } from '../policy/gate.js';
+import { executeToolEnvelope } from './executor.js';
 import { AiError } from '../errors/AiError.js';
-import { writeAuditRecord } from '../telemetry/audit.js';
+import { AiErrorCode } from '../errors/codes.js';
 import type { InvocationContext } from '../types/index.js';
 import type { ToolInvocationResult } from './types.js';
 
 /**
  * Invoke a tool by name, enforcing:
- * 1. Tool existence
- * 2. Policy gate (tenant, RBAC, budget, env)
+ * 1. Tenant isolation hard stop (tenant required, no fallback)
+ * 2. Policy gate (RBAC + budget)
  * 3. Input schema validation
- * 4. Handler execution
- * 5. Output schema validation
- * 6. Audit log
+ * 4. Recursion depth guard
+ * 5. Replay cache (deterministic tools)
+ * 6. Timeout-bounded execution
+ * 7. Output schema validation
+ * 8. Audit log persistence
+ * 9. Execution envelope return
  *
  * Throws AiError on any failure.
  */
@@ -30,66 +36,22 @@ export async function invokeToolWithPolicy(
   input: unknown,
   version?: string
 ): Promise<ToolInvocationResult> {
-  const startMs = Date.now();
-
-  // 1. Look up tool
-  const registered = getTool(toolName, version);
-  if (!registered) {
-    await writeAuditRecord({
-      toolName,
-      toolVersion: version ?? 'unknown',
-      actorId: ctx.actorId,
-      tenantId: ctx.tenant?.tenantId ?? null,
-      traceId: ctx.traceId,
-      decision: 'deny',
-      reason: 'Tool not found',
-      latencyMs: Date.now() - startMs,
-      timestamp: new Date().toISOString(),
+  // Tenant isolation hard stop: tenant_id is MANDATORY
+  // No fallback to 'system', 'global', or undefined
+  if (!ctx.tenant?.tenantId) {
+    throw new AiError({
+      code: AiErrorCode.TENANT_REQUIRED,
+      message: `Tool "${toolName}" requires a valid tenant context — no implicit default`,
+      phase: 'invoke',
     });
-    throw AiError.toolNotFound(toolName);
   }
 
-  const { definition, handler } = registered;
-
-  // 2. Policy gate
-  const decision = evaluatePolicy(ctx, definition, input);
-  await writeAuditRecord({
-    toolName,
-    toolVersion: definition.version,
-    actorId: ctx.actorId,
-    tenantId: ctx.tenant?.tenantId ?? null,
-    traceId: ctx.traceId,
-    decision: decision.allowed ? 'allow' : 'deny',
-    reason: decision.reason,
-    latencyMs: null,
-    timestamp: new Date().toISOString(),
-  });
-
-  if (!decision.allowed) {
-    throw AiError.policyDenied(decision.reason, toolName);
-  }
-
-  // 3. Validate input
-  validateInputOrThrow(definition, input);
-
-  // 4. Execute handler
-  let output: unknown;
-  try {
-    output = await handler(ctx, input);
-  } catch (err) {
-    const aiErr = AiError.fromUnknown(err, 'tool');
-    throw aiErr;
-  }
-
-  // 5. Validate output
-  validateOutputOrThrow(definition, output);
-
-  const latencyMs = Date.now() - startMs;
+  const envelope = await executeToolEnvelope(ctx, toolName, input, { version });
 
   return {
-    output,
-    latencyMs,
+    output: envelope.result,
+    latencyMs: envelope.duration_ms,
     toolName,
-    toolVersion: definition.version,
+    toolVersion: envelope.tool_version,
   };
 }

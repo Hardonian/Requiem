@@ -64,8 +64,26 @@ export { runEvalCase, runEvalHarness, type EvalRunResult, type HarnessResult } f
 export { diff, diffValues, type DiffResult, type DiffEntry } from './eval/diff.js';
 export { loadEvalCases, loadGoldens, type EvalCase, type EvalGolden } from './eval/cases.js';
 
+// ─── Replay + Sandbox ─────────────────────────────────────────────────────────
+export { storeReplayRecord, checkReplayCache, getReplayRecord, setReplaySink, InMemoryReplaySink } from './tools/replay.js';
+export { sandboxPath, checkDepth, releaseDepth, MAX_DEPTH, MAX_CHAIN_LENGTH, _resetSandbox } from './tools/sandbox.js';
+
+// ─── Tool Executor ────────────────────────────────────────────────────────────
+export { executeTool, type ExecutionEnvelope } from './tools/executor.js';
+
+// ─── Model Router ─────────────────────────────────────────────────────────────
+export { routeRequest, type RouterRequest, type RouterResult } from './models/router.js';
+
 // ─── Bootstrap (register built-ins) ──────────────────────────────────────────
 // These side-effect imports register built-in tools and skills.
 import './tools/builtins/system.echo.js';
 import './tools/builtins/system.health.js';
+import './tools/builtins/fs.read_file.js';
+import './tools/builtins/fs.write_file.js';
+import './tools/builtins/fs.list_dir.js';
+import './tools/builtins/fs.diff_file.js';
+import './tools/builtins/web.fetch.js';
+import './tools/builtins/vector.search.js';
+import './tools/builtins/vector.upsert.js';
+import './tools/builtins/kilo.execute.js';
 import './skills/baseline.js';
