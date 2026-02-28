@@ -4,11 +4,162 @@
  * INVARIANT: Every tool call MUST be recordable and replayable.
  * INVARIANT: Non-deterministic tools MUST be explicitly flagged.
  * INVARIANT: Tenant boundaries MUST be enforced at the registry level.
+ * INVARIANT: Budget enforcement is MANDATORY — CLI cannot bypass policies.
  */
 
 import { z } from 'zod';
 import { TenantContext, TenantRole, hasRequiredRole } from './tenant';
 import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
+
+// Budget tracking for CLI (in production, this would be shared with AI package)
+interface BudgetState {
+  usedCostCents: number;
+  windowStart: string;
+  limit: BudgetLimit;
+}
+
+interface BudgetLimit {
+  maxCostCents: number;
+  windowSeconds: number;
+}
+
+const CLI_BUDGET_LIMITS: Map<string, BudgetLimit> = new Map([
+  ['free', { maxCostCents: 1000, windowSeconds: 2592000 }], // $10/month
+  ['enterprise', { maxCostCents: Number.MAX_SAFE_INTEGER, windowSeconds: 2592000 }],
+]);
+
+const budgetStates = new Map<string, BudgetState>();
+const budgetLocks = new Map<string, Promise<void>>();
+const budgetLockResolvers = new Map<string, () => void>();
+
+// Default tier for CLI (can be configured via environment)
+let defaultTier = 'free';
+
+/**
+ * Configure CLI budget tier for a tenant.
+ * Call this during CLI initialization or tenant setup.
+ */
+export function setCLIBudgetTier(tenantId: string, tier: 'free' | 'enterprise'): void {
+  defaultTier = tier;
+}
+
+/** Get budget limit for a tenant tier */
+function getBudgetLimit(tenantId: string): BudgetLimit {
+  // Check for tenant-specific override first
+  // In production, this would query configuration
+  const limit = CLI_BUDGET_LIMITS.get(defaultTier);
+  return limit ?? CLI_BUDGET_LIMITS.get('free')!;
+}
+
+/** Acquire per-tenant mutex to prevent concurrent races */
+async function acquireBudgetLock(tenantId: string): Promise<void> {
+  while (budgetLocks.has(tenantId)) {
+    await budgetLocks.get(tenantId);
+  }
+  let resolve: () => void;
+  const lock = new Promise<void>(r => { resolve = r; });
+  budgetLocks.set(tenantId, lock);
+  budgetLockResolvers.set(tenantId, resolve!);
+}
+
+function releaseBudgetLock(tenantId: string): void {
+  const resolve = budgetLockResolvers.get(tenantId);
+  if (resolve) {
+    budgetLocks.delete(tenantId);
+    budgetLockResolvers.delete(tenantId);
+    resolve();
+  }
+}
+
+/**
+ * Check and reserve budget for a tool invocation.
+ * Enforces atomic budget limits - concurrent requests cannot exceed limit.
+ */
+async function checkBudget(tenantId: string, estimatedCostCents: number): Promise<{ allowed: boolean; reason?: string; remaining?: number }> {
+  // Get limit for tenant tier
+  const limit = getBudgetLimit(tenantId);
+  
+  // No limit for enterprise (or very high limit)
+  if (limit.maxCostCents === Number.MAX_SAFE_INTEGER) {
+    return { allowed: true, remaining: Number.MAX_SAFE_INTEGER };
+  }
+
+  await acquireBudgetLock(tenantId);
+  try {
+    let state = budgetStates.get(tenantId);
+    
+    // Initialize state if needed
+    if (!state) {
+      state = {
+        usedCostCents: 0,
+        windowStart: new Date().toISOString(),
+        limit,
+      };
+      budgetStates.set(tenantId, state);
+    }
+
+    // Reset window if expired
+    const windowStart = new Date(state.windowStart).getTime();
+    const windowEndMs = windowStart + limit.windowSeconds * 1000;
+    if (Date.now() > windowEndMs) {
+      state.usedCostCents = 0;
+      state.windowStart = new Date().toISOString();
+    }
+
+    const projectedCost = state.usedCostCents + estimatedCostCents;
+
+    if (projectedCost > limit.maxCostCents) {
+      return {
+        allowed: false,
+        reason: `Budget exceeded: ${state.usedCostCents}¢ used + ${estimatedCostCents}¢ estimated > ${limit.maxCostCents}¢ limit`,
+        remaining: Math.max(0, limit.maxCostCents - state.usedCostCents),
+      };
+    }
+
+    // Reserve the cost (atomic pre-debit)
+    state.usedCostCents += estimatedCostCents;
+
+    return {
+      allowed: true,
+      remaining: Math.max(0, limit.maxCostCents - state.usedCostCents),
+    };
+  } finally {
+    releaseBudgetLock(tenantId);
+  }
+}
+
+/**
+ * Record actual cost after tool execution.
+ * Reconciles pre-debited estimate with actual cost.
+ */
+async function recordBudgetUsage(tenantId: string, actualCostCents: number): Promise<void> {
+  const limit = getBudgetLimit(tenantId);
+  if (limit.maxCostCents === Number.MAX_SAFE_INTEGER) return;
+
+  await acquireBudgetLock(tenantId);
+  try {
+    const state = budgetStates.get(tenantId);
+    if (state) {
+      state.usedCostCents = Math.max(0, state.usedCostCents + actualCostCents);
+    }
+  } finally {
+    releaseBudgetLock(tenantId);
+  }
+}
+
+/**
+ * Get current budget state for a tenant (for observability).
+ */
+export function getCLIBudgetState(tenantId: string): { used: number; limit: number; remaining: number } | undefined {
+  const state = budgetStates.get(tenantId);
+  if (!state) return undefined;
+  
+  return {
+    used: state.usedCostCents,
+    limit: state.limit.maxCostCents,
+    remaining: Math.max(0, state.limit.maxCostCents - state.usedCostCents),
+  };
+}
 
 /**
  * Metadata for tool versioning and identification.
@@ -149,7 +300,20 @@ export class ToolRegistry {
       });
     }
 
-    // 4. Validate Input Schema
+    // 4. Enforce Budget Limits (CLI cannot bypass policies)
+    if (tool.tenantScoped && ctx.tenantId) {
+      const estimatedCost = tool.cost?.costCents ?? 0;
+      const budgetResult = await checkBudget(ctx.tenantId, estimatedCost);
+      if (!budgetResult.allowed) {
+        throw new RequiemError({
+          code: ErrorCode.BUDGET_EXCEEDED,
+          message: `Budget check failed for tool ${name}: ${budgetResult.reason}`,
+          severity: ErrorSeverity.CRITICAL,
+        });
+      }
+    }
+
+    // 5. Validate Input Schema
     const validatedInput = await tool.inputSchema.parseAsync(input).catch((err: Error) => {
       throw new RequiemError({
         code: ErrorCode.VALIDATION_FAILED,

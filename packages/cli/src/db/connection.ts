@@ -89,13 +89,22 @@ class InMemoryStatement implements Statement {
         const columns = this.sql.match(/\(([^)]+)\)\s*VALUES/)?.[1].split(',').map(c => c.trim()) || [];
         const row: Record<string, unknown> = { id: params.find(p => typeof p === 'string' && p.includes('_')) || `row_${Date.now()}` };
 
-        // Match params to columns (simplified)
-        let paramIndex = 0;
-        columns.forEach((col) => {
-          if (paramIndex < params.length) {
-            row[col] = params[paramIndex++];
-          }
-        });
+        // Handle named parameters (object) or positional parameters
+        if (params.length === 1 && typeof params[0] === 'object' && params[0] !== null) {
+          const paramObj = params[0] as Record<string, unknown>;
+          columns.forEach((col) => {
+            if (paramObj[col] !== undefined) {
+              row[col] = paramObj[col];
+            }
+          });
+        } else {
+          let paramIndex = 0;
+          columns.forEach((col) => {
+            if (paramIndex < params.length) {
+              row[col] = params[paramIndex++];
+            }
+          });
+        }
 
         table.push(row);
         return { lastInsertRowid: table.length, changes: 1 };

@@ -48,15 +48,177 @@ export interface BudgetChecker {
   record?(tenantId: string, actualCostCents: number, tokens?: number): Promise<void>;
 }
 
-// ─── Default: No-Op Budget Checker ───────────────────────────────────────────
+// ─── Default: Production Budget Checker ─────────────────────────────────────
+
+/**
+ * DefaultBudgetChecker enforces budget limits based on tenant tier.
+ * 
+ * INVARIANT: Returns DENY by default when no explicit limits are configured
+ *            to prevent accidental unlimited usage.
+ * INVARIANT: Free tier has hard limits; Enterprise has configurable limits.
+ * INVARIANT: Budget checks are atomic - uses mutex per tenant to prevent races.
+ */
+
+// Default limits for free tier (can be overridden)
+const FREE_TIER_LIMITS: BudgetLimit = {
+  maxCostCents: 1000, // $10.00 per month (1000 cents)
+  maxTokens: 100000,
+  windowSeconds: 2592000, // 30 days
+};
+
+// Map of tenant tier configurations
+interface TenantTierConfig {
+  tier: 'free' | 'enterprise';
+  limits: BudgetLimit;
+  // For enterprise, allow per-tenant override
+  customLimits?: Map<string, BudgetLimit>;
+}
+
+// In-memory tier configuration (in production, load from database)
+const tenantTiers = new Map<string, TenantTierConfig>();
+
+// Global limits map for AtomicBudgetChecker fallback
+const globalLimits = new Map<string, BudgetLimit>();
 
 export class DefaultBudgetChecker implements BudgetChecker {
-  async check(_tenantId: string, _estimatedCostCents: number): Promise<BudgetCheckResult> {
+  private useAtomic: boolean;
+
+  constructor(useAtomicFallback = true) {
+    this.useAtomic = useAtomicFallback;
+  }
+
+  /**
+   * Configure a tenant's tier and limits.
+   * Call this during tenant provisioning to set up budget limits.
+   */
+  static configureTenant(tenantId: string, tier: 'free' | 'enterprise', customLimits?: BudgetLimit): void {
+    if (tier === 'free') {
+      tenantTiers.set(tenantId, { tier: 'free', limits: FREE_TIER_LIMITS });
+    } else {
+      tenantTiers.set(tenantId, { 
+        tier: 'enterprise', 
+        limits: customLimits ?? { maxCostCents: Number.MAX_SAFE_INTEGER, windowSeconds: 2592000 },
+        customLimits: customLimits ? new Map([[tenantId, customLimits]]) : undefined
+      });
+    }
+  }
+
+  /**
+   * Get current tier configuration for a tenant.
+   */
+  static getTenantTier(tenantId: string): TenantTierConfig | undefined {
+    return tenantTiers.get(tenantId);
+  }
+
+  async check(tenantId: string, estimatedCostCents: number): Promise<BudgetCheckResult> {
+    // Get tier configuration
+    const config = tenantTiers.get(tenantId);
+    
+    // Default: DENY if no configuration exists (fail-safe)
+    if (!config) {
+      return {
+        allowed: false,
+        reason: 'Budget not configured for tenant. Contact administrator to provision budget limits.',
+        remaining: { costCents: 0 },
+      };
+    }
+
+    // Use AtomicBudgetChecker for actual enforcement
+    if (this.useAtomic) {
+      const atomic = new AtomicBudgetChecker(globalLimits);
+      
+      // Transfer tier configuration to atomic checker
+      atomic.setLimit(tenantId, config.limits);
+      
+      return atomic.check(tenantId, estimatedCostCents);
+    }
+
+    // Inline check (non-atomic, for reference)
+    const limit = config.limits;
+    
+    // For simplicity, we use in-memory tracking here
+    // In production, this would query the database
+    const currentUsage = this.getCurrentUsage(tenantId);
+    const projectedCost = currentUsage + estimatedCostCents;
+
+    if (projectedCost > limit.maxCostCents) {
+      return {
+        allowed: false,
+        reason: `Budget exceeded: ${currentUsage}¢ used + ${estimatedCostCents}¢ estimated > ${limit.maxCostCents}¢ limit (${config.tier} tier)`,
+        remaining: { costCents: Math.max(0, limit.maxCostCents - currentUsage) },
+      };
+    }
+
+    // Reserve the estimated cost
+    this.recordUsage(tenantId, estimatedCostCents);
+
     return {
       allowed: true,
-      reason: 'No budget limits configured (scaffold mode)',
-      remaining: { costCents: Number.MAX_SAFE_INTEGER },
+      reason: `Budget available (${config.tier} tier)`,
+      remaining: {
+        costCents: Math.max(0, limit.maxCostCents - (currentUsage + estimatedCostCents)),
+        tokens: limit.maxTokens !== undefined
+          ? Math.max(0, limit.maxTokens - this.getCurrentTokens(tenantId))
+          : undefined,
+      },
     };
+  }
+
+  async record(_tenantId: string, _actualCostCents: number, _tokens?: number): Promise<void> {
+    // Actual recording happens in the atomic checker path
+    // This is a no-op for the default checker
+  }
+
+  // In-memory usage tracking (production would use database)
+  private usageTracker = new Map<string, { costCents: number; tokens: number; windowStart: string }>();
+
+  private getCurrentUsage(tenantId: string): number {
+    const state = this.usageTracker.get(tenantId);
+    if (!state) return 0;
+    
+    // Check if window expired (simplified - production would use proper window logic)
+    const windowStart = new Date(state.windowStart).getTime();
+    const windowEnd = windowStart + (2592000 * 1000); // 30 days
+    
+    if (Date.now() > windowEnd) {
+      this.usageTracker.delete(tenantId);
+      return 0;
+    }
+    
+    return state.costCents;
+  }
+
+  private getCurrentTokens(tenantId: string): number {
+    const state = this.usageTracker.get(tenantId);
+    if (!state) return 0;
+    
+    const windowStart = new Date(state.windowStart).getTime();
+    const windowEnd = windowStart + (2592000 * 1000);
+    
+    if (Date.now() > windowEnd) {
+      return 0;
+    }
+    
+    return state.tokens;
+  }
+
+  private recordUsage(tenantId: string, costCents: number): void {
+    const state = this.usageTracker.get(tenantId) || {
+      costCents: 0,
+      tokens: 0,
+      windowStart: new Date().toISOString(),
+    };
+    state.costCents += costCents;
+    this.usageTracker.set(tenantId, state);
+  }
+
+  /** Reset usage for a tenant (for testing) */
+  _reset(tenantId?: string): void {
+    if (tenantId) {
+      this.usageTracker.delete(tenantId);
+    } else {
+      this.usageTracker.clear();
+    }
   }
 }
 

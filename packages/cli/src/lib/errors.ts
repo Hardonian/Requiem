@@ -59,8 +59,9 @@ export enum ErrorCode {
   DB_CONSTRAINT_VIOLATION = 'REQ_DB_CONSTRAINT_VIOLATION',
   DB_TRANSACTION_FAILED = 'REQ_DB_TRANSACTION_FAILED',
 
-  // Rate limiting (1800-1899)
+  // Rate limiting / Budget (1800-1899)
   RATE_LIMITED = 'REQ_RATE_LIMITED',
+  BUDGET_EXCEEDED = 'REQ_BUDGET_EXCEEDED',
 
   // Invariant violations (1900-1999)
   INVARIANT_VIOLATION = 'REQ_INVARIANT_VIOLATION',
@@ -349,6 +350,7 @@ export function errorToHttpStatus(code: ErrorCode): number {
     case ErrorCode.ENGINE_TIMEOUT:
       return 504;
     case ErrorCode.RATE_LIMITED:
+    case ErrorCode.BUDGET_EXCEEDED:
       return 429;
     case ErrorCode.DB_CONSTRAINT_VIOLATION:
       return 409;

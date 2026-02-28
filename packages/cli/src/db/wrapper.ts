@@ -8,6 +8,8 @@
  */
 
 import { randomUUID } from 'crypto';
+import { DecisionRepository } from './decisions';
+import { hash } from '../lib/hash';
 
 export interface RequiemOptions {
   tenantId: string;
@@ -43,6 +45,20 @@ export class RequiemWrapper {
               completion_tokens: 0,
               total_tokens: 0
             };
+
+            // 3b. Persist to DecisionRepository (Audit)
+            if (this.options.persist) {
+              DecisionRepository.create({
+                tenant_id: this.options.tenantId,
+                source_type: 'llm_client',
+                source_ref: (params as any).model || 'unknown_model',
+                input_fingerprint: hash(JSON.stringify(params)),
+                decision_input: params,
+                decision_output: response,
+                usage,
+                status: 'evaluated',
+              });
+            }
 
             // 4. Augment Response (Auto-Audit)
             // We attach the correlation ID and ensure usage is propagated

@@ -9,6 +9,7 @@ import { TenantContext } from './tenant';
 import { ToolContext, toolRegistry } from './tools';
 import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
 import { hash } from './hash';
+import { RequiemWrapper } from '../db/wrapper';
 
 export interface AgentUsage {
   prompt_tokens: number;
@@ -31,8 +32,21 @@ export interface AgentRunState {
 
 export class AgentRunner {
   private static MAX_RECURSION_DEPTH = 10;
+  public llm: RequiemWrapper; // Wrapped LLM client
 
-  constructor(private context: TenantContext & { requestId: string }) {}
+  constructor(private context: TenantContext & { requestId: string }) {
+    // Initialize the internal LLM client wrapped with Requiem authority.
+    // In a production environment, this would accept an API key or client instance.
+    // For now, we wrap a placeholder to enforce the architecture.
+    const rawClient = {
+      chat: { completions: { create: async (): Promise<never> => { throw new Error('LLM not configured'); } } }
+    };
+
+    this.llm = new RequiemWrapper(rawClient, {
+      tenantId: context.tenantId,
+      persist: true
+    });
+  }
 
   /**
    * Execute a tool call as part of an agentic loop.

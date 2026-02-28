@@ -87,16 +87,45 @@ export interface ToolInvocationResult {
 
 // ─── Audit ────────────────────────────────────────────────────────────────────
 
+/**
+ * Enhanced audit record for policy decisions.
+ * 
+ * INVARIANT: All policy decisions MUST be logged.
+ * INVARIANT: Audit records are immutable - never modify after creation.
+ * INVARIANT: Input is never logged - only its hash for identification.
+ */
 export interface ToolAuditRecord {
-  readonly toolName: string;
-  readonly toolVersion: string;
-  readonly actorId: string;
-  readonly tenantId: string | null;
-  readonly traceId: string;
-  readonly decision: 'allow' | 'deny';
-  readonly reason: string;
-  readonly latencyMs: number | null;
+  /** Timestamp of the policy decision */
   readonly timestamp: string;
+  /** Principal (actor) making the request */
+  readonly actorId: string;
+  /** Tenant context (null for system-wide operations) */
+  readonly tenantId: string | null;
+  /** Trace ID for distributed tracing */
+  readonly traceId: string;
+  /** Action attempted - tool name */
+  readonly toolName: string;
+  /** Tool version at time of decision */
+  readonly toolVersion: string;
+  /** SHA-256 hash of input (for audit identification, not full input) */
+  readonly inputHash?: string;
+  /** Policy decision */
+  readonly decision: 'allow' | 'deny';
+  /** Human-readable reason for decision */
+  readonly reason: string;
+  /** Policy rule ID that triggered this decision (for compliance) */
+  readonly policyRuleId?: string;
+  /** Budget information at time of decision */
+  readonly budget?: {
+    readonly estimatedCostCents: number;
+    readonly limitCents: number;
+    readonly remainingCents: number;
+    readonly tier: string;
+  };
+  /** Execution latency (null if denied before execution) */
+  readonly latencyMs: number | null;
+  /** Source of the request (api, cli, mcp, internal) */
+  readonly source?: 'api' | 'cli' | 'mcp' | 'internal';
 }
 
 // ─── Validation ───────────────────────────────────────────────────────────────

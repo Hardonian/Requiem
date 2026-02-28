@@ -30,8 +30,8 @@ export interface CreateDecisionInput {
   source_type: string;
   source_ref: string;
   input_fingerprint: string;
-  decision_input: DecisionInput;
-  decision_output?: DecisionOutput;
+  decision_input: DecisionInput | Record<string, unknown>;
+  decision_output?: DecisionOutput | Record<string, unknown>;
   decision_trace?: unknown;
   usage?: unknown;
   recommended_action_id?: string;

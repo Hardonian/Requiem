@@ -10,6 +10,7 @@
 import { replay } from '../commands/replay';
 import { getDB } from './connection';
 import { randomBytes } from 'crypto';
+import type { Command, Option } from 'commander';
 
 async function main() {
   console.log('\n✈️  Running Preflight Checks...\n');
@@ -20,10 +21,10 @@ async function main() {
     console.log('[1] Checking "replay" command registration...');
     if (replay.name() !== 'replay') throw new Error('Command name mismatch');
 
-    const runCmd = replay.commands.find(c => c.name() === 'run');
+    const runCmd = replay.commands.find((c: Command) => c.name() === 'run');
     if (!runCmd) throw new Error('Subcommand "run" not found');
 
-    const verifyOption = runCmd.options.find(o => o.flags.includes('--verify'));
+    const verifyOption = runCmd.options.find((o: Option) => o.flags.includes('--verify'));
     if (!verifyOption) throw new Error('Option "--verify" not found on "replay run"');
 
     console.log('  ✓ "replay run --verify" is discoverable');
@@ -43,7 +44,7 @@ async function main() {
     db.prepare(`INSERT INTO decisions (id, usage) VALUES (?, ?)`).run(testId, testUsage);
 
     // Verify read
-    const row = db.prepare('SELECT usage FROM decisions WHERE id = ?').get(testId) as any;
+    const row = db.prepare('SELECT usage FROM decisions WHERE id = ?').get(testId) as Record<string, unknown> | undefined;
 
     if (!row) throw new Error('Failed to retrieve inserted record');
     if (row.usage !== testUsage) throw new Error(`Usage mismatch. Expected ${testUsage}, got ${row.usage}`);
@@ -58,4 +59,4 @@ async function main() {
   process.exit(passed ? 0 : 1);
 }
 
-main();
+void main();
