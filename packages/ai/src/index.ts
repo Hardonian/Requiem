@@ -69,7 +69,7 @@ export { storeReplayRecord, checkReplayCache, getReplayRecord, setReplaySink, In
 export { sandboxPath, checkDepth, releaseDepth, MAX_DEPTH, MAX_CHAIN_LENGTH, _resetSandbox } from './tools/sandbox.js';
 
 // ─── Tool Executor ────────────────────────────────────────────────────────────
-export { executeTool, type ExecutionEnvelope } from './tools/executor.js';
+export { executeToolEnvelope, type ExecutionEnvelope } from './tools/executor.js';
 
 // ─── Model Router ─────────────────────────────────────────────────────────────
 export { routeRequest, type RouterRequest, type RouterResult } from './models/router.js';

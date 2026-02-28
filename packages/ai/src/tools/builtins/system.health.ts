@@ -7,21 +7,24 @@
 
 import { registerTool, getToolCount } from '../registry.js';
 import type { InvocationContext } from '../../types/index.js';
-import { z } from 'zod';
 
 registerTool(
   {
     name: 'system.health',
     version: '1.0.0',
     description: 'Returns AI control-plane health and configuration status. No secrets exposed.',
-    inputSchema: z.object({}),
-    outputSchema: z.object({
-      status: z.enum(['ok', 'degraded']),
-      version: z.string(),
-      tools_registered: z.number(),
-      timestamp: z.string(),
-      environment: z.string(),
-    }),
+    inputSchema: { type: 'object' },
+    outputSchema: {
+      type: 'object',
+      required: ['status', 'version', 'tools_registered', 'timestamp', 'environment'],
+      properties: {
+        status: { type: 'string', enum: ['ok', 'degraded'] },
+        version: { type: 'string' },
+        tools_registered: { type: 'number' },
+        timestamp: { type: 'string' },
+        environment: { type: 'string' },
+      },
+    },
     deterministic: false, // depends on runtime state
     sideEffect: false,
     idempotent: true,
