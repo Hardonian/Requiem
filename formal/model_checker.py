@@ -20,7 +20,7 @@ import argparse
 import itertools
 import random
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 PASS = "\033[32mPASS\033[0m"
 FAIL = "\033[31mFAIL\033[0m"
@@ -140,7 +140,7 @@ def check_protocol(bound: int, verbose: bool) -> bool:
     State: stream = list of frame types, terminated = bool
     Invariants: starts with 'start', terminal is last, monotonic seq
     """
-    FRAME_TYPES = ["start", "event", "end", "result", "error"]
+    # FRAME_TYPES = ["start", "event", "end", "result", "error"]
     TERMINAL = {"result", "error"}
 
     violations = []
@@ -154,7 +154,7 @@ def check_protocol(bound: int, verbose: bool) -> bool:
                 return f"PROTO-INV-2: terminated=True but last frame is '{stream[-1] if stream else 'none'}'"
         for i, f in enumerate(stream):
             if f == "event" and i == 0:
-                return f"PROTO-INV-4: event at index 0, no start before it"
+                return "PROTO-INV-4: event at index 0, no start before it"
         return None
 
     def explore(stream: list, terminated: bool, depth: int):
@@ -310,7 +310,7 @@ def check_determinism(bound: int, verbose: bool) -> bool:
     cas_digests = {d for (p, i, d) in hash_calls if p == "cas:" and i == "input_a"}
     if req_digests & cas_digests:
         violations.append(
-            f"DET-INV-2: domain prefix collision: req: and cas: share digests for same input"
+            "DET-INV-2: domain prefix collision: req: and cas: share digests for same input"
         )
 
     if violations:
@@ -345,7 +345,7 @@ def check_policy_compiler(
         with open(policy_file, "r") as f:
             data = json.load(f)
         POLICIES = data.get("policies", [])
-        CONSTRAINTS = data.get("constraints", [])
+        # CONSTRAINTS = data.get("constraints", [])
         # Convert map lists to sets
         raw_map = data.get("map", {})
         COMPILER_MAP = {k: set(v) for k, v in raw_map.items()}
@@ -354,7 +354,7 @@ def check_policy_compiler(
         CONFLICTS = [set(c) for c in raw_conflicts]
     else:
         POLICIES = ["p1", "p2", "p3"]
-        CONSTRAINTS = ["c1", "c2", "c3", "c4"]
+        # CONSTRAINTS = ["c1", "c2", "c3", "c4"]
         COMPILER_MAP = {"p1": {"c1"}, "p2": {"c2"}, "p3": {"c3"}}
         CONFLICTS = [{"c1", "c2"}]
 

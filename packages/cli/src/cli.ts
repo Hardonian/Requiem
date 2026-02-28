@@ -19,6 +19,11 @@ import { parseDecideArgs, runDecideCommand } from './commands/decide.js';
 import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions.js';
 import { parseAgentArgs, runAgentCommand } from './commands/agent.js';
 import { checkEngineAvailability } from './engine/adapter.js';
+import { parseDecideArgs, runDecideCommand } from './commands/decide';
+import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
+import { parseAgentArgs, runAgentCommand } from './commands/agent';
+import { parseAiArgs, runAiCommand } from './commands/ai';
+import { checkEngineAvailability } from './engine/adapter';
 
 const VERSION = '0.2.0';
 
@@ -48,6 +53,49 @@ EXAMPLES:
   requiem tool list --capability ai:generate
   requiem tool exec system.echo --input '{"message":"hello"}' --tenant my-tenant
   requiem replay sha256abc123... --tenant my-tenant
+  decide <subcommand>     Decision engine operations
+  junctions <subcommand>  Junction management
+  agent <subcommand>      AI Agent orchestration (MCP)
+  ai <subcommand>         AI tools, skills & telemetry management
+  doctor                  Validate environment setup
+  version                 Show version information
+  help                    Show this help message
+
+DECIDE SUBCOMMANDS:
+  evaluate --junction <id>    Evaluate a decision for a junction
+  explain --junction <id>     Explain why a decision was made
+  outcome --id <id>           Record an outcome for a decision
+  list                        List all decision reports
+  show <id>                   Show details of a decision
+
+JUNCTIONS SUBCOMMANDS:
+  scan --since <time>         Scan for junctions (e.g., 7d, 24h)
+  list                        List all junctions
+  show <id>                   Show details of a junction
+
+AGENT SUBCOMMANDS:
+  serve --tenant <id>         Start MCP stdio server
+
+AI SUBCOMMANDS:
+  tools list                  List all registered AI tools
+  skills list                 List all AI skills
+  skills run <name>            Run an AI skill
+  telemetry                   Show AI cost and usage telemetry
+
+OPTIONS:
+  --json                      Output in JSON format
+  --help                      Show help for a command
+
+ENVIRONMENT VARIABLES:
+  DECISION_ENGINE            Engine type: ts|requiem (default: ts)
+  FORCE_RUST                 Force TypeScript fallback: true|false
+  REQUIEM_ENGINE_AVAILABLE   Set to 'true' if native engine is built
+
+EXAMPLES:
+  requiem decide evaluate --junction junction_abc123
+  requiem junctions scan --since 7d --json
+  requiem ai tools list
+  requiem ai skills list
   requiem doctor
 `);
 }
@@ -129,6 +177,11 @@ async function main(): Promise<number> {
     case 'agent': {
       const agentArgs = parseAgentArgs(subArgs);
       return await runAgentCommand(agentArgs);
+    }
+
+    case 'ai': {
+      const aiArgs = parseAiArgs(subArgs);
+      return await runAiCommand(aiArgs);
     }
 
     case 'doctor':

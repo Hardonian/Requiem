@@ -5,31 +5,23 @@
  * Used by operations and verify scripts to confirm the AI layer is live.
  */
 
-import { registerTool } from '../registry.js';
-import { getToolCount } from '../registry.js';
+import { registerTool, getToolCount } from '../registry.js';
 import type { InvocationContext } from '../../types/index.js';
+import { z } from 'zod';
 
 registerTool(
   {
     name: 'system.health',
     version: '1.0.0',
     description: 'Returns AI control-plane health and configuration status. No secrets exposed.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-      additionalProperties: false,
-    },
-    outputSchema: {
-      type: 'object',
-      properties: {
-        status: { type: 'string', enum: ['ok', 'degraded'] },
-        version: { type: 'string' },
-        tools_registered: { type: 'integer' },
-        timestamp: { type: 'string' },
-        environment: { type: 'string' },
-      },
-      required: ['status', 'version', 'tools_registered', 'timestamp'],
-    },
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      status: z.enum(['ok', 'degraded']),
+      version: z.string(),
+      tools_registered: z.number(),
+      timestamp: z.string(),
+      environment: z.string(),
+    }),
     deterministic: false, // depends on runtime state
     sideEffect: false,
     idempotent: true,

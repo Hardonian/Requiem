@@ -1,6 +1,10 @@
 # MCP (Model Context Protocol)
 
-The Model Context Protocol (MCP) for Requiem provides a standardized HTTP interface for AI agents to discover and execute tools safely.
+> Tool registry implementation for Requiem - populated in Phase 1.
+
+## Overview
+
+The Model Context Protocol (MCP) for Requiem provides a standardized interface for AI agents to discover and execute tools safely.
 
 ## Endpoints
 
@@ -64,29 +68,79 @@ Invokes a tool with the given input, subject to policy gating. Requires authenti
 - **403 Forbidden:** Policy gate denied the invocation.
 - **500 Internal Server Error:** The tool failed during execution.
 
-## Tool Definition
+## Tool Definition Contract
 
-Tools are defined via the `ToolDefinition` interface:
+Tools are defined via the `ToolDefinition` interface in `@requiem/ai/tools/registry`:
 
 ```typescript
-interface ToolDefinition {
-  name: string;
-  version: string; // e.g., "1.0.0"
-  description: string;
-  inputSchema: z.ZodType<any>;
-  outputSchema: z.ZodType<any>;
-  deterministic: boolean;
-  sideEffect: boolean;
-  idempotent: boolean;
-  cost?: {
-    costCents?: number;
-    latency?: 'low' | 'medium' | 'high';
-  };
-  requiredCapabilities: string[];
-  tenantScoped: boolean;
+interface ToolDefinition<Input = ZodSchema, Output = ZodSchema> {
+  name: string;           // unique identifier (e.g., "decide_evaluate")
+  version: string;         // semver string (e.g., "1.0.0")
+  description: string;    // human-readable description
+  inputSchema: ZodSchema; // Zod schema for input validation
+  outputSchema: ZodSchema;// Zod schema for output validation
+  deterministic: boolean; // can be replayed with same output
+  sideEffect: boolean;    // modifies state outside tool
+  idempotent: boolean;    // calling multiple times = once
+  cost?: ToolCost;       // optional cost estimate
+  requiredCapabilities: string[];  // RBAC capabilities needed
+  tenantScoped: boolean;  // default true
 }
+```
+
+### Versioning Rules
+
+1. **Semantic Versioning**: Tools MUST use semver (e.g., "1.0.0", "2.1.3")
+2. **Major Version Bump**: When making breaking changes to input/output schema
+3. **Minor Version Bump**: When adding new optional parameters (backward compatible)
+4. **Patch Version Bump**: When fixing bugs without schema changes
+5. **Latest Version**: `getTool(name)` returns the highest version by semver
+
+### Tool Registration
+
+```typescript
+import { registerTool, ToolDefinition, z } from '@requiem/ai/tools/registry';
+
+const myTool: ToolDefinition = {
+  name: 'my_tool',
+  version: '1.0.0',
+  description: 'Does something useful',
+  inputSchema: z.object({ param: z.string() }),
+  outputSchema: z.object({ result: z.string() }),
+  deterministic: false,
+  sideEffect: true,
+  idempotent: false,
+  requiredCapabilities: ['tool:my_tool'],
+  tenantScoped: true,
+};
+
+registerTool(myTool, async (ctx, input) => {
+  // Tool implementation
+  return { result: 'done' };
+});
+```
+
+### Tool Invocation
+
+```typescript
+import { invokeTool, InvocationContext } from '@requiem/ai/tools/registry';
+
+const ctx: InvocationContext = {
+  tenantId: 'tenant_123',
+  actorId: 'agent_456',
+  requestId: 'req_789',
+  capabilities: ['tool:my_tool'],
+  environment: 'production',
+};
+
+const result = await invokeTool(ctx, 'my_tool', { param: 'value' });
+// Returns: { success: boolean, output?: unknown, error?: ToolError, latencyMs: number }
 ```
 
 ## Policy Gating
 
-All tool calls made through the `/api/mcp/tool/call` endpoint are gated by the policy engine, which enforces tenant isolation, RBAC, and other safety constraints.
+All tool invocations are gated by the policy system which enforces:
+- **Tenant Isolation**: Tools scoped to tenants cannot be accessed across tenant boundaries
+- **RBAC**: Required capabilities are checked against actor's capabilities
+- **Schema Validation**: Input and output are validated against tool schemas
+- **Audit Trail**: All invocations are logged with structured context

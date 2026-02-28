@@ -323,6 +323,7 @@ export const JunctionStates = {
   RESOLVED: 'resolved',
   EXPIRED: 'expired',
   BLOCKED: 'blocked',
+  FAILED: 'failed',
 } as const;
 
 export type JunctionState = typeof JunctionStates[keyof typeof JunctionStates];

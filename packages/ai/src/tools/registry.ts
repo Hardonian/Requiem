@@ -1,27 +1,42 @@
 /**
  * @fileoverview Central tool registry for the AI control-plane.
  *
- * INVARIANT: Every tool invocation MUST go through invokeToolWithPolicy.
+ * INVARIANT: Every tool invocation MUST go through invokeTool.
  * INVARIANT: No "god mode" — tools without requiredCapabilities are not auto-accessible.
  * INVARIANT: Tools with tenantScoped:true MUST have a valid tenant context.
  * INVARIANT: Registry is a single flat map keyed by name@version.
  */
 
+import { z, ZodError } from 'zod';
 import { AiError } from '../errors/AiError.js';
 import { AiErrorCode } from '../errors/codes.js';
 import { now } from '../types/index.js';
-import type { ToolDefinition, ToolHandler, RegisteredTool, ListToolsFilter } from './types.js';
 
-// ─── Registry State ───────────────────────────────────────────────────────────
-
-/** In-memory tool registry keyed by `name@version` */
-const _registry = new Map<string, RegisteredTool>();
-
-// ─── Public API ───────────────────────────────────────────────────────────────
+// #region: Context Types
 
 /**
- * Register a tool definition + handler.
- * Throws AiError.TOOL_ALREADY_REGISTERED if the same name@version exists.
+ * Environment for tool execution
+ */
+export type Environment = 'development' | 'production';
+
+/**
+ * Context passed to every tool invocation
+ */
+export interface InvocationContext {
+  /** The tenant ID for multi-tenant isolation */
+  tenantId: string;
+  /** The actor ID (user or agent) making the request */
+  actorId: string;
+  /** Unique request ID for tracing */
+  requestId: string;
+  /** RBAC capabilities granted to the actor */
+  capabilities: string[];
+  /** Execution environment */
+  environment: Environment;
+}
+
+/**
+ * Result of tool execution
  */
 export function registerTool(
   definition: ToolDefinition,
@@ -42,6 +57,187 @@ export function registerTool(
 /**
  * Retrieve a registered tool. If version is omitted, returns the latest version.
  * Returns undefined if not found (callers must handle).
+export interface ToolResult {
+  /** Whether the tool executed successfully */
+  success: boolean;
+  /** Tool output if successful */
+  output?: unknown;
+  /** Error details if failed (serialized AiError) */
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+  /** Execution latency in milliseconds */
+  latencyMs: number;
+}
+
+// #endregion: Context Types
+
+
+// #region: Core Types and Schemas
+
+/**
+ * Generic Zod schema type
+ */
+export type ZodSchema = z.ZodType<any>;
+
+/**
+ * Defines the cost and performance hints for a tool.
+ */
+export const ToolCostSchema = z.object({
+  costCents: z.number().nonnegative().optional(),
+  latency: z.enum(['low', 'medium', 'high']).optional(),
+});
+export type ToolCost = z.infer<typeof ToolCostSchema>;
+
+/**
+ * The formal definition of a tool that can be registered and invoked.
+ */
+export const ToolDefinitionSchema = z.object({
+  name: z.string().min(1),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
+  description: z.string().min(1),
+  inputSchema: z.any(),
+  outputSchema: z.any(),
+  deterministic: z.boolean().default(false),
+  sideEffect: z.boolean().default(true),
+  idempotent: z.boolean().default(false),
+  cost: ToolCostSchema.optional(),
+  requiredCapabilities: z.array(z.string()).default([]),
+  tenantScoped: z.boolean().default(true),
+});
+
+/**
+ * Tool definition type with proper generics
+ */
+export type ToolDefinition<
+  Input extends ZodSchema = ZodSchema,
+  Output extends ZodSchema = ZodSchema
+> = Omit<z.infer<typeof ToolDefinitionSchema>, 'inputSchema' | 'outputSchema'> & {
+  inputSchema: Input;
+  outputSchema: Output;
+};
+
+/** The actual function that implements the tool's logic. */
+export type ToolHandler<
+  TDef extends ToolDefinition<any, any> = ToolDefinition<any, any>
+> = (
+  ctx: InvocationContext,
+  input: z.infer<TDef['inputSchema']>
+) => Promise<z.infer<TDef['outputSchema']>>;
+
+/** A container for a registered tool, holding its definition and handler. */
+interface RegisteredTool {
+  definition: ToolDefinition<any, any>;
+  handler: ToolHandler<any>;
+  registeredAt: string;
+}
+
+/** Filter for listing tools */
+export interface ListToolsFilter {
+  capability?: string;
+  tenantScoped?: boolean;
+  sideEffect?: boolean;
+  deterministic?: boolean;
+}
+
+// #endregion: Core Types and Schemas
+
+
+// #region: Policy Gate
+
+/**
+ * Policy gate check function
+ */
+export type PolicyGateCheck = (
+  ctx: InvocationContext,
+  toolDef: ToolDefinition<any, any>,
+  input: unknown
+) => Promise<{ allowed: boolean; reason?: string }>;
+
+let policyGate: PolicyGateCheck | null = null;
+
+export function setPolicyGate(gate: PolicyGateCheck): void {
+  policyGate = gate;
+}
+
+export function getPolicyGate(): PolicyGateCheck | null {
+  return policyGate;
+}
+
+async function defaultPolicyGate(
+  _ctx: InvocationContext,
+  toolDef: ToolDefinition<any, any>,
+  _input: unknown
+): Promise<{ allowed: boolean; reason?: string }> {
+  return {
+    allowed: false,
+    reason: `Tool "${toolDef.name}@${toolDef.version}" is not approved by policy. Policy gate not configured.`,
+  };
+}
+
+// #endregion: Policy Gate
+
+
+// #region: Tool Registry State
+
+/**
+ * The in-memory store for all registered tools, isolated by tenant.
+ * Structure: tenantId -> (name@version -> RegisteredTool)
+ */
+const tenantRegistries = new Map<string, Map<string, RegisteredTool>>();
+
+/** Default tenant ID for system-wide tools. */
+const SYSTEM_TENANT = 'system';
+
+/**
+ * Gets or creates a registry for a specific tenant.
+ */
+function getRegistry(tenantId: string = SYSTEM_TENANT): Map<string, RegisteredTool> {
+  let registry = tenantRegistries.get(tenantId);
+  if (!registry) {
+    registry = new Map<string, RegisteredTool>();
+    tenantRegistries.set(tenantId, registry);
+  }
+  return registry;
+}
+
+// #endregion: Tool Registry State
+
+
+// #region: Public API
+
+/**
+ * Registers a new tool or a new version of an existing tool for a specific tenant.
+ */
+export function registerTool<
+  Input extends ZodSchema,
+  Output extends ZodSchema
+>(
+  definition: ToolDefinition<Input, Output>,
+  handler: ToolHandler<ToolDefinition<Input, Output>>,
+  tenantId: string = SYSTEM_TENANT
+): void {
+  const registry = getRegistry(tenantId);
+  const key = `${definition.name}@${definition.version}`;
+
+  if (registry.has(key)) {
+    throw new AiError({
+      code: AiErrorCode.TOOL_ALREADY_REGISTERED,
+      message: `Tool "${definition.name}" v${definition.version} is already registered for tenant "${tenantId}".`,
+      phase: 'registry'
+    });
+  }
+
+  // Basic structural validation
+  validateDefinition(definition);
+
+  registry.set(key, { definition, handler, registeredAt: now() });
+}
+
+/**
+ * Retrieves a registered tool by its name and optionally a specific version, scoped to a tenant.
  */
 export function getTool(name: string, version?: string): RegisteredTool | undefined {
   if (version) {
@@ -52,6 +248,15 @@ export function getTool(name: string, version?: string): RegisteredTool | undefi
   let latestVer = '0.0.0';
   for (const [key, tool] of _registry) {
     if (key.startsWith(`${name}@`)) {
+    return registry.get(`${name}@${version}`);
+  }
+
+  // Find the latest version if no specific version is requested
+  let latest: RegisteredTool | undefined;
+  let latestVer = '0.0.0';
+
+  for (const tool of registry.values()) {
+    if (tool.definition.name === name) {
       if (compareVersions(tool.definition.version, latestVer) > 0) {
         latestVer = tool.definition.version;
         latest = tool;
@@ -62,10 +267,11 @@ export function getTool(name: string, version?: string): RegisteredTool | undefi
 }
 
 /**
- * List all registered tool definitions, with optional filtering.
+ * Lists all registered tools for a specific tenant, with optional filtering.
  */
-export function listTools(filter?: ListToolsFilter): ToolDefinition[] {
-  let tools = Array.from(_registry.values()).map(r => r.definition);
+export function listTools(tenantId: string = SYSTEM_TENANT, filter?: ListToolsFilter): ToolDefinition[] {
+  const registry = getRegistry(tenantId);
+  let tools = Array.from(registry.values()).map(r => r.definition);
 
   if (filter) {
     if (filter.capability) {
@@ -82,23 +288,130 @@ export function listTools(filter?: ListToolsFilter): ToolDefinition[] {
     }
   }
   return tools;
+  }
+
+  return tools;
 }
 
-/** Clear all tools from registry (for testing only). */
+/**
+ * Invokes a tool with the given context and input.
+ */
+export async function invokeTool(
+  ctx: InvocationContext,
+  name: string,
+  input: unknown,
+  tenantId?: string
+): Promise<ToolResult> {
+  const effectiveTenantId = tenantId ?? ctx.tenantId ?? SYSTEM_TENANT;
+  const startTime = Date.now();
+
+  const tool = getTool(name, effectiveTenantId);
+  if (!tool) {
+    const err = AiError.toolNotFound(name);
+    return {
+      success: false,
+      error: err.toSafeJson(),
+      latencyMs: Date.now() - startTime,
+    };
+  }
+
+  // 1. Validate Input
+  let validatedInput: unknown;
+  try {
+    validatedInput = tool.definition.inputSchema.parse(input);
+  } catch (error) {
+    const details = error instanceof ZodError
+      ? error.issues.map(i => i.message).join(', ')
+      : 'Input validation failed';
+    const err = AiError.toolSchemaViolation(name, 'input', details);
+    return {
+      success: false,
+      error: {
+        ...err.toSafeJson(),
+        details: error instanceof ZodError ? { issues: error.issues } : undefined
+      },
+      latencyMs: Date.now() - startTime,
+    };
+  }
+
+  // 2. Policy Gate Check
+  const gate = policyGate ?? defaultPolicyGate;
+  const policyResult = await gate(ctx, tool.definition, validatedInput);
+
+  if (!policyResult.allowed) {
+    const err = AiError.policyDenied(policyResult.reason || 'Not approved by policy gate', name);
+    return {
+      success: false,
+      error: err.toSafeJson(),
+      latencyMs: Date.now() - startTime,
+    };
+  }
+
+  // 3. Execute Handler
+  let output: unknown;
+  try {
+    output = await tool.handler(ctx, validatedInput);
+  } catch (error) {
+    const err = AiError.fromUnknown(error, 'tool');
+    return {
+      success: false,
+      error: {
+        ...err.toSafeJson(),
+        details: error instanceof Error ? { stack: error.stack } : undefined
+      },
+      latencyMs: Date.now() - startTime,
+    };
+  }
+
+  // 4. Validate Output
+  try {
+    const validatedOutput = tool.definition.outputSchema.parse(output);
+    return {
+      success: true,
+      output: validatedOutput,
+      latencyMs: Date.now() - startTime,
+    };
+  } catch (error) {
+    const details = error instanceof ZodError
+      ? error.issues.map(i => i.message).join(', ')
+      : 'Output validation failed';
+    const err = AiError.toolSchemaViolation(name, 'output', details);
+    return {
+      success: false,
+      error: {
+        ...err.toSafeJson(),
+        details: error instanceof ZodError ? { issues: error.issues } : undefined
+      },
+      latencyMs: Date.now() - startTime,
+    };
+  }
+}
+
+// #endregion: Public API
+
+
+// #region: Debug Helpers
+
+/**
+ * Get the count of registered tools for a tenant.
+ */
+export function getToolCount(tenantId: string = SYSTEM_TENANT): number {
+  const registry = getRegistry(tenantId);
+  return registry.size;
+}
+
+/**
+ * Clear the registry (for testing).
+ * @internal
+ */
 export function _clearRegistry(): void {
-  _registry.clear();
+  tenantRegistries.clear();
 }
 
-/** Get count of registered tools. */
-export function getToolCount(): number {
-  return _registry.size;
-}
+// #endregion: Debug Helpers
 
-// ─── Private Helpers ─────────────────────────────────────────────────────────
 
-function toolKey(name: string, version: string): string {
-  return `${name}@${version}`;
-}
+// #region: Private Helpers
 
 function validateDefinition(def: ToolDefinition): void {
   if (!def.name || typeof def.name !== 'string') {
@@ -127,6 +440,10 @@ function compareVersions(v1: string, v2: string): number {
   for (let i = 0; i < 3; i++) {
     if ((p1[i] ?? 0) > (p2[i] ?? 0)) return 1;
     if ((p1[i] ?? 0) < (p2[i] ?? 0)) return -1;
+    if (p1[i] > (p2[i] || 0)) return 1;
+    if (p1[i] < (p2[i] || 0)) return -1;
   }
   return 0;
 }
+
+// #endregion: Private Helpers

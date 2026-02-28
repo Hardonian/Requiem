@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -7,12 +8,9 @@
 #include <vector>
 
 #include "requiem/cas.hpp"
+#include "requiem/types.hpp"
 
 namespace requiem {
-
-// Forward declarations
-struct ExecutionResult;
-struct ExecutionRequest;
 
 /**
  * @brief Represents a discrete point in an agent's execution timeline.
@@ -27,14 +25,15 @@ struct TimeStep {
       event_digest; // CAS digest of the specific event (input/tool/output)
   std::string
       state_digest; // CAS digest of the full agent memory state *after* event
-  std::string
-      type; // "start", "tool_call", "tool_result", "model_output", "error"
+  std::string type; // "start", "tool_call", "tool_result", "model_output",
+                    // "error", "process_start", "process_end"
 };
 
 /**
  * @brief A snapshot of the agent's internal state at a specific TimeStep.
  */
 struct StateSnapshot {
+  uint64_t sequence_id;      // The sequence ID of this snapshot
   std::string memory_digest; // Root hash of the agent's working memory
   std::string last_output;   // Most recent stdout/response
   std::vector<std::string> active_policies; // Policies enforced at this step
@@ -91,6 +90,8 @@ public:
   // Step operations
   virtual std::optional<StateSnapshot> StepForward() = 0;
   virtual std::optional<StateSnapshot> StepBackward() = 0;
+  virtual std::optional<StateSnapshot> StepOver() = 0;
+  virtual std::optional<StateSnapshot> StepOut() = 0;
 
   // -------------------------------------------------------------------------
   // Inspection

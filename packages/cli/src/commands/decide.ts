@@ -10,7 +10,7 @@
 import { ActionIntentRepository, JunctionRepository, Junction } from '../db/junctions';
 import { evaluateDecision } from '../engine/adapter';
 import type { DecisionInput, DecisionOutput } from '../lib/fallback';
-import { DecisionRepository, DecisionReport } from '../db/decisions';
+import { DecisionRepository, DecisionReport, CalibrationRepository } from '../db/decisions';
 
 export interface DecisionReportOutput {
   id: string;
@@ -147,11 +147,16 @@ async function handleEvaluate(args: DecideCliArgs, tenantId: string): Promise<nu
   // Parse trigger data to build decision input
   const triggerData = JSON.parse(junction.trigger_data);
 
+  // v1.2: Automate feedback of calibration_delta into the decide adapter.
+  // Retrieve historical bias for this source type.
+  const bias = CalibrationRepository.getAverageDelta(tenantId, junction.source_type);
+
   // Build a simple decision input from the junction data
   const decisionInput: DecisionInput = {
     actions: ['accept', 'reject', 'defer', 'investigate'],
     states: ['critical', 'high', 'medium', 'low'],
     outcomes: buildOutcomeMatrix(triggerData, junction.severity_score),
+    weights: { calibration_bias: bias },
     algorithm: 'minimax_regret',
   };
 

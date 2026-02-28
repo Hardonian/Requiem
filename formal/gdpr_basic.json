@@ -1,0 +1,24 @@
+{
+  "description": "Basic GDPR compliance policy set for EU tenants.",
+  "policies": [
+    "No PII Output",
+    "Data Retention < 30d",
+    "Right to be Forgotten"
+  ],
+  "constraints": [
+    "mask_pii_regex",
+    "audit_pii_access",
+    "ttl_30d",
+    "soft_delete_enabled",
+    "hard_delete_on_request"
+  ],
+  "map": {
+    "No PII Output": ["mask_pii_regex", "audit_pii_access"],
+    "Data Retention < 30d": ["ttl_30d"],
+    "Right to be Forgotten": ["soft_delete_enabled", "hard_delete_on_request"]
+  ],
+  "conflicts": [
+    ["soft_delete_enabled", "hard_delete_on_request"],
+    ["ttl_30d", "infinite_retention"]
+  ]
+}

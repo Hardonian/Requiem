@@ -64,6 +64,7 @@ add_library(requiem
   src/jsonlite.cpp
   src/cas.cpp
   src/debugger.cpp
+  src/policy_linter.cpp
   src/runtime.cpp
   src/replay.cpp
   src/sandbox_posix.cpp
