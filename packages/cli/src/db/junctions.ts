@@ -7,6 +7,7 @@ import { newId } from './helpers';
 
 export interface Junction {
   id: string;
+  tenant_id: string;
   created_at: string;
   updated_at: string;
   junction_type: 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
@@ -34,6 +35,7 @@ export interface ActionIntent {
 }
 
 export interface CreateJunctionInput {
+  tenant_id: string; // Required for isolation
   junction_type: 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
   severity_score: number;
   fingerprint: string;
@@ -66,6 +68,7 @@ export class JunctionRepository {
 
     const junction: Junction = {
       id,
+      tenant_id: input.tenant_id,
       created_at: now,
       updated_at: now,
       junction_type: input.junction_type,
@@ -83,11 +86,11 @@ export class JunctionRepository {
 
     const stmt = db.prepare(`
       INSERT INTO junctions (
-        id, created_at, updated_at, junction_type, severity_score, fingerprint,
+        id, tenant_id, created_at, updated_at, junction_type, severity_score, fingerprint,
         source_type, source_ref, trigger_data, trigger_trace, cooldown_until,
         deduplication_key, decision_report_id, status
       ) VALUES (
-        @id, @created_at, @updated_at, @junction_type, @severity_score, @fingerprint,
+        @id, @tenant_id, @created_at, @updated_at, @junction_type, @severity_score, @fingerprint,
         @source_type, @source_ref, @trigger_data, @trigger_trace, @cooldown_until,
         @deduplication_key, @decision_report_id, @status
       )
@@ -100,8 +103,11 @@ export class JunctionRepository {
   /**
    * Finds a junction by ID
    */
-  static findById(id: string): Junction | undefined {
+  static findById(id: string, tenantId?: string): Junction | undefined {
     const db = getDB();
+    if (tenantId) {
+      return db.prepare('SELECT * FROM junctions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as Junction | undefined;
+    }
     return db.prepare('SELECT * FROM junctions WHERE id = ?').get(id) as Junction | undefined;
   }
 
@@ -128,10 +134,10 @@ export class JunctionRepository {
     const db = getDB();
     const now = new Date().toISOString();
     const existing = db.prepare(`
-      SELECT id FROM junctions 
-      WHERE deduplication_key = ? 
-        AND status = 'active' 
-        AND cooldown_until IS NOT NULL 
+      SELECT id FROM junctions
+      WHERE deduplication_key = ?
+        AND status = 'active'
+        AND cooldown_until IS NOT NULL
         AND cooldown_until > ?
     `).get(deduplicationKey, now);
     return !!existing;
@@ -195,6 +201,7 @@ export class JunctionRepository {
    * Lists junctions with optional filtering
    */
   static list(options?: {
+    tenantId?: string;
     junctionType?: string;
     sourceType?: string;
     status?: string;
@@ -206,6 +213,11 @@ export class JunctionRepository {
     let query = 'SELECT * FROM junctions';
     const params: any[] = [];
     const conditions: string[] = [];
+
+    if (options?.tenantId) {
+      conditions.push('tenant_id = ?');
+      params.push(options.tenantId);
+    }
 
     if (options?.junctionType) {
       conditions.push('junction_type = ?');
@@ -294,11 +306,11 @@ export class ActionIntentRepository {
     const db = getDB();
     const now = new Date().toISOString();
     db.prepare(`
-      UPDATE action_intents 
+      UPDATE action_intents
       SET status = 'executed', executed_at = ?, execution_result = ?
       WHERE id = ?
     `).run(now, JSON.stringify(result), id);
-    
+
     return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as ActionIntent | undefined;
   }
 
@@ -308,11 +320,11 @@ export class ActionIntentRepository {
   static markFailed(id: string, error: string): ActionIntent | undefined {
     const db = getDB();
     db.prepare(`
-      UPDATE action_intents 
+      UPDATE action_intents
       SET status = 'failed', execution_result = ?
       WHERE id = ?
     `).run(JSON.stringify({ error }), id);
-    
+
     return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as ActionIntent | undefined;
   }
 

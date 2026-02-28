@@ -31,7 +31,7 @@ class InMemoryStatement implements Statement {
 
   private parseSQL() {
     const upper = this.sql.toUpperCase();
-    
+
     if (upper.startsWith('INSERT INTO')) {
       this.operation = 'insert';
       const match = this.sql.match(/INSERT INTO\s+(\w+)/i);
@@ -81,14 +81,14 @@ class InMemoryStatement implements Statement {
 
   run(...params: any[]): { lastInsertRowid: number; changes: number } {
     const table = this.getTable();
-    
+
     if (this.operation === 'insert') {
       // Parse values from SQL
       const valuesMatch = this.sql.match(/VALUES\s*\(([^)]+)\)/i);
       if (valuesMatch) {
         const columns = this.sql.match(/\(([^)]+)\)\s*VALUES/)?.[1].split(',').map(c => c.trim()) || [];
         const row: any = { id: params.find(p => typeof p === 'string' && p.includes('_')) || `row_${Date.now()}` };
-        
+
         // Match params to columns (simplified)
         let paramIndex = 0;
         columns.forEach((col) => {
@@ -96,7 +96,7 @@ class InMemoryStatement implements Statement {
             row[col] = params[paramIndex++];
           }
         });
-        
+
         table.push(row);
         return { lastInsertRowid: table.length, changes: 1 };
       }
@@ -123,7 +123,7 @@ class InMemoryStatement implements Statement {
       tables.set(this.tableName, rowsToKeep);
       return { lastInsertRowid: 0, changes: beforeCount - rowsToKeep.length };
     }
-    
+
     return { lastInsertRowid: 0, changes: 0 };
   }
 
@@ -135,7 +135,7 @@ class InMemoryStatement implements Statement {
   all(...params: any[]): any[] {
     const table = this.getTable();
     let results = table.filter(row => this.matchesConditions(row, params));
-    
+
     // Handle ORDER BY
     const orderMatch = this.sql.match(/ORDER BY\s+(\w+)\s*(DESC|ASC)?/i);
     if (orderMatch) {
@@ -147,14 +147,14 @@ class InMemoryStatement implements Statement {
         return desc ? (bVal > aVal ? 1 : -1) : (aVal > bVal ? 1 : -1);
       });
     }
-    
+
     // Handle LIMIT
     const limitMatch = this.sql.match(/LIMIT\s+(\?|\d+)/i);
     if (limitMatch) {
       const limit = limitMatch[1] === '?' ? params[params.length - 1] : parseInt(limitMatch[1]);
       results = results.slice(0, limit);
     }
-    
+
     return results;
   }
 
@@ -172,12 +172,12 @@ class InMemoryStatement implements Statement {
 
   private matchesConditions(row: any, params: any[]): boolean {
     if (this.conditions.length === 0) return true;
-    
+
     let paramIndex = 0;
     return this.conditions.every(cond => {
       const value = params[paramIndex++];
       const rowValue = row[cond.column];
-      
+
       switch (cond.operator) {
         case '=': return rowValue == value;
         case '!=': return rowValue != value;
@@ -214,11 +214,12 @@ let dbInstance: DB | null = null;
 export function getDB(): DB {
   if (!dbInstance) {
     dbInstance = new InMemoryDB();
-    
+
     // Initialize tables
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS junctions (
         id TEXT PRIMARY KEY,
+        tenant_id TEXT,
         created_at TEXT,
         updated_at TEXT,
         junction_type TEXT,
@@ -234,10 +235,11 @@ export function getDB(): DB {
         status TEXT
       )
     `);
-    
+
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS decisions (
         id TEXT PRIMARY KEY,
+        tenant_id TEXT,
         created_at TEXT,
         updated_at TEXT,
         source_type TEXT,
@@ -253,10 +255,11 @@ export function getDB(): DB {
         calibration_delta REAL
       )
     `);
-    
+
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS action_intents (
         id TEXT PRIMARY KEY,
+        tenant_id TEXT,
         created_at TEXT,
         decision_report_id TEXT,
         action_type TEXT,

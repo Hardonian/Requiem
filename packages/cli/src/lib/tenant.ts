@@ -229,7 +229,7 @@ export class DefaultTenantResolver implements TenantResolver {
             message: `Insufficient permissions (required: ${minRole})`,
             severity: ErrorSeverity.WARNING,
             retryable: false,
-            meta: { ...meta, tenantId, userId, actualRole: membership.role, requiredRole: minRole },
+            meta: { ...meta, tenantId, userId, context: { actualRole: membership.role, requiredRole: minRole } },
           }),
         };
       }
@@ -325,7 +325,7 @@ export class DefaultTenantResolver implements TenantResolver {
             message: `API key has insufficient permissions (required: ${minRole})`,
             severity: ErrorSeverity.WARNING,
             retryable: false,
-            meta: { ...meta, tenantId, actualRole: keyData.role },
+            meta: { ...meta, tenantId, context: { actualRole: keyData.role } },
           }),
         };
       }
@@ -453,7 +453,7 @@ export class MockTenantResolver implements TenantResolver {
 
   async resolveFromRequest(
     request: RequestLike,
-    options?: TenantResolutionOptions
+    _options?: TenantResolutionOptions
   ): Promise<TenantResolutionResult> {
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -499,7 +499,7 @@ export class MockTenantResolver implements TenantResolver {
 
   async resolveFromCli(
     env?: Record<string, string | undefined>,
-    options?: TenantResolutionOptions
+    _options?: TenantResolutionOptions
   ): Promise<TenantResolutionResult> {
     const apiKey = env?.REQUIEM_API_KEY;
     if (!apiKey) {

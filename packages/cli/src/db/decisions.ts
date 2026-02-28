@@ -8,6 +8,7 @@ import type { DecisionInput, DecisionOutput } from '../lib/fallback';
 
 export interface DecisionReport {
   id: string;
+  tenant_id: string;
   created_at: string;
   updated_at: string;
   source_type: string;
@@ -24,6 +25,7 @@ export interface DecisionReport {
 }
 
 export interface CreateDecisionInput {
+  tenant_id: string;
   source_type: string;
   source_ref: string;
   input_fingerprint: string;
@@ -52,6 +54,7 @@ export class DecisionRepository {
 
     const report: DecisionReport = {
       id,
+      tenant_id: input.tenant_id,
       created_at: now,
       updated_at: now,
       source_type: input.source_type,
@@ -69,11 +72,11 @@ export class DecisionRepository {
 
     const stmt = db.prepare(`
       INSERT INTO decisions (
-        id, created_at, updated_at, source_type, source_ref, input_fingerprint,
+        id, tenant_id, created_at, updated_at, source_type, source_ref, input_fingerprint,
         decision_input, decision_output, decision_trace, recommended_action_id,
         status, outcome_status, outcome_notes, calibration_delta
       ) VALUES (
-        @id, @created_at, @updated_at, @source_type, @source_ref, @input_fingerprint,
+        @id, @tenant_id, @created_at, @updated_at, @source_type, @source_ref, @input_fingerprint,
         @decision_input, @decision_output, @decision_trace, @recommended_action_id,
         @status, @outcome_status, @outcome_notes, @calibration_delta
       )
@@ -86,8 +89,11 @@ export class DecisionRepository {
   /**
    * Finds a decision by ID
    */
-  static findById(id: string): DecisionReport | undefined {
+  static findById(id: string, tenantId?: string): DecisionReport | undefined {
     const db = getDB();
+    if (tenantId) {
+      return db.prepare('SELECT * FROM decisions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as DecisionReport | undefined;
+    }
     return db.prepare('SELECT * FROM decisions WHERE id = ?').get(id) as DecisionReport | undefined;
   }
 
@@ -120,6 +126,7 @@ export class DecisionRepository {
    * Lists decisions with optional filtering
    */
   static list(options?: {
+    tenantId?: string;
     sourceType?: string;
     status?: string;
     outcomeStatus?: string;
@@ -130,6 +137,11 @@ export class DecisionRepository {
     let query = 'SELECT * FROM decisions';
     const params: any[] = [];
     const conditions: string[] = [];
+
+    if (options?.tenantId) {
+      conditions.push('tenant_id = ?');
+      params.push(options.tenantId);
+    }
 
     if (options?.sourceType) {
       conditions.push('source_type = ?');

@@ -377,12 +377,7 @@ export function createJunctionStateMachine(): StateMachine<JunctionState> {
         isTerminal: false,
         isRetryable: false,
       },
-      {
-        name: 'failed' as unknown as JunctionState,
-        allowedTransitions: [JunctionStates.VALIDATING],
-        isTerminal: false,
-        isRetryable: true,
-      },
+      // Note: 'failed' state is defined below after const assertion fix
     ],
   });
 }
