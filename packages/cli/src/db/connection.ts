@@ -173,7 +173,7 @@ class InMemoryStatement implements Statement {
     return table.filter(row => this.matchesConditions(row, params));
   }
 
-  private matchesConditions(row: Record<string, any>, params: any[]): boolean {
+  private matchesConditions(row: Record<string, unknown>, params: unknown[]): boolean {
     if (this.conditions.length === 0) return true;
 
     let paramIndex = 0;
@@ -181,13 +181,19 @@ class InMemoryStatement implements Statement {
       const value = params[paramIndex++];
       const rowValue = row[cond.column];
 
+      // Safe comparisons for mock DB implementation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const val = value as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rVal = rowValue as any;
+
       switch (cond.operator) {
-        case '=': return rowValue == value;
-        case '!=': return rowValue != value;
-        case '>': return rowValue > value;
-        case '<': return rowValue < value;
-        case '>=': return rowValue >= value;
-        case '<=': return rowValue <= value;
+        case '=': return rVal == val;
+        case '!=': return rVal != val;
+        case '>': return rVal > val;
+        case '<': return rVal < val;
+        case '>=': return rVal >= val;
+        case '<=': return rVal <= val;
         default: return true;
       }
     });

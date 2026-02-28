@@ -23,7 +23,12 @@
     "recharts",
     "cgroups",
     "rqr",
-    "PYTHONHASHSEED"
+    "PYTHONHASHSEED",
+    "cooldown",
+    "agentic",
+    "replayer",
+    "replayable",
+    "Hardonian"
   ],
   "ignorePaths": [
     "node_modules",

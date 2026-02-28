@@ -12,6 +12,23 @@ import { evaluateDecision } from '../engine/adapter';
 import type { DecisionInput, DecisionOutput } from '../lib/fallback';
 import { DecisionRepository, DecisionReport } from '../db/decisions';
 
+export interface DecisionReportOutput {
+  id: string;
+  source_type: string;
+  source_ref: string;
+  status: string;
+  outcome_status: string | null;
+  recommended_action_id: string | null;
+  input_fingerprint: string;
+  created_at: string;
+  updated_at: string;
+  decision_input? : string;
+  decision_output?: string | null;
+  decision_trace?: string | null;
+  outcome_notes?: string | null;
+  calibration_delta?: number | null;
+}
+
 export interface DecideCliArgs {
   command: 'evaluate' | 'explain' | 'outcome' | 'list' | 'show';
   tenantId?: string;
@@ -369,7 +386,7 @@ async function handleShow(args: DecideCliArgs, tenantId: string): Promise<number
     }
 
     console.log('\n--- Decision Input ---');
-    console.log(JSON.stringify(JSON.parse(output.decision_input), null, 2));
+    console.log(JSON.stringify(JSON.parse(output.decision_input || '{}'), null, 2));
 
     if (output.decision_output) {
       console.log('\n--- Decision Output ---');
@@ -405,24 +422,38 @@ function getPredictedScore(output: DecisionOutput): number {
   return 1.0 - (rank * 0.25);
 }
 
-function generateExplanation(junction: Junction, _triggerTrace: unknown, triggerData: any): { summary: string; factors: string[] } {
+interface TriggerData {
+  diffSummary?: {
+    filesChanged?: number;
+    breakingChanges?: unknown[];
+  };
+  driftCategory?: string;
+  trend?: string;
+  previousTrustScore?: number;
+  currentTrustScore?: number;
+  violationCount?: number;
+  violationSeverity?: string;
+}
+
+function generateExplanation(junction: Junction, _triggerTrace: unknown, triggerData: Record<string, unknown>): { summary: string; factors: string[] } {
   const factors: string[] = [];
+  const data = triggerData as TriggerData;
 
   // Add severity factor
   factors.push(`Severity score: ${junction.severity_score.toFixed(2)}`);
 
   // Add trigger-specific factors
   if (junction.junction_type === 'diff_critical') {
-    factors.push(`Files changed: ${triggerData.diffSummary?.filesChanged || 'N/A'}`);
-    factors.push(`Breaking changes: ${triggerData.diffSummary?.breakingChanges?.length || 0}`);
+    factors.push(`Files changed: ${data.diffSummary?.filesChanged || 'N/A'}`);
+    factors.push(`Breaking changes: ${data.diffSummary?.breakingChanges?.length || 0}`);
   } else if (junction.junction_type === 'drift_alert') {
-    factors.push(`Drift category: ${triggerData.driftCategory || 'N/A'}`);
-    factors.push(`Trend: ${triggerData.trend || 'N/A'}`);
+    factors.push(`Drift category: ${data.driftCategory || 'N/A'}`);
+    factors.push(`Trend: ${data.trend || 'N/A'}`);
   } else if (junction.junction_type === 'trust_drop') {
-    factors.push(`Trust drop: ${triggerData.previousTrustScore - triggerData.currentTrustScore}`);
+    factors.push(`Trust drop: ${(data.previousTrustScore as number || 0) - (data.currentTrustScore as number || 0)}`);
   } else if (junction.junction_type === 'policy_violation') {
-    factors.push(`Violation count: ${triggerData.violationCount || 0}`);
-    factors.push(`Severity: ${triggerData.violationSeverity || 'N/A'}`);
+    factors.push(`Violation count: ${data.violationCount || 0}`);
+    factors.push(`Severity: ${data.violationSeverity || 'N/A'}`);
   }
 
   const summary = `This ${junction.junction_type} junction was triggered based on the computed severity score of ${junction.severity_score.toFixed(2)}. The decision engine recommends reviewing the evidence and taking appropriate action.`;
@@ -430,8 +461,8 @@ function generateExplanation(junction: Junction, _triggerTrace: unknown, trigger
   return { summary, factors };
 }
 
-function formatDecisionReport(decision: DecisionReport, verbose: boolean = false): any {
-  const output: any = {
+function formatDecisionReport(decision: DecisionReport, verbose: boolean = false): DecisionReportOutput {
+  const output: DecisionReportOutput = {
     id: decision.id,
     source_type: decision.source_type,
     source_ref: decision.source_ref,
