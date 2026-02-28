@@ -8,10 +8,10 @@
  */
 
 import { z, ZodError } from 'zod';
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import { now } from '../types/index.js';
-import type { InvocationContext } from '../types/index.js';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import { now } from '../types/index';
+import type { InvocationContext } from '../types/index';
 
 // #region: Context Types
 

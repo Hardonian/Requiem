@@ -12,12 +12,12 @@
 
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { newId, now } from '../types/index.js';
-import { hashContent } from './hashing.js';
-import { redactObject } from './redaction.js';
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import { logger } from '../telemetry/logger.js';
+import { newId, now } from '../types/index';
+import { hashContent } from './hashing';
+import { redactObject } from './redaction';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import { logger } from '../telemetry/logger';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -13,18 +13,18 @@
  */
 
 import { createHash } from 'crypto';
-import { getTool } from './registry.js';
-import { validateInputOrThrow, validateOutputOrThrow } from './schema.js';
-import { evaluatePolicyWithBudget } from '../policy/gate.js';
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import { writeAuditRecord } from '../telemetry/audit.js';
-import { withSpan } from '../telemetry/trace.js';
-import { logger } from '../telemetry/logger.js';
-import { checkDepth, releaseDepth } from './sandbox.js';
-import { checkReplayCache, storeReplayRecord } from './replay.js';
-import type { InvocationContext } from '../types/index.js';
-import type { ToolAuditRecord } from './types.js';
+import { getTool } from './registry';
+import { validateInputOrThrow, validateOutputOrThrow } from './schema';
+import { evaluatePolicyWithBudget } from '../policy/gate';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import { writeAuditRecord } from '../telemetry/audit';
+import { withSpan } from '../telemetry/trace';
+import { logger } from '../telemetry/logger';
+import { checkDepth, releaseDepth } from './sandbox';
+import { checkReplayCache, storeReplayRecord } from './replay';
+import type { InvocationContext } from '../types/index';
+import type { ToolAuditRecord } from './types';
 
 // ─── Execution Envelope ───────────────────────────────────────────────────────
 

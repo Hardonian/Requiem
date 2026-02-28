@@ -41,8 +41,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTenantAuth, authErrorResponse } from '@/lib/auth';
 import { 
-  vectorSearch, 
-  textSearch, 
+  vectorSearch,
   generateEmbedding, 
   logQuery,
   DEFAULT_VECTOR_SEARCH_CONFIG,

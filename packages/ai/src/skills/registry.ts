@@ -2,10 +2,10 @@
  * @fileoverview Skill registry — central store for versioned skill definitions.
  */
 
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import { now } from '../types/index.js';
-import type { SkillDefinition } from './types.js';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import { now } from '../types/index';
+import type { SkillDefinition } from './types';
 
 const _registry = new Map<string, SkillDefinition>();
 

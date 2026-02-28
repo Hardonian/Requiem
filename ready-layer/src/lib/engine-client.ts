@@ -49,6 +49,7 @@ class ApiError extends Error {
 
 async function apiFetch<T>(
   path: string,
+  // eslint-disable-next-line no-undef
   opts: RequestInit = {},
   tenant?: TenantContext,
 ): Promise<T> {
