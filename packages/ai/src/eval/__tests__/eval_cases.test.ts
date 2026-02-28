@@ -170,7 +170,7 @@ describe('Skill Regression Cases', () => {
   test('each case declares at least one expected outcome field', () => {
     const OUTCOME_FIELDS = ['expected_error', 'expected_outcome', 'expected_behavior', 'expected_tags'];
     for (const c of caseFile.test_cases) {
-      const hasOutcome = OUTCOME_FIELDS.some(f => (c as Record<string, unknown>)[f] !== undefined);
+      const hasOutcome = OUTCOME_FIELDS.some(f => (c as unknown as Record<string, unknown>)[f] !== undefined);
       assert.ok(
         hasOutcome,
         `case ${c.id} has no expected outcome field (one of: ${OUTCOME_FIELDS.join(', ')})`

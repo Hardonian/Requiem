@@ -46,6 +46,8 @@ function makeMemberCtx(tenantId = 'det-tenant-001'): InvocationContext {
       role: TenantRole.MEMBER,
       derivedAt: '2024-01-01T00:00:00.000Z',
     },
+    actorId: 'user-001',
+    traceId: 'trace-det-001',
     environment: 'production',
     createdAt: '2024-01-01T00:00:00.000Z',
   };
@@ -55,9 +57,14 @@ function makeMemberCtx(tenantId = 'det-tenant-001'): InvocationContext {
 function makeReadTool(): ToolDefinition {
   return {
     name: 'fs.list_dir',
+    version: '1.0.0',
     description: 'List directory contents',
+    inputSchema: { type: 'object', properties: {} },
+    outputSchema: { type: 'object', properties: {} },
+    deterministic: true,
     tenantScoped: true,
     sideEffect: false,
+    idempotent: true,
     requiredCapabilities: ['fs:read'],
     costHint: { costCents: 0 },
   };
@@ -67,9 +74,14 @@ function makeReadTool(): ToolDefinition {
 function makeWriteTool(): ToolDefinition {
   return {
     name: 'fs.write_file',
+    version: '1.0.0',
     description: 'Write a file',
+    inputSchema: { type: 'object', properties: {} },
+    outputSchema: { type: 'object', properties: {} },
+    deterministic: false,
     tenantScoped: true,
     sideEffect: true,
+    idempotent: false,
     requiredCapabilities: ['fs:write'],
     costHint: { costCents: 1 },
   };
@@ -106,6 +118,8 @@ describe('AI Policy Determinism', () => {
         role: TenantRole.VIEWER,
         derivedAt: '2024-01-01T00:00:00.000Z',
       },
+      actorId: 'user-002',
+      traceId: 'trace-det-002',
       environment: 'production',
       createdAt: '2024-01-01T00:00:00.000Z',
     };
@@ -196,9 +210,14 @@ describe('AI Policy Determinism', () => {
     const ctx = makeMemberCtx('det-guard-002');
     const dangerousTool: ToolDefinition = {
       name: 'run_shell',
+      version: '1.0.0',
       description: 'Execute a shell command',
+      inputSchema: { type: 'object', properties: {} },
+      outputSchema: { type: 'object', properties: {} },
+      deterministic: false,
       tenantScoped: false,
       sideEffect: true,
+      idempotent: false,
       requiredCapabilities: [],
       costHint: { costCents: 0 },
     };
@@ -214,7 +233,7 @@ describe('AI Policy Determinism', () => {
 
   // ── 2.3.4: Rate limiter with fixed clock ─────────────────────────────────
 
-  it('Rate limiter produces deterministic allow/deny sequence with fixed clock', () => {
+  it('Rate limiter produces deterministic allow/deny sequence with fixed clock', async () => {
     // The rateLimitCheck guardrail uses rateLimitCheck.clock — inject a fixed clock
     // to make the token-bucket deterministic.
     const { rateLimitCheck } = await import('../guardrails.js').then(m => m);
