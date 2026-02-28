@@ -30,7 +30,7 @@ EXCLUDE_PATTERN="\.test\.|\.spec\.|example|fixture|testdata|\.md$"
 
 # Check for .env files in git
 echo "[1/3] Checking for committed .env files..."
-ENV_FILES=$(git ls-files | grep -E "\.env" | grep -v "$EXCLUDE_PATTERN" || true)
+ENV_FILES=$(git ls-files | grep -E "\.env" | grep -v "$EXCLUDE_PATTERN" | grep -v "\.env\.example" || true)
 if [ -n "$ENV_FILES" ]; then
     echo "  ❌ FAIL: .env files found in git:"
     echo "$ENV_FILES" | sed 's/^/    /'

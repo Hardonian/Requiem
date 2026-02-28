@@ -155,26 +155,31 @@ jobs:
           if-no-files-found: warn
 
   # ---------------------------------------------------------------------------
-  # Ready Layer typecheck + lint (Node.js)
+  # Ready Layer typecheck + lint + build (Node.js / pnpm)
   # ---------------------------------------------------------------------------
   ready-layer-verify:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ready-layer
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ready-layer/package-lock.json
+          cache: 'pnpm'
       - name: install deps
-        run: npm ci --ignore-scripts || npm install --ignore-scripts
-      - name: typecheck
-        run: npm run typecheck
+        run: pnpm install --frozen-lockfile
       - name: lint
-        run: npm run lint || true   # warn only until ESLint config stabilized
+        run: pnpm run verify:lint
+      - name: typecheck
+        run: pnpm run typecheck
+      - name: boundaries
+        run: pnpm run verify:boundaries
+      - name: build web
+        run: pnpm run build:web
+      - name: secrets scan
+        run: bash scripts/verify-secrets.sh
 
   # ---------------------------------------------------------------------------
   # Dependency graph artifacts (nightly, Linux)
