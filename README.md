@@ -1,27 +1,48 @@
-# Requiem (rqr)
+# Requiem
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#verification)
+[![Determinism](https://img.shields.io/badge/determinism-byte--perfect-blueviolet)](#invariants)
 
-**Requiem** is a high-performance, native C++ runtime designed for deterministic command execution, content-addressable storage (CAS), and verifiable replay validation. Built for environments where correctness and repeatability are non-negotiable.
+**Requiem** is a high-performance, native C++ runtime designed for **deterministic process execution**, content-addressable storage (CAS), and verifiable replay validation.
+
+Built for environments where correctness and repeatability are non-negotiable—from CI/CD pipelines and reproducible builds to secure sandboxed execution.
 
 ## Key Capabilities
 
 - **Deterministic Execution**: Cryptographically reproducible process execution with BLAKE3 hashing.
-- **Hard Sandboxing**: Cross-platform process isolation (Linux cgroups/seccomp, Windows Job Objects).
+- **Hard Sandboxing**: Cross-platform process isolation using OS primitives (Linux cgroups/seccomp, Windows Job Objects).
 - **Content-Addressable Storage**: Integrity-verified CAS with zstd compression and atomic writes.
-- **Proof Bundles**: Verifiable execution artifacts with Merkle roots for audit trails.
-- **Drift Detection**: Automated detection of non-determinism across benchmark runs.
-- **Engine Diversity**: Native support for dual-run validation and gradual engine migration.
+- **Verifiable Proofs**: Merkle-root based execution artifacts for auditing and supply chain security.
+- **Drift Detection**: Automated detection of non-determinism and environmental leakage.
 
----
+## Architecture
+
+Requiem is designed for maximum isolation and minimal overhead.
+
+```text
+       ┌─────────────────────────────────────────────────────────┐
+       │                      Requiem CLI                        │
+       └───────────┬────────────────────────────┬────────────────┘
+                   │                            │
+          ┌────────▼────────┐          ┌────────▼────────┐
+          │  Runtime Engine │          │       CAS       │
+          │ (Sandboxed Ops) │          │ (Addressable)   │
+          └────────┬────────┘          └────────┬────────┘
+                   │                            │
+          ┌────────▼────────┐          ┌────────▼────────┐
+          │  Sandbox Layer  │          │   BLAKE3 Hash   │
+          │ (OS Primitives) │          │    (Vendored)   │
+          └─────────────────┘          └─────────────────┘
+```
 
 ## Quickstart
 
 ### 1. Build from Source
 
+Requires CMake 3.20+, C++20 compiler, and OpenSSL.
+
 ```bash
-# Clone and build the engine
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
@@ -34,83 +55,47 @@ cmake --build build -j
 
 ### 3. Execute Deterministically
 
+Run a command through the engine with a strict execution policy:
+
 ```bash
-# Run a command with a request policy
-./build/requiem exec run --request request.json --out result.json
+./build/requiem exec run --command "/bin/echo" --argv "Hello, World" --out result.json
 ```
 
----
+## Invariants
 
-## Configuration
+Requiem maintains strict system invariants to ensure reliability. These are enforced by our CI gates:
 
-Requiem uses a strict JSON schema for configuration, ensuring that execution policies are portable and auditable.
+- **INV-1: Digest Parity**: Same inputs must produce byte-for-byte identical results.
+- **INV-2: CAS Immutability**: Silent mutation of stored objects is prohibited.
+- **INV-5: OSS Isolation**: Zero dependency on enterprise-only components.
 
-```json
-{
-  "command": "/usr/bin/python3",
-  "argv": ["script.py"],
-  "policy": {
-    "deterministic": true,
-    "deny_network": true,
-    "max_memory_bytes": 1073741824,
-    "env_allowlist": ["PATH", "PYTHONHASHSEED"]
-  }
-}
-```
+See [docs/DETERMINISM.md](docs/DETERMINISM.md) for the full list of invariants.
 
----
+## Documentation
 
-## Architecture
-
-Requiem is structured for maximum isolation and minimal overhead.
-
-```text
- ┌─────────────────────────────────────────────────────────┐
- │                      Requiem CLI                        │
- └───────────┬────────────────────────────┬────────────────┘
-             │                            │
-    ┌────────▼────────┐          ┌────────▼────────┐
-    │  Runtime Engine │          │       CAS       │
-    │ (Sandboxed Ops) │          │ (Addressable)   │
-    └────────┬────────┘          └────────┬────────┘
-             │                            │
-    ┌────────▼────────┐          ┌────────▼────────┐
-    │  Sandbox Layer  │          │   BLAKE3 Hash   │
-    │ (OS Primitives) │          │    (Vendored)   │
-    └─────────────────┘          └─────────────────┘
-```
-
----
-
-## Repository Layout
-
-- `include/requiem/`: Public C++ headers for engine embedding.
-- `src/`: Core implementation of runtime, CAS, and sandboxing.
-- `packages/ui/`: React-based design system for operational interfaces.
-- `ready-layer/`: Integration layer for deployment workflows.
-- `docs/`: In-depth documentation on architecture, security, and contracts.
-
----
+- [Getting Started](docs/GETTING_STARTED.md)
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Security Policy](docs/SECURITY.md)
+- [System Invariants](docs/DETERMINISM.md)
+- [CAS Specification](docs/CAS.md)
 
 ## Verification
 
-Requiem maintains a rigorous verification suite to prevent regressions in determinism or performance.
+Run the full verification suite (requires Node.js for UI checks):
 
 ```bash
-# Run full verification suite
 npm run verify
-
-# Specific checks
-npm run test           # C++ unit tests
-npm run verify:ui      # UI typecheck and lint
-./scripts/verify_determinism.sh # Determinism audit
 ```
 
----
+This ensures C++ build integrity, unit test passing, UI boundary safety, and determinism.
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License & Security
 
 Requiem is released under the [MIT License](LICENSE).
 
 For security considerations and vulnerability reporting, please see [SECURITY.md](SECURITY.md).
-Internal implementation details can be found in [docs/internal](docs/internal).
+Internal logs and historical summaries are available in [docs/internal](docs/internal).

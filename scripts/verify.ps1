@@ -34,20 +34,21 @@ if (-not $SkipBuild) {
     if (-not (Test-Path $BuildDir)) {
         New-Item -ItemType Directory -Path $BuildDir | Out-Null
     }
-    
+
     cmake -S . -B $BuildDir -DCMAKE_BUILD_TYPE=Release
     if ($LASTEXITCODE -ne 0) {
         Write-Failure "CMake configuration failed"
         exit 1
     }
-    
+
     cmake --build $BuildDir --config Release
     if ($LASTEXITCODE -ne 0) {
         Write-Failure "Build failed"
         exit 1
     }
     Write-Success "Build completed"
-} else {
+}
+else {
     Write-Success "Build skipped (using existing)"
 }
 
@@ -64,13 +65,13 @@ Write-Success "Unit tests passed"
 # Step 3: Hash Backend Verification
 Write-Header "Step 3: Verifying Hash Backend"
 
-& "$BuildDir/requiem_cli.exe" health | Out-Null
+& "$BuildDir/requiem.exe" health | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Failure "Health check failed"
     exit 1
 }
 
-$health = & "$BuildDir/requiem_cli.exe" health | ConvertFrom-Json
+$health = & "$BuildDir/requiem.exe" health | ConvertFrom-Json
 if ($health.hash_primitive -ne "blake3") {
     Write-Failure "Hash primitive is not BLAKE3"
     exit 1
@@ -104,7 +105,7 @@ Write-Success "Contract tests passed"
 # Step 6: Validation
 Write-Header "Step 6: Replacement Validation"
 
-& "$BuildDir/requiem_cli.exe" validate-replacement | Out-Null
+& "$BuildDir/requiem.exe" validate-replacement | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Failure "Replacement validation failed"
     exit 1
@@ -114,7 +115,7 @@ Write-Success "Replacement validation passed"
 # Step 7: Doctor Check
 Write-Header "Step 7: Doctor Health Check"
 
-& "$BuildDir/requiem_cli.exe" doctor | Out-Null
+& "$BuildDir/requiem.exe" doctor | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Failure "Doctor check failed"
     exit 1
