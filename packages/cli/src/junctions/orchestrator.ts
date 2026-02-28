@@ -3,7 +3,7 @@
  * Manages junction detection, deduplication, and persistence
  */
 
-import { JunctionTrigger, JunctionType, generateJunctionFingerprint, generateDeduplicationKey, DEFAULT_JUNCTION_CONFIG } from './types';
+import { JunctionTrigger, JunctionType, generateJunctionFingerprint, generateDeduplicationKey } from './types';
 import { JunctionRepository, type Junction } from '../db/junctions';
 
 // Default configuration

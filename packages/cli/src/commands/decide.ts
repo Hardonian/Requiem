@@ -377,7 +377,7 @@ async function handleShow(args: DecideCliArgs): Promise<number> {
 
 // Helper functions
 
-function buildOutcomeMatrix(triggerData: any, severity: number): Record<string, Record<string, number>> {
+function buildOutcomeMatrix(_triggerData: any, severity: number): Record<string, Record<string, number>> {
   // Build a simple outcome matrix based on trigger data
   return {
     accept: { critical: 1 - severity, high: 0.8, medium: 0.9, low: 1.0 },
@@ -393,7 +393,7 @@ function getPredictedScore(output: DecisionOutput): number {
   return 1.0 - (rank * 0.25);
 }
 
-function generateExplanation(junction: any, _triggerTrace: any, _triggerData: any): { summary: string; factors: string[] } {
+function generateExplanation(junction: any, _triggerTrace: any, triggerData: any): { summary: string; factors: string[] } {
   const factors: string[] = [];
   
   // Add severity factor

@@ -74,6 +74,9 @@ export class RequiemEngine implements DecisionEngine {
       join(process.cwd(), 'build/requiem.exe'),
     ];
 
+    // Use first path as default
+    this.enginePath = possiblePaths[0];
+
     for (const path of possiblePaths) {
       try {
         // Check if file exists (this is a simplified check)
@@ -83,8 +86,6 @@ export class RequiemEngine implements DecisionEngine {
         continue;
       }
     }
-
-    this.enginePath = possiblePaths[0];
   }
 
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
@@ -128,7 +129,15 @@ export class RequiemEngine implements DecisionEngine {
    */
   isAvailable(): boolean {
     // Simplified check - in production this would actually verify file existence
+    void this.enginePath; // Reference the property to avoid unused warning
     return process.env.REQUIEM_ENGINE_AVAILABLE === 'true';
+  }
+
+  /**
+   * Get the engine path
+   */
+  getEnginePath(): string {
+    return this.enginePath;
   }
 }
 
@@ -182,6 +191,7 @@ class NativeEngine {
       });
 
       child.on('error', (err) => {
+        void reject; // Avoid unused parameter - promise already resolves on error
         resolve({
           status: 'error',
           requestId: request.requestId,
