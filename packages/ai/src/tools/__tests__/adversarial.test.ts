@@ -19,10 +19,10 @@ import { describe, it, before, afterEach } from 'node:test';
 
 // ─── Imports (dynamic to avoid side-effect pollution across tests) ─────────────
 
-import { AiErrorCode } from '../../../errors/codes.js';
-import { AiError } from '../../../errors/AiError.js';
-import { TenantRole } from '../../../types/index.js';
-import type { InvocationContext } from '../../../types/index.js';
+import { AiErrorCode } from '../../errors/codes.js';
+import { AiError } from '../../errors/AiError.js';
+import { TenantRole } from '../../types/index.js';
+import type { InvocationContext } from '../../types/index.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ describe('Sandbox: path escape prevention', () => {
     let threw = false;
     try {
       sandboxPath('../../../etc/passwd', root);
-    } catch (err) {
+    } catch (err: unknown) {
       threw = true;
       assert.ok(err instanceof AiError, 'Must throw AiError');
       assert.equal(err.code, AiErrorCode.SANDBOX_ESCAPE_ATTEMPT);
@@ -67,7 +67,7 @@ describe('Sandbox: path escape prevention', () => {
     let threw = false;
     try {
       sandboxPath('/etc/shadow', root);
-    } catch (err) {
+    } catch (err: unknown) {
       threw = true;
       assert.ok(err instanceof AiError, 'Must throw AiError');
       assert.equal(err.code, AiErrorCode.SANDBOX_ESCAPE_ATTEMPT);
@@ -82,7 +82,7 @@ describe('Sandbox: path escape prevention', () => {
     let threw = false;
     try {
       sandboxPath('file\0.txt', root);
-    } catch (err) {
+    } catch (err: unknown) {
       threw = true;
       assert.ok(err instanceof AiError, 'Must throw AiError');
       assert.equal(err.code, AiErrorCode.SANDBOX_PATH_INVALID);
@@ -117,7 +117,7 @@ describe('Sandbox: recursion limit enforcement', () => {
       for (let i = 0; i <= MAX_DEPTH + 1; i++) {
         checkDepth(traceId);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       threw = true;
       assert.ok(err instanceof AiError);
       assert.equal(err.code, AiErrorCode.TOOL_RECURSION_LIMIT);
@@ -140,7 +140,7 @@ describe('Sandbox: recursion limit enforcement', () => {
         checkDepth(traceId);
         releaseDepth(traceId); // Reset depth but chain keeps incrementing
       }
-    } catch (err) {
+    } catch (err: unknown) {
       threw = true;
       assert.ok(err instanceof AiError);
       assert.equal(err.code, AiErrorCode.TOOL_CHAIN_LIMIT);
@@ -178,7 +178,7 @@ describe('Replay: integrity protection', () => {
     assert.ok(stored);
 
     // Corrupt the integrity field
-    (stored as Record<string, unknown>)['integrity'] = 'corrupted_integrity_value';
+    (stored as unknown as Record<string, unknown>)['integrity'] = 'corrupted_integrity_value';
     await sink.set(stored);
 
     // checkReplayCache must return undefined on integrity failure (not throw)
@@ -234,7 +234,7 @@ describe('Replay: integrity protection', () => {
     let threw = false;
     try {
       await getReplayRecord(hash, 'tenant-A');
-    } catch (err) {
+    } catch (err: unknown) {
       threw = true;
       assert.ok(err instanceof AiError);
       assert.equal(err.code, AiErrorCode.REPLAY_NOT_FOUND);
@@ -260,7 +260,7 @@ describe('Policy: tenant isolation hard stop', () => {
     let threw = false;
     try {
       await invokeToolWithPolicy(ctxNoTenant, 'system.echo', { message: 'hi' });
-    } catch (err) {
+    } catch (err: unknown) {
       threw = true;
       assert.ok(err instanceof AiError);
       assert.equal(err.code, AiErrorCode.TENANT_REQUIRED);
@@ -273,7 +273,7 @@ describe('Policy: tenant isolation hard stop', () => {
     const { listTools } = await import('../registry.js');
 
     // Find a side-effect tool or mock one
-    const tools = listTools({ sideEffect: true });
+    const tools = listTools(undefined, { sideEffect: true });
     if (tools.length === 0) {
       // Use a mock definition
       const mockDef = {

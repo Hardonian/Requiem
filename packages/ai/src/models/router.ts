@@ -209,7 +209,7 @@ export async function routeModelCall(request: RouterRequest): Promise<RouterResp
     usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
   try {
-    data = await response.json();
+    data = await response.json() as typeof data;
   } catch (err) {
     recordFailure(circuitKey, 'JSON parse error');
     throw new AiError({

@@ -95,12 +95,12 @@ function createEdgeSupabaseClient(request: NextRequest): {
             return [];
           }
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
           try {
-            cookiesToSet.forEach(({ name, value }) => {
+            cookiesToSet.forEach(({ name, value }: { name: string; value: string }) => {
               request.cookies.set(name, value);
             });
-            cookiesToSet.forEach(({ name, value, options }) => {
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options?: Record<string, unknown> }) => {
               response.cookies.set(name, value, options);
             });
           } catch {

@@ -69,10 +69,10 @@ export { storeReplayRecord, checkReplayCache, getReplayRecord, setReplaySink, In
 export { sandboxPath, checkDepth, releaseDepth, MAX_DEPTH, MAX_CHAIN_LENGTH, _resetSandbox } from './tools/sandbox.js';
 
 // ─── Tool Executor ────────────────────────────────────────────────────────────
-export { executeTool, type ExecutionEnvelope } from './tools/executor.js';
+export { executeToolEnvelope, type ExecutionEnvelope } from './tools/executor.js';
 
 // ─── Model Router ─────────────────────────────────────────────────────────────
-export { routeRequest, type RouterRequest, type RouterResult } from './models/router.js';
+export { routeModelCall, type RouterRequest, type RouterResponse } from './models/router.js';
 
 // ─── Bootstrap (register built-ins) ──────────────────────────────────────────
 // These side-effect imports register built-in tools and skills.

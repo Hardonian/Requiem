@@ -93,7 +93,7 @@ export async function executeToolEnvelope(
 
     try {
       // ── 2. Tool lookup ──────────────────────────────────────────────────────
-      const registered = getTool(toolName, opts?.version);
+      const registered = getTool(toolName, tenantId, opts?.version);
       if (!registered) {
         await _denyAudit(toolName, opts?.version ?? 'unknown', ctx, startMs, 'Tool not found');
         throw AiError.toolNotFound(toolName);
