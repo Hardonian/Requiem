@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
   "installCommand": "mkdir -p node_modules/next && echo '{\"version\":\"16.1.6\"}' > node_modules/next/package.json",
-  "buildCommand": "cd packages/ai && npm install --ignore-scripts && npm run build && cd ../../ready-layer && npm install --legacy-peer-deps && npm install --legacy-peer-deps file:../packages/ai && npx next build",
+  "buildCommand": "cd packages/ai && npm install --ignore-scripts --include=dev && npm run build && cd ../../ready-layer && npm install --legacy-peer-deps && npm install --legacy-peer-deps file:../packages/ai && npx next build",
   "outputDirectory": "ready-layer/.next"
 }
