@@ -48,6 +48,14 @@ formal/__pycache__/
 node_modules/
 dist/
 
+# Next.js
+.next/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
 # IDE files
 .vscode/
 .idea/
