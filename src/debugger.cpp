@@ -134,6 +134,7 @@ public:
         current_state_digest_ = step.state_digest;
 
         StateSnapshot snapshot;
+        snapshot.sequence_id = step.sequence_id;
         snapshot.memory_digest = step.state_digest;
         return snapshot;
       }
@@ -178,6 +179,7 @@ public:
                       jsonlite::get_u64(p_obj, "sequence_id", 0);
 
                 StateSnapshot snapshot;
+                snapshot.sequence_id = current_sequence_id_;
                 snapshot.memory_digest = current_state_digest_;
                 return snapshot;
               }

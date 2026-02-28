@@ -1137,6 +1137,45 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "step-out") {
+    std::string root, cas_dir = ".requiem/cas/v2";
+    uint64_t seq = 0;
+    bool seq_set = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--seq" && i + 1 < argc) {
+        seq = std::stoull(argv[++i]);
+        seq_set = true;
+      }
+    }
+
+    if (root.empty() || !seq_set) {
+      std::cout << "{\"ok\":false,\"error\":\"--root and --seq required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
+    if (!dbg->Seek(seq)) {
+      std::cout << "{\"ok\":false,\"error\":\"sequence_id not found\"}\n";
+      return 2;
+    }
+
+    auto snapshot = dbg->StepOut();
+    if (!snapshot) {
+      std::cout << "{\"ok\":false,\"error\":\"step-out failed (end of trace or "
+                   "no scope)\"}\n";
+      return 2;
+    }
+
+    std::cout << "{\"ok\":true,\"new_sequence_id\":" << snapshot->sequence_id
+              << ",\"state_digest\":\"" << snapshot->memory_digest << "\"}\n";
+    return 0;
+  }
+
   // ---------------------------------------------------------------------------
   // Phase A: reach metrics
   // Persona: SRE/DevOps, Enterprise Operator. Full metrics dump.

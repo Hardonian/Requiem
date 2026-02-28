@@ -33,6 +33,7 @@ struct TimeStep {
  * @brief A snapshot of the agent's internal state at a specific TimeStep.
  */
 struct StateSnapshot {
+  uint64_t sequence_id;      // The sequence ID of this snapshot
   std::string memory_digest; // Root hash of the agent's working memory
   std::string last_output;   // Most recent stdout/response
   std::vector<std::string> active_policies; // Policies enforced at this step

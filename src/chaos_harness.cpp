@@ -659,6 +659,67 @@ void test_debugger_diff() {
   fs::remove_all(test_root);
 }
 
+void test_debugger_step_out() {
+  std::cerr << "[chaos_harness] Running TimeTravelDebugger::StepOut "
+               "verification...\n";
+
+  std::string test_root = "test_chaos_step_out_cas";
+  if (fs::exists(test_root))
+    fs::remove_all(test_root);
+  auto cas = std::make_shared<requiem::CasStore>(test_root);
+
+  // 1. Create Events
+  // Seq 0: Start
+  std::string state0 = cas->put("{\"mem\":0}");
+  std::string ev0 = cas->put("{\"type\":\"start\",\"state_after\":\"" + state0 +
+                             "\",\"sequence_id\":0}");
+
+  // Seq 1: Tool Call (Scope Start)
+  std::string state1 = cas->put("{\"mem\":1}");
+  std::string ev1 =
+      cas->put("{\"type\":\"tool_call\",\"state_after\":\"" + state1 +
+               "\",\"sequence_id\":1,\"parent_event\":\"" + ev0 + "\"}");
+
+  // Seq 2: Intermediate (Inside Scope)
+  std::string state2 = cas->put("{\"mem\":2}");
+  std::string ev2 =
+      cas->put("{\"type\":\"log\",\"state_after\":\"" + state2 +
+               "\",\"sequence_id\":2,\"parent_event\":\"" + ev1 + "\"}");
+
+  // Seq 3: Tool Result (Scope End)
+  std::string state3 = cas->put("{\"mem\":3}");
+  std::string ev3 =
+      cas->put("{\"type\":\"tool_result\",\"state_after\":\"" + state3 +
+               "\",\"sequence_id\":3,\"parent_event\":\"" + ev2 + "\"}");
+
+  // Root
+  std::string exec_root =
+      cas->put("{\"type\":\"execution_root\",\"head_event\":\"" + ev3 + "\"}");
+
+  // 2. Load Debugger
+  auto debugger = requiem::TimeTravelDebugger::Load(cas, exec_root);
+
+  // 3. Seek to Tool Call
+  debugger->Seek(1);
+
+  // 4. Step Out
+  auto snapshot = debugger->StepOut();
+
+  if (!snapshot) {
+    std::cerr << "[chaos_harness] FAIL: StepOut returned nullopt\n";
+    exit(1);
+  }
+
+  if (snapshot->sequence_id != 3) {
+    std::cerr << "[chaos_harness] FAIL: StepOut landed on seq "
+              << snapshot->sequence_id << ", expected 3\n";
+    exit(1);
+  }
+
+  std::cerr << "[chaos_harness] PASS: StepOut verified (jumped 1 -> 3).\n";
+  fs::remove_all(test_root);
+}
+
 int main(int argc, char *argv[]) {
   using namespace requiem::chaos;
 
@@ -671,6 +732,7 @@ int main(int argc, char *argv[]) {
 
   // Run functional verification
   test_debugger_diff();
+  test_debugger_step_out();
 
   if (!global_chaos().is_enabled()) {
     std::cerr << "[chaos_harness] FAIL: could not activate chaos mode\n";
