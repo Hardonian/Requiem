@@ -26,6 +26,8 @@
 //   invalidate all existing stored objects without migration.
 
 #include <cstddef>
+#include <map>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
