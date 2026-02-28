@@ -63,6 +63,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# AI runtime data (dev file stores — not for version control)
+.data/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # OS files
 Thumbs.db
 ehthumbs.db
