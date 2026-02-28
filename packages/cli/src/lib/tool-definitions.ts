@@ -35,7 +35,7 @@ export const decideEvaluate: ToolDefinition<
   requiredCapabilities: ['evaluate'],
   handler: async (input, ctx) => {
     // 1. Resolve Junction with Tenant Isolation
-    const junction = JunctionRepository.findById(input.junctionId);
+    const junction = JunctionRepository.findById(input.junctionId, ctx.tenantId);
 
     if (!junction) {
       throw new RequiemError({
@@ -65,6 +65,7 @@ export const decideEvaluate: ToolDefinition<
 
     // 4. Record Decision Report
     const report = DecisionRepository.create({
+      tenant_id: ctx.tenantId, // Explicit injection
       source_type: junction.source_type,
       source_ref: junction.source_ref,
       input_fingerprint: junction.fingerprint,
@@ -106,8 +107,9 @@ export const junctionsList: ToolDefinition<
   idempotent: true,
   tenantScoped: true,
   requiredCapabilities: ['read'],
-  handler: async (input, _ctx) => {
+  handler: async (input, ctx) => {
     const junctions = JunctionRepository.list({
+      tenantId: ctx.tenantId, // Explicit filter
       limit: input.limit,
     });
 

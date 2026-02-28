@@ -1,6 +1,6 @@
 /**
  * Decide CLI Module
- * 
+ *
  * Commands:
  * - requiem decide evaluate --junction <id>
  * - requiem decide explain --junction <id>
@@ -14,6 +14,7 @@ import type { DecisionInput, DecisionOutput } from '../lib/fallback';
 
 export interface DecideCliArgs {
   command: 'evaluate' | 'explain' | 'outcome' | 'list' | 'show';
+  tenantId?: string;
   junctionId?: string;
   decisionId?: string;
   status?: 'success' | 'failure' | 'mixed' | 'unknown';
@@ -47,6 +48,9 @@ export function parseDecideArgs(argv: string[]): DecideCliArgs {
     } else if (arg === '--junction' && next) {
       result.junctionId = next;
       i++;
+    } else if (arg === '--tenant' && next) {
+      result.tenantId = next;
+      i++;
     } else if (arg === '--id' && next) {
       result.decisionId = next;
       i++;
@@ -69,17 +73,23 @@ export function parseDecideArgs(argv: string[]): DecideCliArgs {
  */
 export async function runDecideCommand(args: DecideCliArgs): Promise<number> {
   try {
+    const { requireTenantContextCli, getGlobalTenantResolver } = await import('../lib/tenant');
+    const context = await requireTenantContextCli(getGlobalTenantResolver(), {
+      ...process.env,
+      REQUIEM_TENANT_ID: args.tenantId || process.env.REQUIEM_TENANT_ID,
+    });
+
     switch (args.command) {
       case 'evaluate':
-        return await handleEvaluate(args);
+        return await handleEvaluate(args, context.tenantId);
       case 'explain':
-        return await handleExplain(args);
+        return await handleExplain(args, context.tenantId);
       case 'outcome':
-        return await handleOutcome(args);
+        return await handleOutcome(args, context.tenantId);
       case 'list':
-        return await handleList(args);
+        return await handleList(args, context.tenantId);
       case 'show':
-        return await handleShow(args);
+        return await handleShow(args, context.tenantId);
       default:
         console.error(`Unknown command: ${args.command}`);
         return 1;
@@ -97,13 +107,13 @@ export async function runDecideCommand(args: DecideCliArgs): Promise<number> {
   }
 }
 
-async function handleEvaluate(args: DecideCliArgs): Promise<number> {
+async function handleEvaluate(args: DecideCliArgs, tenantId: string): Promise<number> {
   if (!args.junctionId) {
     console.error('Error: --junction <id> is required');
     return 1;
   }
 
-  const junction = JunctionRepository.findById(args.junctionId);
+  const junction = JunctionRepository.findById(args.junctionId, tenantId);
   if (!junction) {
     if (args.json) {
       console.log(JSON.stringify({
@@ -119,7 +129,7 @@ async function handleEvaluate(args: DecideCliArgs): Promise<number> {
 
   // Parse trigger data to build decision input
   const triggerData = JSON.parse(junction.trigger_data);
-  
+
   // Build a simple decision input from the junction data
   const decisionInput: DecisionInput = {
     actions: ['accept', 'reject', 'defer', 'investigate'],
@@ -129,9 +139,10 @@ async function handleEvaluate(args: DecideCliArgs): Promise<number> {
   };
 
   const result = await evaluateDecision(decisionInput);
-  
+
   // Create decision report
   const decisionReport = DecisionRepository.create({
+    tenant_id: tenantId,
     source_type: junction.source_type as any,
     source_ref: junction.source_ref,
     input_fingerprint: junction.fingerprint,
@@ -204,10 +215,10 @@ async function handleExplain(args: DecideCliArgs): Promise<number> {
     console.log(`Junction: ${junction.junction_type}`);
     console.log(`Severity Score: ${junction.severity_score.toFixed(2)}`);
     console.log(`\n--- Why This Action Won ---`);
-    
+
     const explanation = generateExplanation(junction, triggerTrace, triggerData);
     console.log(explanation.summary);
-    
+
     console.log(`\n--- Trigger Trace ---`);
     console.log(JSON.stringify(triggerTrace, null, 2));
   }
@@ -296,7 +307,7 @@ async function handleList(args: DecideCliArgs): Promise<number> {
   } else {
     console.log(`\n=== Decision Reports ===\n`);
     console.log(`Total: ${decisions.length} decision(s)\n`);
-    
+
     for (const decision of decisions) {
       const output = formatDecisionReport(decision);
       console.log(`[${output.status.toUpperCase()}] ${output.id}`);
@@ -347,23 +358,23 @@ async function handleShow(args: DecideCliArgs): Promise<number> {
     console.log(`Fingerprint: ${output.input_fingerprint}`);
     console.log(`Created: ${output.created_at}`);
     console.log(`Updated: ${output.updated_at}`);
-    
+
     if (output.outcome_notes) {
       console.log(`\nOutcome Notes: ${output.outcome_notes}`);
     }
-    
+
     if (output.calibration_delta !== null) {
       console.log(`Calibration Delta: ${output.calibration_delta}`);
     }
-    
+
     console.log('\n--- Decision Input ---');
     console.log(JSON.stringify(JSON.parse(output.decision_input), null, 2));
-    
+
     if (output.decision_output) {
       console.log('\n--- Decision Output ---');
       console.log(JSON.stringify(JSON.parse(output.decision_output), null, 2));
     }
-    
+
     // Show linked action intents
     const intents = ActionIntentRepository.findByDecisionReport(decision.id);
     if (intents.length > 0) {
@@ -395,10 +406,10 @@ function getPredictedScore(output: DecisionOutput): number {
 
 function generateExplanation(junction: any, _triggerTrace: any, triggerData: any): { summary: string; factors: string[] } {
   const factors: string[] = [];
-  
+
   // Add severity factor
   factors.push(`Severity score: ${junction.severity_score.toFixed(2)}`);
-  
+
   // Add trigger-specific factors
   if (junction.junction_type === 'diff_critical') {
     factors.push(`Files changed: ${triggerData.diffSummary?.filesChanged || 'N/A'}`);
@@ -412,9 +423,9 @@ function generateExplanation(junction: any, _triggerTrace: any, triggerData: any
     factors.push(`Violation count: ${triggerData.violationCount || 0}`);
     factors.push(`Severity: ${triggerData.violationSeverity || 'N/A'}`);
   }
-  
+
   const summary = `This ${junction.junction_type} junction was triggered based on the computed severity score of ${junction.severity_score.toFixed(2)}. The decision engine recommends reviewing the evidence and taking appropriate action.`;
-  
+
   return { summary, factors };
 }
 
@@ -430,7 +441,7 @@ function formatDecisionReport(decision: any, verbose: boolean = false): any {
     created_at: decision.created_at,
     updated_at: decision.updated_at,
   };
-  
+
   if (verbose) {
     output.decision_input = decision.decision_input;
     output.decision_output = decision.decision_output;
@@ -438,6 +449,6 @@ function formatDecisionReport(decision: any, verbose: boolean = false): any {
     output.outcome_notes = decision.outcome_notes;
     output.calibration_delta = decision.calibration_delta;
   }
-  
+
   return output;
 }
