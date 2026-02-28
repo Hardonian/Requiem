@@ -90,6 +90,7 @@ public:
   // Step operations
   virtual std::optional<StateSnapshot> StepForward() = 0;
   virtual std::optional<StateSnapshot> StepBackward() = 0;
+  virtual std::optional<StateSnapshot> StepInto() = 0;
   virtual std::optional<StateSnapshot> StepOver() = 0;
   virtual std::optional<StateSnapshot> StepOut() = 0;
 

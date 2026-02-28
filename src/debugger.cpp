@@ -192,6 +192,8 @@ public:
     return Seek(current_sequence_id_ - 1);
   }
 
+  std::optional<StateSnapshot> StepInto() override { return StepForward(); }
+
   std::optional<StateSnapshot> StepOver() override {
     auto timeline = GetTimeline();
     auto it = std::find_if(timeline.begin(), timeline.end(),
