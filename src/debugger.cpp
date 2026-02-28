@@ -190,6 +190,51 @@ public:
     return Seek(current_sequence_id_ - 1);
   }
 
+  std::optional<StateSnapshot> StepOver() override {
+    auto timeline = GetTimeline();
+    auto it = std::find_if(timeline.begin(), timeline.end(),
+                           [this](const TimeStep &s) {
+                             return s.sequence_id == current_sequence_id_;
+                           });
+
+    if (it != timeline.end() && it->type == "tool_call") {
+      auto res = std::find_if(it + 1, timeline.end(), [](const TimeStep &s) {
+        return s.type == "tool_result";
+      });
+      if (res != timeline.end()) {
+        return Seek(res->sequence_id);
+      }
+    }
+    return StepForward();
+  }
+
+  std::optional<StateSnapshot> StepOut() override {
+    auto timeline = GetTimeline();
+    auto it = std::find_if(timeline.begin(), timeline.end(),
+                           [this](const TimeStep &s) {
+                             return s.sequence_id == current_sequence_id_;
+                           });
+
+    if (it == timeline.end())
+      return std::nullopt;
+
+    std::string target_type = "result"; // Default: run to end of execution
+    if (it->type == "tool_call")
+      target_type = "tool_result";
+    else if (it->type == "process_start")
+      target_type = "process_end";
+
+    auto target = std::find_if(it + 1, timeline.end(), [&](const TimeStep &s) {
+      if (target_type == "result")
+        return s.type == "result" || s.type == "error" || s.type == "end";
+      return s.type == target_type;
+    });
+
+    if (target != timeline.end())
+      return Seek(target->sequence_id);
+    return std::nullopt;
+  }
+
   std::optional<std::string>
   InspectMemory(const std::string &key) const override {
     if (current_state_digest_.empty())
