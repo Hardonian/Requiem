@@ -2,16 +2,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Enterprise Governance OS | Requiem',
+  title: 'Enterprise Governance OS | ReadyLayer',
   description: 'Enterprise governance for deterministic AI development: policy enforcement, replay-grade auditability, and multi-provider arbitration.',
   openGraph: {
-    title: 'Requiem Enterprise Governance OS',
+    title: 'ReadyLayer Enterprise Governance OS',
     description: 'Deterministic CI for AI agents with audit-grade replay, tenant isolation, and policy controls.',
-    url: 'https://requiem.ai/enterprise',
+    url: 'https://readylayer.com/enterprise',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Requiem Enterprise Governance OS',
+    title: 'ReadyLayer Enterprise Governance OS',
     description: 'Deterministic CI for AI agents with policy and arbitration controls.',
   },
 };
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: 'Enterprise Overview',
-    body: 'Requiem Enterprise provides a governance operating system for AI delivery teams that need deterministic outcomes, explainable policy gates, and reproducible run evidence in every release cycle.',
+    body: 'ReadyLayer Enterprise provides a governance operating system for AI delivery teams that need deterministic outcomes, explainable policy gates, and reproducible run evidence in every release cycle.',
   },
   {
     title: 'Security & Compliance',
@@ -99,7 +99,7 @@ export default function EnterprisePage() {
             Ready to secure your AI infrastructure?
           </h2>
           <p className="text-gray-300 mb-8">
-            Get a personalized demo of Requiem Enterprise and learn how we can help you achieve deterministic AI governance.
+            Get a personalized demo of ReadyLayer Enterprise and learn how we can help you achieve deterministic AI governance.
           </p>
           <Link
             href="/enterprise/request-demo"

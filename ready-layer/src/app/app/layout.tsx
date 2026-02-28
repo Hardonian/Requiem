@@ -24,7 +24,7 @@ function Sidebar() {
     >
       <div className="mb-8 px-2">
         <span className="text-lg font-bold tracking-tight text-slate-900">
-          Requiem
+          ReadyLayer
         </span>
         <span className="ml-1 text-xs text-slate-400 font-mono">
           control-plane

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact | Requiem Support',
-  description: 'Contact the Requiem team for help, feedback, or sales inquiries.',
+  title: 'Contact | ReadyLayer Support',
+  description: 'Contact the ReadyLayer team for help, feedback, or sales inquiries.',
 };
 
 export default function ContactPage() {
@@ -13,23 +13,23 @@ export default function ContactPage() {
         
         <div className="bg-white rounded-xl p-8 shadow-sm">
           <p className="text-gray-600 mb-8">
-            Have a question, feedback, or need help? We'd love to hear from you.
+            Have a question, feedback, or need help? We&apos;d love to hear from you.
           </p>
           
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Email</h2>
-              <p className="text-gray-600">support@requiem.ai</p>
+              <p className="text-gray-600">support@readylayer.com</p>
             </div>
             
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Sales</h2>
-              <p className="text-gray-600">sales@requiem.ai</p>
+              <p className="text-gray-600">sales@readylayer.com</p>
             </div>
             
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">General Inquiries</h2>
-              <p className="text-gray-600">hello@requiem.ai</p>
+              <p className="text-gray-600">hello@readylayer.com</p>
             </div>
           </div>
         </div>

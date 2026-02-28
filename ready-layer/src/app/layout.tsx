@@ -9,8 +9,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Requiem | AI Control Plane',
-    template: '%s | Requiem',
+    default: 'ReadyLayer | AI Control Plane',
+    template: '%s | ReadyLayer',
   },
   description:
     'Deterministic AI execution platform with tenant isolation, replay, and audit.',

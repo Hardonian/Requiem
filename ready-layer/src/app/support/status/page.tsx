@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'System Status | Requiem',
-  description: 'Current system status and availability for Requiem services.',
+  title: 'System Status | ReadyLayer',
+  description: 'Current system status and availability for ReadyLayer services.',
 };
 
 const services = [
