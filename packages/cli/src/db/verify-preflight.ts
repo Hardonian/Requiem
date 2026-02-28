@@ -7,8 +7,8 @@
  * 2. Database schema supports the 'usage' column.
  */
 
-import { replay } from '../packages/cli/src/commands/replay';
-import { getDB } from '../packages/cli/src/db/connection';
+import { replay } from '../commands/replay';
+import { getDB } from './connection';
 import { randomBytes } from 'crypto';
 
 async function main() {

@@ -6,7 +6,7 @@
  * and populates existing records with a zero-drift default.
  */
 
-import { getDB } from '../packages/cli/src/db/connection';
+import { getDB } from './connection';
 
 async function main() {
   console.log('🔄 Starting migration: decisions.usage backfill');
@@ -14,7 +14,7 @@ async function main() {
   const db = getDB();
 
   // 1. Fetch all decisions
-  const decisions = db.prepare('SELECT * FROM decisions').all() as any[];
+  const decisions = db.prepare('SELECT * FROM decisions').all() as Array<Record<string, unknown>>;
   console.log(`Found ${decisions.length} decisions to check.`);
 
   let updated = 0;
@@ -31,7 +31,7 @@ async function main() {
   console.log(`✅ Migration complete. Updated ${updated} records.`);
 }
 
-main().catch(err => {
+void main().catch(err => {
   console.error('Migration failed:', err);
   process.exit(1);
 });
