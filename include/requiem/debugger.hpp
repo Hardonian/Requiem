@@ -19,8 +19,8 @@ namespace requiem {
  * sequence of events preceding it.
  */
 struct TimeStep {
-  uint64_t sequence_id;  // Monotonic event counter
-  uint64_t timestamp_ns; // Wall-clock time (informational only)
+  std::uint64_t sequence_id;  // Monotonic event counter
+  std::uint64_t timestamp_ns; // Wall-clock time (informational only)
   std::string
       event_digest; // CAS digest of the specific event (input/tool/output)
   std::string
@@ -33,13 +33,13 @@ struct TimeStep {
  * @brief A snapshot of the agent's internal state at a specific TimeStep.
  */
 struct StateSnapshot {
-  uint64_t sequence_id;      // The sequence ID of this snapshot
+  std::uint64_t sequence_id; // The sequence ID of this snapshot
   std::string memory_digest; // Root hash of the agent's working memory
   std::string last_output;   // Most recent stdout/response
   std::vector<std::string> active_policies; // Policies enforced at this step
   // Economic metrics at this snapshot
-  uint64_t compute_units_consumed;
-  uint64_t memory_bytes_used;
+  std::uint64_t compute_units_consumed;
+  std::uint64_t memory_bytes_used;
 };
 
 /**
@@ -85,7 +85,7 @@ public:
 
   // Jumps to a specific sequence ID. Reconstructs state via replay if
   // necessary.
-  virtual std::optional<StateSnapshot> Seek(uint64_t sequence_id) = 0;
+  virtual std::optional<StateSnapshot> Seek(std::uint64_t sequence_id) = 0;
 
   // Step operations
   virtual std::optional<StateSnapshot> StepForward() = 0;
@@ -125,7 +125,7 @@ public:
    * Used to detect "drift" between a golden master and a new model version.
    * @return List of sequence IDs where the traces diverge.
    */
-  virtual std::vector<uint64_t>
+  virtual std::vector<std::uint64_t>
   Diff(const TimeTravelDebugger &other_session) const = 0;
 };
 
