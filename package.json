@@ -20,7 +20,14 @@
     "format": "cd packages/ui && npx prettier --write .",
     "format:check": "cd packages/ui && npx prettier --check .",
     "start:mcp": "cd ready-layer && npm run dev",
-    "verify:mcp": "echo 'MCP verification script not yet implemented. Requires a running server.'"
+    "verify:mcp": "./ready-layer/node_modules/.bin/tsx scripts/verify-mcp.ts",
+    "verify:ai-safety": "./ready-layer/node_modules/.bin/tsx scripts/verify-ai-safety.ts",
+    "verify:agent-quality": "./ready-layer/node_modules/.bin/tsx scripts/verify-agent-quality.ts",
+    "verify:cost-accounting": "./ready-layer/node_modules/.bin/tsx scripts/verify-cost-accounting.ts",
+    "verify:tenant-isolation": "./ready-layer/node_modules/.bin/tsx scripts/verify-tenant-isolation.ts",
+    "verify:ai": "npm run verify:mcp && npm run verify:ai-safety && npm run verify:agent-quality && npm run verify:cost-accounting && npm run verify:tenant-isolation",
+    "typecheck:ai": "cd packages/ai && npm run typecheck",
+    "build:ai": "cd packages/ai && npm run build"
   },
   "devDependencies": {
     "prettier": "^3.0.0",

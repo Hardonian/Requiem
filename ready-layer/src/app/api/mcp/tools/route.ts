@@ -1,4 +1,5 @@
 // ready-layer/src/app/api/mcp/tools/route.ts
-import { listToolsHandler } from '@requiem/ai/mcp/server'; // Assuming this path
+import '@requiem/ai';
+import { GET_tools } from '@requiem/ai/mcp';
 
-export const GET = listToolsHandler;
+export const GET = GET_tools;

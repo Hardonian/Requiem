@@ -1,4 +1,5 @@
 // ready-layer/src/app/api/mcp/tool/call/route.ts
-import { callToolHandler } from '@requiem/ai/mcp/server'; // Assuming this path
+import '@requiem/ai';
+import { POST_callTool } from '@requiem/ai/mcp';
 
-export const POST = callToolHandler;
+export const POST = POST_callTool;

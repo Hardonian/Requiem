@@ -1,0 +1,30 @@
+{
+  "cases": [
+    {
+      "id": "ai.echo.schema_valid",
+      "description": "system.echo returns valid schema with payload + echoed_at",
+      "tool": "system.echo",
+      "input": { "payload": "test-golden" },
+      "evalMethod": "contains",
+      "requiredKeys": ["payload", "echoed_at"],
+      "tags": ["builtin", "smoke"]
+    },
+    {
+      "id": "ai.health.schema_valid",
+      "description": "system.health returns valid schema",
+      "tool": "system.health",
+      "input": {},
+      "evalMethod": "contains",
+      "requiredKeys": ["status", "version", "tools_registered"],
+      "tags": ["builtin", "smoke"]
+    },
+    {
+      "id": "ai.skill.tool_smoke.pass",
+      "description": "skill.tool_smoke completes successfully",
+      "skill": "skill.tool_smoke",
+      "input": {},
+      "evalMethod": "schema_valid",
+      "tags": ["skill", "smoke"]
+    }
+  ]
+}
