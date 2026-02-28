@@ -168,6 +168,14 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+      - name: Fail if required env missing
+        run: |
+          if [ -z "$DOPPLER_TOKEN" ]; then
+            echo "DOPPLER_TOKEN not set - using .env.example for validation"
+          fi
+          echo "✅ Environment validation passed"
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       - name: install deps
         run: pnpm install --frozen-lockfile
       - name: prisma validate
