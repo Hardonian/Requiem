@@ -40,7 +40,7 @@ export function getSkill(name: string, version?: string): SkillDefinition | unde
 
   let latest: SkillDefinition | undefined;
   let latestVer = '0.0.0';
-  for (const [key, skill] of _registry) {
+  for (const [key, skill] of Array.from(_registry)) {
     if (key.startsWith(`${name}@`)) {
       if (compareVersions(skill.version, latestVer) > 0) {
         latestVer = skill.version;

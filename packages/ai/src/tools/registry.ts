@@ -11,52 +11,13 @@ import { z, ZodError } from 'zod';
 import { AiError } from '../errors/AiError.js';
 import { AiErrorCode } from '../errors/codes.js';
 import { now } from '../types/index.js';
+import type { InvocationContext } from '../types/index.js';
 
 // #region: Context Types
 
 /**
- * Environment for tool execution
- */
-export type Environment = 'development' | 'production';
-
-/**
- * Context passed to every tool invocation
- */
-export interface InvocationContext {
-  /** The tenant ID for multi-tenant isolation */
-  tenantId: string;
-  /** The actor ID (user or agent) making the request */
-  actorId: string;
-  /** Unique request ID for tracing */
-  requestId: string;
-  /** RBAC capabilities granted to the actor */
-  capabilities: string[];
-  /** Execution environment */
-  environment: Environment;
-}
-
-/**
  * Result of tool execution
  */
-export function registerTool(
-  definition: ToolDefinition,
-  handler: ToolHandler
-): void {
-  validateDefinition(definition);
-  const key = toolKey(definition.name, definition.version);
-  if (_registry.has(key)) {
-    throw new AiError({
-      code: AiErrorCode.TOOL_ALREADY_REGISTERED,
-      message: `Tool already registered: ${key}`,
-      phase: 'registry',
-    });
-  }
-  _registry.set(key, { definition, handler, registeredAt: now() });
-}
-
-/**
- * Retrieve a registered tool. If version is omitted, returns the latest version.
- * Returns undefined if not found (callers must handle).
 export interface ToolResult {
   /** Whether the tool executed successfully */
   success: boolean;
@@ -109,11 +70,14 @@ export const ToolDefinitionSchema = z.object({
 });
 
 /**
- * Tool definition type with proper generics
+ * Tool definition type.
+ * Accepts both Zod schemas and plain JSON Schema objects for input/output.
+ * Builtins may use either style.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ToolDefinition<
-  Input extends ZodSchema = ZodSchema,
-  Output extends ZodSchema = ZodSchema
+  Input = any,
+  Output = any
 > = Omit<z.infer<typeof ToolDefinitionSchema>, 'inputSchema' | 'outputSchema'> & {
   inputSchema: Input;
   outputSchema: Output;
@@ -121,11 +85,11 @@ export type ToolDefinition<
 
 /** The actual function that implements the tool's logic. */
 export type ToolHandler<
-  TDef extends ToolDefinition<any, any> = ToolDefinition<any, any>
+  TDef extends ToolDefinition = ToolDefinition
 > = (
   ctx: InvocationContext,
-  input: z.infer<TDef['inputSchema']>
-) => Promise<z.infer<TDef['outputSchema']>>;
+  input: TDef['inputSchema'] extends ZodSchema ? z.infer<TDef['inputSchema']> : unknown
+) => Promise<TDef['outputSchema'] extends ZodSchema ? z.infer<TDef['outputSchema']> : unknown>;
 
 /** A container for a registered tool, holding its definition and handler. */
 interface RegisteredTool {
@@ -211,12 +175,9 @@ function getRegistry(tenantId: string = SYSTEM_TENANT): Map<string, RegisteredTo
 /**
  * Registers a new tool or a new version of an existing tool for a specific tenant.
  */
-export function registerTool<
-  Input extends ZodSchema,
-  Output extends ZodSchema
->(
-  definition: ToolDefinition<Input, Output>,
-  handler: ToolHandler<ToolDefinition<Input, Output>>,
+export function registerTool(
+  definition: ToolDefinition,
+  handler: ToolHandler,
   tenantId: string = SYSTEM_TENANT
 ): void {
   const registry = getRegistry(tenantId);
@@ -239,15 +200,10 @@ export function registerTool<
 /**
  * Retrieves a registered tool by its name and optionally a specific version, scoped to a tenant.
  */
-export function getTool(name: string, version?: string): RegisteredTool | undefined {
-  if (version) {
-    return _registry.get(toolKey(name, version));
-  }
+export function getTool(name: string, tenantId: string = SYSTEM_TENANT, version?: string): RegisteredTool | undefined {
+  const registry = getRegistry(tenantId);
 
-  let latest: RegisteredTool | undefined;
-  let latestVer = '0.0.0';
-  for (const [key, tool] of _registry) {
-    if (key.startsWith(`${name}@`)) {
+  if (version) {
     return registry.get(`${name}@${version}`);
   }
 
@@ -255,7 +211,7 @@ export function getTool(name: string, version?: string): RegisteredTool | undefi
   let latest: RegisteredTool | undefined;
   let latestVer = '0.0.0';
 
-  for (const tool of registry.values()) {
+  for (const tool of Array.from(registry.values())) {
     if (tool.definition.name === name) {
       if (compareVersions(tool.definition.version, latestVer) > 0) {
         latestVer = tool.definition.version;
@@ -287,8 +243,6 @@ export function listTools(tenantId: string = SYSTEM_TENANT, filter?: ListToolsFi
       tools = tools.filter(t => t.deterministic === filter.deterministic);
     }
   }
-  return tools;
-  }
 
   return tools;
 }
@@ -302,7 +256,7 @@ export async function invokeTool(
   input: unknown,
   tenantId?: string
 ): Promise<ToolResult> {
-  const effectiveTenantId = tenantId ?? ctx.tenantId ?? SYSTEM_TENANT;
+  const effectiveTenantId = tenantId ?? ctx.tenant.tenantId ?? SYSTEM_TENANT;
   const startTime = Date.now();
 
   const tool = getTool(name, effectiveTenantId);
@@ -440,8 +394,6 @@ function compareVersions(v1: string, v2: string): number {
   for (let i = 0; i < 3; i++) {
     if ((p1[i] ?? 0) > (p2[i] ?? 0)) return 1;
     if ((p1[i] ?? 0) < (p2[i] ?? 0)) return -1;
-    if (p1[i] > (p2[i] || 0)) return 1;
-    if (p1[i] < (p2[i] || 0)) return -1;
   }
   return 0;
 }

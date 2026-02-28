@@ -68,7 +68,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const action = body.action ?? 'tick';
-  if (!['tick', 'revert'].includes(action)) {
+  if (action !== 'tick' && action !== 'revert') {
     return NextResponse.json(
       { ok: false, error: 'invalid_action', detail: 'action must be "tick" or "revert"' },
       { status: 400 },

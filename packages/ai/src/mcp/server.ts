@@ -50,7 +50,7 @@ export async function handleListTools(
       name: t.name,
       version: t.version,
       description: t.description,
-      inputSchema: t.inputSchema as Record<string, unknown>,
+      inputSchema: t.inputSchema as unknown as Record<string, unknown>,
       deterministic: t.deterministic,
       sideEffect: t.sideEffect,
       tenantScoped: t.tenantScoped,

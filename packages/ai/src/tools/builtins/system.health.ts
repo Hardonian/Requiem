@@ -30,7 +30,7 @@ registerTool(
   },
   async (ctx: InvocationContext, _input: unknown) => {
     return {
-      status: 'ok',
+      status: 'ok' as const,
       version: '0.1.0',
       tools_registered: getToolCount(),
       timestamp: new Date().toISOString(),
