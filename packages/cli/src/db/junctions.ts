@@ -41,8 +41,8 @@ export interface CreateJunctionInput {
   fingerprint: string;
   source_type: 'diff' | 'drift' | 'policy' | 'trust';
   source_ref: string;
-  trigger_data: Record<string, any>;
-  trigger_trace: Record<string, any>;
+  trigger_data: Record<string, unknown>;
+  trigger_trace: Record<string, unknown>;
   deduplication_key?: string;
   cooldown_hours?: number;
 }
@@ -50,7 +50,7 @@ export interface CreateJunctionInput {
 export interface CreateActionIntentInput {
   decision_report_id: string;
   action_type: string;
-  action_payload: Record<string, any>;
+  action_payload: Record<string, unknown>;
 }
 
 export class JunctionRepository {
@@ -106,9 +106,9 @@ export class JunctionRepository {
   static findById(id: string, tenantId?: string): Junction | undefined {
     const db = getDB();
     if (tenantId) {
-      return db.prepare('SELECT * FROM junctions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as Junction | undefined;
+      return db.prepare('SELECT * FROM junctions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as unknown as Junction | undefined;
     }
-    return db.prepare('SELECT * FROM junctions WHERE id = ?').get(id) as Junction | undefined;
+    return db.prepare('SELECT * FROM junctions WHERE id = ?').get(id) as unknown as Junction | undefined;
   }
 
   /**
@@ -116,7 +116,7 @@ export class JunctionRepository {
    */
   static findByFingerprint(fingerprint: string): Junction[] {
     const db = getDB();
-    return db.prepare('SELECT * FROM junctions WHERE fingerprint = ?').all(fingerprint) as Junction[];
+    return db.prepare('SELECT * FROM junctions WHERE fingerprint = ?').all(fingerprint) as unknown as Junction[];
   }
 
   /**
@@ -124,7 +124,7 @@ export class JunctionRepository {
    */
   static findByDeduplicationKey(key: string): Junction | undefined {
     const db = getDB();
-    return db.prepare('SELECT * FROM junctions WHERE deduplication_key = ? AND status = ?').get(key, 'active') as Junction | undefined;
+    return db.prepare('SELECT * FROM junctions WHERE deduplication_key = ? AND status = ?').get(key, 'active') as unknown as Junction | undefined;
   }
 
   /**
@@ -153,7 +153,7 @@ export class JunctionRepository {
       return undefined;
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
       ...input,
     };
@@ -211,7 +211,7 @@ export class JunctionRepository {
   }): Junction[] {
     const db = getDB();
     let query = 'SELECT * FROM junctions';
-    const params: any[] = [];
+    const params: unknown[] = [];
     const conditions: string[] = [];
 
     if (options?.tenantId) {
@@ -255,7 +255,7 @@ export class JunctionRepository {
       params.push(options.offset);
     }
 
-    return db.prepare(query).all(...params) as Junction[];
+    return db.prepare(query).all(...params) as unknown as Junction[];
   }
 }
 
@@ -296,13 +296,13 @@ export class ActionIntentRepository {
    */
   static findByDecisionReport(decisionReportId: string): ActionIntent[] {
     const db = getDB();
-    return db.prepare('SELECT * FROM action_intents WHERE decision_report_id = ?').all(decisionReportId) as ActionIntent[];
+    return db.prepare('SELECT * FROM action_intents WHERE decision_report_id = ?').all(decisionReportId) as unknown as ActionIntent[];
   }
 
   /**
    * Marks an action intent as executed
    */
-  static markExecuted(id: string, result: Record<string, any>): ActionIntent | undefined {
+  static markExecuted(id: string, result: Record<string, unknown>): ActionIntent | undefined {
     const db = getDB();
     const now = new Date().toISOString();
     db.prepare(`
@@ -311,7 +311,7 @@ export class ActionIntentRepository {
       WHERE id = ?
     `).run(now, JSON.stringify(result), id);
 
-    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as ActionIntent | undefined;
+    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as unknown as ActionIntent | undefined;
   }
 
   /**

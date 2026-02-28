@@ -37,17 +37,17 @@ export class JunctionOrchestrator {
   /**
    * Process a junction trigger and create a junction if conditions are met
    */
-  async processTrigger(trigger: JunctionTrigger): Promise<{
+  async processTrigger(trigger: JunctionTrigger, tenantId: string): Promise<{
     created: boolean;
     junction?: Junction;
     reason?: string;
   }> {
     // Generate deterministic fingerprint
     const fingerprint = generateJunctionFingerprint(trigger);
-    
+
     // Generate deduplication key
     const dedupeKey = generateDeduplicationKey(trigger);
-    
+
     // Check for existing active junction with same fingerprint
     const existingByFingerprint = JunctionRepository.findByFingerprint(fingerprint);
     if (existingByFingerprint.length > 0) {
@@ -56,7 +56,7 @@ export class JunctionOrchestrator {
         reason: 'duplicate_fingerprint',
       };
     }
-    
+
     // Check for cooldown
     if (JunctionRepository.isInCooldown(dedupeKey)) {
       return {
@@ -64,7 +64,7 @@ export class JunctionOrchestrator {
         reason: 'in_cooldown',
       };
     }
-    
+
     // Check for existing active junction with same dedupe key
     const existingByDedupe = JunctionRepository.findByDeduplicationKey(dedupeKey);
     if (existingByDedupe) {
@@ -73,9 +73,10 @@ export class JunctionOrchestrator {
         reason: 'active_junction_exists',
       };
     }
-    
+
     // Create the junction
     const junction = JunctionRepository.create({
+      tenant_id: tenantId, // Mandatory injection
       junction_type: trigger.type as JunctionType,
       severity_score: trigger.severityScore,
       fingerprint,
@@ -86,7 +87,7 @@ export class JunctionOrchestrator {
       deduplication_key: dedupeKey,
       cooldown_hours: this.config.cooldownHours,
     });
-    
+
     return {
       created: true,
       junction,
@@ -97,16 +98,18 @@ export class JunctionOrchestrator {
    * Scan for junctions within a time range
    */
   async scan(since: Date, options?: {
+    tenantId?: string;
     junctionType?: string;
     minSeverity?: number;
     limit?: number;
   }): Promise<Junction[]> {
     const junctions = JunctionRepository.list({
+      tenantId: options?.tenantId,
       junctionType: options?.junctionType,
       minSeverity: options?.minSeverity,
       limit: options?.limit || 100,
     });
-    
+
     // Filter by date
     return junctions.filter(j => new Date(j.created_at) >= since);
   }
@@ -114,8 +117,8 @@ export class JunctionOrchestrator {
   /**
    * Get a junction by ID
    */
-  async getJunction(id: string): Promise<Junction | undefined> {
-    return JunctionRepository.findById(id);
+  async getJunction(id: string, tenantId?: string): Promise<Junction | undefined> {
+    return JunctionRepository.findById(id, tenantId);
   }
 
   /**
@@ -136,6 +139,7 @@ export class JunctionOrchestrator {
    * List all junctions
    */
   async listJunctions(options?: {
+    tenantId?: string;
     junctionType?: string;
     sourceType?: string;
     status?: string;

@@ -7,10 +7,10 @@
  * - requiem decide outcome --id <id> --status success|failure|mixed --notes
  */
 
-import { DecisionRepository } from '../db/decisions';
-import { JunctionRepository, ActionIntentRepository } from '../db/junctions';
+import { ActionIntentRepository, JunctionRepository, Junction } from '../db/junctions';
 import { evaluateDecision } from '../engine/adapter';
 import type { DecisionInput, DecisionOutput } from '../lib/fallback';
+import { DecisionRepository, DecisionReport } from '../db/decisions';
 
 export interface DecideCliArgs {
   command: 'evaluate' | 'explain' | 'outcome' | 'list' | 'show';
@@ -55,7 +55,7 @@ export function parseDecideArgs(argv: string[]): DecideCliArgs {
       result.decisionId = next;
       i++;
     } else if (arg === '--status' && next) {
-      result.status = next as any;
+      result.status = next as DecideCliArgs['status'];
       i++;
     } else if (arg === '--notes' && next) {
       result.notes = next;
@@ -143,7 +143,7 @@ async function handleEvaluate(args: DecideCliArgs, tenantId: string): Promise<nu
   // Create decision report
   const decisionReport = DecisionRepository.create({
     tenant_id: tenantId,
-    source_type: junction.source_type as any,
+    source_type: junction.source_type,
     source_ref: junction.source_ref,
     input_fingerprint: junction.fingerprint,
     decision_input: decisionInput,
@@ -177,13 +177,13 @@ async function handleEvaluate(args: DecideCliArgs, tenantId: string): Promise<nu
   return 0;
 }
 
-async function handleExplain(args: DecideCliArgs): Promise<number> {
+async function handleExplain(args: DecideCliArgs, tenantId: string): Promise<number> {
   if (!args.junctionId) {
     console.error('Error: --junction <id> is required');
     return 1;
   }
 
-  const junction = JunctionRepository.findById(args.junctionId);
+  const junction = JunctionRepository.findById(args.junctionId, tenantId);
   if (!junction) {
     if (args.json) {
       console.log(JSON.stringify({
@@ -226,7 +226,7 @@ async function handleExplain(args: DecideCliArgs): Promise<number> {
   return 0;
 }
 
-async function handleOutcome(args: DecideCliArgs): Promise<number> {
+async function handleOutcome(args: DecideCliArgs, tenantId: string): Promise<number> {
   if (!args.decisionId) {
     console.error('Error: --id <decisionId> is required');
     return 1;
@@ -237,7 +237,7 @@ async function handleOutcome(args: DecideCliArgs): Promise<number> {
     return 1;
   }
 
-  const decision = DecisionRepository.findById(args.decisionId);
+  const decision = DecisionRepository.findById(args.decisionId, tenantId);
   if (!decision) {
     if (args.json) {
       console.log(JSON.stringify({
@@ -293,8 +293,9 @@ async function handleOutcome(args: DecideCliArgs): Promise<number> {
   return 0;
 }
 
-async function handleList(args: DecideCliArgs): Promise<number> {
+async function handleList(args: DecideCliArgs, tenantId: string): Promise<number> {
   const decisions = DecisionRepository.list({
+    tenantId,
     limit: 50,
   });
 
@@ -321,13 +322,13 @@ async function handleList(args: DecideCliArgs): Promise<number> {
   return 0;
 }
 
-async function handleShow(args: DecideCliArgs): Promise<number> {
+async function handleShow(args: DecideCliArgs, tenantId: string): Promise<number> {
   if (!args.decisionId) {
     console.error('Error: Decision ID is required');
     return 1;
   }
 
-  const decision = DecisionRepository.findById(args.decisionId);
+  const decision = DecisionRepository.findById(args.decisionId, tenantId);
   if (!decision) {
     if (args.json) {
       console.log(JSON.stringify({
@@ -388,7 +389,7 @@ async function handleShow(args: DecideCliArgs): Promise<number> {
 
 // Helper functions
 
-function buildOutcomeMatrix(_triggerData: any, severity: number): Record<string, Record<string, number>> {
+function buildOutcomeMatrix(_triggerData: unknown, severity: number): Record<string, Record<string, number>> {
   // Build a simple outcome matrix based on trigger data
   return {
     accept: { critical: 1 - severity, high: 0.8, medium: 0.9, low: 1.0 },
@@ -404,7 +405,7 @@ function getPredictedScore(output: DecisionOutput): number {
   return 1.0 - (rank * 0.25);
 }
 
-function generateExplanation(junction: any, _triggerTrace: any, triggerData: any): { summary: string; factors: string[] } {
+function generateExplanation(junction: Junction, _triggerTrace: unknown, triggerData: any): { summary: string; factors: string[] } {
   const factors: string[] = [];
 
   // Add severity factor
@@ -429,7 +430,7 @@ function generateExplanation(junction: any, _triggerTrace: any, triggerData: any
   return { summary, factors };
 }
 
-function formatDecisionReport(decision: any, verbose: boolean = false): any {
+function formatDecisionReport(decision: DecisionReport, verbose: boolean = false): any {
   const output: any = {
     id: decision.id,
     source_type: decision.source_type,

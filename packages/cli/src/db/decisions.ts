@@ -31,7 +31,7 @@ export interface CreateDecisionInput {
   input_fingerprint: string;
   decision_input: DecisionInput;
   decision_output?: DecisionOutput;
-  decision_trace?: any;
+  decision_trace?: unknown;
   recommended_action_id?: string;
   status?: 'pending' | 'evaluated' | 'accepted' | 'rejected' | 'reviewed';
 }
@@ -92,9 +92,9 @@ export class DecisionRepository {
   static findById(id: string, tenantId?: string): DecisionReport | undefined {
     const db = getDB();
     if (tenantId) {
-      return db.prepare('SELECT * FROM decisions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as DecisionReport | undefined;
+      return db.prepare('SELECT * FROM decisions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as unknown as DecisionReport | undefined;
     }
-    return db.prepare('SELECT * FROM decisions WHERE id = ?').get(id) as DecisionReport | undefined;
+    return db.prepare('SELECT * FROM decisions WHERE id = ?').get(id) as unknown as DecisionReport | undefined;
   }
 
   /**
@@ -107,7 +107,7 @@ export class DecisionRepository {
       return undefined;
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
       ...input,
     };
@@ -135,7 +135,7 @@ export class DecisionRepository {
   }): DecisionReport[] {
     const db = getDB();
     let query = 'SELECT * FROM decisions';
-    const params: any[] = [];
+    const params: unknown[] = [];
     const conditions: string[] = [];
 
     if (options?.tenantId) {
@@ -174,7 +174,7 @@ export class DecisionRepository {
       params.push(options.offset);
     }
 
-    return db.prepare(query).all(...params) as DecisionReport[];
+    return db.prepare(query).all(...params) as unknown as DecisionReport[];
   }
 
   /**

@@ -7,23 +7,23 @@
 import { toolRegistry } from './tools';
 import { AgentRunner, AgentRunState } from './agent-runner';
 import { TenantContext } from './tenant';
-import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
+import { RequiemError, ErrorCode } from './errors';
 
 export interface McpRequest {
   jsonrpc: '2.0';
   id: string | number;
   method: string;
-  params: any;
+  params: unknown;
 }
 
 export interface McpResponse {
   jsonrpc: '2.0';
   id: string | number;
-  result?: any;
+  result?: unknown;
   error?: {
     code: number;
     message: string;
-    data?: any;
+    data?: unknown;
   };
 }
 
@@ -60,8 +60,8 @@ export class McpServer {
             },
           };
 
-        case 'tools/call':
-          const { name, arguments: args } = request.params;
+        case 'tools/call': {
+          const { name, arguments: args } = request.params as { name: string; arguments: Record<string, unknown> };
 
           // Increment depth for the agentic loop
           this.runner.incrementDepth(this.state);
@@ -73,6 +73,7 @@ export class McpServer {
             id: request.id,
             result,
           };
+        }
 
         default:
           return {

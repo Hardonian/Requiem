@@ -46,10 +46,8 @@ export const decideEvaluate: ToolDefinition<
     }
 
     // 2. Prepare Decision Input
-    const triggerData = typeof junction.trigger_data === 'string'
-      ? JSON.parse(junction.trigger_data)
-      : junction.trigger_data;
-
+    // Note: triggerData is not currently used in the mock outcome matrix below.
+    // In a production system, it would inform the utility values.
     const decisionInput = {
       actions: ['accept', 'reject', 'defer', 'investigate'],
       states: ['critical', 'high', 'medium', 'low'],
@@ -57,7 +55,7 @@ export const decideEvaluate: ToolDefinition<
         accept: { critical: 0.1, high: 0.5, medium: 0.8, low: 1.0 },
         reject: { critical: 0.9, high: 0.7, medium: 0.4, low: 0.1 },
       },
-      algorithm: 'minimax_regret' as any,
+      algorithm: 'minimax_regret' as const,
     };
 
     // 3. Execute Engine Evaluation

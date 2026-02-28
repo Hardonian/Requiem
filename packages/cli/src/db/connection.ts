@@ -9,19 +9,19 @@ export interface DB {
 }
 
 export interface Statement {
-  run: (...params: any[]) => { lastInsertRowid: number; changes: number };
-  get: (...params: any[]) => any;
-  all: (...params: any[]) => any[];
+  run: (...params: unknown[]) => { lastInsertRowid: number; changes: number };
+  get: (...params: unknown[]) => Record<string, unknown> | undefined;
+  all: (...params: unknown[]) => Record<string, unknown>[];
 }
 
 // In-memory storage
-const tables: Map<string, any[]> = new Map();
+const tables: Map<string, Array<Record<string, unknown>>> = new Map();
 
 class InMemoryStatement implements Statement {
   private sql: string;
   private tableName: string = '';
   private operation: 'insert' | 'select' | 'update' | 'delete' = 'select';
-  private conditions: Array<{ column: string; operator: string; value: any }> = [];
+  private conditions: Array<{ column: string; operator: string; value: unknown }> = [];
   private limitValue?: number;
 
   constructor(sql: string) {
@@ -79,7 +79,7 @@ class InMemoryStatement implements Statement {
     }
   }
 
-  run(...params: any[]): { lastInsertRowid: number; changes: number } {
+  run(...params: unknown[]): { lastInsertRowid: number; changes: number } {
     const table = this.getTable();
 
     if (this.operation === 'insert') {
@@ -87,7 +87,7 @@ class InMemoryStatement implements Statement {
       const valuesMatch = this.sql.match(/VALUES\s*\(([^)]+)\)/i);
       if (valuesMatch) {
         const columns = this.sql.match(/\(([^)]+)\)\s*VALUES/)?.[1].split(',').map(c => c.trim()) || [];
-        const row: any = { id: params.find(p => typeof p === 'string' && p.includes('_')) || `row_${Date.now()}` };
+        const row: Record<string, unknown> = { id: params.find(p => typeof p === 'string' && p.includes('_')) || `row_${Date.now()}` };
 
         // Match params to columns (simplified)
         let paramIndex = 0;
@@ -127,12 +127,12 @@ class InMemoryStatement implements Statement {
     return { lastInsertRowid: 0, changes: 0 };
   }
 
-  get(...params: any[]): any {
+  get(...params: unknown[]): Record<string, unknown> | undefined {
     const table = this.getTable();
     return table.find(row => this.matchesConditions(row, params));
   }
 
-  all(...params: any[]): any[] {
+  all(...params: unknown[]): Record<string, unknown>[] {
     const table = this.getTable();
     let results = table.filter(row => this.matchesConditions(row, params));
 
@@ -151,26 +151,29 @@ class InMemoryStatement implements Statement {
     // Handle LIMIT
     const limitMatch = this.sql.match(/LIMIT\s+(\?|\d+)/i);
     if (limitMatch) {
-      const limit = limitMatch[1] === '?' ? params[params.length - 1] : parseInt(limitMatch[1]);
+      const limit = limitMatch[1] === '?' ? (params[params.length - 1] as number) : parseInt(limitMatch[1]);
       results = results.slice(0, limit);
     }
 
     return results;
   }
 
-  private getTable(): any[] {
-    if (!tables.has(this.tableName)) {
-      tables.set(this.tableName, []);
+  private getTable(): Array<Record<string, unknown>> {
+    const table = tables.get(this.tableName);
+    if (!table) {
+      const newTable: Array<Record<string, unknown>> = [];
+      tables.set(this.tableName, newTable);
+      return newTable;
     }
-    return tables.get(this.tableName)!;
+    return table;
   }
 
-  private filterRows(params: any[]): any[] {
+  private filterRows(params: unknown[]): Array<Record<string, unknown>> {
     const table = this.getTable();
     return table.filter(row => this.matchesConditions(row, params));
   }
 
-  private matchesConditions(row: any, params: any[]): boolean {
+  private matchesConditions(row: Record<string, any>, params: any[]): boolean {
     if (this.conditions.length === 0) return true;
 
     let paramIndex = 0;
