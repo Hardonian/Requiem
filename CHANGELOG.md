@@ -1,6 +1,81 @@
 # Changelog
 
-## v1.3.1 (Release Readiness Implementation — 2026-02-28)
+## 1.0.0 — Initial Public Release (2026-02-28)
+
+### Added
+- **Deterministic Engine** — C++ native runtime for reproducible process execution
+  - BLAKE3 hashing with domain separation
+  - Content-addressable storage (CAS)
+  - Execution replay and verification
+  - Multi-tenant isolation with tenant_id
+  - Sandbox enforcement (Linux seccomp-bpf, Windows process mitigations)
+- **ReadyLayer** — Next.js 15 web dashboard
+  - AI control plane with tenant isolation
+  - Audit logging and cost tracking
+  - Replay record storage
+- **@requiem/ai** — AI subsystem
+  - MCP tools and skills framework
+  - Telemetry and cost accounting
+  - Policy enforcement
+  - Evaluation harness
+- **@requiem/cli** — Reach CLI
+  - Decision engine and junctions
+  - Tool execution
+  - AI agent orchestration
+- **@requiem/ui** — React component library
+  - Shared design tokens
+  - Radix UI based components
+- **Supabase Integration**
+  - Session pooler for app runtime
+  - Direct connection for migrations
+  - PostgreSQL via Prisma
+- **CI/CD**
+  - GitHub Actions with lint, typecheck, build, test
+  - Playwright E2E tests
+  - Prisma validation and migrations
+  - Boundary enforcement
+- **Doppler Sync**
+  - Environment variable management
+  - Secret validation
+
+### Quickstart
+
+```bash
+# Clone and install
+git clone https://github.com/reachhq/requiem.git
+cd requiem
+pnpm install
+
+# Run the web dashboard
+pnpm run web:dev
+
+# Run verification
+pnpm run verify:preflight
+```
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    ReadyLayer (Next.js)                       │
+│            Web dashboard + API routes + middleware            │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+          ┌───────────────┼───────────────┐
+          │               │               │
+ ┌────────▼───────┐ ┌─────▼──────┐ ┌──────▼───────┐
+ │  @requiem/ai   │ │ @requiem/ui│ │  @requiem/cli│
+ │  MCP + Skills  │ │ Components │ │  Reach CLI   │
+ └────────┬───────┘ └────────────┘ └──────┬───────┘
+          │                               │
+ ┌────────▼───────────────────────────────▼───────┐
+ │              Requiem Engine (C++)               │
+ │   Sandbox │ CAS │ Replay │ BLAKE3 │ Policy    │
+ └────────────────────────────────────────────────┘
+```
+
+---
+
 
 ### Fixed
 - **routes.manifest.json restored to repo root** — file was relocated to
