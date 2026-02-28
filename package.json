@@ -30,6 +30,7 @@
     "build:ai": "cd packages/ai && npm run build"
   },
   "devDependencies": {
+    "next": "^16.1.5",
     "prettier": "^3.0.0",
     "typescript": "^5.3.0"
   },

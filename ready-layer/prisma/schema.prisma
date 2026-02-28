@@ -1,0 +1,69 @@
+// ready-layer/prisma/schema.prisma
+//
+// Prisma schema for Requiem enterprise dashboard.
+// Provider: PostgreSQL (Supabase in production, local for dev).
+//
+// INVARIANT: All tables are tenant-scoped via tenant_id.
+// INVARIANT: No direct engine calls from Prisma queries;
+//            engine data comes through the Node API boundary.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  actorId    String   @map("actor_id")
+  action     String
+  resourceId String?  @map("resource_id")
+  traceId    String   @map("trace_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}
+
+// ─── AI Cost Records ──────────────────────────────────────────────────────────
+
+model AiCostRecord {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  actorId      String   @map("actor_id")
+  provider     String
+  model        String
+  inputTokens  Int      @map("input_tokens")
+  outputTokens Int      @map("output_tokens")
+  costCents    Int      @map("cost_cents")
+  latencyMs    Int      @map("latency_ms")
+  traceId      String   @map("trace_id")
+  phase        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@map("ai_cost_records")
+}
+
+// ─── Replay Records ───────────────────────────────────────────────────────────
+
+model ReplayRecord {
+  id          String   @id @default(cuid())
+  hash        String   @unique
+  tenantId    String   @map("tenant_id")
+  toolName    String   @map("tool_name")
+  toolVersion String   @map("tool_version")
+  inputHash   String   @map("input_hash")
+  integrity   String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, hash])
+  @@map("replay_records")
+}
