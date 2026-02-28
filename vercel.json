@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "rootDirectory": "ready-layer",
-  "buildCommand": "next build",
-  "installCommand": "npm install"
+  "buildCommand": "cd ready-layer && npm install && npx next build",
+  "outputDirectory": "ready-layer/.next",
+  "installCommand": "echo 'skipping root install — handled in buildCommand'"
 }
