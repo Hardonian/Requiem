@@ -99,7 +99,7 @@ export async function invokeToolWithPolicy<T extends z.ZodType<any>>(
   toolName: string,
   input: z.infer<T>
 ): Promise<any> {
-  const tool = getTool(toolName);
+  const tool = getTool(toolName, ctx.tenant.id);
   if (!tool) {
     auditLog(ctx, toolName, input, { allowed: false, reason: 'Tool not found.' });
     throw new Error(`Tool "${toolName}" not found.`);
@@ -121,7 +121,7 @@ export async function invokeToolWithPolicy<T extends z.ZodType<any>>(
 
   // 4. Validate Output
   const validatedOutput = tool.definition.outputSchema.parse(output);
-  
+
   // 5. Audit Log Cost (Phase 5)
   // recordCost(ctx, tool.definition, output);
 

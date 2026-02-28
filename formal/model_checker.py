@@ -19,6 +19,7 @@ import sys
 import argparse
 import itertools
 import random
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
 PASS = "\033[32mPASS\033[0m"
@@ -331,18 +332,31 @@ def check_determinism(bound: int, verbose: bool) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def check_policy_compiler(bound: int, verbose: bool) -> bool:
+def check_policy_compiler(
+    bound: int, verbose: bool, policy_file: Optional[str] = None
+) -> bool:
     """
     Bounded model check for Policy Compiler logic.
     Verifies Completeness and Consistency of policy->constraint mapping.
     """
-    POLICIES = ["p1", "p2", "p3"]
-    CONSTRAINTS = ["c1", "c2", "c3", "c4"]
-
-    # Static Compiler Map: p1->{c1}, p2->{c2}, p3->{c3}
-    # Conflict: {c1, c2} are incompatible.
-    COMPILER_MAP = {"p1": {"c1"}, "p2": {"c2"}, "p3": {"c3"}}
-    CONFLICTS = [{"c1", "c2"}]  # p1 and p2 cannot coexist
+    if policy_file:
+        if verbose:
+            print(f"  [PolicyCompiler] Loading definitions from {policy_file}")
+        with open(policy_file, "r") as f:
+            data = json.load(f)
+        POLICIES = data.get("policies", [])
+        CONSTRAINTS = data.get("constraints", [])
+        # Convert map lists to sets
+        raw_map = data.get("map", {})
+        COMPILER_MAP = {k: set(v) for k, v in raw_map.items()}
+        # Convert conflicts to sets
+        raw_conflicts = data.get("conflicts", [])
+        CONFLICTS = [set(c) for c in raw_conflicts]
+    else:
+        POLICIES = ["p1", "p2", "p3"]
+        CONSTRAINTS = ["c1", "c2", "c3", "c4"]
+        COMPILER_MAP = {"p1": {"c1"}, "p2": {"c2"}, "p3": {"c3"}}
+        CONFLICTS = [{"c1", "c2"}]
 
     violations = []
 
@@ -408,6 +422,10 @@ def main():
     parser.add_argument(
         "--bound", type=int, default=30, help="State exploration bound (default: 30)"
     )
+    parser.add_argument(
+        "--policy-file",
+        help="JSON file containing policy definitions for PolicyCompiler spec",
+    )
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     args = parser.parse_args()
 
@@ -429,7 +447,10 @@ def main():
 
     if args.spec in ("PolicyCompiler", "all"):
         results.append(
-            ("PolicyCompiler", check_policy_compiler(args.bound, args.verbose))
+            (
+                "PolicyCompiler",
+                check_policy_compiler(args.bound, args.verbose, args.policy_file),
+            )
         )
 
     print()
