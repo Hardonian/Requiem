@@ -13,7 +13,7 @@
 
 import { parseDecideArgs, runDecideCommand } from './commands/decide';
 import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
-import { checkEngineAvailability, EngineErrorCodes } from './engine/adapter';
+import { checkEngineAvailability } from './engine/adapter';
 
 const VERSION = '0.1.0';
 

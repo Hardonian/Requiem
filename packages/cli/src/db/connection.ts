@@ -19,8 +19,8 @@ const tables: Map<string, any[]> = new Map();
 
 class InMemoryStatement implements Statement {
   private sql: string;
-  private tableName: string;
-  private operation: 'insert' | 'select' | 'update' | 'delete';
+  private tableName: string = '';
+  private operation: 'insert' | 'select' | 'update' | 'delete' = 'select';
   private conditions: Array<{ column: string; operator: string; value: any }> = [];
   private limitValue?: number;
 
@@ -74,6 +74,7 @@ class InMemoryStatement implements Statement {
   private parseLimit() {
     const limitMatch = this.sql.match(/LIMIT\s+(\?|\d+)/i);
     if (limitMatch) {
+      void this.limitValue; // Property is parsed but not directly used
       this.limitValue = limitMatch[1] === '?' ? undefined : parseInt(limitMatch[1]);
     }
   }
@@ -90,7 +91,7 @@ class InMemoryStatement implements Statement {
         
         // Match params to columns (simplified)
         let paramIndex = 0;
-        columns.forEach((col, i) => {
+        columns.forEach((col) => {
           if (paramIndex < params.length) {
             row[col] = params[paramIndex++];
           }

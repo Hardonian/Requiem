@@ -251,7 +251,7 @@ async function handleOutcome(args: DecideCliArgs): Promise<number> {
 
   // Update decision with outcome
   DecisionRepository.update(args.decisionId, {
-    outcome_status: args.status,
+    outcome_status: args.status as 'success' | 'failure' | 'mixed',
     outcome_notes: args.notes || null,
     calibration_delta: calibrationDelta,
     status: args.status === 'success' ? 'accepted' : args.status === 'failure' ? 'rejected' : 'reviewed',
@@ -393,7 +393,7 @@ function getPredictedScore(output: DecisionOutput): number {
   return 1.0 - (rank * 0.25);
 }
 
-function generateExplanation(junction: any, triggerTrace: any, triggerData: any): { summary: string; factors: string[] } {
+function generateExplanation(junction: any, _triggerTrace: any, _triggerData: any): { summary: string; factors: string[] } {
   const factors: string[] = [];
   
   // Add severity factor
