@@ -216,18 +216,19 @@ jobs:
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DREQUIEM_WITH_ZSTD=OFF
           cmake --build build -j
       - name: generate C++ dep snapshot
-        run: python3 - <<'EOF'
-import subprocess, json, os, datetime
-result = {"schema": "cpp_dep_graph_v1", "generated_at": datetime.datetime.utcnow().isoformat()+"Z", "vendored": [], "system": []}
-if os.path.isdir("third_party"):
-    result["vendored"] = sorted(os.listdir("third_party"))
-cmake_out = subprocess.run(["cmake", "--build", "build", "--target", "help"], capture_output=True, text=True)
-result["build_targets"] = [l.strip() for l in cmake_out.stdout.splitlines() if l.startswith("...")]
-os.makedirs("artifacts/reports", exist_ok=True)
-with open("artifacts/reports/cpp_dep_graph.json", "w") as f:
-    json.dump(result, f, indent=2)
-print("Generated artifacts/reports/cpp_dep_graph.json")
-EOF
+        run: |
+          python3 - <<'EOF'
+          import subprocess, json, os, datetime
+          result = {"schema": "cpp_dep_graph_v1", "generated_at": datetime.datetime.utcnow().isoformat()+"Z", "vendored": [], "system": []}
+          if os.path.isdir("third_party"):
+              result["vendored"] = sorted(os.listdir("third_party"))
+          cmake_out = subprocess.run(["cmake", "--build", "build", "--target", "help"], capture_output=True, text=True)
+          result["build_targets"] = [l.strip() for l in cmake_out.stdout.splitlines() if l.startswith("...")]
+          os.makedirs("artifacts/reports", exist_ok=True)
+          with open("artifacts/reports/cpp_dep_graph.json", "w") as f:
+              json.dump(result, f, indent=2)
+          print("Generated artifacts/reports/cpp_dep_graph.json")
+          EOF
       - name: verify:deps
         run: ./scripts/verify_deps.sh
       - name: upload dep graph

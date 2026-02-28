@@ -77,6 +77,10 @@ pnpm-debug.log*
 # TypeScript incremental build info
 *.tsbuildinfo
 
+# Playwright test reports
+playwright-report/
+test-results/
+
 # OS files
 Thumbs.db
 ehthumbs.db
