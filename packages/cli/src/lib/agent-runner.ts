@@ -12,8 +12,8 @@ import { hash } from './hash';
 
 export interface AgentStep {
   tool: string;
-  input: any;
-  output?: any;
+  input: unknown;
+  output?: unknown;
   error?: string;
 }
 
@@ -33,9 +33,9 @@ export class AgentRunner {
    */
   async executeTool(
     name: string,
-    input: any,
+    input: unknown,
     state: AgentRunState
-  ): Promise<any> {
+  ): Promise<unknown> {
     // 1. Enforce Hard Recursion Ceiling
     if (state.depth >= AgentRunner.MAX_RECURSION_DEPTH) {
       const error = `Max recursion depth (${AgentRunner.MAX_RECURSION_DEPTH}) reached at tool ${name}`;

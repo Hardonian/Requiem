@@ -32,7 +32,7 @@ export interface ToolContext extends TenantContext {
 /**
  * Schema-validated tool definition.
  */
-export interface ToolDefinition<I extends z.ZodType<any>, O extends z.ZodType<any>> {
+export interface ToolDefinition<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   readonly name: string;
   readonly version: string;
   readonly description: string;
@@ -71,14 +71,14 @@ export interface ToolDefinition<I extends z.ZodType<any>, O extends z.ZodType<an
  * Registry for managing and discovering tools.
  */
 export class ToolRegistry {
-  private tools: Map<string, ToolDefinition<any, any>> = new Map();
+  private tools: Map<string, ToolDefinition<z.ZodTypeAny, z.ZodTypeAny>> = new Map();
   private static MAX_DEPTH = 10; // Global hard limit
 
   /**
    * Register a new tool.
    * Validates tool integrity before adding to the registry.
    */
-  register<I extends z.ZodType<any>, O extends z.ZodType<any>>(
+  register<I extends z.ZodTypeAny, O extends z.ZodTypeAny>(
     tool: ToolDefinition<I, O>
   ): void {
     if (this.tools.has(tool.name)) {
@@ -150,7 +150,7 @@ export class ToolRegistry {
     }
 
     // 4. Validate Input Schema
-    const validatedInput = await tool.inputSchema.parseAsync(input).catch((err: any) => {
+    const validatedInput = await tool.inputSchema.parseAsync(input).catch((err: Error) => {
       throw new RequiemError({
         code: ErrorCode.VALIDATION_FAILED,
         message: `Validation failed for tool ${name}: ${err.message}`,
@@ -162,7 +162,7 @@ export class ToolRegistry {
     const output = await tool.handler(validatedInput, ctx);
 
     // 6. Validate Output Schema (Ensure contract integrity)
-    return await tool.outputSchema.parseAsync(output).catch((err: any) => {
+    return await tool.outputSchema.parseAsync(output).catch((err: Error) => {
       throw new RequiemError({
         code: ErrorCode.INTERNAL_ERROR,
         message: `Tool ${name} returned invalid output: ${err.message}`,
@@ -171,11 +171,11 @@ export class ToolRegistry {
     });
   }
 
-  list(): ToolDefinition<any, any>[] {
+  list(): ToolDefinition<z.ZodTypeAny, z.ZodTypeAny>[] {
     return Array.from(this.tools.values());
   }
 
-  get(name: string): ToolDefinition<any, any> | undefined {
+  get(name: string): ToolDefinition<z.ZodTypeAny, z.ZodTypeAny> | undefined {
     return this.tools.get(name);
   }
 }
