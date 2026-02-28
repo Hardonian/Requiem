@@ -1,4 +1,6 @@
 // ready-layer/src/app/api/mcp/health/route.ts
-import { healthCheckHandler } from '@requiem/ai/mcp/server'; // Assuming this path
+// Initialization: registers built-in tools + skills
+import '@requiem/ai';
+import { GET_health } from '@requiem/ai/mcp';
 
-export const GET = healthCheckHandler;
+export const GET = GET_health;

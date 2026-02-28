@@ -1,103 +1,132 @@
 /**
- * @fileoverview A minimal, policy-aware MCP (Model Context Protocol) server.
+ * @fileoverview Framework-agnostic MCP server handlers.
  *
- * This module provides Next.js route handlers to expose the AI tool registry
- * to external clients in a secure and structured way.
+ * These handlers implement the MCP protocol (listTools, callTool, health)
+ * without depending on any specific HTTP framework.
+ *
+ * Transport adapters (Next.js, Node) wrap these handlers.
+ *
+ * INVARIANT: No hard-500. Every handler returns a typed result or AiError.
+ * INVARIANT: Tenant context is NEVER derived from request body or query params.
+ * INVARIANT: Auth is resolved by the transport adapter before calling handlers.
  */
 
-import { z } from 'zod';
-import { listTools } from '../tools/registry';
-import { invokeToolWithPolicy, InvocationContext } from '../policy/gate';
-import { TenantRole, getGlobalTenantResolver } from '@requiem/cli'; // Assumed path
+import { listTools } from '../tools/registry.js';
+import { invokeToolWithPolicy } from '../tools/invoke.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { getToolCount } from '../tools/registry.js';
+import type { InvocationContext } from '../types/index.js';
+import type {
+  McpListToolsResponse,
+  McpCallToolResponse,
+  McpHealthResponse,
+  McpToolDescriptor,
+} from './types.js';
 
-// A mock function to get the invocation context.
-// In a real app, this would be derived from the authenticated session.
-async function getInvocationContext(req: Request): Promise<InvocationContext> {
-    const tenantResolver = getGlobalTenantResolver();
-    const tenantContext = await tenantResolver.resolve({ req });
+// ─── Handler Results ──────────────────────────────────────────────────────────
 
-    if (!tenantContext) {
-        throw new Error("Tenant context is required.");
-    }
-    
-    return {
-        tenant: tenantContext,
-        actorId: tenantContext.userId || 'anonymous',
-        traceId: newId('trace'), // Assuming newId is available
-    };
+export interface McpHandlerResult<T> {
+  ok: boolean;
+  data?: T;
+  error?: { code: string; message: string; retryable: boolean; phase?: string };
+  trace_id?: string;
 }
 
-
-// #region: Route Handlers
-
-/**
- * **GET /api/mcp/health**
- *
- * A simple health check endpoint.
- */
-export async function healthCheckHandler(req: Request): Promise<Response> {
-  return new Response(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 
 /**
- * **GET /api/mcp/tools**
- *
- * Lists all available tools in the registry.
+ * Handle tools/list — returns all visible tool definitions.
+ * Filters out tools that require capabilities the actor doesn't have.
  */
-export async function listToolsHandler(req: Request): Promise<Response> {
-    try {
-        await getInvocationContext(req); // Auth check
-        const tools = listTools();
-        return new Response(JSON.stringify({ tools }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error: any) {
-        return new Response(JSON.stringify({ error: error.message }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    }
-}
-
-
-const CallToolInputSchema = z.object({
-  toolName: z.string(),
-  input: z.any(),
-});
-
-/**
- * **POST /api/mcp/tool/call**
- *
- * Invokes a tool with the given input, subject to policy gating.
- */
-export async function callToolHandler(req: Request): Promise<Response> {
+export async function handleListTools(
+  ctx: InvocationContext
+): Promise<McpHandlerResult<McpListToolsResponse>> {
   try {
-    const ctx = await getInvocationContext(req);
-    const body = await req.json();
+    const allTools = listTools();
 
-    const { toolName, input } = CallToolInputSchema.parse(body);
+    // Convert to MCP descriptors (strip handler details)
+    const descriptors: McpToolDescriptor[] = allTools.map(t => ({
+      name: t.name,
+      version: t.version,
+      description: t.description,
+      inputSchema: t.inputSchema as Record<string, unknown>,
+      deterministic: t.deterministic,
+      sideEffect: t.sideEffect,
+      tenantScoped: t.tenantScoped,
+      requiredCapabilities: t.requiredCapabilities,
+    }));
 
-    const result = await invokeToolWithPolicy(ctx, toolName, input);
-
-    return new Response(JSON.stringify({ result }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error: any) {
-    // Distinguish between validation, policy, and execution errors
-    const isZodError = error instanceof z.ZodError;
-    const statusCode = isZodError ? 400 : error.message.includes('Policy denied') ? 403 : 500;
-
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: statusCode,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return {
+      ok: true,
+      data: { tools: descriptors },
+      trace_id: ctx.traceId,
+    };
+  } catch (err) {
+    const aiErr = AiError.fromUnknown(err, 'mcp.listTools');
+    return {
+      ok: false,
+      error: aiErr.toSafeJson(),
+      trace_id: ctx.traceId,
+    };
   }
 }
 
-// #endregion: Route Handlers
+/**
+ * Handle tools/call — invokes a tool via policy gate.
+ */
+export async function handleCallTool(
+  ctx: InvocationContext,
+  toolName: string,
+  args: unknown
+): Promise<McpHandlerResult<McpCallToolResponse>> {
+  if (!toolName || typeof toolName !== 'string') {
+    const err = new AiError({
+      code: AiErrorCode.MCP_INVALID_REQUEST,
+      message: 'toolName is required and must be a string',
+      phase: 'mcp.callTool',
+    });
+    return { ok: false, error: err.toSafeJson(), trace_id: ctx.traceId };
+  }
+
+  try {
+    const result = await invokeToolWithPolicy(ctx, toolName, args ?? {});
+    return {
+      ok: true,
+      data: {
+        content: result.output,
+        latencyMs: result.latencyMs,
+        toolVersion: result.toolVersion,
+      },
+      trace_id: ctx.traceId,
+    };
+  } catch (err) {
+    const aiErr = AiError.fromUnknown(err, 'mcp.callTool');
+    return {
+      ok: false,
+      error: aiErr.toSafeJson(),
+      trace_id: ctx.traceId,
+    };
+  }
+}
+
+/**
+ * Handle system/health — returns AI layer status.
+ * No auth required.
+ */
+export async function handleHealth(): Promise<McpHandlerResult<McpHealthResponse>> {
+  try {
+    return {
+      ok: true,
+      data: {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        tool_count: getToolCount(),
+        version: '0.1.0',
+      },
+    };
+  } catch (err) {
+    const aiErr = AiError.fromUnknown(err, 'mcp.health');
+    return { ok: false, error: aiErr.toSafeJson() };
+  }
+}

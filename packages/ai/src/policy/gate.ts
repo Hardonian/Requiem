@@ -1,101 +1,95 @@
 /**
- * @fileoverview A policy-aware gate for tool invocation.
+ * @fileoverview Policy gate — the security boundary for all AI tool invocations.
  *
- * This module ensures that all tool calls are authorized against a set of policies,
- * including tenant isolation, RBAC, environment restrictions, and budget limits.
+ * INVARIANT: ALL tool calls MUST pass through evaluatePolicy before execution.
+ * INVARIANT: Deny-by-default — any missing metadata results in deny.
+ * INVARIANT: Tenant context is never derived from input; always from ctx.
+ * INVARIANT: VIEWER role cannot execute tools with side effects.
  */
 
-import { z } from 'zod';
-import { ToolDefinition, getTool } from '../tools/registry';
-import { TenantContext, TenantRole } from '@requiem/cli'; // Assuming this path
+import type { InvocationContext } from '../types/index.js';
+import { TenantRole, hasRequiredRole } from '../types/index.js';
+import { hasCapabilities, capabilitiesFromRole } from './capabilities.js';
+import { getBudgetChecker } from './budgets.js';
+import type { ToolDefinition } from '../tools/types.js';
 
-// #region: Core Types
-
-export interface InvocationContext {
-  tenant: TenantContext;
-  actorId: string;
-  traceId: string;
-  // In a real scenario, this would include more info like budget, permissions, etc.
-}
+// ─── Policy Decision ──────────────────────────────────────────────────────────
 
 export interface PolicyDecision {
-  allowed: boolean;
-  reason: string;
-  requiredApprovals?: string[]; // e.g., 'owner' or 'billing_admin'
+  readonly allowed: boolean;
+  readonly reason: string;
+  readonly requiredRole?: TenantRole;
 }
 
-// #endregion: Core Types
-
-
-// #region: Policy Evaluation
+// ─── Core Policy Evaluation ───────────────────────────────────────────────────
 
 /**
- * Evaluates a tool call against defined policies.
- *
- * This is the core of the policy-gating logic.
- *
- * @param ctx The context of the invocation (tenant, actor, etc.).
- * @param toolDef The definition of the tool being called.
- * @param input The input provided to the tool.
- * @returns A policy decision indicating whether the call is allowed.
+ * Synchronous policy evaluation (fast path — no async budget check).
+ * Budget checks are separate (async) and handled in invokeToolWithPolicy.
  */
-export function evaluateToolCall(
+export function evaluatePolicy(
   ctx: InvocationContext,
-  toolDef: ToolDefinition<any, any>,
-  input: any
+  toolDef: ToolDefinition,
+  _input: unknown
 ): PolicyDecision {
-  // 1. Tenant Scoping
-  if (toolDef.tenantScoped && (!ctx.tenant || !ctx.tenant.id)) {
-    return { allowed: false, reason: 'Tool requires a valid tenant context.' };
-  }
-
-  // 2. Capability Check (RBAC)
-  if (toolDef.requiredCapabilities.length > 0) {
-    const hasAllCapabilities = toolDef.requiredCapabilities.every(
-      (cap) => ctx.tenant.roles.includes(cap as TenantRole) // Simplified for now
-    );
-    if (!hasAllCapabilities) {
-      return {
-        allowed: false,
-        reason: `Actor lacks required capabilities: ${toolDef.requiredCapabilities.join(', ')}.`,
-      };
+  // 1. Tenant scoping check
+  if (toolDef.tenantScoped) {
+    if (!ctx.tenant || !ctx.tenant.tenantId) {
+      return deny('Tool requires a valid tenant context', TenantRole.VIEWER);
     }
   }
 
-  // 3. Side Effect Check (Example of a simple policy)
-  if (toolDef.sideEffect && ctx.tenant.roles.includes(TenantRole.VIEWER)) {
-     return {
-        allowed: false,
-        reason: 'Viewer role cannot execute tools with side effects.',
-     };
+  // 2. RBAC capability check
+  if (toolDef.requiredCapabilities.length > 0) {
+    // Derive capabilities from tenant role
+    const actorCaps = capabilitiesFromRole(ctx.tenant?.role ?? TenantRole.VIEWER);
+    if (!hasCapabilities(actorCaps, toolDef.requiredCapabilities)) {
+      const missing = toolDef.requiredCapabilities.filter(c => !actorCaps.includes(c));
+      return deny(`Actor lacks required capabilities: ${missing.join(', ')}`);
+    }
   }
 
-  // 4. Budget Check (Placeholder for Phase 5)
-  // const estimatedCost = toolDef.cost?.costCents ?? 1;
-  // if (getTenantBudget(ctx.tenant.id).remaining < estimatedCost) {
-  //   return { allowed: false, reason: 'Insufficient budget for this operation.' };
-  // }
+  // 3. Side-effect restriction for VIEWER role
+  if (toolDef.sideEffect && ctx.tenant) {
+    if (!hasRequiredRole(ctx.tenant.role, TenantRole.MEMBER)) {
+      return deny(`Role ${ctx.tenant.role} cannot execute tools with side effects`);
+    }
+  }
 
+  // 4. Environment restrictions
+  const env = ctx.environment;
+  if (env === 'production' && toolDef.sideEffect && !toolDef.idempotent) {
+    // Non-idempotent side-effect tools in prod still allowed,
+    // but we could add additional checks here (e.g., approval workflows)
+  }
 
-  return { allowed: true, reason: 'Policy checks passed.' };
+  return allow();
 }
 
-// #endregion: Policy Evaluation
-
-
-// #region: Auditable Invocation
-
 /**
- * The single, safe entry point for invoking any tool.
- * It performs policy checks, validation, execution, and audit logging.
- *
- * @param ctx The invocation context.
- * @param toolName The name of the tool to invoke.
- * @param input The input for the tool.
- * @returns The validated output of the tool.
+ * Async policy evaluation including budget check.
+ * Used when budget enforcement is needed.
  */
-export async function invokeToolWithPolicy<T extends z.ZodType<any>>(
+export async function evaluatePolicyWithBudget(
   ctx: InvocationContext,
+  toolDef: ToolDefinition,
+  input: unknown
+): Promise<PolicyDecision> {
+  // Run sync checks first
+  const syncDecision = evaluatePolicy(ctx, toolDef, input);
+  if (!syncDecision.allowed) return syncDecision;
+
+  // Budget check (only for tenanted calls)
+  if (toolDef.tenantScoped && ctx.tenant) {
+    const estimatedCostCents = toolDef.costHint?.costCents ?? 0;
+    const checker = getBudgetChecker();
+    const budgetResult = await checker.check(ctx.tenant.tenantId, estimatedCostCents);
+    if (!budgetResult.allowed) {
+      return deny(budgetResult.reason ?? 'Budget limit exceeded');
+    }
+  }
+
+  return allow();
   toolName: string,
   input: z.infer<T>
 ): Promise<any> {
@@ -128,31 +122,12 @@ export async function invokeToolWithPolicy<T extends z.ZodType<any>>(
   return validatedOutput;
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Logs an audit record for a tool invocation attempt.
- *
- * In a real system, this would write to a dedicated, immutable audit log.
- * For now, we'll log to the console.
- */
-function auditLog(
-  ctx: InvocationContext,
-  toolName: string,
-  input: any,
-  decision: PolicyDecision
-): void {
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    traceId: ctx.traceId,
-    actorId: ctx.actorId,
-    tenantId: ctx.tenant.id,
-    toolName,
-    input,
-    decision,
-  };
-
-  // In a real implementation, write this to a secure audit log (e.g., database table, S3).
-  console.log('[Audit]', JSON.stringify(logEntry, null, 2));
+function allow(): PolicyDecision {
+  return { allowed: true, reason: 'All policy checks passed' };
 }
 
-// #endregion: Auditable Invocation
+function deny(reason: string, requiredRole?: TenantRole): PolicyDecision {
+  return { allowed: false, reason, requiredRole };
+}

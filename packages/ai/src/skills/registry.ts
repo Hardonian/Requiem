@@ -1,81 +1,64 @@
 /**
- * @fileoverview A registry for managing AI Skills.
+ * @fileoverview Skill registry — central store for versioned skill definitions.
  */
 
-import { SkillDefinition, SkillDefinitionSchema } from './types';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { now } from '../types/index.js';
+import type { SkillDefinition } from './types.js';
 
-/**
- * The in-memory store for all registered skills.
- * Skills are keyed by `name@version`.
- */
-const skillRegistry = new Map<string, SkillDefinition>();
+const _registry = new Map<string, SkillDefinition>();
 
-/**
- * Registers a new skill or a new version of an existing skill.
- *
- * @param definition The skill's formal definition.
- * @throws If a skill with the same name and version is already registered.
- */
-export function registerSkill(definition: SkillDefinition): void {
-  const key = `${definition.name}@${definition.version}`;
-  if (skillRegistry.has(key)) {
-    throw new Error(
-      `Skill with name "${definition.name}" and version "${definition.version}" is already registered.`
-    );
-  }
-
-  // Validate the definition
-  const parsedDef = SkillDefinitionSchema.parse(definition);
-
-  skillRegistry.set(key, parsedDef);
-  console.log(`[SkillRegistry] Registered skill: ${key}`);
+function skillKey(name: string, version: string): string {
+  return `${name}@${version}`;
 }
 
-/**
- * Retrieves a registered skill by its name and optionally a specific version.
- *
- * @param name The name of the skill to retrieve.
- * @param version An optional semver version string. If omitted, the latest version is returned.
- * @returns The registered skill definition, or `undefined` if not found.
- */
-export function getSkill(name: string, version?: string): SkillDefinition | undefined {
-  if (version) {
-    return skillRegistry.get(`${name}@${version}`);
+function compareVersions(v1: string, v2: string): number {
+  const p1 = v1.split('.').map(Number);
+  const p2 = v2.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if (p1[i] > p2[i]) return 1;
+    if (p1[i] < p2[i]) return -1;
   }
+  return 0;
+}
 
-  // Find the latest version
-  let latestSkill: SkillDefinition | undefined;
-  let latestVersion = '0.0.0';
+export function registerSkill(definition: SkillDefinition): void {
+  const key = skillKey(definition.name, definition.version);
+  if (_registry.has(key)) {
+    throw new AiError({
+      code: AiErrorCode.SKILL_ALREADY_REGISTERED,
+      message: `Skill already registered: ${key}`,
+      phase: 'skill.registry',
+    });
+  }
+  _registry.set(key, definition);
+}
 
-  for (const [key, skill] of skillRegistry.entries()) {
+export function getSkill(name: string, version?: string): SkillDefinition | undefined {
+  if (version) return _registry.get(skillKey(name, version));
+
+  let latest: SkillDefinition | undefined;
+  let latestVer = '0.0.0';
+  for (const [key, skill] of _registry) {
     if (key.startsWith(`${name}@`)) {
-      if (compareVersions(skill.version, latestVersion) > 0) {
-        latestVersion = skill.version;
-        latestSkill = skill;
+      if (compareVersions(skill.version, latestVer) > 0) {
+        latestVer = skill.version;
+        latest = skill;
       }
     }
   }
-  return latestSkill;
+  return latest;
 }
 
-/**
- * Lists all registered skills.
- *
- * @returns An array of all registered skill definitions.
- */
 export function listSkills(): SkillDefinition[] {
-  return Array.from(skillRegistry.values());
+  return Array.from(_registry.values());
 }
 
-/**
- * A simple semver comparator.
- */
-function compareVersions(v1: string, v2: string): number {
-  const parts1 = v1.split('.').map(Number);
-  const parts2 = v2.split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
-    if (parts1[i] > parts2[i]) return 1;
-    if (parts1[i] < parts2[i]) return -1;
-  }
-  return 0;
+export function getSkillCount(): number {
+  return _registry.size;
+}
+
+export function _clearSkillRegistry(): void {
+  _registry.clear();
 }

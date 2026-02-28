@@ -1,163 +1,123 @@
 /**
- * Tool Registry Types
- * 
- * Core type definitions for the tool registry system.
- * These types define the contract for AI-accessible tools.
+ * @fileoverview Core types for the tool registry system.
  */
 
-import type { JSONSchemaType } from 'zod';
+import type { InvocationContext } from '../types/index.js';
 
-/**
- * Environment context for tool execution
- */
-export type Environment = 'development' | 'production';
+// ─── JSON Schema ──────────────────────────────────────────────────────────────
 
 /**
- * Context passed to every tool invocation
+ * JSON Schema (subset) for tool input/output definitions.
  */
-export interface ToolContext {
-  /** The tenant ID for multi-tenant isolation */
-  tenantId: string;
-  /** The actor ID (user or agent) making the request */
-  actorId: string;
-  /** Unique request ID for tracing */
-  requestId: string;
-  /** RBAC capabilities granted to the actor */
-  capabilities: string[];
-  /** Execution environment */
-  environment: Environment;
+export interface JsonSchema {
+  type?: string | string[];
+  properties?: Record<string, JsonSchema>;
+  required?: string[];
+  items?: JsonSchema;
+  enum?: unknown[];
+  description?: string;
+  default?: unknown;
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  additionalProperties?: boolean | JsonSchema;
+  $ref?: string;
+  anyOf?: JsonSchema[];
+  oneOf?: JsonSchema[];
+  allOf?: JsonSchema[];
+  nullable?: boolean;
+}
+
+// ─── Tool Definition ──────────────────────────────────────────────────────────
+
+/**
+ * Cost hint for a tool — used by model arbitrator.
+ */
+export interface ToolCostHint {
+  /** Estimated cost per invocation in USD cents */
+  costCents?: number;
+  /** Typical latency bucket */
+  latency?: 'low' | 'medium' | 'high';
 }
 
 /**
- * Result of tool execution
+ * Formal definition of a tool that can be registered and invoked.
  */
-export interface ToolResult {
-  /** Whether the tool executed successfully */
-  success: boolean;
-  /** Tool output if successful */
-  output?: unknown;
-  /** Error details if failed */
-  error?: ToolError;
-  /** Execution latency in milliseconds */
-  latencyMs: number;
+export interface ToolDefinition {
+  readonly name: string;
+  readonly version: string;
+  readonly description: string;
+  readonly inputSchema: JsonSchema;
+  readonly outputSchema: JsonSchema;
+  readonly deterministic: boolean;
+  readonly sideEffect: boolean;
+  readonly idempotent: boolean;
+  readonly requiredCapabilities: readonly string[];
+  readonly tenantScoped: boolean;
+  readonly costHint?: ToolCostHint;
 }
 
-/**
- * Structured error from tool execution
- */
-export interface ToolError {
-  /** Machine-readable error code */
-  code: string;
-  /** Human-readable error message */
-  message: string;
-  /** Additional error details */
-  details?: Record<string, unknown>;
-}
+// ─── Handler + Registration ───────────────────────────────────────────────────
 
 /**
- * Handler function for tool execution
+ * Implementation function for a tool.
+ * Receives validated InvocationContext and input.
  */
 export type ToolHandler = (
-  ctx: ToolContext,
+  ctx: InvocationContext,
   input: unknown
 ) => Promise<unknown>;
 
-/**
- * JSON Schema type for tool definitions
- * Using Zod's JSONSchemaType for full type inference
- */
-export type JsonSchema = JSONSchemaType<unknown>;
-
-/**
- * Tool definition with full metadata
- */
-export interface ToolDefinition {
-  /** Unique identifier for the tool */
-  name: string;
-  /** Semantic version string (e.g., "1.0.0") */
-  version: string;
-  /** Human-readable description */
-  description: string;
-  /** JSON Schema for input validation */
-  inputSchema: JsonSchema;
-  /** JSON Schema for output validation */
-  outputSchema: JsonSchema;
-  /** Whether tool produces deterministic output */
-  deterministic: boolean;
-  /** Whether tool has side effects */
-  sideEffect: boolean;
-  /** Whether tool is idempotent */
-  idempotent: boolean;
-  /** Optional cost estimate hint */
-  costHint?: string;
-  /** RBAC capabilities required to use this tool */
-  requiredCapabilities: string[];
-  /** Whether tool is scoped to tenant (default: true) */
-  tenantScoped: boolean;
+export interface RegisteredTool {
+  readonly definition: ToolDefinition;
+  readonly handler: ToolHandler;
+  readonly registeredAt: string;
 }
 
-/**
- * Registered tool with handler
- */
-export interface RegisteredTool extends ToolDefinition {
-  /** The handler function */
-  handler: ToolHandler;
+// ─── Invocation Result ────────────────────────────────────────────────────────
+
+export interface ToolInvocationResult {
+  readonly output: unknown;
+  readonly latencyMs: number;
+  readonly toolName: string;
+  readonly toolVersion: string;
 }
 
-/**
- * Validation result
- */
+// ─── Audit ────────────────────────────────────────────────────────────────────
+
+export interface ToolAuditRecord {
+  readonly toolName: string;
+  readonly toolVersion: string;
+  readonly actorId: string;
+  readonly tenantId: string | null;
+  readonly traceId: string;
+  readonly decision: 'allow' | 'deny';
+  readonly reason: string;
+  readonly latencyMs: number | null;
+  readonly timestamp: string;
+}
+
+// ─── Validation ───────────────────────────────────────────────────────────────
+
 export interface ValidationResult {
-  /** Whether validation passed */
   valid: boolean;
-  /** List of validation errors */
   errors: ValidationError[];
 }
 
-/**
- * Individual validation error
- */
 export interface ValidationError {
-  /** JSON path to the error */
   path: string;
-  /** Error message */
   message: string;
-  /** Expected schema value */
   expected?: unknown;
-  /** Actual value that failed */
   actual?: unknown;
 }
 
-/**
- * Tool invocation options
- */
-export interface InvokeOptions {
-  /** Whether to validate input before execution */
-  validateInput?: boolean;
-  /** Whether to validate output after execution */
-  validateOutput?: boolean;
-  /** Timeout in milliseconds */
-  timeoutMs?: number;
-}
+// ─── Filters ─────────────────────────────────────────────────────────────────
 
-/**
- * Tool registration options
- */
-export interface RegisterOptions {
-  /** Whether to allow overwriting existing tool */
-  allowOverwrite?: boolean;
-}
-
-/**
- * List tools filter
- */
 export interface ListToolsFilter {
-  /** Filter by capability requirement */
   capability?: string;
-  /** Filter by tenant scope */
   tenantScoped?: boolean;
-  /** Filter by side effect status */
   sideEffect?: boolean;
-  /** Filter by determinism */
   deterministic?: boolean;
 }
