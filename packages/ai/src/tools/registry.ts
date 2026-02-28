@@ -4,6 +4,7 @@
  * INVARIANT: Every tool invocation MUST go through invokeTool.
  * INVARIANT: No "god mode" — tools without requiredCapabilities are not auto-accessible.
  * INVARIANT: Tools with tenantScoped:true MUST have a valid tenant context.
+ * INVARIANT: Registry is a single flat map keyed by name@version.
  */
 
 import { z, ZodError } from 'zod';
@@ -37,6 +38,25 @@ export interface InvocationContext {
 /**
  * Result of tool execution
  */
+export function registerTool(
+  definition: ToolDefinition,
+  handler: ToolHandler
+): void {
+  validateDefinition(definition);
+  const key = toolKey(definition.name, definition.version);
+  if (_registry.has(key)) {
+    throw new AiError({
+      code: AiErrorCode.TOOL_ALREADY_REGISTERED,
+      message: `Tool already registered: ${key}`,
+      phase: 'registry',
+    });
+  }
+  _registry.set(key, { definition, handler, registeredAt: now() });
+}
+
+/**
+ * Retrieve a registered tool. If version is omitted, returns the latest version.
+ * Returns undefined if not found (callers must handle).
 export interface ToolResult {
   /** Whether the tool executed successfully */
   success: boolean;
@@ -219,14 +239,15 @@ export function registerTool<
 /**
  * Retrieves a registered tool by its name and optionally a specific version, scoped to a tenant.
  */
-export function getTool(
-  name: string,
-  tenantId: string = SYSTEM_TENANT,
-  version?: string
-): RegisteredTool | undefined {
-  const registry = getRegistry(tenantId);
-
+export function getTool(name: string, version?: string): RegisteredTool | undefined {
   if (version) {
+    return _registry.get(toolKey(name, version));
+  }
+
+  let latest: RegisteredTool | undefined;
+  let latestVer = '0.0.0';
+  for (const [key, tool] of _registry) {
+    if (key.startsWith(`${name}@`)) {
     return registry.get(`${name}@${version}`);
   }
 
@@ -265,6 +286,8 @@ export function listTools(tenantId: string = SYSTEM_TENANT, filter?: ListToolsFi
     if (filter.deterministic !== undefined) {
       tools = tools.filter(t => t.deterministic === filter.deterministic);
     }
+  }
+  return tools;
   }
 
   return tools;
@@ -406,12 +429,17 @@ function validateDefinition(def: ToolDefinition): void {
   if (!def.outputSchema || typeof def.outputSchema !== 'object') {
     throw new AiError({ code: AiErrorCode.INTERNAL_ERROR, message: 'Tool outputSchema is required', phase: 'registry' });
   }
+  if (typeof def.deterministic !== 'boolean') {
+    throw new AiError({ code: AiErrorCode.INTERNAL_ERROR, message: 'Tool deterministic flag is required', phase: 'registry' });
+  }
 }
 
 function compareVersions(v1: string, v2: string): number {
   const p1 = v1.split('.').map(Number);
   const p2 = v2.split('.').map(Number);
   for (let i = 0; i < 3; i++) {
+    if ((p1[i] ?? 0) > (p2[i] ?? 0)) return 1;
+    if ((p1[i] ?? 0) < (p2[i] ?? 0)) return -1;
     if (p1[i] > (p2[i] || 0)) return 1;
     if (p1[i] < (p2[i] || 0)) return -1;
   }

@@ -1,23 +1,31 @@
 #!/usr/bin/env node
 /**
- * Requiem CLI
- *
- * The unified command-line interface for the Reach ecosystem.
+ * Requiem CLI — AI Control Plane + Decision Engine
  *
  * Commands:
- * - requiem decide <subcommand>    Decision engine operations
- * - requiem junctions <subcommand> Junction management
- * - requiem doctor                 Environment validation
- * - requiem version                Show version info
+ * - requiem tool <subcommand>       AI tool registry operations
+ * - requiem replay <hash>           Replay audit record lookup
+ * - requiem decide <subcommand>     Decision engine operations
+ * - requiem junctions <subcommand>  Junction management
+ * - requiem agent <subcommand>      AI Agent orchestration (MCP)
+ * - requiem doctor                  Environment validation
+ * - requiem version                 Show version info
+ *
+ * INVARIANT: All tool/replay operations use the same registry + executor.
+ * INVARIANT: No duplicate logic between CLI and programmatic API.
  */
 
+import { parseDecideArgs, runDecideCommand } from './commands/decide.js';
+import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions.js';
+import { parseAgentArgs, runAgentCommand } from './commands/agent.js';
+import { checkEngineAvailability } from './engine/adapter.js';
 import { parseDecideArgs, runDecideCommand } from './commands/decide';
 import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
 import { parseAgentArgs, runAgentCommand } from './commands/agent';
 import { parseAiArgs, runAiCommand } from './commands/ai';
 import { checkEngineAvailability } from './engine/adapter';
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 
 function printHelp(): void {
   console.log(`
@@ -27,6 +35,24 @@ USAGE:
   requiem <command> [options]
 
 COMMANDS:
+  tool list [--json] [--capability <cap>]         List registered tools
+  tool exec <name> [--input <json>] [--tenant <id>] Execute a tool
+  replay <hash> [--tenant <id>] [--json]           Fetch a replay record
+  decide <subcommand>                              Decision engine operations
+  junctions <subcommand>                           Junction management
+  agent <subcommand>                               AI Agent orchestration
+  doctor [--json]                                  Validate environment setup
+  version                                          Show version information
+
+TOOL SUBCOMMANDS:
+  list                      List all registered tools
+  exec <name>               Execute a tool by name
+
+EXAMPLES:
+  requiem tool list
+  requiem tool list --capability ai:generate
+  requiem tool exec system.echo --input '{"message":"hello"}' --tenant my-tenant
+  requiem replay sha256abc123... --tenant my-tenant
   decide <subcommand>     Decision engine operations
   junctions <subcommand>  Junction management
   agent <subcommand>      AI Agent orchestration (MCP)
@@ -78,34 +104,29 @@ function printVersion(): void {
   console.log(`Requiem CLI v${VERSION}`);
 }
 
-async function runDoctor(): Promise<number> {
-  console.log('Running environment doctor...\n');
+async function runDoctor(args: string[]): Promise<number> {
+  const json = args.includes('--json');
 
+  // Lazy load tool commands to keep startup fast
+  const { runDoctorFull } = await import('./commands/tool.js');
   const engineCheck = await checkEngineAvailability();
 
-  if (engineCheck.available) {
-    console.log(`✓ Engine available: ${engineCheck.engineType}`);
-    if (engineCheck.error) {
-      console.log(`  Note: ${engineCheck.error}`);
-    }
-  } else {
-    console.error(`✗ Engine not available`);
-    console.error(`  ${engineCheck.error}`);
-    return 1;
+  const engineResult = {
+    check: 'decision_engine',
+    status: engineCheck.available ? 'ok' : 'fail',
+    message: engineCheck.available
+      ? `Engine available: ${engineCheck.engineType}`
+      : `Engine not available: ${engineCheck.error}`,
+  };
+
+  const code = await runDoctorFull({ json });
+
+  if (!json) {
+    const icon = engineResult.status === 'ok' ? '✓' : '✗';
+    console.log(`${icon} ${engineResult.check.padEnd(30)} ${engineResult.message}`);
   }
 
-  // Check Node.js version
-  const nodeVersion = process.version;
-  const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0], 10);
-  if (majorVersion >= 18) {
-    console.log(`✓ Node.js version: ${nodeVersion}`);
-  } else {
-    console.error(`✗ Node.js version too old: ${nodeVersion} (requires >= 18)`);
-    return 1;
-  }
-
-  console.log('\nEnvironment check complete.');
-  return 0;
+  return code;
 }
 
 async function main(): Promise<number> {
@@ -120,6 +141,29 @@ async function main(): Promise<number> {
   const subArgs = args.slice(1);
 
   switch (command) {
+    case 'tool': {
+      const { parseToolListArgs, runToolList, parseToolExecArgs, runToolExec } =
+        await import('./commands/tool.js');
+
+      const subcommand = subArgs[0];
+      const subsubArgs = subArgs.slice(1);
+
+      if (subcommand === 'list') {
+        return runToolList(parseToolListArgs(subsubArgs));
+      } else if (subcommand === 'exec') {
+        return await runToolExec(parseToolExecArgs(subsubArgs));
+      } else {
+        console.error(`Unknown tool subcommand: ${subcommand}`);
+        console.error('Run "requiem tool list" or "requiem tool exec <name>"');
+        return 1;
+      }
+    }
+
+    case 'replay': {
+      const { parseReplayArgs, runReplay } = await import('./commands/tool.js');
+      return await runReplay(parseReplayArgs(subArgs));
+    }
+
     case 'decide': {
       const decideArgs = parseDecideArgs(subArgs);
       return await runDecideCommand(decideArgs);
@@ -141,7 +185,7 @@ async function main(): Promise<number> {
     }
 
     case 'doctor':
-      return await runDoctor();
+      return await runDoctor(subArgs);
 
     case 'version':
     case '--version':
@@ -162,7 +206,6 @@ async function main(): Promise<number> {
   }
 }
 
-// Run main and exit with appropriate code
 main()
   .then(code => process.exit(code))
   .catch(err => {

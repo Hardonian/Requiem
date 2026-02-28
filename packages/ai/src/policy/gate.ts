@@ -25,7 +25,7 @@ export interface PolicyDecision {
 
 /**
  * Synchronous policy evaluation (fast path — no async budget check).
- * Budget checks are separate (async) and handled in invokeToolWithPolicy.
+ * Budget checks are separate (async) and handled in evaluatePolicyWithBudget.
  */
 export function evaluatePolicy(
   ctx: InvocationContext,
@@ -41,7 +41,6 @@ export function evaluatePolicy(
 
   // 2. RBAC capability check
   if (toolDef.requiredCapabilities.length > 0) {
-    // Derive capabilities from tenant role
     const actorCaps = capabilitiesFromRole(ctx.tenant?.role ?? TenantRole.VIEWER);
     if (!hasCapabilities(actorCaps, toolDef.requiredCapabilities)) {
       const missing = toolDef.requiredCapabilities.filter(c => !actorCaps.includes(c));
@@ -56,19 +55,12 @@ export function evaluatePolicy(
     }
   }
 
-  // 4. Environment restrictions
-  const env = ctx.environment;
-  if (env === 'production' && toolDef.sideEffect && !toolDef.idempotent) {
-    // Non-idempotent side-effect tools in prod still allowed,
-    // but we could add additional checks here (e.g., approval workflows)
-  }
-
   return allow();
 }
 
 /**
  * Async policy evaluation including budget check.
- * Used when budget enforcement is needed.
+ * Used when budget enforcement is needed (every tool execution).
  */
 export async function evaluatePolicyWithBudget(
   ctx: InvocationContext,
