@@ -1,0 +1,66 @@
+{
+  "name": "@requiem/cli",
+  "version": "0.1.0",
+  "description": "Requiem CLI - Orchestration layer for the Reach ecosystem",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "requiem": "./dist/cli.js",
+    "reach": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./commands/decide": {
+      "types": "./dist/commands/decide.d.ts",
+      "import": "./dist/commands/decide.js"
+    },
+    "./commands/junctions": {
+      "types": "./dist/commands/junctions.d.ts",
+      "import": "./dist/commands/junctions.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && npm run make-executable",
+    "make-executable": "node -e \"const fs=require('fs'); fs.chmodSync('dist/cli.js', 0o755)\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "verify": "npm run typecheck && npm run lint && npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "blake3": "^2.1.7",
+    "cbor": "^10.0.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reachhq/requiem.git",
+    "directory": "packages/cli"
+  },
+  "keywords": [
+    "cli",
+    "orchestration",
+    "decision-engine",
+    "junctions",
+    "reach"
+  ]
+}

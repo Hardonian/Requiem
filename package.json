@@ -4,9 +4,7 @@
   "description": "Deterministic native runtime with UI kit for operational interfaces",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@8.15.0",
   "scripts": {
     "build": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j",
     "build:ui": "cd packages/ui && npm run build",
