@@ -13,6 +13,8 @@
     "postinstall": "echo 'Run prisma:generate manually after install'",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:validate": "prisma validate",
     "test": "vitest run",
