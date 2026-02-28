@@ -10,11 +10,18 @@ import { ToolContext, toolRegistry } from './tools';
 import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
 import { hash } from './hash';
 
+export interface AgentUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  cost_usd: number;
+}
+
 export interface AgentStep {
   tool: string;
   input: unknown;
   output?: unknown;
   error?: string;
+  usage?: AgentUsage;
 }
 
 export interface AgentRunState {
@@ -59,11 +66,20 @@ export class AgentRunner {
     try {
       const output = await toolRegistry.call(name, input, toolContext);
 
+      // Extract usage if present, otherwise default to 0 (Zero-Drift Policy)
+      // We assume the tool output might contain a usage object, or we default.
+      const usage: AgentUsage = (output as any)?.usage || {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        cost_usd: 0,
+      };
+
       // 4. Record Trace (for audit and replayer)
       state.trace.push({
         tool: name,
         input,
         output,
+        usage,
       });
 
       return output;

@@ -40,15 +40,17 @@ async function ExecutionsList() {
           <thead>
             <tr className="border-b">
               <th className="text-left py-2">Execution ID</th>
-              <th className="text-left py-2">Status</th>
+              <th className="text-left py-2">Authority</th>
               <th className="text-left py-2">Result Digest</th>
+              <th className="text-left py-2">Tokens</th>
+              <th className="text-left py-2">Cost ($)</th>
               <th className="text-left py-2">Latency</th>
-              <th className="text-left py-2">Replay</th>
+              <th className="text-left py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colSpan={5} className="py-4 text-center text-gray-400">
+              <td colSpan={7} className="py-4 text-center text-gray-400">
                 {placeholder.message}{' '}
                 <a href={placeholder.docs} className="text-blue-500 underline">Docs</a>
               </td>

@@ -17,6 +17,7 @@ export interface DecisionReport {
   decision_input: string; // JSON string
   decision_output: string | null; // JSON string
   decision_trace: string | null; // JSON string
+  usage: string | null; // JSON string of AgentUsage
   recommended_action_id: string | null;
   status: 'pending' | 'evaluated' | 'accepted' | 'rejected' | 'reviewed';
   outcome_status: 'success' | 'failure' | 'mixed' | 'unknown' | null;
@@ -32,6 +33,7 @@ export interface CreateDecisionInput {
   decision_input: DecisionInput;
   decision_output?: DecisionOutput;
   decision_trace?: unknown;
+  usage?: unknown;
   recommended_action_id?: string;
   status?: 'pending' | 'evaluated' | 'accepted' | 'rejected' | 'reviewed';
 }
@@ -63,6 +65,7 @@ export class DecisionRepository {
       decision_input: JSON.stringify(input.decision_input),
       decision_output: input.decision_output ? JSON.stringify(input.decision_output) : null,
       decision_trace: input.decision_trace ? JSON.stringify(input.decision_trace) : null,
+      usage: input.usage ? JSON.stringify(input.usage) : JSON.stringify({ prompt_tokens: 0, completion_tokens: 0, cost_usd: 0 }),
       recommended_action_id: input.recommended_action_id || null,
       status: input.status || 'pending',
       outcome_status: 'unknown',
@@ -73,11 +76,11 @@ export class DecisionRepository {
     const stmt = db.prepare(`
       INSERT INTO decisions (
         id, tenant_id, created_at, updated_at, source_type, source_ref, input_fingerprint,
-        decision_input, decision_output, decision_trace, recommended_action_id,
+        decision_input, decision_output, decision_trace, usage, recommended_action_id,
         status, outcome_status, outcome_notes, calibration_delta
       ) VALUES (
         @id, @tenant_id, @created_at, @updated_at, @source_type, @source_ref, @input_fingerprint,
-        @decision_input, @decision_output, @decision_trace, @recommended_action_id,
+        @decision_input, @decision_output, @decision_trace, @usage, @recommended_action_id,
         @status, @outcome_status, @outcome_notes, @calibration_delta
       )
     `);
