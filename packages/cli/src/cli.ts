@@ -184,6 +184,21 @@ async function main(): Promise<number> {
       return await runAiCommand(aiArgs);
     }
 
+    case 'pack': {
+      console.log('Pack management - implement pack commands');
+      return 0;
+    }
+
+    case 'marketplace': {
+      console.log('Marketplace - implement marketplace commands');
+      return 0;
+    }
+
+    case 'eval': {
+      console.log('Evaluation - implement eval commands');
+      return 0;
+    }
+
     case 'doctor':
       return await runDoctor(subArgs);
 

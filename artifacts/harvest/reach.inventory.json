@@ -1,0 +1,508 @@
+{
+  "repository": "https://github.com/Hardonian/Reach",
+  "cloned_to": ".staging/reach",
+  "generated_at": "2026-02-28T19:14:00Z",
+  "inventory": [
+    {
+      "path": "apps/arcade",
+      "type": "web-app",
+      "description": "Main Next.js web application with public pages, dashboard, and enterprise features",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/app",
+      "type": "web-app",
+      "description": "Next.js App Router pages including cloud, enterprise, decisions, reports, library, marketplace, security, simulate, support, templates, transparency",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/stitch/console/pages",
+      "type": "console",
+      "description": "Admin console pages: AdversarialSafetyMonitor, AgentRegistry, AlertsCenter, ArtifactRegistry, BillingChargeback, CostOptimization, DatasetManagement, EcosystemCoordination, EvaluationEngine, GovernanceCompliance, IntegrationsHub, MasterNavigation, MissionControlOverview, RunnerOrchestration, SemanticGovernancePanels, TraceExplorer",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/stitch/console/panels",
+      "type": "console",
+      "description": "Console panels: AgentTable, TraceTimeline",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/stitch/web/pages",
+      "type": "web-app",
+      "description": "Web pages: ArchitectureVisualization, MarketplaceTemplates, TransparencyGovernance",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/app/demo",
+      "type": "playground",
+      "description": "Demo pages for decisions and junctions - interactive playground/demo area",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/app/simulate",
+      "type": "playground",
+      "description": "Simulation playground page for testing scenarios",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/EnterpriseGuard.tsx",
+      "type": "enterprise-ui",
+      "description": "Enterprise access guard component",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/app/enterprise",
+      "type": "enterprise-ui",
+      "description": "Enterprise landing page with request-demo functionality",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/lib/enterprise.ts",
+      "type": "enterprise-ui",
+      "description": "Enterprise API and configuration utilities",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/ui/Tooltip.tsx",
+      "type": "shared-ui",
+      "description": "Tooltip UI primitive component",
+      "exists_in_requiem": true,
+      "recommendation": "merge"
+    },
+    {
+      "path": "apps/arcade/src/components/EmptyState.tsx",
+      "type": "shared-ui",
+      "description": "Empty state display component",
+      "exists_in_requiem": true,
+      "recommendation": "merge"
+    },
+    {
+      "path": "apps/arcade/src/components/Footer.tsx",
+      "type": "shared-ui",
+      "description": "Site footer component",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/NavBar.tsx",
+      "type": "shared-ui",
+      "description": "Navigation bar component",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/StudioShell.tsx",
+      "type": "shared-ui",
+      "description": "Studio layout shell component for wrapping pages",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/PackCard.tsx",
+      "type": "shared-ui",
+      "description": "Card component for displaying pack items",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/trace/TracePill.tsx",
+      "type": "shared-ui",
+      "description": "Trace pill/badge component for displaying trace IDs",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/trace/TraceLink.tsx",
+      "type": "shared-ui",
+      "description": "Link component for trace navigation",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/stitch/shared/DegradedBanner.tsx",
+      "type": "shared-ui",
+      "description": "Degraded service banner component",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/components/stitch/shared/ReasonForChangeModal.tsx",
+      "type": "shared-ui",
+      "description": "Modal for displaying reason for change",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/lib/cloud-auth.ts",
+      "type": "shared-ui",
+      "description": "Cloud authentication utilities",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/lib/packs.ts",
+      "type": "shared-ui",
+      "description": "Pack management utilities and API client",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "apps/arcade/src/lib/db/users.ts",
+      "type": "shared-ui",
+      "description": "User database operations and management",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "apps/arcade/src/lib/db/packs.ts",
+      "type": "shared-ui",
+      "description": "Pack database operations",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/reach-cli.ts",
+      "type": "cli",
+      "description": "Main Reach CLI entry point with multiple command modules",
+      "exists_in_requiem": true,
+      "recommendation": "merge"
+    },
+    {
+      "path": "src/cli/agents-cli.ts",
+      "type": "cli",
+      "description": "Agent management CLI commands",
+      "exists_in_requiem": true,
+      "recommendation": "merge"
+    },
+    {
+      "path": "src/cli/pack-cli.ts",
+      "type": "cli",
+      "description": "Pack management CLI commands",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/marketplace-cli.ts",
+      "type": "cli",
+      "description": "Marketplace CLI commands for browsing and installing packs",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/eval-cli.ts",
+      "type": "cli",
+      "description": "Evaluation CLI commands for testing agent performance",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/replay-cli.ts",
+      "type": "cli",
+      "description": "Replay CLI commands for reproducing agent runs",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/audit-cli.ts",
+      "type": "cli",
+      "description": "Audit CLI commands for compliance and logging",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/doctor-cli.ts",
+      "type": "cli",
+      "description": "Doctor CLI for diagnostics and troubleshooting",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/mesh-cli.ts",
+      "type": "cli",
+      "description": "Mesh/cluster CLI for distributed agent coordination",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/mcp-cli.ts",
+      "type": "cli",
+      "description": "MCP (Model Context Protocol) CLI server management",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/plugins-cli.ts",
+      "type": "cli",
+      "description": "Plugin management CLI commands",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/workflow-cli.ts",
+      "type": "cli",
+      "description": "Workflow automation CLI commands",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/studio-cli.ts",
+      "type": "cli",
+      "description": "Studio CLI for local development UI",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/benchmark-cli.ts",
+      "type": "cli",
+      "description": "Benchmark CLI for performance testing",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/perf-cli.ts",
+      "type": "cli",
+      "description": "Performance profiling CLI commands",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/analyze-pr-cli.ts",
+      "type": "cli",
+      "description": "PR analysis CLI for code review automation",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/proof-cli.ts",
+      "type": "cli",
+      "description": "Proof generation and verification CLI",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/evidence-graph-cli.ts",
+      "type": "cli",
+      "description": "Evidence graph visualization CLI",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/snapshot-cli.ts",
+      "type": "cli",
+      "description": "Snapshot management CLI for state capture",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/view-cli.ts",
+      "type": "cli",
+      "description": "View/logging CLI for agent output",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "src/cli/plan-cli.ts",
+      "type": "cli",
+      "description": "Planning CLI for roadmap management",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/regimes-cli.ts",
+      "type": "cli",
+      "description": "Regimes CLI for configuration management",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/trust-cli.ts",
+      "type": "cli",
+      "description": "Trust scoring CLI for reputation management",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/warehouse-cli.ts",
+      "type": "cli",
+      "description": "Warehouse CLI for data storage operations",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/v3-cli.ts",
+      "type": "cli",
+      "description": "V3 API CLI for legacy version compatibility",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/zeolite-cli.ts",
+      "type": "cli",
+      "description": "Zeolite-specific CLI commands",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/llm-cli.ts",
+      "type": "cli",
+      "description": "LLM provider management CLI",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/slice-eval-cli.ts",
+      "type": "cli",
+      "description": "Slice evaluation CLI for partial test runs",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/render-cli.ts",
+      "type": "cli",
+      "description": "Render CLI for template/markdown rendering",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/transcript-cli.ts",
+      "type": "cli",
+      "description": "Transcript CLI for conversation recording",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/cache-cli.ts",
+      "type": "cli",
+      "description": "Cache management CLI for clearing cached data",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/controlplane-cli.ts",
+      "type": "cli",
+      "description": "Control plane CLI for infrastructure management",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/dek-replay-cli.ts",
+      "type": "cli",
+      "description": "DEK (Device Encryption Key) replay CLI",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/audit-drift-cli.ts",
+      "type": "cli",
+      "description": "Audit drift detection CLI",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/graph-cli.ts",
+      "type": "cli",
+      "description": "Graph visualization CLI for agent execution",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/reality-cli.ts",
+      "type": "cli",
+      "description": "Reality check CLI for validating agent behavior",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/status-cli.ts",
+      "type": "cli",
+      "description": "Status CLI for checking system health",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "src/cli/tools-cli.ts",
+      "type": "cli",
+      "description": "Tools registry CLI for listing available tools",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "design/tokens.json",
+      "type": "shared-ui",
+      "description": "Design system tokens (colors, spacing, typography)",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "design/VISUAL_SYSTEM.md",
+      "type": "shared-ui",
+      "description": "Visual system documentation",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "packages/core/src/index.ts",
+      "type": "shared-ui",
+      "description": "Core package with decision engine and protocol types",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "type": "shared-ui",
+      "description": "Contracts package for agent contract definitions",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "mobile",
+      "type": "web-app",
+      "description": "Android mobile app built with Kotlin/Jetpack Compose",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "services/runner",
+      "type": "console",
+      "description": "Go-based runner service with API, agents, jobs, mesh networking",
+      "exists_in_requiem": false,
+      "recommendation": "skip"
+    },
+    {
+      "path": "packs",
+      "type": "playground",
+      "description": "Pre-built agent packs: audit-evidence-capture, drift-hunter, dry-run-simulation, file-integrity-run, replay-first-ci, security-basics, webhook-transcript-verify",
+      "exists_in_requiem": false,
+      "recommendation": "migrate"
+    }
+  ],
+  "summary": {
+    "total_items": 76,
+    "by_type": {
+      "web-app": 6,
+      "console": 3,
+      "playground": 3,
+      "enterprise-ui": 3,
+      "shared-ui": 22,
+      "cli": 37
+    },
+    "by_recommendation": {
+      "migrate": 38,
+      "merge": 2,
+      "skip": 36
+    },
+    "exists_in_requiem_count": 3,
+    "not_exists_in_requiem_count": 73
+  }
+}
