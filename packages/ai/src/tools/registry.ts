@@ -110,11 +110,25 @@ interface RegisteredTool {
 
 // #region: Tool Registry State
 /**
- * The in-memory store for all registered tools.
- * Tools are keyed by `name@version`.
+ * The in-memory store for all registered tools, isolated by tenant.
+ * Structure: tenantId -> (name@version -> RegisteredTool)
  */
-const toolRegistry = new Map<string, RegisteredTool>();
+const tenantRegistries = new Map<string, Map<string, RegisteredTool>>();
 
+/** Default tenant ID for system-wide tools. */
+const SYSTEM_TENANT = 'system';
+
+/**
+ * Gets or creates a registry for a specific tenant.
+ */
+function getRegistry(tenantId: string = SYSTEM_TENANT): Map<string, RegisteredTool> {
+  let registry = tenantRegistries.get(tenantId);
+  if (!registry) {
+    registry = new Map<string, RegisteredTool>();
+    tenantRegistries.set(tenantId, registry);
+  }
+  return registry;
+}
 // #endregion: Tool Registry State
 
 
