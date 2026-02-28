@@ -148,6 +148,45 @@ public:
   std::optional<StateSnapshot> StepBackward() override {
     if (current_sequence_id_ == 0)
       return std::nullopt;
+
+    // Optimization: In Linked mode, we can walk up the parent pointer
+    // instead of rescanning the whole timeline via Seek().
+    if (mode_ == Mode::Linked && !current_event_digest_.empty()) {
+      auto ev_json = cas_->get(current_event_digest_);
+      if (ev_json) {
+        auto ev_val = jsonlite::parse(*ev_json, nullptr);
+        if (std::holds_alternative<jsonlite::Object>(ev_val.v)) {
+          const auto &ev_obj = std::get<jsonlite::Object>(ev_val.v);
+          std::string parent = jsonlite::get_string(ev_obj, "parent_event", "");
+          if (!parent.empty()) {
+            // Load parent event
+            auto p_json = cas_->get(parent);
+            if (p_json) {
+              auto p_val = jsonlite::parse(*p_json, nullptr);
+              if (std::holds_alternative<jsonlite::Object>(p_val.v)) {
+                const auto &p_obj = std::get<jsonlite::Object>(p_val.v);
+
+                // Update state to parent
+                current_event_digest_ = parent;
+                current_state_digest_ =
+                    jsonlite::get_string(p_obj, "state_after", "");
+
+                // Handle seq/sequence_id compat
+                current_sequence_id_ = jsonlite::get_u64(p_obj, "seq", 0);
+                if (current_sequence_id_ == 0)
+                  current_sequence_id_ =
+                      jsonlite::get_u64(p_obj, "sequence_id", 0);
+
+                StateSnapshot snapshot;
+                snapshot.memory_digest = current_state_digest_;
+                return snapshot;
+              }
+            }
+          }
+        }
+      }
+    }
+
     return Seek(current_sequence_id_ - 1);
   }
 
@@ -158,6 +197,11 @@ public:
     auto state_json = cas_->get(current_state_digest_);
     if (!state_json)
       return std::nullopt;
+
+    // Feature: Empty key returns the full state object
+    if (key.empty()) {
+      return state_json;
+    }
 
     auto val = jsonlite::parse(*state_json, nullptr);
     if (std::holds_alternative<jsonlite::Object>(val.v)) {

@@ -90,36 +90,6 @@ export async function evaluatePolicyWithBudget(
   }
 
   return allow();
-  toolName: string,
-  input: z.infer<T>
-): Promise<any> {
-  const tool = getTool(toolName, ctx.tenant.id);
-  if (!tool) {
-    auditLog(ctx, toolName, input, { allowed: false, reason: 'Tool not found.' });
-    throw new Error(`Tool "${toolName}" not found.`);
-  }
-
-  // 1. Evaluate Policy
-  const policyDecision = evaluateToolCall(ctx, tool.definition, input);
-  auditLog(ctx, toolName, input, policyDecision);
-
-  if (!policyDecision.allowed) {
-    throw new Error(`Policy denied tool invocation: ${policyDecision.reason}`);
-  }
-
-  // 2. Validate Input
-  const validatedInput = tool.definition.inputSchema.parse(input);
-
-  // 3. Execute Handler
-  const output = await tool.handler(validatedInput);
-
-  // 4. Validate Output
-  const validatedOutput = tool.definition.outputSchema.parse(output);
-
-  // 5. Audit Log Cost (Phase 5)
-  // recordCost(ctx, tool.definition, output);
-
-  return validatedOutput;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

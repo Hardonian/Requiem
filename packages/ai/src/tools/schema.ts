@@ -1,5 +1,4 @@
 /**
-<<<<<<< HEAD
  * @fileoverview JSON Schema validation for tool inputs/outputs.
  * Uses lightweight structural validation against JsonSchema definitions.
  * Raises AiError.TOOL_SCHEMA_VIOLATION on failure.
@@ -134,6 +133,3 @@ export function validateOutputOrThrow(toolDef: ToolDefinition, output: unknown):
 export function isSchemaViolationError(error: unknown): boolean {
   return error instanceof AiError && error.code === 'AI_TOOL_SCHEMA_VIOLATION';
 }
-=======
- * JSON Schema
->>>>>>> 7d8226b (docs: document the Model Context Protocol (MCP) for tool registry, definition, and invocation.)

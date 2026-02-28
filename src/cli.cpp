@@ -6,7 +6,6 @@
 #include <iostream>
 #include <map>
 #include <sstream>
-#include <string>
 #include <vector>
 
 #include "requiem/audit.hpp"
@@ -654,108 +653,6 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-<<<<<<< HEAD
-  // ---------------------------------------------------------------------------
-  // Replay & Forking (Time-Travel Debugger)
-  // persona: OSS Developer, Auditor, Researcher.
-  // ---------------------------------------------------------------------------
-  if (cmd == "replay" && argc >= 3) {
-    std::string result_file, cas_dir = ".requiem/cas/v2";
-    bool do_fork = false;
-    uint64_t seq_id = 0;
-    std::string payload;
-
-    for (int i = 2; i < argc; ++i) {
-      if (std::string(argv[i]) == "--result" && i + 1 < argc)
-        result_file = argv[++i];
-      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
-        cas_dir = argv[++i];
-      if (std::string(argv[i]) == "--fork")
-        do_fork = true;
-      if (std::string(argv[i]) == "--seq" && i + 1 < argc)
-        seq_id = std::stoull(argv[++i]);
-      if (std::string(argv[i]) == "--inject" && i + 1 < argc)
-        payload = argv[++i];
-    }
-
-    if (result_file.empty()) {
-      std::cerr << "{\"error\":\"--result <file> required\"}\n";
-      return 1;
-    }
-
-    auto content = read_file(result_file);
-    auto res = parse_result(content);
-    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
-
-    // Ensure the result itself is in CAS for the debugger to find the root.
-    // The debugger expects to find the execution root by its digest.
-    std::string root_digest = cas->put(content);
-
-    auto debugger = requiem::TimeTravelDebugger::Load(cas, root_digest);
-    if (!debugger) {
-      std::cerr << "{\"error\":\"Failed to load debugger session\"}\n";
-      return 2;
-    }
-
-    auto timeline = debugger->GetTimeline();
-
-    if (!do_fork) {
-      // List timeline
-      std::cout << "{\"timeline\":[";
-      for (size_t i = 0; i < timeline.size(); ++i) {
-        if (i > 0)
-          std::cout << ",";
-        const auto &s = timeline[i];
-        std::cout << "{\"seq\":" << s.sequence_id << ",\"type\":\"" << s.type
-                  << "\""
-                  << ",\"digest\":\"" << s.event_digest << "\""
-                  << ",\"state\":\"" << s.state_digest << "\"}";
-      }
-      std::cout << "]}\n";
-      return 0;
-    }
-
-    // Interactive Fork Logic
-    if (seq_id == 0 && timeline.empty()) {
-      std::cerr << "{\"error\":\"Cannot fork empty timeline\"}\n";
-      return 2;
-    }
-
-    // Default to last step if not specified
-    if (seq_id == 0)
-      seq_id = timeline.back().sequence_id;
-
-    auto snapshot = debugger->Seek(seq_id);
-    if (!snapshot) {
-      std::cerr << "{\"error\":\"Sequence ID " << seq_id
-                << " not found in timeline\"}\n";
-      return 2;
-    }
-
-    if (payload.empty()) {
-      // Interactive prompt if not provided via --inject
-      std::cout << "Forking at SEQ=" << seq_id
-                << " (State: " << snapshot->memory_digest << ")\n";
-      std::cout << "Enter injection payload (JSON/Text): ";
-      std::getline(std::cin, payload);
-      if (payload.empty()) {
-        std::cerr << "Aborted: Empty payload.\n";
-        return 1;
-      }
-    }
-
-    try {
-      std::string new_root = debugger->Fork(payload);
-      std::cout << "{\"ok\":true,\"fork_origin\":\"" << root_digest << "\""
-                << ",\"new_execution_digest\":\"" << new_root << "\""
-                << ",\"message\":\"Execution forked successfully\"}\n";
-      return 0;
-    } catch (const std::exception &e) {
-      std::cerr << "{\"error\":\"" << e.what() << "\"}\n";
-      return 2;
-    }
-  }
-
   if (cmd == "drift" && argc >= 3 && std::string(argv[2]) == "analyze") {
     std::string in, out;
     for (int i = 3; i < argc; ++i) {
@@ -1120,6 +1017,124 @@ int main(int argc, char **argv) {
       << requiem::version::HASH_ALGORITHM_VERSION << "}\n";
     std::cout << o.str();
     return verified ? 0 : 2;
+  }
+
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "fork") {
+    std::string root_digest, cas_dir = ".requiem/cas/v2", payload;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root_digest = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--payload" && i + 1 < argc)
+        payload = argv[++i];
+    }
+
+    if (root_digest.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--root <execution_digest> "
+                   "required\"}\n";
+      return 2;
+    }
+
+    if (payload.empty()) {
+      // Interactive mode: read payload from stdin
+      std::getline(std::cin, payload);
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto debugger = requiem::TimeTravelDebugger::Load(cas, root_digest);
+    std::string new_root = debugger->Fork(payload);
+
+    std::cout << "{\"ok\":true,\"original_root\":\"" << root_digest << "\""
+              << ",\"forked_root\":\"" << new_root << "\"}\n";
+    return 0;
+  }
+
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "diff") {
+    std::string root1, root2, cas_dir = ".requiem/cas/v2";
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root1" && i + 1 < argc)
+        root1 = argv[++i];
+      if (std::string(argv[i]) == "--root2" && i + 1 < argc)
+        root2 = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+    }
+
+    if (root1.empty() || root2.empty()) {
+      std::cout
+          << "{\"ok\":false,\"error\":\"--root1 and --root2 required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg1 = requiem::TimeTravelDebugger::Load(cas, root1);
+    auto dbg2 = requiem::TimeTravelDebugger::Load(cas, root2);
+
+    auto diffs = dbg1->Diff(*dbg2);
+
+    std::cout << "{\"ok\":true,\"divergence_count\":" << diffs.size();
+    if (!diffs.empty()) {
+      std::cout << ",\"first_divergence_seq\":" << diffs[0];
+      std::cout << ",\"divergences\":[";
+      for (size_t i = 0; i < diffs.size(); ++i) {
+        if (i > 0)
+          std::cout << ",";
+        std::cout << diffs[i];
+      }
+      std::cout << "]";
+    } else {
+      std::cout << ",\"divergences\":[]";
+    }
+    std::cout << "}\n";
+    return 0;
+  }
+
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "inspect") {
+    std::string root, cas_dir = ".requiem/cas/v2", key;
+    uint64_t seq = 0;
+    bool seq_set = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--seq" && i + 1 < argc) {
+        seq = std::stoull(argv[++i]);
+        seq_set = true;
+      }
+      if (std::string(argv[i]) == "--key" && i + 1 < argc)
+        key = argv[++i];
+    }
+
+    if (root.empty() || !seq_set) {
+      std::cout << "{\"ok\":false,\"error\":\"--root and --seq required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
+    if (!dbg->Seek(seq)) {
+      std::cout << "{\"ok\":false,\"error\":\"sequence_id not found\"}\n";
+      return 2;
+    }
+
+    auto val = dbg->InspectMemory(key);
+    if (!val) {
+      std::cout
+          << "{\"ok\":false,\"error\":\"key not found or state empty\"}\n";
+      return 2;
+    }
+
+    if (key.empty()) {
+      std::cout << "{\"ok\":true,\"sequence_id\":" << seq
+                << ",\"state\":" << *val << "}\n";
+    } else {
+      std::cout << "{\"ok\":true,\"sequence_id\":" << seq << ",\"key\":\""
+                << key << "\",\"value\":\"" << requiem::jsonlite::escape(*val)
+                << "\"}\n";
+    }
+    return 0;
   }
 
   // ---------------------------------------------------------------------------

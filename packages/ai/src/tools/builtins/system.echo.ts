@@ -7,27 +7,20 @@
 
 import { registerTool } from '../registry.js';
 import type { InvocationContext } from '../../types/index.js';
+import { z } from 'zod';
 
 registerTool(
   {
     name: 'system.echo',
     version: '1.0.0',
     description: 'Returns the input payload unchanged. Used for testing and smoke checks.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        payload: { description: 'Any JSON value to echo back' },
-      },
-      required: ['payload'],
-    },
-    outputSchema: {
-      type: 'object',
-      properties: {
-        payload: { description: 'The echoed payload' },
-        echoed_at: { type: 'string', description: 'ISO timestamp' },
-      },
-      required: ['payload', 'echoed_at'],
-    },
+    inputSchema: z.object({
+      payload: z.any().describe('Any JSON value to echo back'),
+    }),
+    outputSchema: z.object({
+      payload: z.any().describe('The echoed payload'),
+      echoed_at: z.string().describe('ISO timestamp'),
+    }),
     deterministic: true,
     sideEffect: false,
     idempotent: true,

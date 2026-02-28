@@ -367,6 +367,27 @@ export async function invokeTool(
 // #endregion: Public API
 
 
+// #region: Debug Helpers
+
+/**
+ * Get the count of registered tools for a tenant.
+ */
+export function getToolCount(tenantId: string = SYSTEM_TENANT): number {
+  const registry = getRegistry(tenantId);
+  return registry.size;
+}
+
+/**
+ * Clear the registry (for testing).
+ * @internal
+ */
+export function _clearRegistry(): void {
+  tenantRegistries.clear();
+}
+
+// #endregion: Debug Helpers
+
+
 // #region: Private Helpers
 
 function validateDefinition(def: ToolDefinition): void {
