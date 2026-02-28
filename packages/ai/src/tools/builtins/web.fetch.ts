@@ -11,10 +11,10 @@
  */
 
 import { createHash } from 'crypto';
-import { registerTool } from '../registry.js';
-import { AiError } from '../../errors/AiError.js';
-import { AiErrorCode } from '../../errors/codes.js';
-import { logger } from '../../telemetry/logger.js';
+import { registerTool } from '../registry';
+import { AiError } from '../../errors/AiError';
+import { AiErrorCode } from '../../errors/codes';
+import { logger } from '../../telemetry/logger';
 
 const MAX_PAYLOAD_BYTES = 1_048_576; // 1 MiB
 const DEFAULT_TIMEOUT_MS = 10_000;

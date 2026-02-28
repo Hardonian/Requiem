@@ -17,9 +17,9 @@
 import { createHash } from 'crypto';
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import { logger } from '../telemetry/logger.js';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import { logger } from '../telemetry/logger';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

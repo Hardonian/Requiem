@@ -2,9 +2,9 @@
  * @fileoverview Model registry — centralized management of AI model providers.
  */
 
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import type { ModelProvider } from './providers/types.js';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import type { ModelProvider } from './providers/types';
 
 // ─── Model Definition ─────────────────────────────────────────────────────────
 

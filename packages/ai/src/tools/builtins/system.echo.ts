@@ -5,8 +5,8 @@
  * No side effects. No tenant required. Used for smoke testing.
  */
 
-import { registerTool } from '../registry.js';
-import type { InvocationContext } from '../../types/index.js';
+import { registerTool } from '../registry';
+import type { InvocationContext } from '../../types/index';
 import { z } from 'zod';
 
 registerTool(

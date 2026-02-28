@@ -11,18 +11,18 @@
  * INVARIANT: Auth is resolved by the transport adapter before calling handlers.
  */
 
-import { listTools } from '../tools/registry.js';
-import { invokeToolWithPolicy } from '../tools/invoke.js';
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import { getToolCount } from '../tools/registry.js';
-import type { InvocationContext } from '../types/index.js';
+import { listTools } from '../tools/registry';
+import { invokeToolWithPolicy } from '../tools/invoke';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import { getToolCount } from '../tools/registry';
+import type { InvocationContext } from '../types/index';
 import type {
   McpListToolsResponse,
   McpCallToolResponse,
   McpHealthResponse,
   McpToolDescriptor,
-} from './types.js';
+} from './types';
 
 // ─── Handler Results ──────────────────────────────────────────────────────────
 

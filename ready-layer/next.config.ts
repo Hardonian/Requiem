@@ -11,6 +11,12 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Transpile workspace packages
+  transpilePackages: ['@requiem/ai', '@requiem/ui', '@requiem/cli'],
+
+  // Output file tracing root for monorepo
+  outputFileTracingRoot: process.cwd(),
+
   // Fail build if any route is found without an explicit handler (enforces Phase B).
   // Note: Next.js enforces this natively for App Router — all segments must export
   // at least one HTTP method handler.

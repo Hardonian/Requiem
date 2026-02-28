@@ -4,8 +4,8 @@
  * Raises AiError.TOOL_SCHEMA_VIOLATION on failure.
  */
 
-import { AiError } from '../errors/AiError.js';
-import type { ToolDefinition, ValidationResult, ValidationError, JsonSchema } from './types.js';
+import { AiError } from '../errors/AiError';
+import type { ToolDefinition, ValidationResult, ValidationError, JsonSchema } from './types';
 
 /**
  * Validates a value against a JSON Schema definition.

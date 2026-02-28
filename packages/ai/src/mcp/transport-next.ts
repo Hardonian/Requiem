@@ -8,12 +8,12 @@
  * INVARIANT: Every response uses the standard ApiEnvelope shape.
  */
 
-import { handleListTools, handleCallTool, handleHealth } from './server.js';
-import { AiError } from '../errors/AiError.js';
-import { AiErrorCode } from '../errors/codes.js';
-import { newId, now } from '../types/index.js';
-import { TenantRole } from '../types/index.js';
-import type { InvocationContext, TenantContext } from '../types/index.js';
+import { handleListTools, handleCallTool, handleHealth } from './server';
+import { AiError } from '../errors/AiError';
+import { AiErrorCode } from '../errors/codes';
+import { newId, now } from '../types/index';
+import { TenantRole } from '../types/index';
+import type { InvocationContext, TenantContext } from '../types/index';
 
 // ─── Auth Resolution ──────────────────────────────────────────────────────────
 

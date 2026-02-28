@@ -8,10 +8,10 @@
 
 import { readdirSync, statSync, existsSync } from 'fs';
 import { join } from 'path';
-import { registerTool } from '../registry.js';
-import { sandboxPath } from '../sandbox.js';
-import { AiError } from '../../errors/AiError.js';
-import { AiErrorCode } from '../../errors/codes.js';
+import { registerTool } from '../registry';
+import { sandboxPath } from '../sandbox';
+import { AiError } from '../../errors/AiError';
+import { AiErrorCode } from '../../errors/codes';
 
 const MAX_ENTRIES = 500;
 const WORKSPACE_ROOT = process.env['REQUIEM_WORKSPACE_ROOT'] ?? process.cwd();

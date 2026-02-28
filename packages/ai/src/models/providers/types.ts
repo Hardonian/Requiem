@@ -5,7 +5,7 @@
  * This allows swapping providers without changing skill code.
  */
 
-import type { InvocationContext } from '../../types/index.js';
+import type { InvocationContext } from '../../types/index';
 
 // ─── Generation Request ───────────────────────────────────────────────────────
 

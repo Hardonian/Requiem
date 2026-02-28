@@ -7,8 +7,8 @@
  * States: CLOSED (normal) → OPEN (failing fast) → HALF_OPEN (probe) → CLOSED
  */
 
-import { AiError } from '../errors/AiError.js';
-import { logger } from '../telemetry/logger.js';
+import { AiError } from '../errors/AiError';
+import { logger } from '../telemetry/logger';
 
 export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 

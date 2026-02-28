@@ -8,7 +8,7 @@
  * INVARIANT: Skills with rollback semantics must handle partial failures.
  */
 
-import type { InvocationContext } from '../types/index.js';
+import type { InvocationContext } from '../types/index';
 
 // ─── Skill Steps ──────────────────────────────────────────────────────────────
 

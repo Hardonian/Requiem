@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "postinstall": "prisma generate",
+    "postinstall": "echo 'Run prisma:generate manually after install'",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",

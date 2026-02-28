@@ -8,10 +8,10 @@
  */
 
 import { readFileSync, statSync, existsSync } from 'fs';
-import { registerTool } from '../registry.js';
-import { sandboxPath } from '../sandbox.js';
-import { AiError } from '../../errors/AiError.js';
-import { AiErrorCode } from '../../errors/codes.js';
+import { registerTool } from '../registry';
+import { sandboxPath } from '../sandbox';
+import { AiError } from '../../errors/AiError';
+import { AiErrorCode } from '../../errors/codes';
 
 const MAX_FILE_SIZE = 1_048_576; // 1 MiB
 const WORKSPACE_ROOT = process.env['REQUIEM_WORKSPACE_ROOT'] ?? process.cwd();
