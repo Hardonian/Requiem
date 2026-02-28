@@ -720,6 +720,129 @@ void test_debugger_step_out() {
   fs::remove_all(test_root);
 }
 
+void test_debugger_step_into() {
+  std::cerr << "[chaos_harness] Running TimeTravelDebugger::StepInto "
+               "verification...\n";
+
+  std::string test_root = "test_chaos_step_into_cas";
+  if (fs::exists(test_root))
+    fs::remove_all(test_root);
+  auto cas = std::make_shared<requiem::CasStore>(test_root);
+
+  // Seq 0: Start
+  std::string state0 = cas->put("{\"mem\":0}");
+  std::string ev0 = cas->put("{\"type\":\"start\",\"state_after\":\"" + state0 +
+                             "\",\"sequence_id\":0}");
+
+  // Seq 1: Next event
+  std::string state1 = cas->put("{\"mem\":1}");
+  std::string ev1 =
+      cas->put("{\"type\":\"log\",\"state_after\":\"" + state1 +
+               "\",\"sequence_id\":1,\"parent_event\":\"" + ev0 + "\"}");
+
+  std::string exec_root =
+      cas->put("{\"type\":\"execution_root\",\"head_event\":\"" + ev1 + "\"}");
+
+  auto debugger = requiem::TimeTravelDebugger::Load(cas, exec_root);
+  debugger->Seek(0);
+
+  // StepInto should behave like StepForward in linear timeline
+  auto snapshot = debugger->StepInto();
+  if (!snapshot || snapshot->sequence_id != 1) {
+    std::cerr << "[chaos_harness] FAIL: StepInto did not advance to seq 1\n";
+    exit(1);
+  }
+
+  std::cerr << "[chaos_harness] PASS: StepInto verified.\n";
+  fs::remove_all(test_root);
+}
+
+void test_debugger_step_over() {
+  std::cerr << "[chaos_harness] Running TimeTravelDebugger::StepOver "
+               "verification...\n";
+
+  std::string test_root = "test_chaos_step_over_cas";
+  if (fs::exists(test_root))
+    fs::remove_all(test_root);
+  auto cas = std::make_shared<requiem::CasStore>(test_root);
+
+  // Seq 0: Start
+  std::string s0 = cas->put("{\"mem\":0}");
+  std::string e0 = cas->put("{\"type\":\"start\",\"state_after\":\"" + s0 +
+                            "\",\"sequence_id\":0}");
+
+  // Seq 1: Tool Call (Scope Start)
+  std::string s1 = cas->put("{\"mem\":1}");
+  std::string e1 =
+      cas->put("{\"type\":\"tool_call\",\"state_after\":\"" + s1 +
+               "\",\"sequence_id\":1,\"parent_event\":\"" + e0 + "\"}");
+
+  // Seq 2: Intermediate
+  std::string s2 = cas->put("{\"mem\":2}");
+  std::string e2 =
+      cas->put("{\"type\":\"log\",\"state_after\":\"" + s2 +
+               "\",\"sequence_id\":2,\"parent_event\":\"" + e1 + "\"}");
+
+  // Seq 3: Tool Result (Scope End)
+  std::string s3 = cas->put("{\"mem\":3}");
+  std::string e3 =
+      cas->put("{\"type\":\"tool_result\",\"state_after\":\"" + s3 +
+               "\",\"sequence_id\":3,\"parent_event\":\"" + e2 + "\"}");
+
+  std::string root =
+      cas->put("{\"type\":\"execution_root\",\"head_event\":\"" + e3 + "\"}");
+
+  auto debugger = requiem::TimeTravelDebugger::Load(cas, root);
+
+  // Case A: StepOver on Tool Call -> Jumps to Result
+  debugger->Seek(1);
+  auto snap1 = debugger->StepOver();
+  if (!snap1 || snap1->sequence_id != 3) {
+    std::cerr << "[chaos_harness] FAIL: StepOver at tool_call did not jump to "
+                 "result (seq 3)\n";
+    exit(1);
+  }
+
+  // Case B: StepOver on normal event -> Acts like StepForward
+  debugger->Seek(0);
+  auto snap2 = debugger->StepOver();
+  if (!snap2 || snap2->sequence_id != 1) {
+    std::cerr << "[chaos_harness] FAIL: StepOver at normal event did not "
+                 "advance to seq 1\n";
+    exit(1);
+  }
+
+  std::cerr << "[chaos_harness] PASS: StepOver verified.\n";
+  fs::remove_all(test_root);
+}
+
+void test_debugger_step_back() {
+  std::cerr << "[chaos_harness] Running TimeTravelDebugger::StepBackward "
+               "verification...\n";
+  std::string test_root = "test_chaos_step_back_cas";
+  if (fs::exists(test_root))
+    fs::remove_all(test_root);
+  auto cas = std::make_shared<requiem::CasStore>(test_root);
+
+  std::string s0 = cas->put("{\"mem\":0}");
+  std::string e0 = cas->put("{\"type\":\"start\",\"state_after\":\"" + s0 +
+                            "\",\"sequence_id\":0}");
+  std::string s1 = cas->put("{\"mem\":1}");
+  std::string e1 =
+      cas->put("{\"type\":\"log\",\"state_after\":\"" + s1 +
+               "\",\"sequence_id\":1,\"parent_event\":\"" + e0 + "\"}");
+  std::string root =
+      cas->put("{\"type\":\"execution_root\",\"head_event\":\"" + e1 + "\"}");
+
+  auto debugger = requiem::TimeTravelDebugger::Load(cas, root);
+  debugger->Seek(1);
+  auto snap = debugger->StepBackward();
+  if (!snap || snap->sequence_id != 0)
+    exit(1);
+  std::cerr << "[chaos_harness] PASS: StepBackward verified.\n";
+  fs::remove_all(test_root);
+}
+
 int main(int argc, char *argv[]) {
   using namespace requiem::chaos;
 
@@ -733,6 +856,9 @@ int main(int argc, char *argv[]) {
   // Run functional verification
   test_debugger_diff();
   test_debugger_step_out();
+  test_debugger_step_into();
+  test_debugger_step_over();
+  test_debugger_step_back();
 
   if (!global_chaos().is_enabled()) {
     std::cerr << "[chaos_harness] FAIL: could not activate chaos mode\n";

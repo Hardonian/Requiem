@@ -1176,6 +1176,162 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "step-into") {
+    std::string root, cas_dir = ".requiem/cas/v2";
+    uint64_t seq = 0;
+    bool seq_set = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--seq" && i + 1 < argc) {
+        seq = std::stoull(argv[++i]);
+        seq_set = true;
+      }
+    }
+
+    if (root.empty() || !seq_set) {
+      std::cout << "{\"ok\":false,\"error\":\"--root and --seq required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
+    if (!dbg->Seek(seq)) {
+      std::cout << "{\"ok\":false,\"error\":\"sequence_id not found\"}\n";
+      return 2;
+    }
+
+    auto snapshot = dbg->StepInto();
+    if (!snapshot) {
+      std::cout
+          << "{\"ok\":false,\"error\":\"step-into failed (end of trace)\"}\n";
+      return 2;
+    }
+
+    std::cout << "{\"ok\":true,\"new_sequence_id\":" << snapshot->sequence_id
+              << ",\"state_digest\":\"" << snapshot->memory_digest << "\"}\n";
+    return 0;
+  }
+
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "step-over") {
+    std::string root, cas_dir = ".requiem/cas/v2";
+    uint64_t seq = 0;
+    bool seq_set = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--seq" && i + 1 < argc) {
+        seq = std::stoull(argv[++i]);
+        seq_set = true;
+      }
+    }
+
+    if (root.empty() || !seq_set) {
+      std::cout << "{\"ok\":false,\"error\":\"--root and --seq required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
+    if (!dbg->Seek(seq)) {
+      std::cout << "{\"ok\":false,\"error\":\"sequence_id not found\"}\n";
+      return 2;
+    }
+
+    auto snapshot = dbg->StepOver();
+    if (!snapshot) {
+      std::cout
+          << "{\"ok\":false,\"error\":\"step-over failed (end of trace)\"}\n";
+      return 2;
+    }
+
+    std::cout << "{\"ok\":true,\"new_sequence_id\":" << snapshot->sequence_id
+              << ",\"state_digest\":\"" << snapshot->memory_digest << "\"}\n";
+    return 0;
+  }
+
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "step-forward") {
+    std::string root, cas_dir = ".requiem/cas/v2";
+    uint64_t seq = 0;
+    bool seq_set = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--seq" && i + 1 < argc) {
+        seq = std::stoull(argv[++i]);
+        seq_set = true;
+      }
+    }
+
+    if (root.empty() || !seq_set) {
+      std::cout << "{\"ok\":false,\"error\":\"--root and --seq required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
+    if (!dbg->Seek(seq)) {
+      std::cout << "{\"ok\":false,\"error\":\"sequence_id not found\"}\n";
+      return 2;
+    }
+
+    auto snapshot = dbg->StepForward();
+    if (!snapshot) {
+      std::cout << "{\"ok\":false,\"error\":\"step-forward failed (end of "
+                   "trace)\"}\n";
+      return 2;
+    }
+
+    std::cout << "{\"ok\":true,\"new_sequence_id\":" << snapshot->sequence_id
+              << ",\"state_digest\":\"" << snapshot->memory_digest << "\"}\n";
+    return 0;
+  }
+
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "step-back") {
+    std::string root, cas_dir = ".requiem/cas/v2";
+    uint64_t seq = 0;
+    bool seq_set = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--seq" && i + 1 < argc) {
+        seq = std::stoull(argv[++i]);
+        seq_set = true;
+      }
+    }
+
+    if (root.empty() || !seq_set) {
+      std::cout << "{\"ok\":false,\"error\":\"--root and --seq required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
+    if (!dbg->Seek(seq)) {
+      std::cout << "{\"ok\":false,\"error\":\"sequence_id not found\"}\n";
+      return 2;
+    }
+
+    auto snapshot = dbg->StepBackward();
+    if (!snapshot) {
+      std::cout
+          << "{\"ok\":false,\"error\":\"step-back failed (start of trace)\"}\n";
+      return 2;
+    }
+
+    std::cout << "{\"ok\":true,\"new_sequence_id\":" << snapshot->sequence_id
+              << ",\"state_digest\":\"" << snapshot->memory_digest << "\"}\n";
+    return 0;
+  }
+
   // ---------------------------------------------------------------------------
   // Phase A: reach metrics
   // Persona: SRE/DevOps, Enterprise Operator. Full metrics dump.
