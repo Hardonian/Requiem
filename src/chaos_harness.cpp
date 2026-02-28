@@ -843,6 +843,72 @@ void test_debugger_step_back() {
   fs::remove_all(test_root);
 }
 
+void test_debugger_linked_traversal() {
+  std::cerr << "[chaos_harness] Running TimeTravelDebugger::StepBackward "
+               "linked traversal verification...\n";
+  std::string test_root = "test_chaos_linked_traversal_cas";
+  if (fs::exists(test_root))
+    fs::remove_all(test_root);
+  auto cas = std::make_shared<requiem::CasStore>(test_root);
+
+  // Create chain 0->1->2->3
+  std::string s0 = cas->put("{\"mem\":0}");
+  std::string e0 = cas->put("{\"type\":\"start\",\"state_after\":\"" + s0 +
+                            "\",\"sequence_id\":0}");
+
+  std::string s1 = cas->put("{\"mem\":1}");
+  std::string e1 =
+      cas->put("{\"type\":\"log\",\"state_after\":\"" + s1 +
+               "\",\"sequence_id\":1,\"parent_event\":\"" + e0 + "\"}");
+
+  std::string s2 = cas->put("{\"mem\":2}");
+  std::string e2 =
+      cas->put("{\"type\":\"log\",\"state_after\":\"" + s2 +
+               "\",\"sequence_id\":2,\"parent_event\":\"" + e1 + "\"}");
+
+  std::string s3 = cas->put("{\"mem\":3}");
+  std::string e3 =
+      cas->put("{\"type\":\"log\",\"state_after\":\"" + s3 +
+               "\",\"sequence_id\":3,\"parent_event\":\"" + e2 + "\"}");
+
+  std::string root =
+      cas->put("{\"type\":\"execution_root\",\"head_event\":\"" + e3 + "\"}");
+
+  auto debugger = requiem::TimeTravelDebugger::Load(cas, root);
+
+  // Start at end
+  debugger->Seek(3);
+
+  // Walk back
+  auto snap2 = debugger->StepBackward();
+  if (!snap2 || snap2->sequence_id != 2) {
+    std::cerr << "[chaos_harness] FAIL: StepBackward from 3 did not reach 2\n";
+    exit(1);
+  }
+
+  auto snap1 = debugger->StepBackward();
+  if (!snap1 || snap1->sequence_id != 1) {
+    std::cerr << "[chaos_harness] FAIL: StepBackward from 2 did not reach 1\n";
+    exit(1);
+  }
+
+  auto snap0 = debugger->StepBackward();
+  if (!snap0 || snap0->sequence_id != 0) {
+    std::cerr << "[chaos_harness] FAIL: StepBackward from 1 did not reach 0\n";
+    exit(1);
+  }
+
+  auto snap_none = debugger->StepBackward();
+  if (snap_none) {
+    std::cerr
+        << "[chaos_harness] FAIL: StepBackward from 0 should return nullopt\n";
+    exit(1);
+  }
+
+  std::cerr << "[chaos_harness] PASS: Linked traversal verified.\n";
+  fs::remove_all(test_root);
+}
+
 int main(int argc, char *argv[]) {
   using namespace requiem::chaos;
 
@@ -859,6 +925,7 @@ int main(int argc, char *argv[]) {
   test_debugger_step_into();
   test_debugger_step_over();
   test_debugger_step_back();
+  test_debugger_linked_traversal();
 
   if (!global_chaos().is_enabled()) {
     std::cerr << "[chaos_harness] FAIL: could not activate chaos mode\n";

@@ -1332,6 +1332,39 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  if (cmd == "replay" && argc >= 3 && std::string(argv[2]) == "timeline") {
+    std::string root, cas_dir = ".requiem/cas/v2";
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--root" && i + 1 < argc)
+        root = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+    }
+
+    if (root.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--root required\"}\n";
+      return 2;
+    }
+
+    auto cas = std::make_shared<requiem::CasStore>(cas_dir);
+    auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
+    auto timeline = dbg->GetTimeline();
+
+    std::cout << "{\"ok\":true,\"count\":" << timeline.size() << ",\"timeline\":[";
+    for (size_t i = 0; i < timeline.size(); ++i) {
+      if (i > 0)
+        std::cout << ",";
+      const auto &step = timeline[i];
+      std::cout << "{\"sequence_id\":" << step.sequence_id
+                << ",\"type\":\"" << requiem::jsonlite::escape(step.type) << "\""
+                << ",\"timestamp_ns\":" << step.timestamp_ns
+                << ",\"event_digest\":\"" << step.event_digest << "\""
+                << ",\"state_digest\":\"" << step.state_digest << "\"}";
+    }
+    std::cout << "]}\n";
+    return 0;
+  }
+
   // ---------------------------------------------------------------------------
   // Phase A: reach metrics
   // Persona: SRE/DevOps, Enterprise Operator. Full metrics dump.
