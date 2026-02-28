@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Security | Requiem',
-  description: 'Security practices, vulnerability disclosure, and trust information for Requiem.',
+  title: 'Security | ReadyLayer',
+  description: 'Security practices, vulnerability disclosure, and trust information for ReadyLayer.',
 };
 
 export default function SecurityPage() {
@@ -14,11 +14,11 @@ export default function SecurityPage() {
         <section className="bg-white rounded-xl p-8 shadow-sm mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Responsible Disclosure</h2>
           <p className="text-gray-600 mb-4">
-            We take security seriously. If you discover a security vulnerability in Requiem, 
+            We take security seriously. If you discover a security vulnerability in ReadyLayer,
             please report it responsibly.
           </p>
           <p className="text-gray-600">
-            Please email security@requiem.ai with details of the vulnerability. 
+            Please email security@readylayer.com with details of the vulnerability. 
             We will respond within 48 hours and work with you to address the issue.
           </p>
         </section>
@@ -37,7 +37,7 @@ export default function SecurityPage() {
         <section className="bg-white rounded-xl p-8 shadow-sm">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Infrastructure Security</h2>
           <p className="text-gray-600">
-            Requiem runs on isolated, encrypted infrastructure with regular security audits 
+            ReadyLayer runs on isolated, encrypted infrastructure with regular security audits 
             and automated vulnerability scanning.
           </p>
         </section>

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Templates | Requiem',
+  title: 'Templates | ReadyLayer',
   description: 'Pre-built agent templates and patterns for common AI governance use cases.',
 };
 

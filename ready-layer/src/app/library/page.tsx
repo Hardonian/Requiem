@@ -2,19 +2,19 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Library | Requiem',
-  description: 'Documentation, guides, and resources for Requiem.',
+  title: 'Library | ReadyLayer',
+  description: 'Documentation, guides, and resources for ReadyLayer.',
 };
 
 const resources = [
   {
     title: 'Quick Start Guide',
-    description: 'Get up and running with Requiem in minutes.',
+    description: 'Get up and running with ReadyLayer in minutes.',
     href: '/docs/quick-start',
   },
   {
     title: 'Architecture Overview',
-    description: 'Understand the Requiem system design and components.',
+    description: 'Understand the ReadyLayer system design and components.',
     href: '/docs/architecture',
   },
   {
@@ -56,7 +56,7 @@ export default function LibraryPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Library</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Documentation, guides, and resources to help you get the most out of Requiem.
+            Documentation, guides, and resources to help you get the most out of ReadyLayer.
           </p>
         </div>
 

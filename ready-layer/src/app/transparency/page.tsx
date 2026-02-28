@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Transparency | Requiem',
-  description: 'Transparency report and governance information for Requiem.',
+  title: 'Transparency | ReadyLayer',
+  description: 'Transparency report and governance information for ReadyLayer.',
 };
 
 export default function TransparencyPage() {
@@ -14,7 +14,7 @@ export default function TransparencyPage() {
         <section className="bg-white rounded-xl p-8 shadow-sm mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Open Source Commitment</h2>
           <p className="text-gray-600 mb-4">
-            Requiem is committed to transparency in AI governance. Our core technologies 
+            ReadyLayer is committed to transparency in AI governance. Our core technologies 
             are open source, including:
           </p>
           <ul className="list-disc list-inside text-gray-600 space-y-2">
@@ -28,7 +28,7 @@ export default function TransparencyPage() {
         <section className="bg-white rounded-xl p-8 shadow-sm mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Decision Audit Trails</h2>
           <p className="text-gray-600">
-            Every AI decision made through Requiem is logged with full context, 
+            Every AI decision made through ReadyLayer is logged with full context, 
             enabling complete auditability and accountability.
           </p>
         </section>

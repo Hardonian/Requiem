@@ -2,7 +2,7 @@
   "name": "ready-layer",
   "version": "1.0.0",
   "private": true,
-  "description": "Requiem Enterprise Cloud dashboard — ready-layer.com",
+  "description": "ReadyLayer — AI control plane dashboard for the Requiem engine",
   "scripts": {
     "dev": "next dev",
     "build": "npm run lint && npm run type-check && next build",

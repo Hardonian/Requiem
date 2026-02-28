@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Support | Requiem',
-  description: 'Get help with Requiem - contact support, check status, and find resources.',
+  title: 'Support | ReadyLayer',
+  description: 'Get help with ReadyLayer — contact support, check status, and find resources.',
 };
 
 export default function SupportPage() {
@@ -29,7 +29,7 @@ export default function SupportPage() {
           >
             <h2 className="text-xl font-semibold text-gray-900 mb-2">System Status</h2>
             <p className="text-gray-600">
-              Check the current status of Requiem services and any ongoing incidents.
+              Check the current status of ReadyLayer services and any ongoing incidents.
             </p>
           </Link>
         </div>
@@ -55,7 +55,7 @@ export default function SupportPage() {
         <section className="bg-white rounded-xl p-8 shadow-sm">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Community</h2>
           <p className="text-gray-600">
-            Join our community to connect with other Requiem users, share best practices, 
+            Join our community to connect with other ReadyLayer users, share best practices, 
             and get help from the community.
           </p>
         </section>
