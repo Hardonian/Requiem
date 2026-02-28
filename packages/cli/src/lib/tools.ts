@@ -161,6 +161,63 @@ export function getCLIBudgetState(tenantId: string): { used: number; limit: numb
   };
 }
 
+// ─── Audit Logging for CLI ────────────────────────────────────────────────────
+
+interface CLIAuditRecord {
+  timestamp: string;
+  actorId: string;
+  tenantId: string | null;
+  traceId: string;
+  toolName: string;
+  toolVersion: string;
+  decision: 'allow' | 'deny';
+  reason: string;
+  source: 'cli';
+}
+
+const auditRecords: CLIAuditRecord[] = [];
+
+/**
+ * Log a CLI tool execution attempt.
+ * In production, this would write to a database or external logging service.
+ */
+export function logCLIAudit(
+  actorId: string,
+  tenantId: string | null,
+  traceId: string,
+  toolName: string,
+  toolVersion: string,
+  decision: 'allow' | 'deny',
+  reason: string
+): void {
+  const record: CLIAuditRecord = {
+    timestamp: new Date().toISOString(),
+    actorId,
+    tenantId,
+    traceId,
+    toolName,
+    toolVersion,
+    decision,
+    reason,
+    source: 'cli',
+  };
+  
+  // In production, this would be async and go to external storage
+  auditRecords.push(record);
+  
+  // Keep only last 1000 records in memory for debugging
+  if (auditRecords.length > 1000) {
+    auditRecords.shift();
+  }
+}
+
+/**
+ * Get recent audit records (for debugging/testing).
+ */
+export function getCLIAuditRecords(): readonly CLIAuditRecord[] {
+  return auditRecords;
+}
+
 /**
  * Metadata for tool versioning and identification.
  */
@@ -301,9 +358,23 @@ export class ToolRegistry {
     }
 
     // 4. Enforce Budget Limits (CLI cannot bypass policies)
+    const estimatedCost = tool.cost?.costCents ?? 0;
     if (tool.tenantScoped && ctx.tenantId) {
-      const estimatedCost = tool.cost?.costCents ?? 0;
       const budgetResult = await checkBudget(ctx.tenantId, estimatedCost);
+      
+      // Log the policy decision
+      logCLIAudit(
+        ctx.userId ?? 'unknown',
+        ctx.tenantId,
+        ctx.requestId,
+        name,
+        tool.version,
+        budgetResult.allowed ? 'allow' : 'deny',
+        budgetResult.allowed 
+          ? `Budget check passed (${estimatedCost}¢ estimated)` 
+          : budgetResult.reason ?? 'Budget exceeded'
+      );
+      
       if (!budgetResult.allowed) {
         throw new RequiemError({
           code: ErrorCode.BUDGET_EXCEEDED,
@@ -311,6 +382,17 @@ export class ToolRegistry {
           severity: ErrorSeverity.CRITICAL,
         });
       }
+    } else {
+      // Log even when no budget check needed (non-tenant-scoped tools)
+      logCLIAudit(
+        ctx.userId ?? 'unknown',
+        ctx.tenantId,
+        ctx.requestId,
+        name,
+        tool.version,
+        'allow',
+        'Non-tenant-scoped tool, budget check skipped'
+      );
     }
 
     // 5. Validate Input Schema

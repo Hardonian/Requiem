@@ -8,6 +8,8 @@ import { toolRegistry } from './tools';
 import { AgentRunner, AgentRunState } from './agent-runner';
 import { TenantContext } from './tenant';
 import { RequiemError, ErrorCode } from './errors';
+import { DecisionRepository } from '../db/decisions';
+import { hash } from './hash';
 
 export interface McpRequest {
   jsonrpc: '2.0';
@@ -34,8 +36,10 @@ export interface McpResponse {
 export class McpServer {
   private runner: AgentRunner;
   private state: AgentRunState;
+  private context: TenantContext & { requestId: string };
 
   constructor(context: TenantContext & { requestId: string }) {
+    this.context = context;
     this.runner = new AgentRunner(context);
     this.state = this.runner.createInitialState();
   }
@@ -67,6 +71,24 @@ export class McpServer {
           this.runner.incrementDepth(this.state);
 
           const result = await this.runner.executeTool(name, args, this.state);
+
+          // Audit the tool call (Authority Sync)
+          try {
+            const usage = (result as any)?.usage || { prompt_tokens: 0, completion_tokens: 0, cost_usd: 0 };
+            DecisionRepository.create({
+              tenant_id: this.context.tenantId,
+              source_type: 'mcp_tool',
+              source_ref: name,
+              input_fingerprint: hash(JSON.stringify(args)),
+              decision_input: args,
+              decision_output: result as Record<string, unknown>,
+              usage,
+              status: 'evaluated',
+              decision_trace: this.state.trace
+            });
+          } catch (auditErr) {
+            console.error('Failed to audit tool call:', auditErr);
+          }
 
           return {
             jsonrpc: '2.0',
