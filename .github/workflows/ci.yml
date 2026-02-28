@@ -170,6 +170,10 @@ jobs:
           cache: 'pnpm'
       - name: install deps
         run: pnpm install --frozen-lockfile
+      - name: prisma validate
+        run: cd ready-layer && pnpm run prisma:validate
+      - name: prisma generate
+        run: cd ready-layer && pnpm run prisma:generate
       - name: lint
         run: pnpm run verify:lint
       - name: typecheck
@@ -180,6 +184,14 @@ jobs:
         run: pnpm run build:web
       - name: secrets scan
         run: bash scripts/verify-secrets.sh
+      - name: verify:root
+        run: bash scripts/verify-root.sh
+      - name: Install Playwright browsers
+        run: pnpm playwright install --with-deps
+      - name: Run Playwright tests
+        run: cd ready-layer && pnpm run test:e2e
+        env:
+          CI: true
 
   # ---------------------------------------------------------------------------
   # Dependency graph artifacts (nightly, Linux)

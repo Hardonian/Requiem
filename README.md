@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)](#verification)
-[![Node](https://img.shields.io/badge/node-%3E%3D20-green)](#quickstart)
+[![Node](https://img.shields.io/badge/node-20.x-green)](#quickstart)
 
 Deterministic AI execution platform with tenant isolation, replay, and audit.
 
@@ -11,7 +11,7 @@ Deterministic AI execution platform with tenant isolation, replay, and audit.
 | Component | Description |
 |-----------|-------------|
 | **Requiem Engine** | C++ native runtime for deterministic process execution, CAS, and replay verification |
-| **ReadyLayer** | Next.js web dashboard — the user-facing control plane at [readylayer.com](https://readylayer.com) |
+| **ReadyLayer** | Next.js web dashboard — the user-facing control plane |
 | **Reach CLI** | TypeScript CLI for tool execution, decision engine, junctions, and AI agent orchestration |
 | **@requiem/ai** | AI subsystem: MCP tools, skills, telemetry, policy, and evaluation |
 | **@requiem/ui** | Shared React component library and design tokens |
@@ -48,23 +48,23 @@ ctest --test-dir build --output-on-failure
 
 ## Architecture
 
-```text
+```
 ┌──────────────────────────────────────────────────────────────┐
 │                    ReadyLayer (Next.js)                       │
 │            Web dashboard + API routes + middleware            │
 └────────────────────────┬─────────────────────────────────────┘
                          │
-         ┌───────────────┼───────────────┐
-         │               │               │
-┌────────▼───────┐ ┌─────▼──────┐ ┌──────▼───────┐
-│  @requiem/ai   │ │ @requiem/ui│ │  @requiem/cli│
-│  MCP + Skills  │ │ Components │ │  Reach CLI   │
-└────────┬───────┘ └────────────┘ └──────┬───────┘
-         │                               │
-┌────────▼───────────────────────────────▼───────┐
-│              Requiem Engine (C++)               │
-│   Sandbox │ CAS │ Replay │ BLAKE3 │ Policy     │
-└────────────────────────────────────────────────┘
+          ┌───────────────┼───────────────┐
+          │               │               │
+ ┌────────▼───────┐ ┌─────▼──────┐ ┌──────▼───────┐
+ │  @requiem/ai   │ │ @requiem/ui│ │  @requiem/cli│
+ │  MCP + Skills  │ │ Components │ │  Reach CLI   │
+ └────────┬───────┘ └────────────┘ └──────┬───────┘
+          │                               │
+ ┌────────▼───────────────────────────────▼───────┐
+ │              Requiem Engine (C++)               │
+ │   Sandbox │ CAS │ Replay │ BLAKE3 │ Policy     │
+ └────────────────────────────────────────────────┘
 ```
 
 ## Repository Structure
@@ -81,7 +81,7 @@ requiem/
 ├── scripts/            # Verification and build scripts
 ├── docs/               # Documentation
 ├── formal/             # TLA+ formal specifications
-└── contracts/          # Compatibility and determinism contracts
+└── contracts/         # Compatibility and determinism contracts
 ```
 
 ## Verification
@@ -95,6 +95,9 @@ pnpm run verify:lint          # ESLint
 pnpm run verify:typecheck     # TypeScript
 pnpm run verify:boundaries    # Import boundary checks
 pnpm run build:web            # Next.js production build
+
+# E2E tests
+pnpm run test:e2e             # Playwright tests
 ```
 
 ## Documentation
