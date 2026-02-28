@@ -1,5 +1,27 @@
 # Changelog
 
+## v1.3.1 (Release Readiness Implementation — 2026-02-28)
+
+### Fixed
+- **routes.manifest.json restored to repo root** — file was relocated to
+  `artifacts/` during root-cleanup pass, breaking `verify:routes` (part of
+  `verify:full`). Manifest restored; `verify:full` now exits 0 end-to-end.
+
+### Added
+- **`docs/LAUNCH_GATE_CHECKLIST.md`** — 10-category, 20-item pre-release gate
+  covering lint/typecheck, routes, security, build, branding, CLI,
+  documentation, CI, repo hygiene, and final sign-off.
+
+### Verified (all GREEN on `claude/release-readiness-implementation-Z9EMI`)
+- `pnpm run verify:lint` — 0 errors, 0 warnings
+- `pnpm run verify:typecheck` — no TypeScript errors
+- `pnpm run verify:boundaries` — no cross-layer violations (23 files checked)
+- `pnpm run verify:routes` — all required routes present, error boundary present
+- `pnpm run build:web` — 22/22 pages generated (12 static + 10 dynamic API)
+- `bash scripts/verify-secrets.sh` — no secrets detected
+
+---
+
 ## v1.3 (Ecosystem + Reach/ReadyLayer Cutover)
 
 ### Added
