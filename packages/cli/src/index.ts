@@ -15,6 +15,7 @@ export { config } from './commands/config';
 export { init } from './commands/init';
 export { telemetry } from './commands/telemetry';
 export { stress } from './commands/stress';
+export { dashboard } from './commands/dashboard';
 
 // Engine
 export {
