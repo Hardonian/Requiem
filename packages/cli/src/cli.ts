@@ -14,6 +14,7 @@
  * - requiem dashboard               Launch local web dashboard
  * - requiem serve                   Expose decision engine API
  * - requiem backup                  Dump database to JSON
+ * - requiem restore                 Restore database from JSON
  * - requiem nuke                    Clear database state
  * - requiem init                    Initialize configuration
  * - requiem config <subcommand>     Global configuration
@@ -53,6 +54,7 @@ COMMANDS:
   dashboard [--port <number>]                       Launch local web dashboard
   serve [--port <number>]                           Expose decision engine API
   backup [--file <path>]                            Dump database to JSON
+  restore [--file <path>] [--clean]                 Restore database from JSON
   nuke [--force]                                    Clear database state
   init [--tenant <id>] [--force]                    Initialize configuration
   config <subcommand>                               Global configuration
@@ -179,6 +181,12 @@ async function main(): Promise<number> {
     case 'backup': {
       const { backup } = await import('./commands/backup');
       await backup.parseAsync([process.argv[0], process.argv[1], 'backup', ...subArgs]);
+      return 0;
+    }
+
+    case 'restore': {
+      const { restore } = await import('./commands/restore');
+      await restore.parseAsync([process.argv[0], process.argv[1], 'restore', ...subArgs]);
       return 0;
     }
 

@@ -18,6 +18,7 @@ export { stress } from './commands/stress';
 export { dashboard } from './commands/dashboard';
 export { serve } from './commands/serve';
 export { backup } from './commands/backup';
+export { restore } from './commands/restore';
 
 // Engine
 export {
