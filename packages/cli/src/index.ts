@@ -1,12 +1,14 @@
 /**
  * Requiem CLI Package
- * 
+ *
  * Exports for programmatic usage of the CLI functionality.
  */
 
 // Commands
 export { runDecideCommand, parseDecideArgs, type DecideCliArgs } from './commands/decide';
 export { runJunctionsCommand, parseJunctionsArgs, type JunctionsCliArgs } from './commands/junctions';
+export { trace } from './commands/trace';
+export { replay } from './commands/replay';
 
 // Engine
 export {
