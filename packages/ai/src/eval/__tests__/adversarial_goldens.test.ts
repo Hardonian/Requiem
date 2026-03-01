@@ -98,7 +98,8 @@ function simulatePolicyCheck(testCase: AdversarialTestCase, ctx: InvocationConte
 
   // Budget exhaustion checks
   if (category === 'budget_exhaustion') {
-    if (input.params.max_tokens && input.params.max_tokens > 100000) {
+    const maxTokens = input.params.max_tokens as number | undefined;
+    if (maxTokens && maxTokens > 100000) {
       return { allowed: false, errorCode: AiErrorCode.BUDGET_EXHAUSTED, reason: 'Token limit exceeded' };
     }
     if (input.params.cost_spike_simulation) {
@@ -156,7 +157,8 @@ function simulatePolicyCheck(testCase: AdversarialTestCase, ctx: InvocationConte
 
   // Recursion depth checks
   if (category === 'recursion_depth') {
-    if (input.params.tool_chain_depth && input.params.tool_chain_depth > 20) {
+    const toolChainDepth = input.params.tool_chain_depth as number | undefined;
+    if (toolChainDepth && toolChainDepth > 20) {
       return { allowed: false, errorCode: AiErrorCode.TOOL_CHAIN_LIMIT, reason: 'Tool chain limit exceeded' };
     }
     if (input.params.steps?.some((s: { method: string }) => s.method === 'workflow_execute')) {

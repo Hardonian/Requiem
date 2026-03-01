@@ -253,6 +253,33 @@ export function getToolDefinition(name: string, tenantId: string = SYSTEM_TENANT
 }
 
 /**
+ * Checks if a tool is deterministic.
+ * @returns boolean or false if tool not found
+ */
+export function isToolDeterministic(name: string, tenantId: string = SYSTEM_TENANT): boolean {
+  const tool = getTool(name, tenantId);
+  return tool?.definition.deterministic ?? false;
+}
+
+/**
+ * Checks if a tool is idempotent.
+ * @returns boolean or false if tool not found
+ */
+export function isToolIdempotent(name: string, tenantId: string = SYSTEM_TENANT): boolean {
+  const tool = getTool(name, tenantId);
+  return tool?.definition.idempotent ?? false;
+}
+
+/**
+ * Gets the maximum output size for a tool.
+ * @returns number (bytes)
+ */
+export function getToolOutputMaxBytes(name: string, tenantId: string = SYSTEM_TENANT): number {
+  const tool = getTool(name, tenantId);
+  return tool?.definition.outputMaxBytes ?? DEFAULT_OUTPUT_MAX_BYTES;
+}
+
+/**
  * Default maximum output size in bytes (1MB)
  */
 export const DEFAULT_OUTPUT_MAX_BYTES = 1024 * 1024;
