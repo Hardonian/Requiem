@@ -59,7 +59,17 @@
     "behaviour",
     "pooler",
     "Supabase",
-    "chatcmpl"
+    "chatcmpl",
+    "Virtualizes",
+    "librequiem",
+    "fsanitize",
+    "autotune",
+    "Wextra",
+    "Wpedantic",
+    "flamegraph",
+    "fprofile",
+    "STREQUAL",
+    "INTERPROCEDURAL"
   ],
   "ignorePaths": [
     "node_modules",
