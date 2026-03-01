@@ -147,34 +147,6 @@ export class McpPolicyEnforcer {
   }
 
   /**
-   * Get minimal dev policy for development mode.
-   */
-  private getDevPolicy(): PolicyConfig {
-    return {
-      name: 'dev',
-      version: '0.0.0',
-      description: 'Development-only permissive policy',
-      enforcedAt: 'mcp-entry',
-      rules: {
-        allowList: { enabled: false, tools: [] },
-        denyList: { enabled: true, tools: ['eval', 'exec', 'run_shell'], patterns: [] },
-        rateLimit: { enabled: false, maxRequestsPerMinute: 1000, maxTokensPerMinute: 100000 },
-        budget: { enabled: false, defaultLimitCents: 10000, warnThresholdPercent: 80 },
-        capabilities: { enabled: false, requiredForTools: [] },
-        ssrfProtection: { enabled: false, blockedDomains: [], blockedIPs: [] },
-        promptInjection: { enabled: false, blocklist: [], quarantineThreshold: 3 },
-        outputFiltering: { enabled: false, maxOutputSizeBytes: 2097152, redactPatterns: [] },
-      },
-      metadata: {
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        author: 'dev',
-        auditEnabled: false,
-      },
-    };
-  }
-
-  /**
    * Check if policy is loaded.
    */
   isLoaded(): boolean {
