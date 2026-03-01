@@ -67,7 +67,11 @@ function assertAuthConfigured(): void {
 }
 
 // Run the check at module load time so production containers fail fast.
-assertAuthConfigured();
+// Skip during Next.js build phase — modules are imported for static analysis
+// but no requests are served, so the secret is not needed yet.
+if (process.env.NEXT_PHASE !== 'phase-production-build') {
+  assertAuthConfigured();
+}
 
 // ─── JWT Claims ───────────────────────────────────────────────────────────────
 
