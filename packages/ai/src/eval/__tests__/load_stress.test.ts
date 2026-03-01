@@ -97,8 +97,8 @@ class TokenBucketRateLimiter implements RateLimiter {
 
 class CountBasedCircuitBreaker implements CircuitBreaker {
   state: 'closed' | 'open' | 'half_open' = 'closed';
-  private failureCount = 0;
-  private successCount = 0;
+  public failureCount = 0;
+  public successCount = 0;
   private lastFailureTime = 0;
   private readonly failureThreshold: number;
   private readonly successThreshold: number;

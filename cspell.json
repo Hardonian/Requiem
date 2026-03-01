@@ -48,7 +48,12 @@
     "makedirs",
     "asan",
     "ubsan",
-    "tsan"
+    "tsan",
+    "goldens",
+    "exceedance",
+    "organisation",
+    "traceparent",
+    "postconditions"
   ],
   "ignorePaths": [
     "node_modules",

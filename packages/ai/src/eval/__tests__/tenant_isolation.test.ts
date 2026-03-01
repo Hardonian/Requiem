@@ -42,6 +42,7 @@ interface MockBudgetState {
   tenantId: string;
   used: number;
   limit: number;
+  remaining: number;
 }
 
 // ─── Mock Tenant Isolation Store ───────────────────────────────────────────────
@@ -107,7 +108,7 @@ class MockTenantIsolatedStore {
 
   // Budget methods
   setBudget(tenantId: string, limit: number): void {
-    this.budgets.set(tenantId, { tenantId, used: 0, limit });
+    this.budgets.set(tenantId, { tenantId, used: 0, limit, remaining: limit });
   }
 
   consumeBudget(tenantId: string, amount: number): { allowed: boolean; remaining: number } {
@@ -122,7 +123,8 @@ class MockTenantIsolatedStore {
     }
 
     budget.used += amount;
-    return { allowed: true, remaining: budget.limit - budget.used };
+    budget.remaining = budget.limit - budget.used;
+    return { allowed: true, remaining: budget.remaining };
   }
 
   getBudget(tenantId: string): MockBudgetState | undefined {
@@ -217,8 +219,8 @@ describe('Tenant Isolation Tests (T-6)', () => {
 
   describe('Cross-Tenant Auth Token Validation', () => {
     test('different tenant tokens create isolated contexts', () => {
-      const ctxA = makeInvocationContext('tenant-alpha', TenantRole.OPERATOR);
-      const ctxB = makeInvocationContext('tenant-beta', TenantRole.OPERATOR);
+      const ctxA = makeInvocationContext('tenant-alpha', OPERATOR);
+      const ctxB = makeInvocationContext('tenant-beta', OPERATOR);
 
       assert.notEqual(ctxA.tenant.tenantId, ctxB.tenant.tenantId, 'Contexts should have different tenant IDs');
       assert.equal(ctxA.tenant.tenantId, 'tenant-alpha', 'Context A should have alpha tenant');
@@ -282,7 +284,7 @@ describe('Tenant Isolation Tests (T-6)', () => {
       store.setBudget(tenantB, 100);
 
       // Tenant A tries to consume with tenant B context - should use tenant B's budget
-      const ctxB = makeInvocationContext(tenantB, TenantRole.OPERATOR);
+      const ctxB = makeInvocationContext(tenantB, OPERATOR);
       const result = store.consumeBudget(ctxB.tenant.tenantId, 50);
 
       assert.equal(result.allowed, true);
@@ -368,7 +370,7 @@ describe('Tenant Isolation Tests (T-6)', () => {
 
   describe('Tenant Isolation Invariants', () => {
     test('tenant context is immutable after creation', () => {
-      const ctx = makeInvocationContext('tenant-alpha', TenantRole.OPERATOR);
+      const ctx = makeInvocationContext('tenant-alpha', OPERATOR);
 
       // Attempt to mutate (TypeScript should prevent this, but testing runtime)
       const originalTenantId = ctx.tenant.tenantId;

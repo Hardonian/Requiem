@@ -118,8 +118,8 @@ export interface StateConstraint {
  *   await runner.runMigrations(migrations);
  */
 export class MigrationRunner {
-  private readonly query: (sql: string, params?: unknown[]) => Promise<unknown>;
-  private readonly beginTransaction: () => Promise<Transaction>;
+  public readonly query: (sql: string, params?: unknown[]) => Promise<unknown>;
+  public readonly beginTransaction: () => Promise<Transaction>;
   private readonly migrationsTable: string;
   private initialized = false;
 
@@ -142,8 +142,8 @@ export class MigrationRunner {
         checksum VARCHAR(64) NOT NULL,
         duration_ms INTEGER NOT NULL
       );
-      
-      CREATE INDEX IF NOT EXISTS idx_${this.migrationsTable}_applied_at 
+
+      CREATE INDEX IF NOT EXISTS idx_${this.migrationsTable}_applied_at
         ON ${this.migrationsTable}(applied_at);
     `;
 
@@ -217,8 +217,8 @@ export class MigrationRunner {
     await this.initialize();
 
     const result = await this.query(
-      `SELECT name, applied_at as "appliedAt", checksum, duration_ms as "durationMs" 
-       FROM ${this.migrationsTable} 
+      `SELECT name, applied_at as "appliedAt", checksum, duration_ms as "durationMs"
+       FROM ${this.migrationsTable}
        ORDER BY applied_at`
     );
 
@@ -266,11 +266,11 @@ export class MigrationRunner {
     let sql = `CREATE POLICY ${policy.name} ON ${policy.table}`;
     sql += `\n  FOR ${policy.action}`;
     sql += `\n  TO ${roles}`;
-    
+
     if (policy.using) {
       sql += `\n  USING (${policy.using})`;
     }
-    
+
     if (policy.withCheck) {
       sql += `\n  WITH CHECK (${policy.withCheck})`;
     }

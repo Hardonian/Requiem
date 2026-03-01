@@ -68,7 +68,8 @@ export interface McpCallToolResponse {
 
 export interface McpHealthResponse {
   status: 'ok' | 'degraded';
-  timestamp: string;
+  timestamp?: string;
+  request_count?: number;
   tool_count: number;
   version: string;
 }
