@@ -93,6 +93,15 @@ bool atomic_write(const fs::path &target, const std::string &data) {
   return true;
 }
 
+std::string bytes_to_hex(const unsigned char *data, size_t len) {
+  std::ostringstream oss;
+  for (size_t i = 0; i < len; ++i) {
+    oss << std::hex << std::setw(2) << std::setfill('0')
+        << static_cast<int>(data[i]);
+  }
+  return oss.str();
+}
+
 // Validate digest is a 64-char hex string.
 bool valid_digest(const std::string &d) {
   if (d.size() != 64)
@@ -179,9 +188,7 @@ protected:
 
     if (new_pos < current_pos) {
       // Rewind: restart decompression
-      ZSTD_freeDStream(dstream_);
-      dstream_ = ZSTD_createDStream();
-      ZSTD_initDStream(dstream_);
+      ZSTD_initDStream(dstream_); // Re-init context to reset state
       source_->clear();
       source_->seekg(0);
       input_ = {nullptr, 0, 0};
@@ -363,96 +370,87 @@ std::string CasStore::put(const std::string &data,
 
 std::string CasStore::put_stream(std::istream &in,
                                  const std::string &compression) {
-  std::string encoding = "identity";
-  uint64_t original_size = 0;
+  // Buffer the entire stream and delegate to put().
+  // A direct streaming BLAKE3 path can be added when a streaming hash
+  // API is exposed via hash.hpp.
+  std::string buffer((std::istreambuf_iterator<char>(in)),
+                     std::istreambuf_iterator<char>());
+  return put(buffer, compression);
+}
 
-  // Hasher for the original content (CAS key)
-  blake3_hasher original_hasher;
-  blake3_hasher_init(&original_hasher);
-  const std::string domain = "cas:";
-  blake3_hasher_update(&original_hasher, domain.data(), domain.size());
-
-  // Hasher for the stored content (metadata integrity check)
-  blake3_hasher stored_hasher;
-  blake3_hasher_init(&stored_hasher);
-
-  // 1. Write to temp file
-  const fs::path objects_dir = fs::path(root_) / "objects";
-  fs::create_directories(objects_dir);
-  const std::string tmp_path = make_tmp_name(objects_dir);
-  {
-    std::ofstream ofs(tmp_path, std::ios::binary | std::ios::trunc);
-    if (!ofs)
-      return {};
+{
+  std::ofstream ofs(tmp_path, std::ios::binary | std::ios::trunc);
+  if (!ofs)
+    return {};
 
 #if defined(REQUIEM_WITH_ZSTD)
-    if (compression == "zstd") {
-      encoding = "zstd";
-      ZSTD_CStream *const cstream = ZSTD_createCStream();
-      if (!cstream)
-        return {};
+  if (compression == "zstd") {
+    encoding = "zstd";
+    ZSTD_CStream *const cstream = ZSTD_createCStream();
+    if (!cstream)
+      return {};
 
-      size_t const initResult = ZSTD_initCStream(cstream, 3); // Level 3
-      if (ZSTD_isError(initResult)) {
-        ZSTD_freeCStream(cstream);
-        return {};
-      }
-
-      size_t const buffInSize = ZSTD_CStreamInSize();
-      size_t const buffOutSize = ZSTD_CStreamOutSize();
-      std::vector<char> buffIn(buffInSize);
-      std::vector<char> buffOut(buffOutSize);
-
-      while (in.read(buffIn.data(), buffInSize) || in.gcount() > 0) {
-        size_t read = static_cast<size_t>(in.gcount());
-        original_size += read;
-        blake3_hasher_update(&original_hasher, buffIn.data(), read);
-
-        ZSTD_inBuffer input = {buffIn.data(), read, 0};
-        while (input.pos < input.size) {
-          ZSTD_outBuffer output = {buffOut.data(), buffOutSize, 0};
-          size_t const ret = ZSTD_compressStream(cstream, &output, &input);
-          if (ZSTD_isError(ret)) {
-            ZSTD_freeCStream(cstream);
-            return {};
-          }
-          ofs.write(buffOut.data(), output.pos);
-          blake3_hasher_update(&stored_hasher, buffOut.data(), output.pos);
-        }
-      }
-
-      ZSTD_outBuffer output = {buffOut.data(), buffOutSize, 0};
-      size_t const ret = ZSTD_endStream(cstream, &output);
-      if (ZSTD_isError(ret)) {
-        ZSTD_freeCStream(cstream);
-        return {};
-      }
-      ofs.write(buffOut.data(), output.pos);
-      blake3_hasher_update(&stored_hasher, buffOut.data(), output.pos);
-
+    size_t const initResult = ZSTD_initCStream(cstream, 3); // Level 3
+    if (ZSTD_isError(initResult)) {
       ZSTD_freeCStream(cstream);
-    } else
-#endif
-    {
-      // Identity path
-      char buf[65536];
-      while (in.read(buf, sizeof(buf)) || in.gcount() > 0) {
-        size_t n = static_cast<size_t>(in.gcount());
-        original_size += n;
-        blake3_hasher_update(&original_hasher, buf, n);
-        ofs.write(buf, n);
-        blake3_hasher_update(&stored_hasher, buf, n);
+      return {};
+    }
+
+    size_t const buffInSize = ZSTD_CStreamInSize();
+    size_t const buffOutSize = ZSTD_CStreamOutSize();
+    std::vector<char> buffIn(buffInSize);
+    std::vector<char> buffOut(buffOutSize);
+
+    while (in.read(buffIn.data(), buffInSize) || in.gcount() > 0) {
+      size_t read = static_cast<size_t>(in.gcount());
+      original_size += read;
+      blake3_hasher_update(&original_hasher, buffIn.data(), read);
+
+      ZSTD_inBuffer input = {buffIn.data(), read, 0};
+      while (input.pos < input.size) {
+        ZSTD_outBuffer output = {buffOut.data(), buffOutSize, 0};
+        size_t const ret = ZSTD_compressStream(cstream, &output, &input);
+        if (ZSTD_isError(ret)) {
+          ZSTD_freeCStream(cstream);
+          return {};
+        }
+        ofs.write(buffOut.data(), output.pos);
+        blake3_hasher_update(&stored_hasher, buffOut.data(), output.pos);
       }
     }
-  }
 
-  // Finalize hashes
-  auto finalize_hex = { std::array<unsigned char, BLAKE3_OUT_LEN> out;
-  blake3_hasher_finalize(&h, out.data(), out.size());
-  std::ostringstream oss;
-  for (unsigned char c : out)
-    oss << std::hex << std::setw(2) << std::setfill('0') << (int)c;
-  return oss.str();
+    ZSTD_outBuffer output = {buffOut.data(), buffOutSize, 0};
+    size_t const ret = ZSTD_endStream(cstream, &output);
+    if (ZSTD_isError(ret)) {
+      ZSTD_freeCStream(cstream);
+      return {};
+    }
+    ofs.write(buffOut.data(), output.pos);
+    blake3_hasher_update(&stored_hasher, buffOut.data(), output.pos);
+
+    ZSTD_freeCStream(cstream);
+  } else
+#endif
+  {
+    // Identity path
+    char buf[65536];
+    while (in.read(buf, sizeof(buf)) || in.gcount() > 0) {
+      size_t n = static_cast<size_t>(in.gcount());
+      original_size += n;
+      blake3_hasher_update(&original_hasher, buf, n);
+      ofs.write(buf, n);
+      blake3_hasher_update(&stored_hasher, buf, n);
+    }
+  }
+}
+
+// Finalize hashes
+auto finalize_hex = {std::array<unsigned char, BLAKE3_OUT_LEN> out;
+blake3_hasher_finalize(&h, out.data(), out.size());
+std::ostringstream oss;
+for (unsigned char c : out)
+  oss << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+return oss.str();
 };
 
 const std::string digest = finalize_hex(original_hasher);
@@ -572,6 +570,9 @@ CasStore::get_stream(const std::string &digest) const {
   if (meta && meta->encoding == "zstd") {
 #if defined(REQUIEM_WITH_ZSTD)
     return std::make_unique<ZstdInputStream>(std::move(file_stream));
+#else
+    // Zstd compression required but not available in this build.
+    return nullptr;
 #endif
   }
   return file_stream;
@@ -654,6 +655,22 @@ std::vector<std::string> CasStore::verify_integrity() {
     }
   }
   return corrupted;
+}
+
+bool CasStore::repair(const std::string &digest,
+                      const ReplicatingBackend &replicator) {
+  // 1. Verify object is actually corrupt or missing in this store.
+  if (get(digest).has_value()) {
+    return true; // Not corrupt, nothing to do.
+  }
+
+  // 2. Fetch from the replicating backend.
+  auto valid_data = replicator.get(digest);
+  if (!valid_data)
+    return false; // Not available in replicator either.
+
+  // 3. Put the valid data back into this store.
+  return !put(*valid_data).empty();
 }
 
 std::vector<CasObjectInfo>
@@ -792,102 +809,85 @@ size_t CasGarbageCollector::prune(std::chrono::seconds max_age, bool dry_run) {
 
 class ReplicationManager {
 public:
-  ReplicationManager(std::shared_ptr<ICASBackend> backend,
-                     size_t max_queue_size,
-                     ReplicationDropPolicy policy)
-      : backend_(std::move(backend)),
-        max_queue_size_(max_queue_size),
-        policy_(policy),
-        stopping_(false) {
-    worker_ = std::thread([this] { worker_loop(); });
+  {
+    std::lock_guard<std::mutex> lock(mu_);
+    stopping_ = true;
   }
-
-  ~ReplicationManager() {
-    {
-      std::lock_guard<std::mutex> lock(mu_);
-      stopping_ = true;
-    }
-    cv_.notify_one();
-    cv_capacity_.notify_all();
-    if (worker_.joinable()) worker_.join();
-  }
-
-  void enqueue(std::string data, std::string compression) {
-    std::unique_lock<std::mutex> lock(mu_);
-    if (max_queue_size_ > 0 && queue_.size() >= max_queue_size_) {
-      if (policy_ == ReplicationDropPolicy::Block) {
-        cv_capacity_.wait(lock, [this] {
-          return stopping_ || queue_.size() < max_queue_size_;
-        });
-        if (stopping_) return;
-      } else {
-        // DropOldest: remove from front to make room
-        queue_.pop_front();
-      }
-    }
-    queue_.emplace_back(std::move(data), std::move(compression));
-    cv_.notify_one();
-  }
-
-private:
-  void worker_loop() {
-    while (true) {
-      std::pair<std::string, std::string> task;
-      {
-        std::unique_lock<std::mutex> lock(mu_);
-        cv_.wait(lock, [this] { return stopping_ || !queue_.empty(); });
-        if (stopping_ && queue_.empty())
-          return;
-        task = std::move(queue_.front());
-        queue_.pop_front();
-        if (max_queue_size_ > 0)
-          cv_capacity_.notify_one();
-      }
-      backend_->put(task.first, task.second);
-    }
-  }
-
-  std::shared_ptr<ICASBackend> backend_;
-  size_t max_queue_size_;
-  ReplicationDropPolicy policy_;
-  std::thread worker_;
-  std::mutex mu_;
-  std::condition_variable cv_;
-  std::condition_variable cv_capacity_;
-  std::deque<std::pair<std::string, std::string>> queue_;
-  bool stopping_{false};
-};
-
-// ---------------------------------------------------------------------------
-// ReplicatingBackend
-// ---------------------------------------------------------------------------
-
-ReplicatingBackend::ReplicatingBackend(
-    std::shared_ptr<ICASBackend> primary,
-    std::shared_ptr<ICASBackend> secondary,
-    size_t max_queue_size,
-    ReplicationDropPolicy policy)
-    : primary_(std::move(primary)),
-      secondary_(std::move(secondary)),
-      repl_mgr_(std::make_unique<ReplicationManager>(secondary_, max_queue_size,
-                                                     policy)) {}
-
-ReplicatingBackend::~ReplicatingBackend() = default;
-
-std::string ReplicatingBackend::backend_id() const { return "replicating"; }
-
-std::string ReplicatingBackend::put(const std::string &data,
-                                    const std::string &compression) {
-  // Write to primary first (authoritative).
-  std::string digest = primary_->put(data, compression);
-  if (digest.empty())
-    return {};
-
-  // Async replication to secondary.
-  repl_mgr_->enqueue(data, compression);
-
-  return digest;
+  cvnotify_one();
+  cv_capacity_.notify_all();
+  (worker_.joinable()) worker_.join();
 }
+
+voidnqueue(std::string data, std::string compression) {
+  std::unique_lock<std::mutex> lock(mu_);
+  if (max_queue_size_ > 0 && queue_.size() >= max_queue_size_) {
+    if (policy_ == ReplicationDropPolicy::Block) {
+      ait(lcstopping_) return;
+    } else {
+      // DropOldest: remove from front to make room
+      queue_.pop_front();
+    queu.emplace_back( fy_one();
+    }
+
+  ivate:
+    voidorker_loop() {
+      ile(true) {
+        std::pair<std::string, std::string> task;
+        {
+          std::unique_lock<std::mutex> lock(mu_);
+          cv_.wait(lock, [this] { return stopping_ || !queue_.empty(); });
+          if (stopping_ && queue_.empty())
+            return;
+          task = std::move(queue_.front());
+          queue_.pop_front();
+          if (max_queue_size_ > 0)
+            cv_capacity_.notify_one();
+        }
+        baend_->put(task.first, task.second);
+      }
+    }
+
+    std::sred_ptr<ICASBackend> backend_;
+    size_tax_queue_size_;
+    onDropPolicy policy_;
+    std::thread worker_;
+    std::mutex mu_;
+    std::condition_variable cv_;
+    std::condition_variable cv_capacity_;
+    std::deque<std::pair<std::string, std::string>> queue_;
+    bool stopping_{false};
+
+    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -ReplicatingBackend-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+
+                                                                                                                   ReicatingBackend::ReplicatingBackend(
+                                                                                                                       std::shared_ptr<
+                                                                                                                           ICASBackend>
+                                                                                                                           primary,
+                                                                                                                       std::shared_ptr<
+                                                                                                                           ICASBackend>
+                                                                                                                           secondary,
+                                                                                                                       size_t
+                                                                                                                           max_queue_size,
+                                                                                                                       ReplicationDropPolicy
+                                                                                                                           policy)
+        : primary_(std::move(primary)),
+    secondary_(std::move(secondary)),
+    repl_mgr_(std::make_unique<ReplicationManager>(secondary_, max_queue_size,
+                                                   policy)) {}
+
+    ReplicatingBackend::~ReplicatingBackend() = default;
+
+    std::string ReplicatingBackend::backend_id() const { return "replicating"; }
+    std::string ReplicatingBackend::put(const std::string &data,
+                                        const std::string &compression) {
+      // Write to primary first (authoritative).
+      std if (digest.empty())
+
+          // Async replication to secondary.
+          repl_mgr_->enqueue(data, compression);
+
+      return digest;
+    }
 
     std::string ReplicatingBackend::put_stream(std::istream & in,
                                                const std::string &compression) {
@@ -1071,10 +1071,24 @@ std::string ReplicatingBackend::put(const std::string &data,
       if (endpoint_.find("file://") == 0) {
         fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
         fs::create_directories(p.parent_path());
-        std::ofstream ofs(p, std::ios::binary);
-        ofs.write(data.data(), data.size());
-        if (!ofs)
-          return {};
+        {
+          std::ofstream ofs(p, std::ios::binary);
+          ofs.write(data.data(), data.size());
+          if (!ofs)
+            return {};
+        }
+
+        // Write metadata sidecar
+        fs::path meta = p;
+        meta += ".meta";
+        std::string stored_hash = blake3_hex(data);
+        uint64_t now = static_cast<uint64_t>(std::time(nullptr));
+        std::ofstream mofs(meta, std::ios::binary);
+        mofs << "{\"digest\":\"" << digest << "\",\"encoding\":\"identity\""
+             << ",\"original_size\":" << data.size()
+             << ",\"stored_size\":" << data.size() << ",\"stored_blob_hash\":\""
+             << stored_hash << "\""
+             << ",\"created_at\":" << now << "}";
         return digest;
       }
 
@@ -1084,18 +1098,10 @@ std::string ReplicatingBackend::put(const std::string &data,
 
     std::string S3CompatibleBackend::put_stream(
         std::istream & in, const std::string &compression) {
-      // Simulation: Write to file:// endpoint from stream.
-      if (endpoint_.find("file://") == 0) {
-        // We need to hash the content to know the path.
-        // For simulation, we can read into memory if small, or write to tmp
-        // then move. Reusing CasStore logic effectively. For this stub, we'll
-        // just read into string and call put(). Warning: this defeats O(1)
-        // memory for the stub, but it's a stub.
-        std::string data((std::istreambuf_iterator<char>(in)),
+      // Buffer entire stream and delegate to put().
+      std::string buffer((std::istreambuf_iterator<char>(in)),
                          std::istreambuf_iterator<char>());
-        return put(data, compression);
-      }
-      return {};
+      return put(buffer, compression);
     }
 
     std::optional<std::string> S3CompatibleBackend::get(
@@ -1123,7 +1129,17 @@ std::string ReplicatingBackend::put(const std::string &data,
     }
 
     bool S3CompatibleBackend::remove(const std::string &digest) {
-      return false; // Stub
+      if (endpoint_.find("file://") == 0) {
+        fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+        fs::path meta = p;
+        meta += ".meta";
+
+        std::error_code ec;
+        bool removed_any = fs::remove(p, ec);
+        removed_any |= fs::remove(meta, ec);
+        return !ec; // Return true if no error occurred
+      }
+      return false;
     }
 
     bool S3CompatibleBackend::contains(const std::string &digest) const {
@@ -1136,15 +1152,36 @@ std::string ReplicatingBackend::put(const std::string &data,
 
     std::optional<CasObjectInfo> S3CompatibleBackend::info(
         const std::string &digest) const {
-      // S3 HEAD object simulation
-      if (contains(digest)) {
-        auto data = get(digest);
-        if (data) {
+      if (endpoint_.find("file://") == 0) {
+        fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+        fs::path meta = p;
+        meta += ".meta";
+
+        if (fs::exists(meta)) {
+          std::ifstream ifs(meta);
+          std::string json((std::istreambuf_iterator<char>(ifs)),
+                           std::istreambuf_iterator<char>());
+          std::optional<jsonlite::JsonError> err;
+          auto obj = jsonlite::parse(json, &err);
+          if (!err) {
+            CasObjectInfo i;
+            i.digest = jsonlite::get_string(obj, "digest", digest);
+            i.encoding = jsonlite::get_string(obj, "encoding", "identity");
+            i.original_size = jsonlite::get_u64(obj, "original_size", 0);
+            i.stored_size = jsonlite::get_u64(obj, "stored_size", 0);
+            i.stored_blob_hash =
+                jsonlite::get_string(obj, "stored_blob_hash", "");
+            i.created_at_unix_ts = jsonlite::get_u64(obj, "created_at", 0);
+            return i;
+          }
+        }
+
+        // Fallback for objects without metadata
+        if (fs::exists(p)) {
           CasObjectInfo i;
           i.digest = digest;
-          i.stored_size = data->size();
-          i.original_size =
-              data->size(); // Assuming identity compression for simulation
+          i.stored_size = fs::file_size(p);
+          i.original_size = i.stored_size;
           i.encoding = "identity";
           return i;
         }
@@ -1161,10 +1198,15 @@ std::string ReplicatingBackend::put(const std::string &data,
         if (fs::exists(root)) {
           for (const auto &entry : fs::recursive_directory_iterator(root)) {
             if (entry.is_regular_file()) {
-              std::string d = entry.path().filename().string();
-              if (d <= start_after)
+              const std::string fname = entry.path().filename().string();
+              // Skip metadata sidecar files
+              if (fname.size() > 5 &&
+                  fname.substr(fname.size() - 5) == ".meta") {
                 continue;
-              auto i = info(d);
+              }
+              if (fname <= start_after)
+                continue;
+              auto i = info(fname);
               if (i)
                 out.push_back(*i);
               if (limit > 0 && out.size() >= limit)

@@ -149,6 +149,9 @@ public:
   // digests.
   std::vector<std::string> verify_integrity();
 
+  // Attempt to repair a corrupted object from a replicating backend.
+  bool repair(const std::string &digest, const ReplicatingBackend &replicator);
+
   const std::string &root() const { return root_; }
 
 private:

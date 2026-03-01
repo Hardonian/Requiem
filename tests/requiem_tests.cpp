@@ -1110,6 +1110,39 @@ void test_cas_put_stream_compression() {
 #endif
 }
 
+void test_s3_backend_put_stream() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_s3_stream_test";
+  fs::remove_all(tmp);
+  fs::create_directories(tmp);
+
+  // Simulate S3 bucket as a directory
+  std::string bucket = "my-bucket";
+  std::string prefix = "objects";
+  std::string endpoint = "file://" + tmp.string();
+
+  requiem::S3CompatibleBackend s3(endpoint, bucket, prefix);
+
+  // Create a large-ish stream (1MB)
+  std::string data(1024 * 1024, 'x');
+  std::stringstream ss(data);
+
+  const std::string digest = s3.put_stream(ss, "off");
+  expect(!digest.empty(), "S3 put_stream must return digest");
+
+  // Verify file exists on disk at expected path: tmp/bucket/prefix/digest
+  fs::path expected_path = tmp / bucket / prefix / digest;
+  expect(fs::exists(expected_path),
+         "S3 put_stream must write to file system for file:// endpoint");
+
+  // Verify content
+  std::ifstream ifs(expected_path, std::ios::binary);
+  std::string content((std::istreambuf_iterator<char>(ifs)),
+                      std::istreambuf_iterator<char>());
+  expect(content == data, "S3 written content must match stream data");
+
+  fs::remove_all(tmp);
+}
+
 // ============================================================================
 // Phase 5: C ABI
 // ============================================================================
@@ -2427,6 +2460,7 @@ int main() {
   run_test("ReplicationMonitor drift repair", test_replication_monitor);
   run_test("CasGarbageCollector prune", test_cas_garbage_collector);
   run_test("CasStore put_stream zstd", test_cas_put_stream_compression);
+  run_test("S3 put_stream large file", test_s3_backend_put_stream);
   run_test("CasStore compact", test_cas_compact);
 
   std::cout << "\n[Phase 4] Observability layer\n";
