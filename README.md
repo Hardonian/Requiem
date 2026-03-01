@@ -7,55 +7,58 @@
 
 Deterministic AI execution platform with tenant isolation, replay, and audit.
 
-## Quickstart (5 minutes)
+## Quickstart (3 commands)
 
-This guide will show you Requiem's core value: **guaranteed deterministic execution and replay**.
+This demonstrates Requiem's core guarantee: **identical inputs always produce an identical `result_digest`**, across runs, workers, and time.
 
-### 1. Setup Environment
-
-First, clone the repository. This project uses `pnpm` for package management.
+No database required for the core engine. The engine proves determinism on its own.
 
 ```bash
-git clone https://github.com/reachhq/requiem.git
-cd requiem
-pnpm install
+# 1. Clone and install
+git clone https://github.com/Hardonian/Requiem.git && cd Requiem && pnpm install
+
+# 2. Build the native engine
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
+
+# 3. Prove determinism — runs the same workload 3× and verifies all result_digests match
+./build/requiem demo
 ```
 
-Next, copy the example environment file. For this quickstart, you won't need to change anything.
+Expected output:
+```json
+{"ok":true,"deterministic":true,"runs":3,"result_digest":"<hash>","latency_ms":[...]}
+```
+
+**Determinism is confirmed when `"deterministic":true` and all three runs share the same `result_digest`.**
+
+### Inspect Policy and Version Contracts
 
 ```bash
-cp .env.example .env
+# View the active policy (hash algorithm, CAS version, tenant rules, license allowlist)
+./build/requiem policy explain
+
+# View all version constants enforced at startup
+./build/requiem version
 ```
 
-### 2. Start the Database
+Policy enforcement is not implicit. `policy explain` shows every active constraint. `version` shows every numeric constant that CI verifies.
 
-Requiem requires a PostgreSQL database. We've included a `docker-compose.yml` to make this easy.
+### Replay an Execution
 
 ```bash
-docker-compose up -d
+# Execute a workload and capture the result
+./build/requiem exec run --request docs/examples/exec_request_smoke.json --out build/result.json
+
+# Replay and verify: re-runs in sandbox, fails if result_digest diverges
+./build/requiem exec replay \
+  --request docs/examples/exec_request_smoke.json \
+  --result build/result.json \
+  --cas .requiem/cas/v2
 ```
 
-### 3. Run a Command & Get a Hash
+> **Two CLIs:** `./build/requiem` (C++ native engine — determinism, CAS, replay, policy) and `pnpm exec requiem` (TypeScript control plane — AI decisions, junctions, MCP). See **[CLI Reference](docs/cli.md)**.
 
-Now, execute a command through the Requiem CLI (`reach`). Every deterministic execution returns a unique, verifiable hash.
-
-```bash
-pnpm exec reach run "echo 'Hello, Determinism!'"
-```
-
-You will see output that includes an `executionHash`. This is the cryptographic proof of your execution.
-
-### 4. Replay by Hash
-
-You can now use this hash to replay the execution. Requiem will re-run the command in a hermetic sandbox and verify that the new output cryptographically matches the original.
-
-```bash
-pnpm exec reach replay <paste-your-execution-hash-here>
-```
-
-You should see a `✅ Replay Successful` message. You have just proven that your command's execution is reproducible.
-
-> For a full list of available commands, see the **[CLI Reference](docs/cli.md)**.
+> For the web dashboard (requires PostgreSQL), see **[ReadyLayer setup](ready-layer/README.md)**.
 
 ## Core Concepts
 

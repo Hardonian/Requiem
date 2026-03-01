@@ -1,5 +1,0 @@
-init.ts(3,41): error TS2307: Cannot find module '../lib/global-config' or its corresponding type declarations.
-init.ts(4,23): error TS2307: Cannot find module '../db/connection' or its corresponding type declarations.
-playwright.config.ts(1,39): error TS2307: Cannot find module '@playwright/test' or its corresponding type declarations.
-verify-config.ts(3,28): error TS2307: Cannot find module './packages/cli/src/lib/global-config' or its corresponding type declarations.
-wrapper.test.ts(3,32): error TS2307: Cannot find module './wrapper' or its corresponding type declarations.
