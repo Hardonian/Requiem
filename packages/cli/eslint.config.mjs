@@ -34,5 +34,11 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-floating-promises': 'error',
     },
+  },
+  {
+    files: ['src/verify-*.ts', 'src/run-verify-*.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
+    },
   }
 );

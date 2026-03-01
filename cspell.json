@@ -55,7 +55,8 @@
     "traceparent",
     "postconditions",
     "TIMESTAMPTZ",
-    "unflushed"
+    "unflushed",
+    "behaviour"
   ],
   "ignorePaths": [
     "node_modules",
