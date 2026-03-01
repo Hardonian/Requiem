@@ -53,7 +53,9 @@
     "exceedance",
     "organisation",
     "traceparent",
-    "postconditions"
+    "postconditions",
+    "TIMESTAMPTZ",
+    "unflushed"
   ],
   "ignorePaths": [
     "node_modules",

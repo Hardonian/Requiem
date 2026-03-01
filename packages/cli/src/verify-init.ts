@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 import { init } from './commands/init';
-import { readConfig } from './lib/global-config';
+import { readConfig } from './global-config';
 import { randomUUID } from 'crypto';
 
 async function main() {

@@ -306,7 +306,7 @@ interface DatabaseStatus {
 
 export async function getDatabaseStatus(): Promise<DatabaseStatus> {
   try {
-    const db = getDB();
+    getDB();
     // Verify database is functional by querying tables
     const tableNames = Array.from(tables.keys());
     return {

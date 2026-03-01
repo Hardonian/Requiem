@@ -29,7 +29,7 @@ async function main() {
       }
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr.on('data', (_data) => {
       // Optional: log stderr if needed
     });
   });
