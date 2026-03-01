@@ -47,4 +47,10 @@ const stressResult = spawnSync('npx', ['tsx', path.join(CLI_SRC, 'cli.ts'), 'str
 if (stressResult.status === 0) console.log('  ✓ Stress command runs successfully');
 else console.error('  ❌ Stress command failed', stressResult.stderr);
 
+// 5. Verify Dashboard
+runScript('verify-dashboard.ts');
+
+// 6. Verify Serve
+runScript('verify-serve.ts');
+
 console.log('\n✅ Verification Sequence Complete');
