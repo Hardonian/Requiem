@@ -11,49 +11,55 @@ Deterministic AI execution platform with tenant isolation, replay, and audit.
 
 This guide will show you Requiem's core value: **guaranteed deterministic execution and replay**.
 
-### 1. Setup Environment
+### 1. Interactive Setup (Recommended)
 
-First, clone the repository. This project uses `pnpm` for package management.
+The easiest way to get started is with the interactive quickstart command. It will check your environment, start the database, and run a demo.
+
+```bash
+pnpm exec reach quickstart
+```
+
+### 2. Manual Setup
+
+If you prefer to run commands manually:
+
+#### Setup Environment
 
 ```bash
 git clone https://github.com/reachhq/requiem.git
 cd requiem
 pnpm install
-```
-
-Next, copy the example environment file. For this quickstart, you won't need to change anything.
-
-```bash
 cp .env.example .env
-```
-
-### 2. Start the Database
-
-Requiem requires a PostgreSQL database. We've included a `docker-compose.yml` to make this easy.
-
-```bash
 docker-compose up -d
 ```
 
-### 3. Run a Command & Get a Hash
+#### Run a Command & Get a Hash
 
-Now, execute a command through the Requiem CLI (`reach`). Every deterministic execution returns a unique, verifiable hash.
+Execute a command through the Requiem CLI (`reach`). Every deterministic execution returns a unique, verifiable hash.
 
 ```bash
-pnpm exec reach run "echo 'Hello, Determinism!'"
+pnpm exec reach run system.echo "Hello, Determinism!"
 ```
 
 You will see output that includes an `executionHash`. This is the cryptographic proof of your execution.
 
-### 4. Replay by Hash
+#### Verify Determinism
 
-You can now use this hash to replay the execution. Requiem will re-run the command in a hermetic sandbox and verify that the new output cryptographically matches the original.
+You can now use this hash to verify the execution. Requiem will re-run the command in a hermetic sandbox and verify that the new output cryptographically matches the original.
 
 ```bash
-pnpm exec reach replay <paste-your-execution-hash-here>
+pnpm exec reach verify <paste-your-execution-hash-here>
 ```
 
 You should see a `✅ Replay Successful` message. You have just proven that your command's execution is reproducible.
+
+#### Launch Dashboard
+
+Visualize your executions and audit logs in the local dashboard.
+
+```bash
+pnpm exec reach ui
+```
 
 > For a full list of available commands, see the **[CLI Reference](docs/cli.md)**.
 

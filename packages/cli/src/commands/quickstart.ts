@@ -3,15 +3,17 @@
  * @fileoverview Quickstart command - Interactive setup guide for new users.
  *
  * Guides users through:
- * - Environment validation
- * - Initial configuration
- * - First tool execution
- * - Verification of setup
+ * - Environment validation (Node, Git, Docker)
+ * - Infrastructure setup (Database)
+ * - First deterministic execution
+ * - Verification (Replay)
+ * - Dashboard launch
  */
 
 import { Command } from 'commander';
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import * as path from 'path';
+import * as readline from 'readline';
 import { fileExists } from '../lib/io';
 
 interface QuickstartResult {
@@ -19,6 +21,19 @@ interface QuickstartResult {
   steps: Array<Record<string, unknown>>;
   error?: string;
 }
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const ask = (question: string): Promise<string> => {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      resolve(answer.trim().toLowerCase());
+    });
+  });
+};
 
 export const quickstart = new Command('quickstart')
   .description('Interactive setup guide for new Requiem users')
@@ -31,6 +46,8 @@ export const quickstart = new Command('quickstart')
     };
 
     try {
+      console.log('\n🚀 Welcome to Requiem! Let\'s get you set up with deterministic AI.\n');
+
       // Step 1: Environment validation
       if (!options.skipChecks) {
         logStep('Step 1: Validating environment...', !!options.json);
@@ -39,100 +56,115 @@ export const quickstart = new Command('quickstart')
         const requiredNode = '20.';
         if (!nodeVersion.startsWith(requiredNode)) {
           const msg = `Node.js ${requiredNode}x required, found ${nodeVersion}`;
-          if (options.json) {
-            results.steps.push({ step: 'node_version', status: 'failed', error: msg });
-            results.success = false;
-          } else {
-            console.error(`❌ ${msg}`);
-          }
-          process.exit(1);
+          fail(msg, options.json, results);
         }
+        success(`Node.js ${nodeVersion}`, options.json, results, 'node_version');
 
-        if (options.json) {
-          results.steps.push({ step: 'node_version', status: 'passed', version: nodeVersion });
-        } else {
-          console.log(`✓ Node.js ${nodeVersion}`);
-        }
-
-        // Check for required tools
+        // Check tools
         const checks = [
           { cmd: 'git', name: 'Git' },
           { cmd: 'pnpm', name: 'pnpm' },
+          { cmd: 'docker', name: 'Docker' },
         ];
 
         for (const { cmd, name } of checks) {
           try {
             execSync(`${cmd} --version`, { stdio: 'pipe' });
-            if (options.json) {
-              results.steps.push({ step: cmd, status: 'passed' });
-            } else {
-              console.log(`✓ ${name} available`);
-            }
+            success(`${name} available`, options.json, results, cmd);
           } catch {
-            if (options.json) {
-              results.steps.push({ step: cmd, status: 'warning', message: `${name} not found` });
+            if (cmd === 'docker') {
+              console.log(`⚠ Docker not found. You will need Docker for the database.`);
             } else {
-              console.log(`⚠ ${name} not found (optional)`);
+              console.log(`⚠ ${name} not found.`);
             }
           }
         }
       }
 
-      // Step 2: Configuration
-      logStep('Step 2: Checking configuration...', !!options.json);
-
-      const configPath = path.join(process.cwd(), '.requiem', 'config.json');
-      const hasConfig = fileExists(configPath);
-
-      if (hasConfig) {
-        if (options.json) {
-          results.steps.push({ step: 'config', status: 'exists', path: configPath });
-        } else {
-          console.log(`✓ Configuration found at ${configPath}`);
+      // Step 2: Infrastructure
+      if (!options.json) {
+        logStep('Step 2: Checking infrastructure...', false);
+        
+        // Check if DB is running
+        try {
+          execSync('docker ps | grep postgres', { stdio: 'pipe' });
+          console.log('✓ Database is running');
+        } catch {
+          console.log('⚠ Database not detected.');
+          const answer = await ask('? Do you want to start the database with docker-compose? (Y/n) ');
+          if (answer === '' || answer === 'y') {
+            console.log('Starting database...');
+            try {
+              execSync('docker-compose up -d', { stdio: 'inherit' });
+              console.log('✓ Database started');
+              // Wait a bit for DB to be ready
+              console.log('Waiting for database to be ready...');
+              await new Promise(r => setTimeout(r, 5000));
+            } catch (e) {
+              console.error('❌ Failed to start database. Please run `docker-compose up -d` manually.');
+            }
+          }
         }
-      } else {
-        if (options.json) {
-          results.steps.push({ step: 'config', status: 'missing', action: 'Run: requiem init' });
-        } else {
-          console.log('ℹ No configuration found. Run: requiem init');
+      }
+
+      // Step 3: First Execution
+      if (!options.json) {
+        logStep('Step 3: Running your first deterministic execution...', false);
+        console.log('Executing: reach run system.echo "Hello, Determinism!"');
+        
+        try {
+          // We use the CLI itself to run the command
+          // Assuming we are in the root or can call `pnpm exec reach`
+          // For this script, we'll try to import the tool runner directly or spawn the process
+          // Spawning is safer to simulate real user experience
+          
+          const output = execSync('pnpm exec reach run system.echo "Hello, Determinism!" --json', { encoding: 'utf-8' });
+          const result = JSON.parse(output);
+          
+          if (result.executionHash) {
+            console.log(`✓ Execution successful!`);
+            console.log(`  Hash: ${result.executionHash}`);
+            console.log(`  Output: ${JSON.stringify(result.output)}`);
+            
+            // Step 4: Verification
+            logStep('Step 4: Verifying determinism...', false);
+            console.log(`Replaying hash: ${result.executionHash}`);
+            
+            try {
+              execSync(`pnpm exec reach verify ${result.executionHash}`, { stdio: 'inherit' });
+              console.log('✓ Determinism verified!');
+            } catch {
+              console.error('❌ Verification failed.');
+            }
+            
+          } else {
+            console.log('⚠ Execution finished but no hash returned.');
+          }
+        } catch (e) {
+          console.error('❌ Execution failed. Is the database ready?');
+          console.error(e instanceof Error ? e.message : String(e));
         }
       }
 
-      // Step 3: Tool registry check
-      logStep('Step 3: Checking tool registry...', !!options.json);
-
-      if (options.json) {
-        results.steps.push({ step: 'tools', status: 'ready', message: 'Use: requiem tool list' });
-      } else {
-        console.log('✓ Tool registry ready');
-        console.log('  Try: requiem tool list');
-      }
-
-      // Step 4: Next steps
-      logStep('Step 4: Next steps', !!options.json);
-
-      const nextSteps = [
-        'requiem doctor          - Validate your setup',
-        'requiem tool list       - List available tools',
-        'requiem tool exec <name> - Execute a tool',
-        'requiem help            - Show all commands',
-      ];
-
-      if (options.json) {
-        results.steps.push({ step: 'next', actions: nextSteps });
-      } else {
-        console.log('\n📚 Quick reference:');
-        for (const step of nextSteps) {
-          console.log(`  ${step}`);
+      // Step 5: Dashboard
+      if (!options.json) {
+        logStep('Step 5: Launching Dashboard...', false);
+        const answer = await ask('? Do you want to launch the dashboard? (Y/n) ');
+        if (answer === '' || answer === 'y') {
+          console.log('Launching dashboard at http://localhost:3000 ...');
+          // Spawn detached process
+          const child = spawn('pnpm', ['exec', 'reach', 'ui'], {
+            detached: true,
+            stdio: 'ignore'
+          });
+          child.unref();
         }
-        console.log('\n✅ Quickstart complete!');
       }
 
-      if (options.json) {
-        console.log(JSON.stringify(results, null, 2));
-      }
-
+      console.log('\n✅ Quickstart complete! You are ready to build.');
+      rl.close();
       process.exit(0);
+
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       if (options.json) {
@@ -142,6 +174,7 @@ export const quickstart = new Command('quickstart')
       } else {
         console.error(`❌ Error: ${errorMsg}`);
       }
+      rl.close();
       process.exit(1);
     }
   });
@@ -150,4 +183,23 @@ function logStep(message: string, isJson: boolean): void {
   if (!isJson) {
     console.log(`\n${message}`);
   }
+}
+
+function success(message: string, isJson: boolean, results: QuickstartResult, stepName: string) {
+  if (isJson) {
+    results.steps.push({ step: stepName, status: 'passed' });
+  } else {
+    console.log(`✓ ${message}`);
+  }
+}
+
+function fail(message: string, isJson: boolean, results: QuickstartResult) {
+  if (isJson) {
+    results.steps.push({ step: 'error', status: 'failed', error: message });
+    results.success = false;
+    console.log(JSON.stringify(results, null, 2));
+  } else {
+    console.error(`❌ ${message}`);
+  }
+  process.exit(1);
 }

@@ -39,6 +39,8 @@ import { parseDecideArgs, runDecideCommand } from './commands/decide';
 import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
 import { parseAgentArgs, runAgentCommand } from './commands/agent';
 import { parseAiArgs, runAiCommand } from './commands/ai';
+import { runRunCommand } from './commands/run';
+import { runVerifyCommand } from './commands/verify';
 
 const VERSION = '0.2.0';
 
@@ -49,77 +51,69 @@ Requiem CLI v${VERSION}  (alias: reach)
 USAGE:
   requiem <command> [options]
 
-COMMANDS:
-  tool list [--json] [--capability <cap>]           List registered tools
-  tool exec <name> [--input <json>] [--tenant <id>] Execute a tool
-  replay <hash> [--tenant <id>] [--json]            Fetch a replay record
-  trace <id> [--json]                               Visualize decision trace
-  stats [--tenant <id>] [--json]                    Display aggregated telemetry
-  telemetry [--window <sec>] [--json]               Show real-time usage stats
-  stress [--duration <sec>] [--rate <rps>]          Generate synthetic load
-  dashboard [--port <number>]                       Launch local web dashboard
-  serve [--port <number>]                           Expose decision engine API
-  backup [--file <path>]                            Dump database to JSON
-  restore [--file <path>] [--clean]                 Restore database from JSON
-  import <file> [--tenant <id>]                     Ingest decision logs from CSV
-  nuke [--force]                                    Clear database state
-  init [--tenant <id>] [--force]                    Initialize configuration
-  quickstart [--json]                               Interactive setup guide
-  status [--json]                                   System health check
-  bugreport [--output <file>]                       Generate diagnostic report
-  demo                                              Demo mode (coming soon)
-  capsule                                           Capsule management (coming soon)
-  config <subcommand>                               Global configuration
-  decide <subcommand>                               Decision engine operations
-  junctions <subcommand>                            Junction management
-  agent <subcommand>                                AI Agent orchestration
-  ai <subcommand>                                   AI tools, skills & telemetry
-  doctor [--json]                                   Validate environment setup
-  version                                           Show version information
-  help                                              Show this help message
+CORE COMMANDS:
+  run <name> [input]                  Run a tool or skill (e.g., reach run system.echo "hello")
+  replay <hash>                       Replay an execution by hash
+  verify <hash>                       Verify determinism of an execution
+  ui                                  Launch the web dashboard (alias for dashboard)
+  quickstart                          Interactive setup guide
+
+ADVANCED COMMANDS:
+  tool list [--json]                  List registered tools
+  tool exec <name>                    Execute a tool (low-level)
+  trace <id>                          Visualize decision trace
+  stats                               Display aggregated telemetry
+  telemetry                           Show real-time usage stats
+  stress                              Generate synthetic load
+  serve                               Expose decision engine API
+  backup                              Dump database to JSON
+  restore                             Restore database from JSON
+  import                              Ingest decision logs from CSV
+  nuke                                Clear database state
+  init                                Initialize configuration
+  status                              System health check
+  bugreport                           Generate diagnostic report
+  doctor                              Validate environment setup
+  version                             Show version information
+  help                                Show this help message
 
 DECIDE SUBCOMMANDS:
-  evaluate --junction <id>    Evaluate a decision for a junction
-  explain --junction <id>     Explain why a decision was made
-  outcome --id <id>           Record an outcome for a decision
-  list                        List all decision reports
-  show <id>                   Show details of a decision
+  decide evaluate --junction <id>     Evaluate a decision for a junction
+  decide explain --junction <id>      Explain why a decision was made
+  decide outcome --id <id>            Record an outcome for a decision
+  decide list                         List all decision reports
+  decide show <id>                    Show details of a decision
 
 JUNCTIONS SUBCOMMANDS:
-  scan --since <time>         Scan for junctions (e.g., 7d, 24h)
-  list                        List all junctions
-  show <id>                   Show details of a junction
+  junctions scan --since <time>       Scan for junctions (e.g., 7d, 24h)
+  junctions list                      List all junctions
+  junctions show <id>                 Show details of a junction
 
 AGENT SUBCOMMANDS:
-  serve --tenant <id>         Start MCP stdio server
+  agent serve --tenant <id>           Start MCP stdio server
 
 AI SUBCOMMANDS:
-  tools list                  List all registered AI tools
-  skills list                 List all AI skills
-  skills run <name>           Run an AI skill
-  telemetry                   Show AI cost and usage telemetry
+  ai tools list                       List all registered AI tools
+  ai skills list                      List all AI skills
+  ai skills run <name>                Run an AI skill
+  ai telemetry                        Show AI cost and usage telemetry
 
 OPTIONS:
-  --json                      Output in JSON format
-  --help, -h                  Show help for a command
-  --version, -v               Show version information
+  --json                              Output in JSON format
+  --help, -h                          Show help for a command
+  --version, -v                       Show version information
 
 ENVIRONMENT VARIABLES:
-  DECISION_ENGINE             Engine type: ts|requiem (default: ts)
-  FORCE_RUST                  Force TypeScript fallback: true|false
-  REQUIEM_ENGINE_AVAILABLE    Set to 'true' if native engine is built
-  REQUIEM_ENABLE_METRICS      Set to 'true' to enable metrics logging
+  DECISION_ENGINE                     Engine type: ts|requiem (default: ts)
+  FORCE_RUST                          Force TypeScript fallback: true|false
+  REQUIEM_ENGINE_AVAILABLE            Set to 'true' if native engine is built
+  REQUIEM_ENABLE_METRICS              Set to 'true' to enable metrics logging
 
 EXAMPLES:
-  requiem tool list
-  requiem tool exec system.echo --input '{"message":"hello"}' --tenant my-tenant
-  requiem replay sha256abc123... --tenant my-tenant
-  requiem decide evaluate --junction junction_abc123
-  requiem junctions scan --since 7d --json
-  requiem ai tools list
-  requiem doctor
-  requiem quickstart
-  requiem status
+  reach run system.echo "hello"
+  reach verify sha256abc123...
+  reach ui
+  reach quickstart
 `);
 }
 
@@ -139,6 +133,18 @@ async function main(): Promise<number> {
   const subArgs = args.slice(1);
 
   switch (command) {
+    case 'run':
+      return await runRunCommand(subArgs);
+
+    case 'verify':
+      return await runVerifyCommand(subArgs);
+
+    case 'ui': {
+      const { dashboard } = await import('./commands/dashboard');
+      await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
+      return 0;
+    }
+
     case 'tool': {
       const { parseToolListArgs, runToolList, parseToolExecArgs, runToolExec } =
         await import('./commands/tool');
