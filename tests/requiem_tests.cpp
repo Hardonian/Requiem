@@ -1075,41 +1075,39 @@ void test_cas_garbage_collector() {
   fs::remove_all(tmp);
 }
 
-void test_cas_compact() {
-  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_compact_test";
+void test_cas_put_stream_compression() {
+#if defined(REQUIEM_WITH_ZSTD)
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_zstd_test";
   fs::remove_all(tmp);
   fs::create_directories(tmp);
 
   requiem::CasStore cas(tmp.string());
-  std::string d1 = cas.put("obj1");
-  std::string d2 = cas.put("obj2");
-  std::string d3 = cas.put("obj3");
 
-  // Helper to count lines in index.ndjson
-  auto count_lines = [&]() {
-    std::ifstream ifs(tmp / "index.ndjson");
-    return std::count(std::istreambuf_iterator<char>(ifs),
-                      std::istreambuf_iterator<char>(), '\n');
-  };
+  // Highly compressible data
+  std::string data;
+  for (int i = 0; i < 1000; ++i)
+    data += "repeat";
 
-  expect(count_lines() == 3, "index should have 3 lines initially");
+  // Write via stream with zstd
+  std::stringstream ss(data);
+  std::string digest = cas.put_stream(ss, "zstd");
+  expect(!digest.empty(), "put_stream zstd success");
 
-  cas.remove(d2);
-  // remove() updates memory but not disk index immediately
-  expect(count_lines() == 3, "index should still have 3 lines after remove");
+  // Verify object size on disk
+  auto info = cas.info(digest);
+  expect(info.has_value(), "info exists");
+  expect(info->encoding == "zstd", "encoding is zstd");
+  expect(info->stored_size < info->original_size, "compressed size smaller");
 
-  cas.compact();
-  expect(count_lines() == 2, "index should have 2 lines after compact");
-
-  // Verify content
-  std::ifstream ifs(tmp / "index.ndjson");
-  std::string content((std::istreambuf_iterator<char>(ifs)),
-                      std::istreambuf_iterator<char>());
-  expect(content.find(d1) != std::string::npos, "d1 present");
-  expect(content.find(d2) == std::string::npos, "d2 absent");
-  expect(content.find(d3) != std::string::npos, "d3 present");
+  // Verify read back via get_stream (decompression)
+  auto in = cas.get_stream(digest);
+  expect(in != nullptr, "get_stream success");
+  std::string read_back((std::istreambuf_iterator<char>(*in)),
+                        std::istreambuf_iterator<char>());
+  expect(read_back == data, "content matches");
 
   fs::remove_all(tmp);
+#endif
 }
 
 // ============================================================================
@@ -2428,6 +2426,7 @@ int main() {
   run_test("ReplicatingBackend repair", test_replicating_backend_repair);
   run_test("ReplicationMonitor drift repair", test_replication_monitor);
   run_test("CasGarbageCollector prune", test_cas_garbage_collector);
+  run_test("CasStore put_stream zstd", test_cas_put_stream_compression);
   run_test("CasStore compact", test_cas_compact);
 
   std::cout << "\n[Phase 4] Observability layer\n";

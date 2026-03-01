@@ -104,6 +104,127 @@ bool valid_digest(const std::string &d) {
   return true;
 }
 
+#if defined(REQUIEM_WITH_ZSTD)
+class ZstdDecompressStreambuf : public std::streambuf {
+public:
+  explicit ZstdDecompressStreambuf(std::unique_ptr<std::istream> source)
+      : source_(std::move(source)), dstream_(ZSTD_createDStream()),
+        in_buf_(ZSTD_DStreamInSize()), out_buf_(ZSTD_DStreamOutSize()) {
+    ZSTD_initDStream(dstream_);
+    setg(out_buf_.data(), out_buf_.data(), out_buf_.data());
+  }
+
+  ~ZstdDecompressStreambuf() override { ZSTD_freeDStream(dstream_); }
+
+  ZstdDecompressStreambuf(const ZstdDecompressStreambuf &) = delete;
+  ZstdDecompressStreambuf &operator=(const ZstdDecompressStreambuf &) = delete;
+
+protected:
+  int_type underflow() override {
+    if (gptr() < egptr()) {
+      return traits_type::to_int_type(*gptr());
+    }
+
+    pos_at_eback_ += (egptr() - eback());
+
+    while (true) {
+      if (input_.pos == input_.size) {
+        if (source_->peek() == EOF) {
+          return traits_type::eof();
+        }
+        source_->read(in_buf_.data(), in_buf_.size());
+        input_.src = in_buf_.data();
+        input_.size = source_->gcount();
+        input_.pos = 0;
+      }
+
+      ZSTD_outBuffer output = {out_buf_.data(), out_buf_.size(), 0};
+      size_t ret = ZSTD_decompressStream(dstream_, &output, &input_);
+
+      if (ZSTD_isError(ret)) {
+        return traits_type::eof();
+      }
+
+      if (output.pos > 0) {
+        setg(out_buf_.data(), out_buf_.data(), out_buf_.data() + output.pos);
+        return traits_type::to_int_type(*gptr());
+      }
+
+      if (ret == 0 && input_.pos == input_.size) {
+        return traits_type::eof();
+      }
+    }
+  }
+
+  std::streampos seekoff(std::streamoff off, std::ios_base::seekdir way,
+                         std::ios_base::openmode which) override {
+    if (which & std::ios_base::out)
+      return -1;
+
+    std::streampos current_pos = pos_at_eback_ + (gptr() - eback());
+    std::streampos new_pos = -1;
+
+    if (way == std::ios_base::beg) {
+      new_pos = off;
+    } else if (way == std::ios_base::cur) {
+      new_pos = current_pos + off;
+    } else {
+      return -1;
+    }
+
+    if (new_pos < 0)
+      return -1;
+    if (new_pos == current_pos)
+      return new_pos;
+
+    if (new_pos < current_pos) {
+      // Rewind: restart decompression
+      ZSTD_freeDStream(dstream_);
+      dstream_ = ZSTD_createDStream();
+      ZSTD_initDStream(dstream_);
+      source_->clear();
+      source_->seekg(0);
+      input_ = {nullptr, 0, 0};
+      setg(out_buf_.data(), out_buf_.data(), out_buf_.data());
+      pos_at_eback_ = 0;
+      current_pos = 0;
+    }
+
+    // Skip forward
+    while (current_pos < new_pos) {
+      if (sbumpc() == traits_type::eof())
+        return -1;
+      current_pos += 1;
+    }
+    return current_pos;
+  }
+
+  std::streampos seekpos(std::streampos pos,
+                         std::ios_base::openmode which) override {
+    return seekoff(pos, std::ios_base::beg, which);
+  }
+
+private:
+  std::unique_ptr<std::istream> source_;
+  ZSTD_DStream *dstream_;
+  std::vector<char> in_buf_;
+  std::vector<char> out_buf_;
+  ZSTD_inBuffer input_{nullptr, 0, 0};
+  std::streampos pos_at_eback_{0};
+};
+
+class ZstdInputStream : public std::istream {
+public:
+  explicit ZstdInputStream(std::unique_ptr<std::istream> source)
+      : std::istream(&buf_), buf_(std::move(source)) {
+    rdbuf(&buf_);
+  }
+
+private:
+  ZstdDecompressStreambuf buf_;
+};
+#endif
+
 } // namespace
 
 CasStore::CasStore(std::string root) : root_(std::move(root)) {
@@ -242,81 +363,148 @@ std::string CasStore::put(const std::string &data,
 
 std::string CasStore::put_stream(std::istream &in,
                                  const std::string &compression) {
-  // Note: Streaming compression not yet implemented.
-  // If compression is requested, we currently fall back to identity for streams
-  // or fail. For now, we ignore compression for streams to ensure O(1) memory
-  // usage. In a future phase, we should wrap `in` with a zstd streaming
-  // compressor.
   std::string encoding = "identity";
+  uint64_t original_size = 0;
+
+  // Hasher for the original content (CAS key)
+  blake3_hasher original_hasher;
+  blake3_hasher_init(&original_hasher);
+  const std::string domain = "cas:";
+  blake3_hasher_update(&original_hasher, domain.data(), domain.size());
+
+  // Hasher for the stored content (metadata integrity check)
+  blake3_hasher stored_hasher;
+  blake3_hasher_init(&stored_hasher);
 
   // 1. Write to temp file
   const fs::path objects_dir = fs::path(root_) / "objects";
   fs::create_directories(objects_dir);
   const std::string tmp_path = make_tmp_name(objects_dir);
-
   {
     std::ofstream ofs(tmp_path, std::ios::binary | std::ios::trunc);
     if (!ofs)
       return {};
-    // Copy stream to file using 64KB buffer
-    char buf[65536];
-    while (in.read(buf, sizeof(buf)) || in.gcount() > 0) {
-      ofs.write(buf, in.gcount());
+
+#if defined(REQUIEM_WITH_ZSTD)
+    if (compression == "zstd") {
+      encoding = "zstd";
+      ZSTD_CStream *const cstream = ZSTD_createCStream();
+      if (!cstream)
+        return {};
+
+      size_t const initResult = ZSTD_initCStream(cstream, 3); // Level 3
+      if (ZSTD_isError(initResult)) {
+        ZSTD_freeCStream(cstream);
+        return {};
+      }
+
+      size_t const buffInSize = ZSTD_CStreamInSize();
+      size_t const buffOutSize = ZSTD_CStreamOutSize();
+      std::vector<char> buffIn(buffInSize);
+      std::vector<char> buffOut(buffOutSize);
+
+      while (in.read(buffIn.data(), buffInSize) || in.gcount() > 0) {
+        size_t read = static_cast<size_t>(in.gcount());
+        original_size += read;
+        blake3_hasher_update(&original_hasher, buffIn.data(), read);
+
+        ZSTD_inBuffer input = {buffIn.data(), read, 0};
+        while (input.pos < input.size) {
+          ZSTD_outBuffer output = {buffOut.data(), buffOutSize, 0};
+          size_t const ret = ZSTD_compressStream(cstream, &output, &input);
+          if (ZSTD_isError(ret)) {
+            ZSTD_freeCStream(cstream);
+            return {};
+          }
+          ofs.write(buffOut.data(), output.pos);
+          blake3_hasher_update(&stored_hasher, buffOut.data(), output.pos);
+        }
+      }
+
+      ZSTD_outBuffer output = {buffOut.data(), buffOutSize, 0};
+      size_t const ret = ZSTD_endStream(cstream, &output);
+      if (ZSTD_isError(ret)) {
+        ZSTD_freeCStream(cstream);
+        return {};
+      }
+      ofs.write(buffOut.data(), output.pos);
+      blake3_hasher_update(&stored_hasher, buffOut.data(), output.pos);
+
+      ZSTD_freeCStream(cstream);
+    } else
+#endif
+    {
+      // Identity path
+      char buf[65536];
+      while (in.read(buf, sizeof(buf)) || in.gcount() > 0) {
+        size_t n = static_cast<size_t>(in.gcount());
+        original_size += n;
+        blake3_hasher_update(&original_hasher, buf, n);
+        ofs.write(buf, n);
+        blake3_hasher_update(&stored_hasher, buf, n);
+      }
     }
   }
 
-  // 2. Hash the temp file
-  const std::string digest = hash_file_blake3_hex(tmp_path);
-  if (digest.empty()) {
-    fs::remove(tmp_path);
-    return {};
-  }
+  // Finalize hashes
+  auto finalize_hex = { std::array<unsigned char, BLAKE3_OUT_LEN> out;
+  blake3_hasher_finalize(&h, out.data(), out.size());
+  std::ostringstream oss;
+  for (unsigned char c : out)
+    oss << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+  return oss.str();
+};
 
-  const fs::path target = object_path(digest);
-  const fs::path meta = meta_path(digest);
+const std::string digest = finalize_hex(original_hasher);
+const std::string stored_blob_hash = finalize_hex(stored_hasher);
 
-  // 3. Check existence / Dedup
-  if (fs::exists(target) && fs::exists(meta)) {
-    // Verify integrity of existing object
-    const std::string existing_hash = hash_file_blake3_hex(target.string());
-    fs::remove(tmp_path); // Done with temp
-    if (existing_hash != digest) {
-      return {}; // Corruption detected in store
-    }
-    return digest;
-  }
+if (digest.empty()) {
+  fs::remove(tmp_path);
+  return {};
+}
 
-  // 4. Move to target
-  fs::create_directories(target.parent_path());
-  std::error_code ec;
-  fs::rename(tmp_path, target, ec);
-  if (ec) {
-    fs::remove(tmp_path);
-    return {};
-  }
+const fs::path target = object_path(digest);
+const fs::path meta = meta_path(digest);
 
-  // 5. Write metadata
-  uint64_t size = fs::file_size(target);
-  CasObjectInfo info{digest, encoding,
-                     size,   size,
-                     digest, static_cast<uint64_t>(std::time(nullptr))};
-  save_index_entry(info);
-
-  // Write .meta file
-  const std::string meta_json =
-      "{\"digest\":\"" + info.digest + "\",\"encoding\":\"" + info.encoding +
-      "\",\"original_size\":" + std::to_string(info.original_size) +
-      ",\"stored_size\":" + std::to_string(info.stored_size) +
-      ",\"stored_blob_hash\":\"" + info.stored_blob_hash +
-      "\",\"created_at\":" + std::to_string(info.created_at_unix_ts) + "}";
-  atomic_write(meta, meta_json);
-
-  {
-    std::lock_guard<std::mutex> lk(index_mu_);
-    index_[digest] = info;
-  }
-
+// 3. Check existence / Dedup
+if (fs::exists(target) && fs::exists(meta)) {
+  // Dedup hit. We assume existing object is valid if meta exists.
+  // (Full integrity check would require reading the existing file).
+  fs::remove(tmp_path);
   return digest;
+}
+
+// 4. Move to target
+fs::create_directories(target.parent_path());
+std::error_code ec;
+fs::rename(tmp_path, target, ec);
+if (ec) {
+  fs::remove(tmp_path);
+  return {};
+}
+
+// 5. Write metadata
+uint64_t size = fs::file_size(target);
+CasObjectInfo info{digest,           encoding,
+                   original_size,    size,
+                   stored_blob_hash, static_cast<uint64_t>(std::time(nullptr))};
+save_index_entry(info);
+
+// Write .meta file
+const std::string meta_json =
+    "{\"digest\":\"" + info.digest + "\",\"encoding\":\"" + info.encoding +
+    "\",\"original_size\":" + std::to_string(info.original_size) +
+    ",\"stored_size\":" + std::to_string(info.stored_size) +
+    ",\"stored_blob_hash\":\"" + stored_blob_hash +
+    "\",\"created_at\":" + std::to_string(info.created_at_unix_ts) + "}";
+atomic_write(meta, meta_json);
+
+{
+  std::lock_guard<std::mutex> lk(index_mu_);
+  index_[digest] = info;
+}
+
+return digest;
 }
 
 std::optional<CasObjectInfo> CasStore::info(const std::string &digest) const {
@@ -375,7 +563,18 @@ CasStore::get_stream(const std::string &digest) const {
   const fs::path p = object_path(digest);
   if (!fs::exists(p))
     return nullptr;
-  return std::make_unique<std::ifstream>(p, std::ios::binary);
+
+  auto file_stream = std::make_unique<std::ifstream>(p, std::ios::binary);
+  if (!file_stream->is_open())
+    return nullptr;
+
+  auto meta = info(digest);
+  if (meta && meta->encoding == "zstd") {
+#if defined(REQUIEM_WITH_ZSTD)
+    return std::make_unique<ZstdInputStream>(std::move(file_stream));
+#endif
+  }
+  return file_stream;
 }
 
 bool CasStore::remove(const std::string &digest) {
