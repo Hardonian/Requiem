@@ -289,6 +289,16 @@ std::optional<std::string> CasStore::get(const std::string &digest) const {
   return data;
 }
 
+std::unique_ptr<std::istream>
+CasStore::get_stream(const std::string &digest) const {
+  if (!valid_digest(digest))
+    return nullptr;
+  const fs::path p = object_path(digest);
+  if (!fs::exists(p))
+    return nullptr;
+  return std::make_unique<std::ifstream>(p, std::ios::binary);
+}
+
 bool CasStore::remove(const std::string &digest) {
   if (!valid_digest(digest))
     return false;
@@ -580,6 +590,14 @@ voidnqueue(std::string data, std::string compression) {
       return secondary_->get(digest);
     }
 
+    std::unique_ptr<std::istream> ReplicatingBackend::get_stream(
+        const std::string &digest) const {
+      auto s = primary_->get_stream(digest);
+      if (s)
+        return s;
+      return secondary_->get_stream(digest);
+    }
+
     bool ReplicatingBackend::remove(const std::string &digest) {
       bool p = primary_->remove(digest);
       bool s = secondary_->remove(digest);
@@ -750,6 +768,17 @@ voidnqueue(std::string data, std::string compression) {
                            std::istreambuf_iterator<char>());
       }
       return std::nullopt;
+    }
+
+    std::unique_ptr<std::istream> S3CompatibleBackend::get_stream(
+        const std::string &digest) const {
+      if (endpoint_.find("file://") == 0) {
+        fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+        if (!fs::exists(p))
+          return nullptr;
+        return std::make_unique<std::ifstream>(p, std::ios::binary);
+      }
+      return nullptr;
     }
 
     bool S3CompatibleBackend::remove(const std::string &digest) {

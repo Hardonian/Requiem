@@ -30,6 +30,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <istream>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -71,6 +72,10 @@ public:
 
   // Retrieve data by digest. Returns nullopt if not found or integrity fails.
   virtual std::optional<std::string> get(const std::string &digest) const = 0;
+
+  // Retrieve data as a stream. Returns nullptr if not found.
+  virtual std::unique_ptr<std::istream>
+  get_stream(const std::string &digest) const = 0;
 
   // Remove data and metadata. Returns true if deleted or not found, false on
   // failure.
@@ -120,6 +125,8 @@ public:
   std::string put(const std::string &data,
                   const std::string &compression = "off") override;
   std::optional<std::string> get(const std::string &digest) const override;
+  std::unique_ptr<std::istream>
+  get_stream(const std::string &digest) const override;
   bool remove(const std::string &digest) override;
   std::optional<CasObjectInfo> info(const std::string &digest) const override;
   bool contains(const std::string &digest) const override;
@@ -177,6 +184,8 @@ public:
   std::string put(const std::string &data,
                   const std::string &compression = "off") override;
   std::optional<std::string> get(const std::string &digest) const override;
+  std::unique_ptr<std::istream>
+  get_stream(const std::string &digest) const override;
   bool remove(const std::string &digest) override;
   bool contains(const std::string &digest) const override;
   std::optional<CasObjectInfo> info(const std::string &digest) const override;
@@ -254,6 +263,8 @@ public:
   std::string put(const std::string & /*data*/,
                   const std::string & /*compression*/ = "off") override;
   std::optional<std::string> get(const std::string & /*digest*/) const override;
+  std::unique_ptr<std::istream>
+  get_stream(const std::string & /*digest*/) const override;
   bool remove(const std::string & /*digest*/) override;
   bool contains(const std::string & /*digest*/) const override;
   std::optional<CasObjectInfo>

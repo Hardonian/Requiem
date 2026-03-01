@@ -387,6 +387,43 @@ void test_cas_bulk_insert() {
   fs::remove_all(tmp);
 }
 
+void test_cas_compact() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_compact_test";
+  fs::remove_all(tmp);
+  fs::create_directories(tmp);
+
+  requiem::CasStore cas(tmp.string());
+  std::string d1 = cas.put("obj1");
+  std::string d2 = cas.put("obj2");
+  std::string d3 = cas.put("obj3");
+
+  // Helper to count lines in index.ndjson
+  auto count_lines = [&]() {
+    std::ifstream ifs(tmp / "index.ndjson");
+    return std::count(std::istreambuf_iterator<char>(ifs),
+                      std::istreambuf_iterator<char>(), '\n');
+  };
+
+  expect(count_lines() == 3, "index should have 3 lines initially");
+
+  cas.remove(d2);
+  // remove() updates memory but not disk index immediately
+  expect(count_lines() == 3, "index should still have 3 lines after remove");
+
+  cas.compact();
+  expect(count_lines() == 2, "index should have 2 lines after compact");
+
+  // Verify content
+  std::ifstream ifs(tmp / "index.ndjson");
+  std::string content((std::istreambuf_iterator<char>(ifs)),
+                      std::istreambuf_iterator<char>());
+  expect(content.find(d1) != std::string::npos, "d1 present");
+  expect(content.find(d2) == std::string::npos, "d2 absent");
+  expect(content.find(d3) != std::string::npos, "d3 present");
+
+  fs::remove_all(tmp);
+}
+
 // ============================================================================
 // Execution & Replay
 // ============================================================================
@@ -2355,6 +2392,7 @@ int main() {
   run_test("CAS corruption detection", test_cas_corruption_detection);
   run_test("CAS invalid digest rejected", test_cas_invalid_digest_rejected);
   run_test("CAS bulk insert (100)", test_cas_bulk_insert);
+  run_test("CAS compact", test_cas_compact);
 
   std::cout << "\n[Execution & Replay]\n";
   run_test("determinism repeat (20x)", test_determinism_repeat);
