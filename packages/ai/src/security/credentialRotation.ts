@@ -466,7 +466,7 @@ export class CredentialManager {
   }
 
   #defaultAuditLogger(event: RotationEvent): void {
-    logger.info('[credentials:audit]', event);
+    logger.info('[credentials:audit]', event as unknown as Record<string, unknown>);
   }
 }
 

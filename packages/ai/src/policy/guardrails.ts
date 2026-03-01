@@ -146,9 +146,9 @@ export const requireCapabilities: GuardrailRule = {
   priority: 150,
   check: (ctx, tool) => {
     if (tool.requiredCapabilities.length > 0) {
-      const actorCaps = getCapabilitiesForRole(ctx.tenant?.role ?? TenantRole.VIEWER);
+      const actorCaps = getCapabilitiesForRole(ctx.tenant?.role ?? TenantRole.VIEWER) as readonly string[];
       const missing = tool.requiredCapabilities.filter(c => !actorCaps.includes(c));
-      
+
       if (missing.length > 0) {
         return {
           effect: 'deny',
@@ -170,17 +170,17 @@ export const denyDangerousTools: GuardrailRule = {
   check: (ctx, tool) => {
     // Example: Block tools that could execute arbitrary code
     const dangerousPatterns = ['eval', 'exec', 'run_shell'];
-    const isDangerous = dangerousPatterns.some(p => 
+    const isDangerous = dangerousPatterns.some(p =>
       tool.name.toLowerCase().includes(p)
     );
-    
+
     if (isDangerous) {
       return {
         effect: 'deny',
         reason: `Tool "${tool.name}" matches dangerous pattern and is blocked by policy`,
       };
     }
-    
+
     return { effect: 'allow', reason: 'Not a dangerous tool' };
   },
 };
@@ -239,10 +239,10 @@ export function evaluateGuardrails(
 ): GuardrailDecision {
   // Sort by priority
   const sortedRules = [...GUARDRAIL_RULES].sort((a, b) => a.priority - b.priority);
-  
+
   for (const rule of sortedRules) {
     const decision = rule.check(ctx, tool);
-    
+
     if (decision.effect === 'deny') {
       return {
         ...decision,
@@ -250,7 +250,7 @@ export function evaluateGuardrails(
       };
     }
   }
-  
+
   return { effect: 'allow', reason: 'All guardrails passed' };
 }
 
