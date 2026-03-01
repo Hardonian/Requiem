@@ -14,6 +14,7 @@
 //   failure, schedule async retry on secondary. Invariant: return success
 //   only after primary write confirms.
 
+#include <atomic>
 #include <condition_variable>
 #include <cstdio>
 #include <deque>
@@ -468,6 +469,72 @@ voidnqueue(std::string data, std::string compression) {
         }
       }
       return false;
+    }
+
+    // ---------------------------------------------------------------------------
+    // ReplicationMonitor
+    // ---------------------------------------------------------------------------
+
+    ReplicationMonitor::ReplicationMonitor(
+        std::shared_ptr<ReplicatingBackend> backend,
+        std::chrono::milliseconds interval, double sample_rate,
+        size_t max_scan_items)
+        : backend_(std::move(backend)), interval_(interval),
+          sample_rate_(sample_rate), max_scan_items_(max_scan_items) {
+      start();
+    }
+
+    ReplicationMonitor::~ReplicationMonitor() { stop(); }
+
+    void ReplicationMonitor::start() {
+      std::lock_guard<std::mutex> lock(mu_);
+      if (worker_.joinable())
+        return;
+      stopping_ = false;
+      worker_ = std::thread([this] { worker_loop(); });
+    }
+
+    void ReplicationMonitor::stop() {
+      {
+        std::lock_guard<std::mutex> lock(mu_);
+        stopping_ = true;
+      }
+      cv_.notify_all();
+      if (worker_.joinable())
+        worker_.join();
+    }
+
+    void ReplicationMonitor::worker_loop() {
+      std::mt19937 rng(std::random_device{}());
+      std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+      while (true) {
+        {
+          std::unique_lock<std::mutex> lock(mu_);
+          cv_.wait_for(lock, interval_, [this] { return stopping_.load(); });
+          if (stopping_)
+            return;
+        }
+
+        auto objects = backend_->scan_objects();
+
+        // If limiting scan items, shuffle to ensure uniform coverage over time.
+        if (max_scan_items_ > 0 && objects.size() > max_scan_items_) {
+          std::shuffle(objects.begin(), objects.end(), rng);
+        }
+
+        size_t scanned = 0;
+        for (const auto &obj : objects) {
+          if (stopping_)
+            return;
+          if (max_scan_items_ > 0 && scanned >= max_scan_items_)
+            break;
+          if (dist(rng) < sample_rate_) {
+            backend_->verify_replication(obj.digest);
+          }
+          scanned++;
+        }
+      }
     }
 
     // ---------------------------------------------------------------------------

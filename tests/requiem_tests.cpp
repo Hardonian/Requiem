@@ -944,6 +944,42 @@ void test_replicating_backend_repair() {
   fs::remove_all(tmp);
 }
 
+void test_replication_monitor() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_repl_monitor_test";
+  fs::remove_all(tmp);
+  fs::create_directories(tmp);
+
+  auto primary =
+      std::make_shared<requiem::CasStore>((tmp / "primary").string());
+  auto secondary =
+      std::make_shared<requiem::CasStore>((tmp / "secondary").string());
+  auto repl = std::make_shared<requiem::ReplicatingBackend>(primary, secondary);
+
+  // 1. Inject data into primary ONLY (simulating drift/missed replication)
+  const std::string data = "drift_data_monitor_test";
+  const std::string digest = primary->put(data, "off");
+  expect(!digest.empty(), "primary put success");
+  expect(!secondary->contains(digest), "secondary initially empty");
+
+  // 2. Start monitor (100ms interval, 100% sample, unlimited scan)
+  requiem::ReplicationMonitor monitor(repl, std::chrono::milliseconds(100), 1.0,
+                                      0);
+
+  // 3. Wait for repair (up to 2s)
+  bool repaired = false;
+  for (int i = 0; i < 20; ++i) {
+    if (secondary->contains(digest)) {
+      repaired = true;
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  expect(repaired, "monitor repaired drift");
+
+  monitor.stop();
+  fs::remove_all(tmp);
+}
+
 // ============================================================================
 // Phase 5: C ABI
 // ============================================================================
@@ -2257,6 +2293,7 @@ int main() {
   run_test("S3 backend scaffold (not implemented)", test_s3_backend_scaffold);
   run_test("S3 backend file:// write", test_s3_backend_file_write);
   run_test("ReplicatingBackend repair", test_replicating_backend_repair);
+  run_test("ReplicationMonitor drift repair", test_replication_monitor);
 
   std::cout << "\n[Phase 4] Observability layer\n";
   run_test("engine stats accumulation", test_engine_stats_accumulation);

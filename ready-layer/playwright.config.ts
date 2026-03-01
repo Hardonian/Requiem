@@ -32,7 +32,9 @@ export default defineConfig({
   webServer: process.env.PREVIEW_URL
     ? undefined
     : {
-        command: 'pnpm run dev',
+        // In CI: use the pre-built artifact via `next start` (fast, no compile).
+        // Locally: use `next dev` for hot-reload.
+        command: process.env.CI ? 'pnpm run start' : 'pnpm run dev',
         cwd: '.',
         url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,

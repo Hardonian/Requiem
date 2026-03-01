@@ -25,12 +25,17 @@
 //   must never change (BLAKE3, "cas:" domain prefix). Changing it would
 //   invalidate all existing stored objects without migration.
 
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace requiem {
@@ -120,6 +125,10 @@ private:
   mutable std::mutex index_mu_;
   mutable std::map<std::string, CasObjectInfo> index_;
   mutable bool index_loaded_{false};
+  std::string object_path(const std::string &digest) const;
+  std::string meta_path(const std::string &digest) const;
+  std::string index_path() const;
+
   void load_index() const;
   void save_index_entry(const CasObjectInfo &info) const;
 };
@@ -155,6 +164,32 @@ private:
   std::shared_ptr<ICASBackend> primary_;
   std::shared_ptr<ICASBackend> secondary_;
   std::unique_ptr<ReplicationManager> repl_mgr_;
+};
+
+// ---------------------------------------------------------------------------
+// ReplicationMonitor — Periodic drift detection
+// ---------------------------------------------------------------------------
+class ReplicationMonitor {
+public:
+  ReplicationMonitor(std::shared_ptr<ReplicatingBackend> backend,
+                     std::chrono::milliseconds interval, double sample_rate,
+                     size_t max_scan_items = 0);
+  ~ReplicationMonitor();
+
+  void start();
+  void stop();
+
+private:
+  void worker_loop();
+
+  std::shared_ptr<ReplicatingBackend> backend_;
+  std::chrono::milliseconds interval_;
+  double sample_rate_;
+  size_t max_scan_items_;
+  std::thread worker_;
+  std::mutex mu_;
+  std::condition_variable cv_;
+  std::atomic<bool> stopping_{false};
 };
 
 // ---------------------------------------------------------------------------
