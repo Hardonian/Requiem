@@ -70,7 +70,9 @@ export class McpServer {
           // Increment depth for the agentic loop
           this.runner.incrementDepth(this.state);
 
+          const startTime = Date.now();
           const result = await this.runner.executeTool(name, args, this.state);
+          const latency = Date.now() - startTime;
 
           // Audit the tool call (Authority Sync)
           try {
@@ -84,7 +86,8 @@ export class McpServer {
               decision_output: result as Record<string, unknown>,
               usage,
               status: 'evaluated',
-              decision_trace: this.state.trace
+              decision_trace: this.state.trace,
+              execution_latency: latency
             });
           } catch (auditErr) {
             console.error('Failed to audit tool call:', auditErr);

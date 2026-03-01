@@ -23,6 +23,7 @@ export interface DecisionReport {
   outcome_status: 'success' | 'failure' | 'mixed' | 'unknown' | null;
   outcome_notes: string | null;
   calibration_delta: number | null;
+  execution_latency: number | null;
 }
 
 export interface CreateDecisionInput {
@@ -36,6 +37,7 @@ export interface CreateDecisionInput {
   usage?: unknown;
   recommended_action_id?: string;
   status?: 'pending' | 'evaluated' | 'accepted' | 'rejected' | 'reviewed';
+  execution_latency?: number;
 }
 
 export interface UpdateDecisionInput {
@@ -71,17 +73,18 @@ export class DecisionRepository {
       outcome_status: 'unknown',
       outcome_notes: null,
       calibration_delta: null,
+      execution_latency: input.execution_latency ?? null,
     };
 
     const stmt = db.prepare(`
       INSERT INTO decisions (
         id, tenant_id, created_at, updated_at, source_type, source_ref, input_fingerprint,
         decision_input, decision_output, decision_trace, usage, recommended_action_id,
-        status, outcome_status, outcome_notes, calibration_delta
+        status, outcome_status, outcome_notes, calibration_delta, execution_latency
       ) VALUES (
         @id, @tenant_id, @created_at, @updated_at, @source_type, @source_ref, @input_fingerprint,
         @decision_input, @decision_output, @decision_trace, @usage, @recommended_action_id,
-        @status, @outcome_status, @outcome_notes, @calibration_delta
+        @status, @outcome_status, @outcome_notes, @calibration_delta, @execution_latency
       )
     `);
 

@@ -271,7 +271,8 @@ export function getDB(): DB {
         status TEXT,
         outcome_status TEXT,
         outcome_notes TEXT,
-        calibration_delta REAL
+        calibration_delta REAL,
+        execution_latency REAL
       )
     `);
 

@@ -38,6 +38,7 @@ export class RequiemWrapper {
           try {
             // 2. Execute Original Call
             const response = await this.client.chat.completions.create(params);
+            const latencyMs = Date.now() - startTime;
 
             // 3. Capture Usage
             const usage = response.usage || {
@@ -57,6 +58,7 @@ export class RequiemWrapper {
                 decision_output: response,
                 usage,
                 status: 'evaluated',
+                execution_latency: latencyMs,
               });
             }
 
@@ -66,7 +68,7 @@ export class RequiemWrapper {
               ...response,
               correlation_id: correlationId,
               requiem_meta: {
-                latency_ms: Date.now() - startTime,
+                latency_ms: latencyMs,
                 tenant_id: this.options.tenantId,
                 verified: true,
                 usage
