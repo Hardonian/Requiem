@@ -792,85 +792,102 @@ size_t CasGarbageCollector::prune(std::chrono::seconds max_age, bool dry_run) {
 
 class ReplicationManager {
 public:
-  {
-    std::lock_guard<std::mutex> lock(mu_);
-    stopping_ = true;
+  ReplicationManager(std::shared_ptr<ICASBackend> backend,
+                     size_t max_queue_size,
+                     ReplicationDropPolicy policy)
+      : backend_(std::move(backend)),
+        max_queue_size_(max_queue_size),
+        policy_(policy),
+        stopping_(false) {
+    worker_ = std::thread([this] { worker_loop(); });
   }
-  cvnotify_one();
-  cv_capacity_.notify_all();
-  (worker_.joinable()) worker_.join();
-}
 
-voidnqueue(std::string data, std::string compression) {
-  std::unique_lock<std::mutex> lock(mu_);
-  if (max_queue_size_ > 0 && queue_.size() >= max_queue_size_) {
-    if (policy_ == ReplicationDropPolicy::Block) {
-      ait(lcstopping_) return;
-    } else {
-      // DropOldest: remove from front to make room
-      queue_.pop_front();
-    queu.emplace_back( fy_one();
+  ~ReplicationManager() {
+    {
+      std::lock_guard<std::mutex> lock(mu_);
+      stopping_ = true;
     }
+    cv_.notify_one();
+    cv_capacity_.notify_all();
+    if (worker_.joinable()) worker_.join();
+  }
 
-  ivate:
-    voidorker_loop() {
-      ile(true) {
-        std::pair<std::string, std::string> task;
-        {
-          std::unique_lock<std::mutex> lock(mu_);
-          cv_.wait(lock, [this] { return stopping_ || !queue_.empty(); });
-          if (stopping_ && queue_.empty())
-            return;
-          task = std::move(queue_.front());
-          queue_.pop_front();
-          if (max_queue_size_ > 0)
-            cv_capacity_.notify_one();
-        }
-        baend_->put(task.first, task.second);
+  void enqueue(std::string data, std::string compression) {
+    std::unique_lock<std::mutex> lock(mu_);
+    if (max_queue_size_ > 0 && queue_.size() >= max_queue_size_) {
+      if (policy_ == ReplicationDropPolicy::Block) {
+        cv_capacity_.wait(lock, [this] {
+          return stopping_ || queue_.size() < max_queue_size_;
+        });
+        if (stopping_) return;
+      } else {
+        // DropOldest: remove from front to make room
+        queue_.pop_front();
       }
     }
+    queue_.emplace_back(std::move(data), std::move(compression));
+    cv_.notify_one();
+  }
 
-    std::sred_ptr<ICASBackend> backend_;
-    size_tax_queue_size_;
-    onDropPolicy policy_;
-    std::thread worker_;
-    std::mutex mu_;
-    std::condition_variable cv_;
-    std::condition_variable cv_capacity_;
-    std::deque<std::pair<std::string, std::string>> queue_;
-    bool stopping_{false};
-
-    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -ReplicatingBackend-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-
-                                                                                                                   ReicatingBackend::ReplicatingBackend(
-                                                                                                                       std::shared_ptr<
-                                                                                                                           ICASBackend>
-                                                                                                                           primary,
-                                                                                                                       std::shared_ptr<
-                                                                                                                           ICASBackend>
-                                                                                                                           secondary,
-                                                                                                                       size_t
-                                                                                                                           max_queue_size,
-                                                                                                                       ReplicationDropPolicy
-                                                                                                                           policy)
-        : primary_(std::move(primary)),
-    secondary_(std::move(secondary)),
-    repl_mgr_(std::make_unique<ReplicationManager>(secondary_, max_queue_size,
-                                                   policy)) {}
-
-    ReplicatingBackend::~ReplicatingBackend() = default;
-
-    std::string ReplicatingBackend::backend_id() const { return "replicating"; }
-    std::string ReplicatingBackend::put(const std::string &data,
-                                        const std::string &compression) {
-      // Write to primary first (authoritative).
-      std if (digest.empty())
-
-          // Async replication to secondary.
-          repl_mgr_->enqueue(data, compression);
-
-      return digest;
+private:
+  void worker_loop() {
+    while (true) {
+      std::pair<std::string, std::string> task;
+      {
+        std::unique_lock<std::mutex> lock(mu_);
+        cv_.wait(lock, [this] { return stopping_ || !queue_.empty(); });
+        if (stopping_ && queue_.empty())
+          return;
+        task = std::move(queue_.front());
+        queue_.pop_front();
+        if (max_queue_size_ > 0)
+          cv_capacity_.notify_one();
+      }
+      backend_->put(task.first, task.second);
     }
+  }
+
+  std::shared_ptr<ICASBackend> backend_;
+  size_t max_queue_size_;
+  ReplicationDropPolicy policy_;
+  std::thread worker_;
+  std::mutex mu_;
+  std::condition_variable cv_;
+  std::condition_variable cv_capacity_;
+  std::deque<std::pair<std::string, std::string>> queue_;
+  bool stopping_{false};
+};
+
+// ---------------------------------------------------------------------------
+// ReplicatingBackend
+// ---------------------------------------------------------------------------
+
+ReplicatingBackend::ReplicatingBackend(
+    std::shared_ptr<ICASBackend> primary,
+    std::shared_ptr<ICASBackend> secondary,
+    size_t max_queue_size,
+    ReplicationDropPolicy policy)
+    : primary_(std::move(primary)),
+      secondary_(std::move(secondary)),
+      repl_mgr_(std::make_unique<ReplicationManager>(secondary_, max_queue_size,
+                                                     policy)) {}
+
+ReplicatingBackend::~ReplicatingBackend() = default;
+
+std::string ReplicatingBackend::backend_id() const { return "replicating"; }
+
+std::string ReplicatingBackend::put(const std::string &data,
+                                    const std::string &compression) {
+  // Write to primary first (authoritative).
+  std::string digest = primary_->put(data, compression);
+  if (digest.empty())
+    return {};
+
+  // Async replication to secondary.
+  repl_mgr_->enqueue(data, compression);
+
+  return digest;
+}
 
     std::string ReplicatingBackend::put_stream(std::istream & in,
                                                const std::string &compression) {
