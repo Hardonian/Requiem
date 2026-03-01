@@ -1,6 +1,6 @@
 # Contributing to Requiem
 
-First off, thank you for considering contributing to Requiem! It's people like you that make Requiem such a powerful tool for the community.
+First off, thank you for considering contributing to Requiem! It's people like you that make Requiem the provable AI runtime it is today.
 
 ## Code of Conduct
 

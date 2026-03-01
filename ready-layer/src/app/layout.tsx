@@ -9,11 +9,11 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'ReadyLayer | AI Control Plane',
-    template: '%s | ReadyLayer',
+    default: 'Requiem — Provable AI Runtime',
+    template: '%s | Requiem',
   },
   description:
-    'Deterministic AI execution platform with tenant isolation, replay, and audit.',
+    'Every AI decision provable. Every outcome replayable. Every policy enforced. The deterministic AI runtime with cryptographic execution proof.',
   robots: { index: false, follow: false },
 };
 
