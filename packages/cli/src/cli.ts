@@ -12,6 +12,7 @@
  * - requiem telemetry               Real-time usage stats
  * - requiem stress                  Generate synthetic load
  * - requiem dashboard               Launch local web dashboard
+ * - requiem serve                   Expose decision engine API
  * - requiem nuke                    Clear database state
  * - requiem init                    Initialize configuration
  * - requiem config <subcommand>     Global configuration
@@ -49,6 +50,7 @@ COMMANDS:
   telemetry [--window <sec>] [--json]               Show real-time usage stats
   stress [--duration <sec>] [--rate <rps>]          Generate synthetic load
   dashboard [--port <number>]                       Launch local web dashboard
+  serve [--port <number>]                           Expose decision engine API
   nuke [--force]                                    Clear database state
   init [--tenant <id>] [--force]                    Initialize configuration
   config <subcommand>                               Global configuration
@@ -163,6 +165,12 @@ async function main(): Promise<number> {
     case 'dashboard': {
       const { dashboard } = await import('./commands/dashboard');
       await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
+      return 0;
+    }
+
+    case 'serve': {
+      const { serve } = await import('./commands/serve');
+      await serve.parseAsync([process.argv[0], process.argv[1], 'serve', ...subArgs]);
       return 0;
     }
 
