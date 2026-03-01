@@ -24,6 +24,11 @@
  * - requiem agent <subcommand>      AI Agent orchestration (MCP)
  * - requiem ai <subcommand>         AI tools, skills & telemetry
  * - requiem doctor                  Environment validation
+ * - requiem quickstart              Interactive setup guide
+ * - requiem status                  System health check
+ * - requiem bugreport               Generate diagnostic report
+ * - requiem demo                    Demo mode (coming soon)
+ * - requiem capsule                 Capsule management (coming soon)
  * - requiem version                 Show version info
  *
  * INVARIANT: All tool/replay operations use the same registry + executor.
@@ -59,6 +64,11 @@ COMMANDS:
   import <file> [--tenant <id>]                     Ingest decision logs from CSV
   nuke [--force]                                    Clear database state
   init [--tenant <id>] [--force]                    Initialize configuration
+  quickstart [--json]                               Interactive setup guide
+  status [--json]                                   System health check
+  bugreport [--output <file>]                       Generate diagnostic report
+  demo                                              Demo mode (coming soon)
+  capsule                                           Capsule management (coming soon)
   config <subcommand>                               Global configuration
   decide <subcommand>                               Decision engine operations
   junctions <subcommand>                            Junction management
@@ -98,6 +108,7 @@ ENVIRONMENT VARIABLES:
   DECISION_ENGINE             Engine type: ts|requiem (default: ts)
   FORCE_RUST                  Force TypeScript fallback: true|false
   REQUIEM_ENGINE_AVAILABLE    Set to 'true' if native engine is built
+  REQUIEM_ENABLE_METRICS      Set to 'true' to enable metrics logging
 
 EXAMPLES:
   requiem tool list
@@ -107,6 +118,8 @@ EXAMPLES:
   requiem junctions scan --since 7d --json
   requiem ai tools list
   requiem doctor
+  requiem quickstart
+  requiem status
 `);
 }
 
@@ -264,6 +277,36 @@ async function main(): Promise<number> {
       const { runDoctor } = await import('./commands/doctor');
       const json = subArgs.includes('--json');
       return await runDoctor({ json });
+    }
+
+    case 'quickstart': {
+      const { quickstart } = await import('./commands/quickstart');
+      await quickstart.parseAsync([process.argv[0], process.argv[1], 'quickstart', ...subArgs]);
+      return 0;
+    }
+
+    case 'status': {
+      const { status } = await import('./commands/status');
+      await status.parseAsync([process.argv[0], process.argv[1], 'status', ...subArgs]);
+      return 0;
+    }
+
+    case 'bugreport': {
+      const { bugreport } = await import('./commands/bugreport');
+      await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
+      return 0;
+    }
+
+    case 'demo': {
+      console.log('Demo mode coming soon.');
+      console.log('Track progress at: https://github.com/reachhq/requiem/issues');
+      return 0;
+    }
+
+    case 'capsule': {
+      console.log('Capsule management coming soon.');
+      console.log('Track progress at: https://github.com/reachhq/requiem/issues');
+      return 0;
     }
 
     case 'version':

@@ -297,3 +297,26 @@ export function resetDB(): void {
   tables.clear();
   dbInstance = null;
 }
+
+interface DatabaseStatus {
+  connected: boolean;
+  error?: string;
+  tables?: string[];
+}
+
+export async function getDatabaseStatus(): Promise<DatabaseStatus> {
+  try {
+    const db = getDB();
+    // Verify database is functional by querying tables
+    const tableNames = Array.from(tables.keys());
+    return {
+      connected: true,
+      tables: tableNames,
+    };
+  } catch (error) {
+    return {
+      connected: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}

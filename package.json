@@ -11,9 +11,10 @@
     "build:web": "cd ready-layer && npm run build",
     "test": "ctest --test-dir build --output-on-failure",
     "test:ui": "cd packages/ui && npm run typecheck",
-    "verify": "npm run verify:cpp && npm run verify:ui && npm run verify:determinism",
-    "verify:full": "npm run verify:lint && npm run verify:typecheck && npm run verify:boundaries && npm run verify:routes && npm run build:web",
-    "verify:preflight": "npm run verify:lint && npm run verify:typecheck && npm run verify:boundaries && npm run build:web && echo '✅ Preflight passed'",
+    "verify": "npm run verify:root && npm run verify:cpp && npm run verify:ui && npm run verify:determinism",
+    "verify:root": "node scripts/verify-root.mjs",
+    "verify:full": "npm run verify:root && npm run verify:lint && npm run verify:typecheck && npm run verify:boundaries && npm run verify:routes && npm run build:web",
+    "verify:preflight": "npm run verify:root && npm run verify:lint && npm run verify:typecheck && npm run verify:boundaries && npm run build:web && echo '✅ Preflight passed'",
     "verify:cpp": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j && ctest --test-dir build --output-on-failure",
     "verify:ui": "cd packages/ui && npm run verify",
     "verify:lint": "cd ready-layer && npm run lint",
@@ -46,7 +47,7 @@
     "typescript": "^5.3.0"
   },
   "engines": {
-    "node": "20.x"
+    "node": "20.11.0"
   },
   "repository": {
     "type": "git",
