@@ -38,6 +38,7 @@ export interface CreateDecisionInput {
   recommended_action_id?: string;
   status?: 'pending' | 'evaluated' | 'accepted' | 'rejected' | 'reviewed';
   execution_latency?: number;
+  outcome_status?: 'success' | 'failure' | 'mixed' | 'unknown' | null;
 }
 
 export interface UpdateDecisionInput {
