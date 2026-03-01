@@ -27,8 +27,6 @@
  * - requiem quickstart              Interactive setup guide
  * - requiem status                  System health check
  * - requiem bugreport               Generate diagnostic report
- * - requiem demo                    Demo mode (coming soon)
- * - requiem capsule                 Capsule management (coming soon)
  * - requiem version                 Show version info
  *
  * INVARIANT: All tool/replay operations use the same registry + executor.
@@ -261,24 +259,6 @@ async function main(): Promise<number> {
       return await runAiCommand(aiArgs);
     }
 
-    case 'pack': {
-      console.log('Pack management is not yet available.');
-      console.log('Track progress at: https://github.com/reachhq/requiem/issues');
-      return 0;
-    }
-
-    case 'marketplace': {
-      console.log('Marketplace is not yet available.');
-      console.log('Track progress at: https://github.com/reachhq/requiem/issues');
-      return 0;
-    }
-
-    case 'eval': {
-      console.log('Evaluation suite is not yet available.');
-      console.log('Track progress at: https://github.com/reachhq/requiem/issues');
-      return 0;
-    }
-
     case 'doctor': {
       const { runDoctor } = await import('./commands/doctor');
       const json = subArgs.includes('--json');
@@ -300,18 +280,6 @@ async function main(): Promise<number> {
     case 'bugreport': {
       const { bugreport } = await import('./commands/bugreport');
       await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
-      return 0;
-    }
-
-    case 'demo': {
-      console.log('Demo mode coming soon.');
-      console.log('Track progress at: https://github.com/reachhq/requiem/issues');
-      return 0;
-    }
-
-    case 'capsule': {
-      console.log('Capsule management coming soon.');
-      console.log('Track progress at: https://github.com/reachhq/requiem/issues');
       return 0;
     }
 

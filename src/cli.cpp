@@ -319,14 +319,6 @@ int main(int argc, char **argv) {
     return blockers.empty() ? 0 : 2;
   }
 
-  if (cmd == "llm" && argc >= 3 && std::string(argv[2]) == "freeze") {
-    // LLM freeze command - produce artifact for later deterministic execution
-    std::cout
-        << R"({"status":"not_implemented","message":"llm freeze requires LLM provider integration"})"
-        << "\n";
-    return 1;
-  }
-
   if (cmd == "llm" && argc >= 3 && std::string(argv[2]) == "explain") {
     std::cout
         << R"({"modes":["none","subprocess","sidecar","freeze_then_compute","attempt_deterministic"],"rules":{"default_include_in_digest":false,"engine_network":"never","authoritative_digest":"compute_phase_only_for_freeze_then_compute"}})"
