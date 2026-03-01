@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { RequiemWrapper } from './wrapper';
+import { RequiemWrapper } from './packages/cli/src/db/wrapper';
 
 describe('RequiemWrapper', () => {
   it('should intercept calls and attach correlation_id', async () => {

@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { randomUUID } from 'crypto';
-import { readConfig, writeConfig } from '../lib/global-config';
-import { getDB } from '../db/connection';
+import { readConfig, writeConfig } from './packages/cli/src/global-config';
+import { getDB } from './packages/cli/src/db/connection';
 
 export const init = new Command('init')
   .description('Initialize Requiem configuration and database')
