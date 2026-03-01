@@ -1035,7 +1035,14 @@ voidnqueue(std::string data, std::string compression) {
           if (max_scan_items_ > 0 && scanned >= max_scan_items_)
             break;
           if (dist(rng) < sample_rate_) {
-            backend_->verify_replication(obj.digest);
+            if (!backend_->verify_replication(obj.digest)) {
+              // Attempt self-repair if verification fails.
+              auto primary_cas =
+                  std::dynamic_pointer_cast<CasStore>(backend_->get_primary());
+              if (primary_cas) {
+                primary_cas->repair(obj.digest, *backend_);
+              }
+            }
           }
           scanned++;
         }

@@ -217,6 +217,9 @@ public:
   // Consistency check and repair.
   bool verify_replication(const std::string &digest);
 
+  // Expose primary for repair operations
+  std::shared_ptr<ICASBackend> get_primary() const { return primary_; }
+
 private:
   std::shared_ptr<ICASBackend> primary_;
   std::shared_ptr<ICASBackend> secondary_;
