@@ -8,7 +8,7 @@
 #include <sstream>
 #include <vector>
 
-#include "requiem/audit.hpp"
+#include "../include/requiem/audit.hpp"
 #include "requiem/autotune.hpp"
 #include "requiem/cas.hpp"
 #include "requiem/cluster.hpp"

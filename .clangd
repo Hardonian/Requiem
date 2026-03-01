@@ -1,7 +1,7 @@
 CompileFlags:
   Add:
     - -std=c++20
-    - -Iinclude
+    - -Ic:/Users/scott/GitHub/Requiem/include
     - -fms-compatibility
     - -fms-extensions
     - -D_CRT_SECURE_NO_WARNINGS

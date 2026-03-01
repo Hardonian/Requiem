@@ -125,6 +125,35 @@ private:
 };
 
 // ---------------------------------------------------------------------------
+// ReplicatingBackend — Dual-write replication
+// ---------------------------------------------------------------------------
+class ReplicationManager; // Forward declaration
+
+class ReplicatingBackend : public ICASBackend {
+public:
+  ReplicatingBackend(std::shared_ptr<ICASBackend> primary,
+                     std::shared_ptr<ICASBackend> secondary);
+  ~ReplicatingBackend() override;
+
+  std::string backend_id() const override;
+  std::string put(const std::string &data,
+                  const std::string &compression = "off") override;
+  std::optional<std::string> get(const std::string &digest) const override;
+  bool contains(const std::string &digest) const override;
+  std::optional<CasObjectInfo> info(const std::string &digest) const override;
+  std::vector<CasObjectInfo> scan_objects() const override;
+  std::size_t size() const override;
+
+  // Consistency check and repair.
+  bool verify_replication(const std::string &digest);
+
+private:
+  std::shared_ptr<ICASBackend> primary_;
+  std::shared_ptr<ICASBackend> secondary_;
+  std::unique_ptr<ReplicationManager> repl_mgr_;
+};
+
+// ---------------------------------------------------------------------------
 // S3CompatibleBackend — scaffold (not yet implemented)
 // ---------------------------------------------------------------------------
 // EXTENSION_POINT: s3_backend_implementation

@@ -14,12 +14,15 @@
 //   failure, schedule async retry on secondary. Invariant: return success
 //   only after primary write confirms.
 
+#include <condition_variable>
 #include <cstdio>
+#include <deque>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <random>
 #include <string_view> // MICRO_OPT: zero-alloc key lookup in info() lambda
+#include <thread>
 
 #if defined(REQUIEM_WITH_ZSTD)
 #include <zstd.h>
@@ -321,59 +324,164 @@ std::vector<CasObjectInfo> CasStore::scan_objects() const {
 }
 
 // ---------------------------------------------------------------------------
-// ReplicatingBackend
+// ReplicationManager
 // ---------------------------------------------------------------------------
 
-class ReplicatingBackend : public ICASBackend {
- public:
-  ReplicatingBackend(std::shared_ptr<ICASBackend> primary,
-                     std::shared_ptr<ICASBackend> secondary)
-      : primary_(std::move(primary)), secondary_(std::move(secondary)) {}
+class ReplicationManager {
+public:
+  explicit ReplicationManager(std::shared_ptr<ICASBackend> backend)
+      : backend_(std::move(backend)) {
+    ReplicationManager(std::shared_ptr<ICASBackend> backend,
+                       size_t max_queue_size, ReplicationDropPolicy policy)
+        : backend_(std::move(backend)), max_queue_size_(max_queue_size),
+          policy_(policy) {
+      worker_ = std::thread([this] { worker_loop(); });
+    }
 
-  std::string backend_id() const override { return "replicating"; }
+    ~ReplicationManager() {
+      {
+        std::lock_guard<std::mutex> lock(mu_);
+        stopping_ = true;
+      }
+      cv_.notify_one();
+      cv_capacity_.notify_all();
+      if (worker_.joinable())
+        worker_.join();
+    }
 
-  std::string put(const std::string &data,
-                  const std::string &compression) override {
-    // Write to primary first (authoritative).
-    std::string digest = primary_->put(data, compression);
-    if (digest.empty()) return {};
+    void enqueue(std::string data, std::string compression) {
+      std::lock_guard<std::mutex> lock(mu_);
+      std::unique_lock<std::mutex> lock(mu_);
+      if (max_queue_size_ > 0 && queue_.size() >= max_queue_size_) {
+        if (policy_ == ReplicationDropPolicy::Block) {
+          cv_capacity_.wait(lock, [this] {
+            return stopping_ || queue_.size() < max_queue_size_;
+          });
+          if (stopping_)
+            return;
+        } else {
+          // DropOldest: remove from front to make room
+          queue_.pop_front();
+        }
+      }
+      queue_.emplace_back(std::move(data), std::move(compression));
+      cv_.notify_one();
+    }
 
-    // Dual-write to secondary.
-    // In a production system, this might be asynchronous or fail-open.
-    // Here we attempt it synchronously.
-    secondary_->put(data, compression);
+  private:
+    void worker_loop() {
+      while (true) {
+        std::pair<std::string, std::string> task;
+        {
+          std::unique_lock<std::mutex> lock(mu_);
+          cv_.wait(lock, [this] { return stopping_ || !queue_.empty(); });
+          if (stopping_ && queue_.empty())
+            return;
+          task = std::move(queue_.front());
+          queue_.pop_front();
+          if (max_queue_size_ > 0)
+            cv_capacity_.notify_one();
+        }
+        backend_->put(task.first, task.second);
+      }
+    }
 
-    return digest;
+    std::shared_ptr<ICASBackend> backend_;
+    size_t max_queue_size_;
+    ReplicationDropPolicy policy_;
+    std::thread worker_;
+    std::mutex mu_;
+    std::condition_variable cv_;
+    std::condition_variable cv_capacity_;
+    std::deque<std::pair<std::string, std::string>> queue_;
+    bool stopping_{false};
+  };
+
+  // ---------------------------------------------------------------------------
+  // ReplicatingBackend
+  // ---------------------------------------------------------------------------
+
+ReplicatingBackend::ReplicatingBackend(std::shared_ptr<ICASBackend> primary,
+                                       std::shared_ptr<ICASBackend> secondary)
+                                       std::shared_ptr<ICASBackend> secondary,
+                                       size_t max_queue_size,
+                                       ReplicationDropPolicy policy)
+    : primary_(std::move(primary)), secondary_(std::move(secondary)),
+      repl_mgr_(std::make_unique<ReplicationManager>(secondary_)) {}
+repl_mgr_(std::make_unique<ReplicationManager>(secondary_, max_queue_size,
+                                               policy)) {}
+
+ReplicatingBackend::~ReplicatingBackend() = default;
+
+std::string ReplicatingBackend::backend_id() const { return "replicating"; }
+
+std::string ReplicatingBackend::put(const std::string &data,
+                                    const std::string &compression) {
+  // Write to primary first (authoritative).
+  std::string digest = primary_->put(data, compression);
+  if (digest.empty())
+    return {};
+
+  // Async replication to secondary.
+  repl_mgr_->enqueue(data, compression);
+
+  return digest;
+}
+
+std::optional<std::string>
+ReplicatingBackend::get(const std::string &digest) const {
+  // Read from primary.
+  auto result = primary_->get(digest);
+  if (result)
+    return result;
+  // Fallback to secondary if primary misses.
+  return secondary_->get(digest);
+}
+
+bool ReplicatingBackend::contains(const std::string &digest) const {
+  return primary_->contains(digest) || secondary_->contains(digest);
+}
+
+std::optional<CasObjectInfo>
+ReplicatingBackend::info(const std::string &digest) const {
+  auto i = primary_->info(digest);
+  if (i)
+    return i;
+  return secondary_->info(digest);
+}
+
+std::vector<CasObjectInfo> ReplicatingBackend::scan_objects() const {
+  return primary_->scan_objects();
+}
+
+std::size_t ReplicatingBackend::size() const { return primary_->size(); }
+
+bool ReplicatingBackend::verify_replication(const std::string &digest) {
+  bool p = primary_->contains(digest);
+  bool s = secondary_->contains(digest);
+
+  if (p && s)
+    return true;
+  if (!p && !s)
+    return true; // Consistent (missing in both)
+
+  if (p && !s) {
+    // Missing in secondary -> repair from primary
+    auto data = primary_->get(digest);
+    if (data) {
+      secondary_->put(*data, "off");
+      return true;
+    }
+  } else if (!p && s) {
+    // Missing in primary -> repair from secondary
+    auto data = secondary_->get(digest);
+    if (data) {
+      primary_->put(*data, "off");
+      return true;
+    }
   }
-
-  std::optional<std::string> get(const std::string &digest) const override {
-    // Read from primary.
-    auto result = primary_->get(digest);
-    if (result) return result;
-    // Fallback to secondary if primary misses.
-    return secondary_->get(digest);
-  }
-
-  bool contains(const std::string &digest) const override {
-    return primary_->contains(digest) || secondary_->contains(digest);
-  }
-
-  std::optional<CasObjectInfo> info(const std::string &digest) const override {
-    auto i = primary_->info(digest);
-    if (i) return i;
-    return secondary_->info(digest);
-  }
-
-  std::vector<CasObjectInfo> scan_objects() const override {
-    return primary_->scan_objects();
-  }
-
-  std::size_t size() const override { return primary_->size(); }
-
- private:
-  std::shared_ptr<ICASBackend> primary_;
-  std::shared_ptr<ICASBackend> secondary_;
-};
+  return false;
+}
 
 // ---------------------------------------------------------------------------
 // S3CompatibleBackend — scaffold (not yet implemented)

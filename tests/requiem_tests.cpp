@@ -911,6 +911,39 @@ void test_s3_backend_file_write() {
   fs::remove_all(tmp);
 }
 
+void test_replicating_backend_repair() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_repl_repair_test";
+  fs::remove_all(tmp);
+  fs::create_directories(tmp);
+
+  auto primary =
+      std::make_shared<requiem::CasStore>((tmp / "primary").string());
+  auto secondary =
+      std::make_shared<requiem::CasStore>((tmp / "secondary").string());
+  requiem::ReplicatingBackend repl(primary, secondary);
+
+  const std::string data = "data-to-be-repaired";
+  // Write to primary directly to simulate missing in secondary (bypass
+  // replication)
+  std::string digest = primary->put(data, "off");
+  expect(!digest.empty(), "primary put success");
+
+  // Verify missing in secondary
+  expect(!secondary->contains(digest), "secondary should not have data yet");
+
+  // Trigger repair
+  bool repaired = repl.verify_replication(digest);
+  expect(repaired, "verify_replication should return true (repaired)");
+
+  // Verify present in secondary
+  expect(secondary->contains(digest),
+         "secondary should have data after repair");
+  auto val = secondary->get(digest);
+  expect(val.has_value() && *val == data, "secondary data matches");
+
+  fs::remove_all(tmp);
+}
+
 // ============================================================================
 // Phase 5: C ABI
 // ============================================================================
@@ -2223,6 +2256,7 @@ int main() {
   run_test("CAS backend interface polymorphism", test_cas_backend_interface);
   run_test("S3 backend scaffold (not implemented)", test_s3_backend_scaffold);
   run_test("S3 backend file:// write", test_s3_backend_file_write);
+  run_test("ReplicatingBackend repair", test_replicating_backend_repair);
 
   std::cout << "\n[Phase 4] Observability layer\n";
   run_test("engine stats accumulation", test_engine_stats_accumulation);
