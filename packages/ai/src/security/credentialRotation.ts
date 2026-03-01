@@ -178,17 +178,15 @@ export class CredentialManager {
 
   /**
    * Get the active credential.
+   * Always re-fetches from storage to ensure we have the latest version.
+   * This is critical for credential rotation scenarios.
    */
   async get(key: string): Promise<Credential | undefined> {
-    // Check in-memory cache first
-    if (this.credentials.has(key)) {
-      return this.credentials.get(key);
-    }
-
-    // Fall back to storage
+    // Always re-fetch from storage - no stale cache for credentials
     const value = await this.storage.get(key);
     if (!value) return undefined;
 
+    // Build credential from storage
     const credential: Credential = {
       key,
       type: 'api-key', // Default, should be stored with metadata
@@ -197,6 +195,7 @@ export class CredentialManager {
       version: 1,
     };
 
+    // Update cache with latest
     this.credentials.set(key, credential);
     return credential;
   }

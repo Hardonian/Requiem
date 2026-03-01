@@ -1,6 +1,5 @@
 import { Command } from 'commander';
 import * as http from 'http';
-import * as path from 'path';
 import { DecisionRepository } from '../db/decisions';
 
 export const dashboard = new Command('dashboard')
@@ -18,7 +17,7 @@ export const dashboard = new Command('dashboard')
       }
 
       if (req.url === '/api/recent') {
-        const recent = DecisionRepository.list(10);
+        const recent = DecisionRepository.list({ limit: 10 });
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(recent));
         return;
@@ -106,5 +105,5 @@ function getDashboardHtml() {
     </script>
 </body>
 </html>
-  \`;
+`;
 }

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import path from 'path';
+import * as path from 'path';
 import { getDB } from '../db/connection';
 import { readJsonFile, fileExists } from '../lib/io';
 
@@ -19,13 +19,13 @@ export const restore = new Command('restore')
     console.log(`📦 Restoring from ${inputPath}...`);
 
     try {
-      const dump = readJsonFile<Record<string, any[]>>(inputPath);
+      const dump = readJsonFile<Record<string, Record<string, unknown>[]>>(inputPath);
       if (!dump) throw new Error('Failed to parse backup file');
 
       const tables = ['decisions', 'junctions', 'action_intents'];
 
       if (options.clean) {
-        console.log('   净 Clearing existing data...');
+        console.log('   🧹 Clearing existing data...');
         for (const table of tables) {
           db.prepare(`DELETE FROM ${table}`).run();
         }
@@ -49,7 +49,7 @@ export const restore = new Command('restore')
               const placeholders = keys.map(() => '?').join(', ');
 
               const stmt = db.prepare(`INSERT INTO ${table} (${cols}) VALUES (${placeholders})`);
-              stmt.run(Object.values(row)); // Use values because we used ? placeholders
+              stmt.run(Object.values(row));
               success++;
             } catch (e) {
               fail++;
