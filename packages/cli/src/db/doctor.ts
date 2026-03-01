@@ -1,6 +1,7 @@
 import { getDB } from '../db/connection';
 import { checkEngineAvailability } from '../engine/adapter';
 import { DecisionRepository } from './decisions';
+import { readConfig } from '../lib/global-config';
 
 export async function runDoctor(options: { json: boolean }): Promise<number> {
   const checks: Array<{ name: string; status: 'ok' | 'fail'; message: string }> = [];
@@ -75,6 +76,25 @@ export async function runDoctor(options: { json: boolean }): Promise<number> {
       name: 'Telemetry',
       status: 'fail',
       message: `Aggregation failed: ${(e as Error).message}`,
+    });
+  }
+
+  // 5. Global Configuration
+  try {
+    const config = readConfig();
+    const isConfigured = !!config.defaultTenantId;
+    checks.push({
+      name: 'Configuration',
+      status: 'ok',
+      message: isConfigured
+        ? `Valid (Tenant: ${config.defaultTenantId})`
+        : 'Valid (Unconfigured)',
+    });
+  } catch (e) {
+    checks.push({
+      name: 'Configuration',
+      status: 'fail',
+      message: `Config check failed: ${(e as Error).message}`,
     });
   }
 

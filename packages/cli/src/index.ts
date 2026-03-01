@@ -11,6 +11,8 @@ export { trace } from './commands/trace';
 export { replay } from './commands/replay';
 export { stats } from './commands/stats';
 export { nuke } from './commands/nuke';
+export { config } from './commands/config';
+export { init } from './commands/init';
 
 // Engine
 export {

@@ -10,6 +10,8 @@
  * - requiem trace <id>              Visualize decision trace
  * - requiem stats                   Aggregated telemetry
  * - requiem nuke                    Clear database state
+ * - requiem init                    Initialize configuration
+ * - requiem config <subcommand>     Global configuration
  * - requiem decide <subcommand>     Decision engine operations
  * - requiem junctions <subcommand>  Junction management
  * - requiem agent <subcommand>      AI Agent orchestration (MCP)
@@ -42,6 +44,8 @@ COMMANDS:
   trace <id> [--json]                               Visualize decision trace
   stats [--tenant <id>] [--json]                    Display aggregated telemetry
   nuke [--force]                                    Clear database state
+  init [--tenant <id>] [--force]                    Initialize configuration
+  config <subcommand>                               Global configuration
   decide <subcommand>                               Decision engine operations
   junctions <subcommand>                            Junction management
   agent <subcommand>                                AI Agent orchestration
@@ -147,6 +151,18 @@ async function main(): Promise<number> {
     case 'nuke': {
       const { nuke } = await import('./commands/nuke');
       await nuke.parseAsync([process.argv[0], process.argv[1], 'nuke', ...subArgs]);
+      return 0;
+    }
+
+    case 'init': {
+      const { init } = await import('./commands/init');
+      await init.parseAsync([process.argv[0], process.argv[1], 'init', ...subArgs]);
+      return 0;
+    }
+
+    case 'config': {
+      const { config } = await import('./commands/config');
+      await config.parseAsync([process.argv[0], process.argv[1], 'config', ...subArgs]);
       return 0;
     }
 
