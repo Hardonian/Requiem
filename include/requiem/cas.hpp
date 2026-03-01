@@ -146,6 +146,11 @@ private:
   mutable std::mutex index_mu_;
   mutable std::map<std::string, CasObjectInfo> index_;
   mutable bool index_loaded_{false};
+
+  std::string object_path(const std::string &digest) const;
+  std::string meta_path(const std::string &digest) const;
+  std::string index_path() const;
+
   void load_index() const;
   void save_index_entry(const CasObjectInfo &info) const;
 };
