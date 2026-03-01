@@ -177,6 +177,9 @@ importers:
       '@radix-ui/react-toast':
         specifier: ^1.1.5
         version: 1.2.15(@types/react-dom@19.2.3)(@types/react@19.2.14)(react-dom@19.2.4)(react@19.2.4)
+      '@requiem/ai':
+        specifier: workspace:*
+        version: link:../packages/ai
       '@supabase/postgrest-js':
         specifier: ^1.15.0
         version: 1.21.4

@@ -89,7 +89,7 @@ function getDashboardHtml() {
     .card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
     .stat-value { font-size: 2em; font-weight: bold; color: var(--accent); }
     .stat-label { color: #94a3b8; font-size: 0.9em; }
-    table { w-full; width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
     th { color: #94a3b8; font-weight: 600; }
     tr:hover { background: #334155; cursor: pointer; }
@@ -172,5 +172,5 @@ function getDashboardHtml() {
     window.onclick = function(event) { if (event.target == document.getElementById('detailModal')) closeModal(); }
   </script>
 </body>
-</html>\`;
+</html>`;
 }

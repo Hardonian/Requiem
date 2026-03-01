@@ -24,6 +24,7 @@
     "doctor": "echo 'Run doctor from root: pnpm doctor'"
   },
   "dependencies": {
+    "@requiem/ai": "workspace:*",
     "@babel/parser": "^7.28.6",
     "@babel/types": "^7.28.6",
     "@octokit/app": "^16.1.2",

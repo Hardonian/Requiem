@@ -71,7 +71,7 @@ export class DecisionRepository {
       usage: input.usage ? JSON.stringify(input.usage) : JSON.stringify({ prompt_tokens: 0, completion_tokens: 0, cost_usd: 0 }),
       recommended_action_id: input.recommended_action_id || null,
       status: input.status || 'pending',
-      outcome_status: 'unknown',
+      outcome_status: input.outcome_status || 'unknown',
       outcome_notes: null,
       calibration_delta: null,
       execution_latency: input.execution_latency ?? null,

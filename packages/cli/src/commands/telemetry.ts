@@ -18,7 +18,7 @@ export const telemetry = new Command('telemetry')
 
       let totalTokens = 0;
       let totalCost = 0;
-      let requestCount = decisions.length;
+      const requestCount = decisions.length;
 
       for (const d of decisions) {
         if (d.usage) {

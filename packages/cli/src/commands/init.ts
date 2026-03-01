@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { randomUUID } from 'crypto';
-import { readConfig, writeConfig } from '../lib/global-config';
+import { readConfig, writeConfig } from '../global-config';
 import { getDB } from '../db/connection';
 
 export const init = new Command('init')

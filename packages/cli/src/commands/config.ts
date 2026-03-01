@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { readConfig, setConfigValue, getConfigValue } from '../lib/global-config';
+import { readConfig, setConfigValue, getConfigValue } from '../global-config';
 
 export const config = new Command('config')
   .description('Manage global configuration')
