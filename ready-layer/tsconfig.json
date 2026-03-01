@@ -16,11 +16,9 @@
     "plugins": [{ "name": "next" }],
     "target": "ES2022",
     "paths": {
-      "@/*": ["./src/*"],
-      "@requiem/ai": ["../packages/ai/src/index.ts"],
-      "@requiem/ai/*": ["../packages/ai/src/*/index.ts"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "../packages/ai/**/*"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/**/*.d.ts"],
+  "exclude": ["node_modules"]
 }
