@@ -56,7 +56,10 @@
     "postconditions",
     "TIMESTAMPTZ",
     "unflushed",
-    "behaviour"
+    "behaviour",
+    "pooler",
+    "Supabase",
+    "chatcmpl"
   ],
   "ignorePaths": [
     "node_modules",

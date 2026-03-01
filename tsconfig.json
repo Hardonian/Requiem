@@ -14,5 +14,5 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "exclude": ["node_modules", "packages/ui", "ready-layer", "e2e"]
+  "exclude": ["node_modules", "packages/ui", "ready-layer", "e2e", "playwright.config.ts"]
 }
