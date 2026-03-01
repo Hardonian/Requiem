@@ -27,6 +27,7 @@ import { newId, now } from '../types/index';
 import { TenantRole } from '../types/index';
 import { getRateLimiter } from './rateLimit';
 import type { InvocationContext, TenantContext } from '../types/index';
+import { CorrelationManager, attachCorrelationToContext, CORRELATION_ID_HEADER, TRACEPARENT_HEADER } from './correlation';
 
 // ─── Auth Status ──────────────────────────────────────────────────────────────
 
@@ -124,8 +125,13 @@ function mapRole(role: string | undefined): TenantRole {
  *
  * INVARIANT: `tenant_id` is derived exclusively from validated JWT claims.
  * INVARIANT: `X-Tenant-ID` header is never read or trusted.
+ * INVARIANT: Correlation ID is extracted from X-Correlation-ID or traceparent header (S-20).
  */
 async function resolveContext(req: Request): Promise<InvocationContext> {
+  // Extract correlation ID from request headers (S-20: Request correlation smuggling)
+  const correlationManager = CorrelationManager.fromHeaders(req.headers);
+  const correlationId = correlationManager.getCorrelationId();
+  
   const traceId = newId('trace');
   const env = (process.env.NODE_ENV ?? 'development') as InvocationContext['environment'];
 
@@ -156,6 +162,7 @@ async function resolveContext(req: Request): Promise<InvocationContext> {
       traceId,
       environment: env,
       createdAt: now(),
+      correlationId,  // S-20: Add correlation ID to context
     };
   }
 
@@ -210,7 +217,7 @@ async function resolveContext(req: Request): Promise<InvocationContext> {
       '[SECURITY] No REQUIEM_JWT_SECRET set — JWT signature NOT verified. ' +
         'Set the secret to enable full validation.'
     );
-    return buildContext(claims, traceId, env);
+    return buildContext(claims, traceId, env, correlationId);
   }
 
   // Full signature verification path.
@@ -228,7 +235,7 @@ async function resolveContext(req: Request): Promise<InvocationContext> {
     });
   }
 
-  return buildContext(claims, traceId, env);
+  return buildContext(claims, traceId, env, correlationId);
 }
 
 /**
@@ -242,7 +249,8 @@ async function resolveContext(req: Request): Promise<InvocationContext> {
 function buildContext(
   claims: JwtClaims,
   traceId: string,
-  env: InvocationContext['environment']
+  env: InvocationContext['environment'],
+  correlationId: string
 ): InvocationContext {
   if (!claims.sub) {
     throw new AiError({
@@ -274,6 +282,7 @@ function buildContext(
     traceId,
     environment: env,
     createdAt: now(),
+    correlationId,
   };
 }
 

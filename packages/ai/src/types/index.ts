@@ -56,6 +56,8 @@ export interface InvocationContext {
   readonly actorId: string;
   /** Trace ID for distributed tracing */
   readonly traceId: string;
+  /** Correlation ID for request tracing (S-20) */
+  readonly correlationId?: string;
   /** Execution environment */
   readonly environment: 'development' | 'production' | 'test';
   /** ISO timestamp of context creation */

@@ -2,11 +2,22 @@
  * @fileoverview Content hashing for the memory bridge.
  *
  * Uses SHA-256 for content-addressable storage.
+ * Also provides BLAKE3 for tool result digests (faster, collision-resistant).
+ *
  * INVARIANT: Same content always produces same hash (deterministic).
  * INVARIANT: Hashing uses normalized content (whitespace-trimmed).
  */
 
 import { createHash } from 'crypto';
+
+// Try to load BLAKE3, fall back to SHA-256 if not available
+let blake3: typeof import('blake3') | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  blake3 = require('blake3');
+} catch {
+  blake3 = null;
+}
 
 /**
  * Compute SHA-256 hash of content, returning hex string.
@@ -52,4 +63,91 @@ export function normalizeForHashing(value: unknown): string {
  */
 export function verifyHash(content: unknown, expectedHash: string): boolean {
   return hashContent(content) === expectedHash;
+}
+
+// ─── BLAKE3 Hashing ─────────────────────────────────────────────────────────────
+
+/**
+ * Tool result structure for digest computation.
+ */
+export interface ToolResult {
+  output: unknown;
+  toolName: string;
+  toolVersion: string;
+  latencyMs: number;
+  timestamp: string;
+}
+
+/**
+ * Check if BLAKE3 is available.
+ */
+export function isBLAKE3Available(): boolean {
+  return blake3 !== null;
+}
+
+/**
+ * Compute BLAKE3 hash of content, returning hex string.
+ * Falls back to SHA-256 if BLAKE3 is not available.
+ */
+export function hashContentBLAKE3(content: unknown): string {
+  const normalized = normalizeForHashing(content);
+  
+  if (blake3) {
+    return blake3.default.hash(normalized).toString('hex');
+  }
+  
+  // Fallback to SHA-256
+  return createHash('sha256').update(normalized, 'utf8').digest('hex');
+}
+
+/**
+ * Compute BLAKE3 hash for a tool result.
+ * Uses JSON-stringified result content with stable key order.
+ *
+ * @param result - Tool result to digest
+ * @returns BLAKE3 hash hex string
+ */
+export function computeToolResultDigest(result: ToolResult): string {
+  const normalizedResult = {
+    output: result.output,
+    toolName: result.toolName,
+    toolVersion: result.toolVersion,
+    latencyMs: result.latencyMs,
+    timestamp: result.timestamp,
+  };
+  return hashContentBLAKE3(normalizedResult);
+}
+
+/**
+ * Verify that a tool result matches an expected digest.
+ *
+ * @param result - Tool result to verify
+ * @param expectedDigest - Expected BLAKE3 digest
+ * @returns true if digest matches
+ */
+export function verifyToolResultDigest(result: ToolResult, expectedDigest: string): boolean {
+  const computedDigest = computeToolResultDigest(result);
+  return computedDigest === expectedDigest;
+}
+
+/**
+ * Compute digest for replay cache verification.
+ * Combines tool name, args, and result for deterministic replay.
+ */
+export function computeReplayDigest(
+  toolName: string,
+  args: unknown,
+  result: ToolResult
+): string {
+  const replayPayload = {
+    toolName,
+    args,
+    result: {
+      output: result.output,
+      toolVersion: result.toolVersion,
+      latencyMs: result.latencyMs,
+      timestamp: result.timestamp,
+    },
+  };
+  return hashContentBLAKE3(replayPayload);
 }

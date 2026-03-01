@@ -13,7 +13,7 @@
  * INVARIANT: Health endpoint NEVER discloses auth configuration or secrets.
  */
 
-import { listTools } from '../tools/registry';
+import { listTools, getToolDefinition } from '../tools/registry';
 import { invokeToolWithPolicy } from '../tools/invoke';
 import { AiError } from '../errors/AiError';
 import { AiErrorCode } from '../errors/codes';
@@ -26,6 +26,7 @@ import type {
   McpHealthResponse,
   McpToolDescriptor,
 } from './types';
+import { getPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer';
 
 // ─── Output Size Cap ──────────────────────────────────────────────────────────
 
@@ -152,6 +153,7 @@ export async function handleListTools(
 
 /**
  * Handle tools/call — invokes a tool via policy gate.
+ * Enforces policy at MCP entry point before any processing.
  */
 export async function handleCallTool(
   ctx: InvocationContext,
@@ -168,6 +170,27 @@ export async function handleCallTool(
   }
 
   try {
+    // Policy enforcement at MCP entry point (I-MCP-4)
+    const policyEnforcer = getPolicyEnforcer();
+    const toolDef = getToolDefinition(toolName);
+    const policyResult: PolicyCheckResult = policyEnforcer.enforce(ctx, toolName, toolDef);
+    
+    if (!policyResult.allowed) {
+      const err = new AiError({
+        code: AiErrorCode.POLICY_CHECK_FAILED,
+        message: `Policy check failed: ${policyResult.reason}`,
+        phase: 'mcp.policy',
+      });
+      console.warn(
+        `[MCP Policy] Denied: tool=${toolName} reason=${policyResult.reason} rule=${policyResult.rule || 'unknown'} correlationId=${(ctx as any).correlationId || 'n/a'}`
+      );
+      return { 
+        ok: false, 
+        error: err.toSafeJson(), 
+        trace_id: ctx.traceId 
+      };
+    }
+
     const result = await invokeToolWithPolicy(ctx, toolName, args ?? {});
     return {
       ok: true,
