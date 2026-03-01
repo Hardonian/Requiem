@@ -1,0 +1,27 @@
+version: '3.8'
+
+# Defines the services for the Requiem local development environment.
+#
+# Usage:
+#   - `docker-compose up -d`: Starts the services in the background.
+#   - `docker-compose down`: Stops and removes the containers.
+#   - `docker-compose logs -f`: Tails the logs of the running services.
+
+services:
+  # PostgreSQL database for local development.
+  postgres:
+    image: postgres:15
+    container_name: requiem_postgres
+    environment:
+      POSTGRES_USER: requiem_user
+      POSTGRES_PASSWORD: requiem_password
+      POSTGRES_DB: requiem_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - requiem_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  requiem_db_data:
+    name: requiem_db_data

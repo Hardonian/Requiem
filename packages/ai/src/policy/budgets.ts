@@ -491,7 +491,7 @@ export interface PersistentBudgetStore {
 // ─── In-Memory Budget Store ───────────────────────────────────────────────────
 
 /**
- * InMemoryBudgetStore wraps the existing AtomicBudgetChecker behaviour in the
+ * InMemoryBudgetStore wraps the existing AtomicBudgetChecker behavior in the
  * PersistentBudgetStore interface.  It is safe for single-process use and for
  * unit tests — data is lost on restart.
  */
