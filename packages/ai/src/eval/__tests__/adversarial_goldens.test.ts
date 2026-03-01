@@ -161,7 +161,8 @@ function simulatePolicyCheck(testCase: AdversarialTestCase, ctx: InvocationConte
     if (toolChainDepth && toolChainDepth > 20) {
       return { allowed: false, errorCode: AiErrorCode.TOOL_CHAIN_LIMIT, reason: 'Tool chain limit exceeded' };
     }
-    if (input.params.steps?.some((s: { method: string }) => s.method === 'workflow_execute')) {
+    const steps = input.params.steps as Array<{ method: string }> | undefined;
+    if (steps?.some((s) => s.method === 'workflow_execute')) {
       return { allowed: false, errorCode: AiErrorCode.RECURSION_DEPTH_EXCEEDED, reason: 'Recursive workflow detected' };
     }
   }
@@ -181,10 +182,10 @@ function simulatePolicyCheck(testCase: AdversarialTestCase, ctx: InvocationConte
     if (ctx.tenant.role === TenantRole.VIEWER && input.method === 'cluster_shutdown') {
       return { allowed: false, errorCode: AiErrorCode.CAPABILITY_MISSING, reason: 'Viewer cannot shutdown cluster' };
     }
-    if (input.params.workspace_root?.includes('..')) {
+    if ((input.params.workspace_root as string | undefined)?.includes('..')) {
       return { allowed: false, errorCode: AiErrorCode.SANDBOX_ESCAPE_ATTEMPT, reason: 'Path traversal attempt' };
     }
-    if (input.method === 'web_fetch' && input.params.url?.includes('malicious')) {
+    if (input.method === 'web_fetch' && (input.params.url as string | undefined)?.includes('malicious')) {
       return { allowed: false, errorCode: AiErrorCode.FETCH_DOMAIN_BLOCKED, reason: 'Domain blocked' };
     }
   }
