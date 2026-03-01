@@ -70,6 +70,10 @@ public:
   virtual std::string put(const std::string &data,
                           const std::string &compression = "off") = 0;
 
+  // Store data from a stream. Returns digest on success, "" on failure.
+  virtual std::string put_stream(std::istream &in,
+                                 const std::string &compression = "off") = 0;
+
   // Retrieve data by digest. Returns nullopt if not found or integrity fails.
   virtual std::optional<std::string> get(const std::string &digest) const = 0;
 
@@ -124,6 +128,8 @@ public:
 
   std::string put(const std::string &data,
                   const std::string &compression = "off") override;
+  std::string put_stream(std::istream &in,
+                         const std::string &compression = "off") override;
   std::optional<std::string> get(const std::string &digest) const override;
   std::unique_ptr<std::istream>
   get_stream(const std::string &digest) const override;
@@ -138,6 +144,10 @@ public:
 
   // Rewrite index.ndjson to remove entries for deleted objects.
   void compact();
+
+  // Scan all objects and verify content matches digest. Returns corrupted
+  // digests.
+  std::vector<std::string> verify_integrity();
 
   const std::string &root() const { return root_; }
 
@@ -188,6 +198,8 @@ public:
   std::string backend_id() const override;
   std::string put(const std::string &data,
                   const std::string &compression = "off") override;
+  std::string put_stream(std::istream &in,
+                         const std::string &compression = "off") override;
   std::optional<std::string> get(const std::string &digest) const override;
   std::unique_ptr<std::istream>
   get_stream(const std::string &digest) const override;
@@ -267,6 +279,8 @@ public:
   // Replace with real AWS SDK calls when activating.
   std::string put(const std::string & /*data*/,
                   const std::string & /*compression*/ = "off") override;
+  std::string put_stream(std::istream & /*in*/,
+                         const std::string & /*compression*/ = "off") override;
   std::optional<std::string> get(const std::string & /*digest*/) const override;
   std::unique_ptr<std::istream>
   get_stream(const std::string & /*digest*/) const override;

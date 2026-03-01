@@ -240,6 +240,85 @@ std::string CasStore::put(const std::string &data,
   return digest;
 }
 
+std::string CasStore::put_stream(std::istream &in,
+                                 const std::string &compression) {
+  // Note: Streaming compression not yet implemented.
+  // If compression is requested, we currently fall back to identity for streams
+  // or fail. For now, we ignore compression for streams to ensure O(1) memory
+  // usage. In a future phase, we should wrap `in` with a zstd streaming
+  // compressor.
+  std::string encoding = "identity";
+
+  // 1. Write to temp file
+  const fs::path objects_dir = fs::path(root_) / "objects";
+  fs::create_directories(objects_dir);
+  const std::string tmp_path = make_tmp_name(objects_dir);
+
+  {
+    std::ofstream ofs(tmp_path, std::ios::binary | std::ios::trunc);
+    if (!ofs)
+      return {};
+    // Copy stream to file using 64KB buffer
+    char buf[65536];
+    while (in.read(buf, sizeof(buf)) || in.gcount() > 0) {
+      ofs.write(buf, in.gcount());
+    }
+  }
+
+  // 2. Hash the temp file
+  const std::string digest = hash_file_blake3_hex(tmp_path);
+  if (digest.empty()) {
+    fs::remove(tmp_path);
+    return {};
+  }
+
+  const fs::path target = object_path(digest);
+  const fs::path meta = meta_path(digest);
+
+  // 3. Check existence / Dedup
+  if (fs::exists(target) && fs::exists(meta)) {
+    // Verify integrity of existing object
+    const std::string existing_hash = hash_file_blake3_hex(target.string());
+    fs::remove(tmp_path); // Done with temp
+    if (existing_hash != digest) {
+      return {}; // Corruption detected in store
+    }
+    return digest;
+  }
+
+  // 4. Move to target
+  fs::create_directories(target.parent_path());
+  std::error_code ec;
+  fs::rename(tmp_path, target, ec);
+  if (ec) {
+    fs::remove(tmp_path);
+    return {};
+  }
+
+  // 5. Write metadata
+  uint64_t size = fs::file_size(target);
+  CasObjectInfo info{digest, encoding,
+                     size,   size,
+                     digest, static_cast<uint64_t>(std::time(nullptr))};
+  save_index_entry(info);
+
+  // Write .meta file
+  const std::string meta_json =
+      "{\"digest\":\"" + info.digest + "\",\"encoding\":\"" + info.encoding +
+      "\",\"original_size\":" + std::to_string(info.original_size) +
+      ",\"stored_size\":" + std::to_string(info.stored_size) +
+      ",\"stored_blob_hash\":\"" + info.stored_blob_hash +
+      "\",\"created_at\":" + std::to_string(info.created_at_unix_ts) + "}";
+  atomic_write(meta, meta_json);
+
+  {
+    std::lock_guard<std::mutex> lk(index_mu_);
+    index_[digest] = info;
+  }
+
+  return digest;
+}
+
 std::optional<CasObjectInfo> CasStore::info(const std::string &digest) const {
   if (!valid_digest(digest))
     return std::nullopt;
@@ -356,6 +435,26 @@ void CasStore::compact() {
   if (ec) {
     fs::remove(tmp_path, ec);
   }
+}
+
+std::vector<std::string> CasStore::verify_integrity() {
+  std::vector<std::string> corrupted;
+  auto objects = scan_objects();
+  for (const auto &obj : objects) {
+    const std::string path = object_path(obj.digest);
+    if (!fs::exists(path)) {
+      corrupted.push_back(obj.digest);
+      continue;
+    }
+    const std::string actual_hash = hash_file_blake3_hex(path);
+    // Note: stored_blob_hash in metadata is the hash of the *encoded*
+    // (compressed) blob. For identity encoding, this matches the digest. We
+    // verify against the metadata's claim of what the blob hash should be.
+    if (actual_hash != obj.stored_blob_hash) {
+      corrupted.push_back(obj.digest);
+    }
+  }
+  return corrupted;
 }
 
 std::vector<CasObjectInfo>
@@ -494,12 +593,6 @@ size_t CasGarbageCollector::prune(std::chrono::seconds max_age, bool dry_run) {
 
 class ReplicationManager {
 public:
-  onManager(std::shared_ptr<ICASBackend> backend, size_t,
-            siz etx_qunu _sbzxueue_size),
-      policy_(policy) {
-    worker_ = std::threip();
-  });
-} ~ReplicationManager() {
   {
     std::lock_guard<std::mutex> lock(mu_);
     stopping_ = true;
@@ -577,6 +670,22 @@ voidnqueue(std::string data, std::string compression) {
           // Async replication to secondary.
           repl_mgr_->enqueue(data, compression);
 
+      return digest;
+    }
+
+    std::string ReplicatingBackend::put_stream(std::istream & in,
+                                               const std::string &compression) {
+      // Write to primary first.
+      std::string digest = primary_->put_stream(in, compression);
+      if (digest.empty())
+        return {};
+
+      // Synchronous replication: read back from primary to write to secondary.
+      // We cannot reuse 'in' as it is consumed.
+      auto stream = primary_->get_stream(digest);
+      if (stream) {
+        secondary_->put_stream(*stream, compression);
+      }
       return digest;
     }
 
@@ -754,6 +863,22 @@ voidnqueue(std::string data, std::string compression) {
       }
 
       // Fallback for non-file endpoints (stub)
+      return {};
+    }
+
+    std::string S3CompatibleBackend::put_stream(
+        std::istream & in, const std::string &compression) {
+      // Simulation: Write to file:// endpoint from stream.
+      if (endpoint_.find("file://") == 0) {
+        // We need to hash the content to know the path.
+        // For simulation, we can read into memory if small, or write to tmp
+        // then move. Reusing CasStore logic effectively. For this stub, we'll
+        // just read into string and call put(). Warning: this defeats O(1)
+        // memory for the stub, but it's a stub.
+        std::string data((std::istreambuf_iterator<char>(in)),
+                         std::istreambuf_iterator<char>());
+        return put(data, compression);
+      }
       return {};
     }
 
