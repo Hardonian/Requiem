@@ -1,5 +1,6 @@
 import { getDB } from '../db/connection';
 import { checkEngineAvailability } from '../engine/adapter';
+import { DecisionRepository } from './decisions';
 
 export async function runDoctor(options: { json: boolean }): Promise<number> {
   const checks: Array<{ name: string; status: 'ok' | 'fail'; message: string }> = [];
@@ -58,6 +59,22 @@ export async function runDoctor(options: { json: boolean }): Promise<number> {
       name: 'Schema Integrity',
       status: 'fail',
       message: `Schema mismatch: ${(e as Error).message}`,
+    });
+  }
+
+  // 4. Telemetry Aggregation
+  try {
+    const stats = DecisionRepository.getStats();
+    checks.push({
+      name: 'Telemetry',
+      status: 'ok',
+      message: `Aggregator functional (n=${stats.total_decisions})`,
+    });
+  } catch (e) {
+    checks.push({
+      name: 'Telemetry',
+      status: 'fail',
+      message: `Aggregation failed: ${(e as Error).message}`,
     });
   }
 

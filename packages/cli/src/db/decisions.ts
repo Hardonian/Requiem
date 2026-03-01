@@ -191,6 +191,57 @@ export class DecisionRepository {
     const result = db.prepare('DELETE FROM decisions WHERE id = ?').run(id);
     return result.changes > 0;
   }
+
+  /**
+   * Aggregates telemetry stats
+   */
+  static getStats(tenantId?: string): {
+    total_decisions: number;
+    avg_latency_ms: number;
+    total_cost_usd: number;
+    success_rate: number;
+  } {
+    const decisions = this.list({ tenantId });
+    const total = decisions.length;
+
+    if (total === 0) {
+      return { total_decisions: 0, avg_latency_ms: 0, total_cost_usd: 0, success_rate: 0 };
+    }
+
+    let totalLatency = 0;
+    let latencyCount = 0;
+    let totalCost = 0;
+    let successCount = 0;
+
+    for (const d of decisions) {
+      if (d.execution_latency != null) {
+        totalLatency += d.execution_latency;
+        latencyCount++;
+      }
+
+      if (d.usage) {
+        try {
+          const u = JSON.parse(d.usage);
+          if (typeof u.cost_usd === 'number') {
+            totalCost += u.cost_usd;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+
+      if (d.outcome_status === 'success') {
+        successCount++;
+      }
+    }
+
+    return {
+      total_decisions: total,
+      avg_latency_ms: latencyCount > 0 ? totalLatency / latencyCount : 0,
+      total_cost_usd: totalCost,
+      success_rate: successCount / total,
+    };
+  }
 }
 
 /**

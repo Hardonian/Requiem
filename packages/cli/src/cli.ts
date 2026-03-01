@@ -8,6 +8,8 @@
  * - requiem tool <subcommand>       AI tool registry operations
  * - requiem replay <hash>           Replay audit record lookup
  * - requiem trace <id>              Visualize decision trace
+ * - requiem stats                   Aggregated telemetry
+ * - requiem nuke                    Clear database state
  * - requiem decide <subcommand>     Decision engine operations
  * - requiem junctions <subcommand>  Junction management
  * - requiem agent <subcommand>      AI Agent orchestration (MCP)
@@ -38,6 +40,8 @@ COMMANDS:
   tool exec <name> [--input <json>] [--tenant <id>] Execute a tool
   replay <hash> [--tenant <id>] [--json]            Fetch a replay record
   trace <id> [--json]                               Visualize decision trace
+  stats [--tenant <id>] [--json]                    Display aggregated telemetry
+  nuke [--force]                                    Clear database state
   decide <subcommand>                               Decision engine operations
   junctions <subcommand>                            Junction management
   agent <subcommand>                                AI Agent orchestration
@@ -131,6 +135,18 @@ async function main(): Promise<number> {
     case 'trace': {
       const { trace } = await import('./commands/trace');
       await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
+      return 0;
+    }
+
+    case 'stats': {
+      const { stats } = await import('./commands/stats');
+      await stats.parseAsync([process.argv[0], process.argv[1], 'stats', ...subArgs]);
+      return 0;
+    }
+
+    case 'nuke': {
+      const { nuke } = await import('./commands/nuke');
+      await nuke.parseAsync([process.argv[0], process.argv[1], 'nuke', ...subArgs]);
       return 0;
     }
 

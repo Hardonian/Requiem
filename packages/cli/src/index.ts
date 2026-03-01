@@ -9,6 +9,8 @@ export { runDecideCommand, parseDecideArgs, type DecideCliArgs } from './command
 export { runJunctionsCommand, parseJunctionsArgs, type JunctionsCliArgs } from './commands/junctions';
 export { trace } from './commands/trace';
 export { replay } from './commands/replay';
+export { stats } from './commands/stats';
+export { nuke } from './commands/nuke';
 
 // Engine
 export {
