@@ -20,6 +20,7 @@
 #include <deque>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <memory>
 #include <random>
 #include <string_view> // MICRO_OPT: zero-alloc key lookup in info() lambda
@@ -161,6 +162,7 @@ void CasStore::load_index() const {
       try {
         inf.original_size = std::stoull(find_in(line, "\"original_size\""));
         inf.stored_size = std::stoull(find_in(line, "\"stored_size\""));
+        inf.created_at_unix_ts = std::stoull(find_in(line, "\"created_at\""));
       } catch (...) {
       }
 
@@ -176,7 +178,8 @@ void CasStore::save_index_entry(const CasObjectInfo &info) const {
       "{\"digest\":\"" + info.digest + "\",\"encoding\":\"" + info.encoding +
       "\",\"original_size\":" + std::to_string(info.original_size) +
       ",\"stored_size\":" + std::to_string(info.stored_size) +
-      ",\"stored_blob_hash\":\"" + info.stored_blob_hash + "\"}\n";
+      ",\"stored_blob_hash\":\"" + info.stored_blob_hash +
+      "\",\"created_at\":" + std::to_string(info.created_at_unix_ts) + "}\n";
   std::ofstream ofs(index_path(), std::ios::binary | std::ios::app);
   ofs.write(line.data(), line.size());
 }
@@ -228,12 +231,14 @@ std::string CasStore::put(const std::string &data,
   info.original_size = data.size();
   info.stored_size = stored.size();
   info.stored_blob_hash = blake3_hex(stored);
+  info.created_at_unix_ts = static_cast<uint64_t>(std::time(nullptr));
 
   const std::string meta_json =
       "{\"digest\":\"" + info.digest + "\",\"encoding\":\"" + info.encoding +
       "\",\"original_size\":" + std::to_string(info.original_size) +
       ",\"stored_size\":" + std::to_string(info.stored_size) +
-      ",\"stored_blob_hash\":\"" + info.stored_blob_hash + "\"}";
+      ",\"stored_blob_hash\":\"" + info.stored_blob_hash +
+      "\",\"created_at\":" + std::to_string(info.created_at_unix_ts) + "}";
   if (!atomic_write(meta, meta_json)) {
     // Rollback blob on meta write failure.
     std::error_code ec;
@@ -300,6 +305,23 @@ std::optional<std::string> CasStore::get(const std::string &digest) const {
   return data;
 }
 
+bool CasStore::remove(const std::string &digest) {
+  if (!valid_digest(digest))
+    return false;
+
+  std::error_code ec;
+  bool removed_any = false;
+  removed_any |= fs::remove(object_path(digest), ec);
+  removed_any |= fs::remove(meta_path(digest), ec);
+
+  std::lock_guard<std::mutex> lk(index_mu_);
+  if (index_loaded_) {
+    index_.erase(digest);
+  }
+
+  return !ec; // Return true if no error occurred (even if file missing)
+}
+
 bool CasStore::contains(const std::string &digest) const {
   if (!valid_digest(digest))
     return false;
@@ -313,15 +335,134 @@ std::size_t CasStore::size() const {
   return index_.size();
 }
 
-std::vector<CasObjectInfo> CasStore::scan_objects() const {
-  if (!index_loaded_)
-    load_index();
+std::vector<CasObjectInfo>
+CasStore::scan_objects(size_t limit, const std::string &start_after) const {
   std::vector<CasObjectInfo> out;
-  std::lock_guard<std::mutex> lk(index_mu_);
-  out.reserve(index_.size());
-  for (const auto &[_, info] : index_)
-    out.push_back(info);
+
+  // Optimization: If index is already loaded, use it (it's sorted).
+  {
+    std::lock_guard<std::mutex> lk(index_mu_);
+    if (index_loaded_) {
+      auto it = start_after.empty() ? index_.begin()
+                                    : index_.upper_bound(start_after);
+      while (it != index_.end()) {
+        if (limit > 0 && out.size() >= limit)
+          break;
+        out.push_back(it->second);
+        ++it;
+      }
+      return out;
+    }
+  }
+
+  // Fallback: Filesystem scan to avoid loading entire index into memory.
+  // Structure: objects/AB/CD/<digest>
+  // We iterate 00..FF at level 1, then 00..FF at level 2 to maintain sort
+  // order.
+
+  auto hex_str = [](int i) {
+    std::stringstream ss;
+    ss << std::setfill('0') << std::setw(2) << std::hex << i;
+    return ss.str();
+  };
+
+  fs::path obj_root = fs::path(root_) / "objects";
+  if (!fs::exists(obj_root))
+    return out;
+
+  // Determine start indices based on start_after digest
+  int start_i = 0, start_j = 0;
+  if (!start_after.empty() && start_after.size() >= 4) {
+    try {
+      start_i = std::stoi(start_after.substr(0, 2), nullptr, 16);
+      start_j = std::stoi(start_after.substr(2, 2), nullptr, 16);
+    } catch (...) {
+    }
+  }
+
+  for (int i = start_i; i < 256; ++i) {
+    std::string dir1 = hex_str(i);
+    fs::path p1 = obj_root / dir1;
+    if (!fs::exists(p1))
+      continue;
+
+    int j_begin = (i == start_i) ? start_j : 0;
+    for (int j = j_begin; j < 256; ++j) {
+      std::string dir2 = hex_str(j);
+      fs::path p2 = p1 / dir2;
+      if (!fs::exists(p2))
+        continue;
+
+      // Collect files in this bucket
+      std::vector<std::string> digests_in_bucket;
+      for (const auto &entry : fs::directory_iterator(p2)) {
+        if (entry.is_regular_file()) {
+          std::string fname = entry.path().filename().string();
+          // Skip .meta files, only count objects
+          if (fname.size() == 64 && fname.find('.') == std::string::npos) {
+            if (fname > start_after) {
+              digests_in_bucket.push_back(fname);
+            }
+          }
+        }
+      }
+
+      // Sort to ensure deterministic order within bucket
+      std::sort(digests_in_bucket.begin(), digests_in_bucket.end());
+
+      for (const auto &d : digests_in_bucket) {
+        if (limit > 0 && out.size() >= limit)
+          return out;
+        auto meta = info(d); // Load metadata on demand
+        if (meta)
+          out.push_back(*meta);
+      }
+
+      if (limit > 0 && out.size() >= limit)
+        return out;
+    }
+  }
+
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// CasGarbageCollector
+// ---------------------------------------------------------------------------
+
+CasGarbageCollector::CasGarbageCollector(std::shared_ptr<ICASBackend> backend)
+    : backend_(std::move(backend)) {}
+
+size_t CasGarbageCollector::prune(std::chrono::seconds max_age, bool dry_run) {
+  size_t deleted_count = 0;
+  std::string start_after = "";
+  const size_t batch_size = 1000;
+  const uint64_t now = static_cast<uint64_t>(std::time(nullptr));
+  const uint64_t cutoff = now > static_cast<uint64_t>(max_age.count())
+                              ? now - static_cast<uint64_t>(max_age.count())
+                              : 0;
+
+  while (true) {
+    auto batch = backend_->scan_objects(batch_size, start_after);
+    if (batch.empty())
+      break;
+
+    for (const auto &obj : batch) {
+      // If created_at is 0 (legacy object), we might skip or delete based on
+      // policy. Here we assume 0 means "unknown age", so we keep it to be safe.
+      if (obj.created_at_unix_ts > 0 && obj.created_at_unix_ts < cutoff) {
+        if (!dry_run) {
+          backend_->remove(obj.digest);
+        }
+        deleted_count++;
+      }
+      start_after = obj.digest;
+    }
+
+    if (batch.size() < batch_size)
+      break;
+  }
+  return deleted_count;
 }
 
 // ---------------------------------------------------------------------------
@@ -426,6 +567,13 @@ voidnqueue(std::string data, std::string compression) {
       return secondary_->get(digest);
     }
 
+    bool ReplicatingBackend::remove(const std::string &digest) {
+      bool p = primary_->remove(digest);
+      bool s = secondary_->remove(digest);
+      // Return true if removed from at least one (or both were already gone)
+      return p || s;
+    }
+
     bool ReplicatingBackend::contains(const std::string &digest) const {
       return primary_->contains(digest) || secondary_->contains(digest);
     }
@@ -438,8 +586,9 @@ voidnqueue(std::string data, std::string compression) {
       return secondary_->info(digest);
     }
 
-    std::vector<CasObjectInfo> ReplicatingBackend::scan_objects() const {
-      return primary_->scan_objects();
+    std::vector<CasObjectInfo> ReplicatingBackend::scan_objects(
+        size_t limit, const std::string &start_after) const {
+      return primary_->scan_objects(limit, start_after);
     }
 
     std::size_t ReplicatingBackend::size() const { return primary_->size(); }
@@ -516,7 +665,7 @@ voidnqueue(std::string data, std::string compression) {
             return;
         }
 
-        auto objects = backend_->scan_objects();
+        auto objects = backend_->scan_objects(max_scan_items_);
 
         // If limiting scan items, shuffle to ensure uniform coverage over time.
         if (max_scan_items_ > 0 && objects.size() > max_scan_items_) {
@@ -590,6 +739,10 @@ voidnqueue(std::string data, std::string compression) {
       return std::nullopt;
     }
 
+    bool S3CompatibleBackend::remove(const std::string &digest) {
+      return false; // Stub
+    }
+
     bool S3CompatibleBackend::contains(const std::string &digest) const {
       if (endpoint_.find("file://") == 0) {
         fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
@@ -616,7 +769,8 @@ voidnqueue(std::string data, std::string compression) {
       return std::nullopt;
     }
 
-    std::vector<CasObjectInfo> S3CompatibleBackend::scan_objects() const {
+    std::vector<CasObjectInfo> S3CompatibleBackend::scan_objects(
+        size_t limit, const std::string &start_after) const {
       // S3 ListObjectsV2 simulation
       std::vector<CasObjectInfo> out;
       if (endpoint_.find("file://") == 0) {
@@ -624,9 +778,14 @@ voidnqueue(std::string data, std::string compression) {
         if (fs::exists(root)) {
           for (const auto &entry : fs::recursive_directory_iterator(root)) {
             if (entry.is_regular_file()) {
-              auto i = info(entry.path().filename().string());
+              std::string d = entry.path().filename().string();
+              if (d <= start_after)
+                continue;
+              auto i = info(d);
               if (i)
                 out.push_back(*i);
+              if (limit > 0 && out.size() >= limit)
+                break;
             }
           }
         }
