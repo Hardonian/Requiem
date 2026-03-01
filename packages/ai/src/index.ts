@@ -18,7 +18,7 @@ export { AiErrorCode, AiErrorSeverity, aiErrorToHttpStatus } from './errors/code
 export { errorEnvelope, successEnvelope } from './errors/index';
 
 // ─── Tools ────────────────────────────────────────────────────────────────────
-export { registerTool, getTool, listTools, getToolCount, _clearRegistry, getToolVersion, getToolDigest, isToolDeterministic, isToolIdempotent, validateToolSchema, DEFAULT_OUTPUT_MAX_BYTES } from './tools/registry';
+export { registerTool, getTool, listTools, getToolCount, _clearRegistry, getToolVersion, getToolDigest, validateToolSchema, DEFAULT_OUTPUT_MAX_BYTES } from './tools/registry';
 export { invokeToolWithPolicy } from './tools/invoke';
 export { validateInput, validateOutput, validateInputOrThrow, validateOutputOrThrow } from './tools/schema';
 export type { ToolDefinition, ToolHandler, RegisteredTool, ToolInvocationResult, JsonSchema } from './tools/types';
@@ -64,7 +64,7 @@ export type { McpToolDescriptor, McpListToolsResponse, McpCallToolResponse, McpH
 // ─── Skills ───────────────────────────────────────────────────────────────────
 export { registerSkill, getSkill, listSkills, getSkillCount } from './skills/registry';
 export { runSkill, validateSkillContext, type SkillContext } from './skills/runner';
-export { OutputSizeLimiter, getOutputLimiter, setOutputLimiter, parseTriggerDataWithLimit, DEFAULT_OUTPUT_MAX_BYTES, DEFAULT_TRIGGER_DATA_MAX_BYTES, type OutputSizeCheckResult, type OutputLimiterConfig } from './skills/outputLimiter';
+export { OutputSizeLimiter, getOutputLimiter, setOutputLimiter, parseTriggerDataWithLimit, DEFAULT_TRIGGER_DATA_MAX_BYTES, type OutputSizeCheckResult, type OutputLimiterConfig } from './skills/outputLimiter';
 export type { SkillDefinition, SkillStep, StepResult, SkillRunResult } from './skills/types';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
