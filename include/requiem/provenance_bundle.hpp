@@ -24,7 +24,8 @@
 //   request_digest          — the canonical request digest (input fingerprint)
 //   replay_log_digest       — BLAKE3 of the stored replay log
 //   bundle_checksum         — BLAKE3 of all above fields (canonical JSON, sorted keys)
-//   signature               — STUB: always empty string. See SECURITY.md §signing-roadmap
+//   signature               — Ed25519 signature over bundle_checksum (hex). Empty if no signing key.
+//   signing_status          — "active" if signed, "unsigned" if no key configured.
 //
 // INVARIANTS:
 //   1. bundle_checksum covers all provenance fields except itself and signature.
@@ -32,6 +33,15 @@
 //   3. Bundles are export-only: generating a bundle never modifies CAS or audit log.
 //   4. prompt_lock_hash must match the current prompts/system.lock.md.
 //   5. dependency_snapshot_hash must match the current deps_snapshot.json.
+//   6. Signing key is sourced from REQUIEM_SIGNING_KEY env var (64-char hex seed).
+//      If absent, signing is skipped with a warning; bundles remain functional.
+//
+// SIGNING:
+//   Ed25519 signature covers: BLAKE3(bundle_checksum) — the message is the
+//   32-byte BLAKE3 binary digest of the canonical bundle_checksum string.
+//   Key management: REQUIEM_SIGNING_KEY must hold a 64-char hex Ed25519 seed.
+//   Verification: verify_bundle_signature() checks the hex signature against
+//   the bundle's bundle_checksum using the corresponding public key.
 
 #include <cstdint>
 #include <string>
@@ -75,7 +85,8 @@ struct ExecutionProvenance {
 
   // Derived fields (computed at bundle creation time)
   std::string bundle_checksum;   // BLAKE3 of canonical JSON of all above fields
-  std::string signature;         // empty unless enable_signed_replay_bundles flag is on
+  std::string signature;         // Ed25519 hex signature over BLAKE3(bundle_checksum). Empty if unsigned.
+  std::string signing_status;    // "active" | "unsigned" | "error"
 
   // Serialize to compact canonical JSON (keys sorted, no whitespace).
   std::string to_json() const;
@@ -186,6 +197,60 @@ std::string hash_file_content(const std::string& file_path);
 bool load_and_verify_bundle(const std::string& bundle_json,
                             ReplayBundle*       out_bundle,
                             std::string*        error);
+
+// ---------------------------------------------------------------------------
+// Ed25519 Bundle Signing (S-7)
+// ---------------------------------------------------------------------------
+
+/// @brief Signing configuration for provenance bundles.
+/// Key sourced from REQUIEM_SIGNING_KEY env var (64-char hex Ed25519 seed).
+struct BundleSigningConfig {
+  /// 64-char hex Ed25519 seed. Empty string means "no signing key configured".
+  std::string signing_key_hex;
+  /// Whether signing is currently active (key is present and valid).
+  bool active{false};
+
+  /// Load from environment variable REQUIEM_SIGNING_KEY.
+  /// Returns a config with active=false and a warning logged if not set.
+  static BundleSigningConfig from_env();
+};
+
+/// @brief Sign a replay bundle's bundle_checksum using Ed25519.
+///
+/// Computes: message = BLAKE3(bundle.provenance.bundle_checksum)
+/// Then: signature = Ed25519Sign(signing_key, message)
+///
+/// Updates bundle.provenance.signature (hex) and bundle.provenance.signing_status.
+///
+/// @param bundle  The bundle to sign (modified in place).
+/// @param config  Signing configuration — if not active, sets signing_status="unsigned" and returns true.
+/// @param error   Set to error description on failure.
+/// @return true on success or graceful no-op; false on internal signing error.
+bool sign_bundle(ReplayBundle& bundle,
+                 const BundleSigningConfig& config,
+                 std::string* error = nullptr);
+
+/// @brief Verify the Ed25519 signature on a bundle.
+///
+/// Derives the public key from the seed in config, recomputes the message
+/// (BLAKE3 of bundle_checksum), and verifies the hex signature field.
+///
+/// @param bundle   The bundle to verify.
+/// @param config   Signing configuration with the key.
+/// @param error    Set to error description on failure.
+/// @return true if signature is valid; false if missing, invalid, or verification fails.
+bool verify_bundle_signature(const ReplayBundle& bundle,
+                             const BundleSigningConfig& config,
+                             std::string* error = nullptr);
+
+/// @brief Return the global cached signing config (loaded once from env at startup).
+/// Thread-safe after first call. Call init_bundle_signing() at engine startup.
+const BundleSigningConfig& global_signing_config();
+
+/// @brief Initialize the global signing config from environment.
+/// Must be called once at engine startup before any bundle signing.
+/// Logs a warning (not error) if REQUIEM_SIGNING_KEY is absent.
+void init_bundle_signing();
 
 }  // namespace provenance
 }  // namespace requiem

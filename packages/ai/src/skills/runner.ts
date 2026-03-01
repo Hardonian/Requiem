@@ -14,34 +14,106 @@ import { logger } from '../telemetry/logger';
 import { now } from '../types/index';
 import type { InvocationContext } from '../types/index';
 import type { SkillDefinition, SkillStep, StepResult, SkillRunResult } from './types';
+import { enterRecursion, exitRecursion, getRecursionDepth } from '../models/circuitBreaker';
+import { getBudgetChecker } from '../policy/budgets';
+
+// ─── SkillContext ─────────────────────────────────────────────────────────────
+
+/**
+ * Validated execution context that MUST be present on every tool invocation.
+ * Contains tenant identity, correlation IDs, and runtime state from the
+ * budget checker and circuit breaker.
+ *
+ * INVARIANT: tenantId must always be present — enforcement happens in
+ *            validateSkillContext() before any tool execution begins.
+ */
+export interface SkillContext {
+  /** JWT-derived tenant identifier — required */
+  tenantId: string;
+  /** JWT-derived user identifier */
+  userId?: string;
+  /** Correlation ID for distributed tracing */
+  requestId: string;
+  /** Remaining budget in USD cents (from budget checker) */
+  budgetRemaining?: number;
+  /** Current recursion depth (from circuit breaker) */
+  recursionDepth: number;
+}
+
+/**
+ * Validate that an InvocationContext exposes the required SkillContext fields.
+ * Throws `INVALID_CONTEXT` if tenantId is absent.
+ *
+ * @param ctx - InvocationContext to validate
+ * @returns A validated SkillContext snapshot
+ */
+export function validateSkillContext(ctx: InvocationContext): SkillContext {
+  if (!ctx.tenantId) {
+    throw new AiError({
+      code: AiErrorCode.INVALID_CONTEXT,
+      message: 'tenantId is required in SkillContext before tool execution',
+      phase: 'skill.runner.context',
+    });
+  }
+  return {
+    tenantId: ctx.tenantId,
+    userId: (ctx as Record<string, unknown>)['userId'] as string | undefined,
+    requestId: ctx.traceId,
+    recursionDepth: getRecursionDepth(ctx.traceId),
+  };
+}
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Execute a skill, enforcing preconditions, postconditions, and rollback.
+ *
+ * INVARIANT: tenantId must be present in ctx before execution.
+ * INVARIANT: Recursion depth is tracked via circuit breaker and released in a finally block.
+ * INVARIANT: budgetRemaining is fetched from the global BudgetChecker and attached to SkillContext.
  */
 export async function runSkill(
   ctx: InvocationContext,
   skill: SkillDefinition,
   initialInput: unknown
 ): Promise<SkillRunResult> {
+  // Validate SkillContext — throws INVALID_CONTEXT if tenantId is absent
+  const skillCtx = validateSkillContext(ctx);
+
+  // Track recursion depth
+  const depth = enterRecursion(ctx.traceId);
+  skillCtx.recursionDepth = depth;
+
+  // Attach budget remaining (best-effort, non-blocking)
+  try {
+    const budgetChecker = getBudgetChecker();
+    const budgetResult = await budgetChecker.check(ctx.tenantId!, 0);
+    skillCtx.budgetRemaining = budgetResult.remaining?.costCents;
+  } catch {
+    // Budget lookup failure is non-fatal for skill execution start
+    logger.warn('[skill.runner] Could not fetch budget remaining', { trace_id: ctx.traceId });
+  }
+
   const startedAt = now();
   const startMs = Date.now(); // DETERMINISM: observation-only, not in decision path
 
-  return withSpan(`skill:${skill.name}@${skill.version}`, ctx.traceId, async (span) => {
-    span.attributes['skill'] = skill.name;
-    span.attributes['version'] = skill.version;
+  try {
+    return await withSpan(`skill:${skill.name}@${skill.version}`, ctx.traceId, async (span) => {
+      span.attributes['skill'] = skill.name;
+      span.attributes['version'] = skill.version;
+      span.attributes['tenantId'] = skillCtx.tenantId;
+      span.attributes['recursionDepth'] = skillCtx.recursionDepth;
 
-    const completedSteps: StepResult[] = [];
+      const completedSteps: StepResult[] = [];
 
-    // 1. Precondition
-    if (skill.precondition) {
-      const ok = await skill.precondition(ctx);
-      if (!ok) {
-        return failResult(skill, ctx.traceId, startedAt, startMs, completedSteps,
-          'Skill precondition failed');
+      // 1. Precondition
+      if (skill.precondition) {
+        const ok = await skill.precondition(ctx);
+        if (!ok) {
+          return failResult(skill, ctx.traceId, startedAt, startMs, completedSteps,
+            'Skill precondition failed');
+        }
       }
-    }
 
     // 2. Execute steps
     const bag: Record<string, unknown> = { initial: initialInput };
@@ -107,6 +179,9 @@ export async function runSkill(
       endedAt: now(),
     };
   });
+  } finally {
+    exitRecursion(ctx.traceId);
+  }
 }
 
 // ─── Step Execution ───────────────────────────────────────────────────────────

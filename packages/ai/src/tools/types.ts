@@ -51,12 +51,19 @@ export interface ToolDefinition {
   readonly description: string;
   readonly inputSchema: JsonSchema;
   readonly outputSchema: JsonSchema;
+  /** Whether tool produces same output for same input (enables caching/replay) */
   readonly deterministic: boolean;
-  readonly sideEffect: boolean;
+  /** Whether calling tool multiple times with same params has same effect */
   readonly idempotent: boolean;
+  /** Whether tool has side effects */
+  readonly sideEffect: boolean;
   readonly requiredCapabilities: readonly string[];
   readonly tenantScoped: boolean;
   readonly costHint?: ToolCostHint;
+  /** BLAKE3 hash of tool implementation for replay verification */
+  readonly digest?: string;
+  /** Maximum output size in bytes (default: 1MB) - for S-10 OOM prevention */
+  readonly outputMaxBytes?: number;
 }
 
 // ─── Handler + Registration ───────────────────────────────────────────────────

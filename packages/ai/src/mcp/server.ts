@@ -9,6 +9,8 @@
  * INVARIANT: No hard-500. Every handler returns a typed result or AiError.
  * INVARIANT: Tenant context is NEVER derived from request body or query params.
  * INVARIANT: Auth is resolved by the transport adapter before calling handlers.
+ * INVARIANT: All tenant-scoped handlers validate tenant membership before execution.
+ * INVARIANT: Health endpoint NEVER discloses auth configuration or secrets.
  */
 
 import { listTools } from '../tools/registry';
@@ -16,6 +18,7 @@ import { invokeToolWithPolicy } from '../tools/invoke';
 import { AiError } from '../errors/AiError';
 import { AiErrorCode } from '../errors/codes';
 import { getToolCount } from '../tools/registry';
+import { TenantRole, hasRequiredRole } from '../types/index';
 import type { InvocationContext } from '../types/index';
 import type {
   McpListToolsResponse,
@@ -49,6 +52,63 @@ export interface McpHandlerResult<T> {
   data?: T;
   error?: { code: string; message: string; retryable: boolean; phase?: string };
   trace_id?: string;
+}
+
+// ─── Tenant Access Validation ─────────────────────────────────────────────────
+
+/**
+ * Validate that an authenticated actor belongs to (and may act on behalf of) a
+ * specific tenant.
+ *
+ * Checks:
+ *  1. The `tenantId` embedded in the resolved `InvocationContext` matches the
+ *     requested `tenantId` (guards against JWT claim spoofing at call sites).
+ *  2. The actor's role satisfies the minimum required role for the operation.
+ *
+ * This function is intentionally synchronous and does NOT perform a database
+ * round-trip — the authoritative tenant binding is the validated JWT claim
+ * stored in `ctx.tenant`. For row-level security in the data layer, RPC
+ * functions must additionally enforce `auth.uid()` checks server-side.
+ *
+ * @param ctx - Resolved invocation context (must already be JWT-validated).
+ * @param tenantId - The tenant ID the caller is attempting to act on.
+ * @param minimumRole - Minimum role required for the operation (default: VIEWER).
+ * @returns `true` when access is permitted; `false` otherwise.
+ */
+export function validateTenantAccess(
+  ctx: InvocationContext,
+  tenantId: string,
+  minimumRole: TenantRole = TenantRole.VIEWER
+): boolean {
+  if (ctx.tenant.tenantId !== tenantId) {
+    return false;
+  }
+  return hasRequiredRole(ctx.tenant.role, minimumRole);
+}
+
+/**
+ * Assert tenant access, throwing an `AiError` on failure.
+ *
+ * Convenience wrapper around `validateTenantAccess` for use in handlers that
+ * should abort immediately (throw) rather than branch on a boolean return.
+ *
+ * @param ctx - Resolved invocation context.
+ * @param tenantId - The tenant ID the caller is attempting to act on.
+ * @param minimumRole - Minimum role required (default: VIEWER).
+ * @throws {AiError} With `POLICY_DENIED` when access is not permitted.
+ */
+export function assertTenantAccess(
+  ctx: InvocationContext,
+  tenantId: string,
+  minimumRole: TenantRole = TenantRole.VIEWER
+): void {
+  if (!validateTenantAccess(ctx, tenantId, minimumRole)) {
+    throw new AiError({
+      code: AiErrorCode.POLICY_DENIED,
+      message: 'Tenant access denied: actor is not a member of the requested tenant',
+      phase: 'auth.tenantCheck',
+    });
+  }
 }
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────

@@ -38,10 +38,20 @@ export interface McpToolDescriptor {
   version: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  deterministic: boolean;
+  /** Whether tool produces same output for same input (enables caching/replay) */
+  isDeterministic?: boolean;
+  /** Legacy field - prefer isDeterministic */
+  deterministic?: boolean;
+  /** Whether calling tool multiple times with same params has same effect */
+  idempotent?: boolean;
+  /** Whether tool has side effects */
   sideEffect: boolean;
   tenantScoped: boolean;
   requiredCapabilities: readonly string[];
+  /** BLAKE3 hash of tool implementation for replay verification */
+  digest?: string;
+  /** Maximum output size in bytes (default: 1MB) */
+  outputMaxBytes?: number;
 }
 
 // ─── Responses ────────────────────────────────────────────────────────────────

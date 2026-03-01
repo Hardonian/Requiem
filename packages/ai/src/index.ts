@@ -26,23 +26,62 @@ export type { ToolDefinition, ToolHandler, RegisteredTool, ToolInvocationResult,
 // ─── Policy ───────────────────────────────────────────────────────────────────
 export { evaluatePolicy, evaluatePolicyWithBudget, type PolicyDecision } from './policy/gate';
 export { Capabilities, getCapabilitiesForRole, hasCapabilities, capabilitiesFromRole, type Capability } from './policy/capabilities';
-export { setBudgetChecker, getBudgetChecker, DefaultBudgetChecker, type BudgetChecker, type BudgetCheckResult } from './policy/budgets';
+export {
+  setBudgetChecker,
+  getBudgetChecker,
+  DefaultBudgetChecker,
+  AtomicBudgetChecker,
+  PersistentBudgetChecker,
+  InMemoryBudgetStore,
+  HttpBudgetStore,
+  type BudgetChecker,
+  type BudgetCheckResult,
+  type BudgetLimit,
+  type BudgetPolicy,
+  type BudgetUsage,
+  type BudgetState,
+  type CostMetadata,
+  type PersistentBudgetStore,
+  type HttpBudgetStoreConfig,
+} from './policy/budgets';
+export {
+  CostAnomalyDetector,
+  setAnomalyDetector,
+  getAnomalyDetector,
+  type AnomalyResult,
+  type AnomalyContext,
+  type AnomalyThresholds,
+  type AnomalySeverity,
+} from './policy/costAnomaly';
 export { checkMigrationPolicy, _resetPolicyCache, type MigrationCheckResult } from './policy/migration';
 
 // ─── MCP ──────────────────────────────────────────────────────────────────────
-export { handleListTools, handleCallTool, handleHealth, type McpHandlerResult } from './mcp/server';
-export { GET_health, GET_tools, POST_callTool } from './mcp/transport-next';
+export { handleListTools, handleCallTool, handleHealth, validateTenantAccess, assertTenantAccess, type McpHandlerResult } from './mcp/server';
+export { GET_health, GET_tools, POST_callTool, AUTH_STATUS, type AuthStatus } from './mcp/transport-next';
+export { SlidingWindowRateLimiter, getRateLimiter, loadRateLimitConfig, type RateLimitConfig } from './mcp/rateLimit';
 export type { McpToolDescriptor, McpListToolsResponse, McpCallToolResponse, McpHealthResponse } from './mcp/types';
 
 // ─── Skills ───────────────────────────────────────────────────────────────────
 export { registerSkill, getSkill, listSkills, getSkillCount } from './skills/registry';
-export { runSkill } from './skills/runner';
+export { runSkill, validateSkillContext, type SkillContext } from './skills/runner';
 export type { SkillDefinition, SkillStep, StepResult, SkillRunResult } from './skills/types';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 export { registerProvider, getProvider, listProviders, getModel, listModels, getDefaultModel, registerModel, type ModelDefinition } from './models/registry';
 export { generateText, type ArbitratorRequest } from './models/arbitrator';
-export { checkCircuit, recordSuccess, recordFailure, getCircuitState, resetCircuit } from './models/circuitBreaker';
+export {
+  checkCircuit,
+  recordSuccess,
+  recordFailure,
+  getCircuitState,
+  resetCircuit,
+  enterRecursion,
+  exitRecursion,
+  getRecursionDepth,
+  resetRecursionDepth,
+  type CircuitBreakerConfig,
+  type CircuitState,
+} from './models/circuitBreaker';
 export { AnthropicProvider } from './models/providers/anthropic';
 export { OpenAIProvider } from './models/providers/openai';
 export type { ModelProvider, GenerateTextRequest, GenerateTextResponse } from './models/providers/types';
@@ -57,8 +96,38 @@ export type { MemoryItem, MemoryItemMetadata } from './memory/store';
 // ─── Telemetry ────────────────────────────────────────────────────────────────
 export { logger, setLogSink } from './telemetry/logger';
 export { startSpan, endSpan, withSpan, getSpansForTrace, type Span } from './telemetry/trace';
-export { writeAuditRecord, setAuditSink } from './telemetry/audit';
+export {
+  writeAuditRecord,
+  flushAuditLog,
+  setAuditSink,
+  getAuditPersistence,
+  AUDIT_PERSISTENCE,
+  type AuditSink,
+  type IAuditSink,
+  type TenantAuditRecord,
+  InMemoryAuditSink,
+  FileAuditSink,
+  DatabaseAuditSink,
+  CompositeSink,
+} from './telemetry/audit';
+export { createDefaultAuditSink, type DatabaseAuditSinkConfig } from './telemetry/auditSink';
+export {
+  MerkleAuditChain,
+  getGlobalMerkleChain,
+  computeChainHash,
+  GENESIS_HASH,
+  _resetMerkleChain,
+} from './telemetry/merkleChain';
 export { recordCost, recordToolCost, setCostSink, type CostRecord } from './telemetry/cost';
+export {
+  TraceAnalytics,
+  computeTraceMetrics,
+  detectTraceAnomalies,
+  type TraceRecord,
+  type TraceMetrics,
+  type TraceAnomaly,
+  type TraceAnomalyThresholds,
+} from './telemetry/traceAnalytics';
 
 // ─── Eval ─────────────────────────────────────────────────────────────────────
 export { runEvalCase, runEvalHarness, type EvalRunResult, type HarnessResult } from './eval/harness';
