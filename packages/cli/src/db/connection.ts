@@ -289,6 +289,107 @@ export function getDB(): DB {
         execution_result TEXT
       )
     `);
+
+    // Learning and Economic Tables
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS learning_signals (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        run_id TEXT,
+        category TEXT,
+        metadata_json TEXT,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS learning_diagnoses (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        signal_ids TEXT,
+        root_cause TEXT,
+        confidence_score INTEGER,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS learning_patches (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        diagnosis_id TEXT,
+        patch_type TEXT,
+        target_files TEXT,
+        patch_diff_json TEXT,
+        rollback_plan_json TEXT,
+        status TEXT,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS symmetry_metrics (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        metric_name TEXT,
+        metric_value REAL,
+        period_start TEXT,
+        period_end TEXT,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS economic_events (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        run_id TEXT,
+        event_type TEXT,
+        resource_units INTEGER,
+        cost_units INTEGER,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS economic_rollups (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        period_start TEXT,
+        period_end TEXT,
+        total_runs INTEGER,
+        total_cost_units INTEGER,
+        total_storage_units INTEGER,
+        total_policy_units INTEGER,
+        burn_rate REAL,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS economic_alerts (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        alert_type TEXT,
+        severity TEXT,
+        metadata_json TEXT,
+        created_at TEXT
+      )
+    `);
+  
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS skills (
+        id TEXT PRIMARY KEY,
+        scope TEXT,
+        triggers TEXT,
+        required_inputs TEXT,
+        expected_outputs TEXT,
+        verification_steps TEXT,
+        rollback_instructions TEXT,
+        version TEXT,
+        created_at TEXT
+      )
+    `);
   }
   return dbInstance;
 }

@@ -1,0 +1,14 @@
+{
+  "id": "policy.security",
+  "scope": "policy",
+  "triggers": ["policy_violation", "fairness_violation"],
+  "required_inputs": ["policy_name", "decision_context"],
+  "expected_outputs": ["policy_decision", "enforcement_action"],
+  "verification_steps": [
+    "Verify policy evaluation is deterministic",
+    "Verify no cross-tenant data leakage",
+    "Verify enforcement action matches policy"
+  ],
+  "rollback_instructions": "Revert to previous policy configuration in contracts/ directory",
+  "version": "1.0.0"
+}

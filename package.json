@@ -35,7 +35,11 @@
     "verify:agent-quality": "./node_modules/.bin/tsx scripts/verify-agent-quality.ts",
     "verify:cost-accounting": "./node_modules/.bin/tsx scripts/verify-cost-accounting.ts",
     "verify:tenant-isolation": "./node_modules/.bin/tsx scripts/verify-tenant-isolation.ts",
-    "verify:ai": "npm-run-all --parallel verify:mcp verify:ai-safety verify:agent-quality verify:cost-accounting verify:tenant-isolation"
+    "verify:ai": "npm-run-all --parallel verify:mcp verify:ai-safety verify:agent-quality verify:cost-accounting verify:tenant-isolation",
+    "verify:skills": "node scripts/verify-skills.mjs",
+    "verify:schemas": "node scripts/verify-schemas.mjs",
+    "verify:economics": "node scripts/verify-economics.mjs",
+    "verify:governance": "npm-run-all verify:skills verify:schemas verify:economics"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

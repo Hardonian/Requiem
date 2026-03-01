@@ -183,3 +183,128 @@ model UsageRollup {
   @@index([tenantId, periodStart])
   @@map("usage_rollups")
 }
+
+// ─── Learning Signals ────────────────────────────────────────────────────────────
+// Signals captured during runtime execution for learning analysis.
+
+model LearningSignal {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  runId        String?  @map("run_id")
+  category     String   // build_failure|drift|policy_violation|replay_mismatch|test_failure|schema_gap|skill_gap|rollback_event|cost_spike|fairness_violation
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, category])
+  @@index([tenantId, runId])
+  @@index([tenantId, createdAt])
+  @@map("learning_signals")
+}
+
+// ─── Learning Diagnoses ──────────────────────────────────────────────────────────
+// Deterministic diagnoses mapped from signals.
+
+model LearningDiagnosis {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  signalIds     String[] @map("signal_ids") // Array of signal IDs linked to this diagnosis
+  rootCause     String   // prompt_gap|skill_gap|schema_gap|config_gap|policy_gap|strategic_misalignment|economic_misalignment
+  confidenceScore Int    @default(0) @map("confidence_score") // Deterministic integer based on threshold counts
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, rootCause])
+  @@index([tenantId, createdAt])
+  @@map("learning_diagnoses")
+}
+
+// ─── Learning Patches ─────────────────────────────────────────────────────────────
+// Patch proposals generated from diagnoses.
+
+model LearningPatch {
+  id               String   @id @default(cuid())
+  tenantId         String   @map("tenant_id")
+  diagnosisId      String   @map("diagnosis_id")
+  patchType        String   @map("patch_type") // skill_update|prompt_update|schema_update|config_update|branch_plan|rollback_plan|cost_model_update|fairness_policy_update
+  targetFiles      String[] @map("target_files")
+  patchDiffJson    Json?    @map("patch_diff_json")
+  rollbackPlanJson Json?   @map("rollback_plan_json")
+  status           String   @default("proposed") @map("status") // proposed|applied|rejected
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, diagnosisId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@map("learning_patches")
+}
+
+// ─── Symmetry Metrics ─────────────────────────────────────────────────────────────
+// Deterministic symmetry metrics for technical and strategic tracking.
+
+model SymmetryMetric {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  metricName    String   @map("metric_name") // failure_recurrence_rate|drift_severity_score|replay_mismatch_rate|time_to_green|rollback_frequency|skill_coverage_ratio|instruction_coverage_score|burn_rate|cost_per_verified_run|replay_efficiency_ratio|fairness_index
+  metricValue   Float    @map("metric_value")
+  periodStart   DateTime @map("period_start")
+  periodEnd     DateTime @map("period_end")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, metricName])
+  @@index([tenantId, periodStart])
+  @@map("symmetry_metrics")
+}
+
+// ─── Economic Events ──────────────────────────────────────────────────────────────
+// Detailed economic event tracking.
+
+model EconomicEvent {
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  runId          String?  @map("run_id")
+  eventType      String   @map("event_type") // execution|replay_storage|policy_eval|drift_analysis
+  resourceUnits  Int       @default(0) @map("resource_units")
+  costUnits      Int       @default(0) @map("cost_units")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, eventType])
+  @@index([tenantId, runId])
+  @@index([tenantId, createdAt])
+  @@map("economic_events")
+}
+
+// ─── Economic Rollups ─────────────────────────────────────────────────────────────
+// Periodic economic aggregation.
+
+model EconomicRollup {
+  id                 String   @id @default(cuid())
+  tenantId           String   @map("tenant_id")
+  periodStart        DateTime @map("period_start")
+  periodEnd          DateTime @map("period_end")
+  totalRuns          Int      @default(0) @map("total_runs")
+  totalCostUnits     Int      @default(0) @map("total_cost_units")
+  totalStorageUnits  Int      @default(0) @map("total_storage_units")
+  totalPolicyUnits   Int      @default(0) @map("total_policy_units")
+  burnRate           Float    @default(0.0) @map("burn_rate")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, periodStart])
+  @@index([tenantId, periodStart])
+  @@map("economic_rollups")
+}
+
+// ─── Economic Alerts ───────────────────────────────────────────────────────────────
+// Deterministic alerts for economic anomalies.
+
+model EconomicAlert {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  alertType     String   @map("alert_type") // burn_spike|storage_spike|policy_spike|fairness_violation
+  severity      String   // low|medium|high|critical
+  metadataJson  Json?    @map("metadata_json")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, alertType])
+  @@index([tenantId, severity])
+  @@index([tenantId, createdAt])
+  @@map("economic_alerts")
+}

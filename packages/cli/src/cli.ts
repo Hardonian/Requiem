@@ -17,6 +17,11 @@ import { parseAgentArgs, runAgentCommand } from './commands/agent';
 import { parseAiArgs, runAiCommand } from './commands/ai';
 import { runRunCommand } from './commands/run';
 import { runVerifyCommand } from './commands/verify';
+import { runLearnCommand } from './commands/learn';
+import { runRealignCommand } from './commands/realign';
+import { runPivotPlanCommand, runRollbackCommand } from './commands/pivot';
+import { runSymmetryCommand } from './commands/symmetry';
+import { runEconomicsCommand } from './commands/economics';
 
 const VERSION = '0.2.0';
 
@@ -35,6 +40,14 @@ CORE COMMANDS:
   fingerprint <hash>                  Generate shareable execution proof
   ui                                  Launch the web dashboard
   quickstart                          10-minute proof: install, run, verify
+
+GOVERNANCE COMMANDS:
+  learn [--window=7d] [--format]      Show learning signals and diagnoses
+  realign <patch-id>                  Apply patch in new branch and verify
+  pivot plan <name>                   Plan a strategic pivot
+  rollback <sha|release>              Rollback to commit or release
+  symmetry [--economics]              Show symmetry metrics
+  economics [--alerts|--forecast]     Show economic metrics
 
 INSPECTION COMMANDS:
   tool list [--json]                  List registered tools with determinism flags
@@ -334,6 +347,31 @@ async function main(): Promise<number> {
       const { bugreport } = await import('./commands/bugreport');
       await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
       return 0;
+    }
+
+    // Governance and Learning Commands
+    case 'learn': {
+      return await runLearnCommand(subArgs);
+    }
+
+    case 'realign': {
+      return await runRealignCommand(subArgs);
+    }
+
+    case 'pivot': {
+      return await runPivotPlanCommand(subArgs);
+    }
+
+    case 'rollback': {
+      return await runRollbackCommand(subArgs);
+    }
+
+    case 'symmetry': {
+      return await runSymmetryCommand(subArgs);
+    }
+
+    case 'economics': {
+      return await runEconomicsCommand(subArgs);
     }
 
     case 'version':

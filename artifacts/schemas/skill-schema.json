@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://requiem.dev/schemas/skill.json",
+  "title": "Skill Schema",
+  "description": "JSON Schema for Requiem Skill definitions",
+  "type": "object",
+  "required": ["id", "scope", "triggers", "required_inputs", "expected_outputs", "verification_steps", "rollback_instructions", "version"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9._-]*$",
+      "minLength": 3,
+      "description": "Unique skill identifier"
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["execution", "verification", "policy"],
+      "description": "Scope of skill applicability"
+    },
+    "triggers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["build_failure", "drift", "policy_violation", "replay_mismatch", "test_failure", "schema_gap", "skill_gap", "rollback_event", "cost_spike", "fairness_violation"]
+      },
+      "minItems": 1,
+      "description": "Signal categories that trigger this skill"
+    },
+    "required_inputs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Required input parameters"
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Expected output parameters"
+    },
+    "verification_steps": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "Steps to verify skill execution"
+    },
+    "rollback_instructions": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Instructions to rollback skill changes"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (MAJOR.MINOR.PATCH)"
+    }
+  }
+}

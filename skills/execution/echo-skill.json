@@ -1,0 +1,14 @@
+{
+  "id": "execution.echo",
+  "scope": "execution",
+  "triggers": ["build_failure"],
+  "required_inputs": ["input_text"],
+  "expected_outputs": ["echo_response"],
+  "verification_steps": [
+    "Verify output matches input exactly",
+    "Verify deterministic fingerprint",
+    "Verify replay produces identical output"
+  ],
+  "rollback_instructions": "Revert to previous skill version in skills/execution/ directory",
+  "version": "1.0.0"
+}

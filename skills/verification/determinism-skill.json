@@ -1,0 +1,14 @@
+{
+  "id": "verification.determinism",
+  "scope": "verification",
+  "triggers": ["replay_mismatch", "drift"],
+  "required_inputs": ["run_id", "baseline_fingerprint"],
+  "expected_outputs": ["verification_report", "match_percentage"],
+  "verification_steps": [
+    "Compare output fingerprints byte-for-byte",
+    "Verify deterministic ordering",
+    "Generate verification report with diff details"
+  ],
+  "rollback_instructions": "Revert to previous verification logic in packages/cli/src/lib/",
+  "version": "1.0.0"
+}

@@ -1,0 +1,56 @@
+{
+  "registry_version": "1.0.0",
+  "skills": [
+    "skills/execution/echo-skill.json",
+    "skills/verification/determinism-skill.json",
+    "skills/policy/security-policy-skill.json"
+  ],
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["id", "scope", "triggers", "required_inputs", "expected_outputs", "verification_steps", "rollback_instructions", "version"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique skill identifier (e.g., execution.echo, verification.determinism)"
+      },
+      "scope": {
+        "type": "string",
+        "enum": ["execution", "verification", "policy"],
+        "description": "Scope of skill applicability"
+      },
+      "triggers": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["build_failure", "drift", "policy_violation", "replay_mismatch", "test_failure", "schema_gap", "skill_gap", "rollback_event", "cost_spike", "fairness_violation"]
+        },
+        "description": "Signal categories that trigger this skill"
+      },
+      "required_inputs": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Required input parameters"
+      },
+      "expected_outputs": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Expected output parameters"
+      },
+      "verification_steps": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Steps to verify skill execution"
+      },
+      "rollback_instructions": {
+        "type": "string",
+        "description": "Instructions to rollback skill changes"
+      },
+      "version": {
+        "type": "string",
+        "pattern": "^\\d+\\.\\d+\\.\\d+$",
+        "description": "Semantic version"
+      }
+    }
+  }
+}

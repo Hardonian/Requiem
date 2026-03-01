@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "description": "Deterministic cost model for Requiem runtime",
+  "cost_units": {
+    "execution_unit": 1,
+    "replay_storage_unit": 1,
+    "policy_eval_unit": 1,
+    "drift_analysis_unit": 1
+  },
+  "thresholds": {
+    "burn_spike_multiplier": 2.0,
+    "storage_spike_multiplier": 2.0,
+    "policy_spike_multiplier": 2.0,
+    "fairness_violation_threshold": 0.2,
+    "confidence_threshold_low": 30,
+    "confidence_threshold_medium": 60,
+    "confidence_threshold_high": 90
+  },
+  "signal_thresholds": {
+    "build_failure": 1,
+    "drift": 1,
+    "policy_violation": 1,
+    "replay_mismatch": 1,
+    "test_failure": 1,
+    "schema_gap": 1,
+    "skill_gap": 1,
+    "rollback_event": 1,
+    "cost_spike": 1,
+    "fairness_violation": 1
+  },
+  "technical_symmetry_weights": {
+    "failure_recurrence_rate": 0.25,
+    "drift_severity_score": 0.25,
+    "replay_mismatch_rate": 0.25,
+    "time_to_green": 0.25
+  },
+  "strategic_symmetry_weights": {
+    "rollback_frequency": 0.33,
+    "skill_coverage_ratio": 0.34,
+    "instruction_coverage_score": 0.33
+  },
+  "economic_symmetry_weights": {
+    "burn_rate": 0.25,
+    "cost_per_verified_run": 0.25,
+    "replay_efficiency_ratio": 0.25,
+    "fairness_index": 0.25
+  }
+}
