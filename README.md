@@ -7,258 +7,132 @@
 
 Deterministic AI execution platform with tenant isolation, replay, and audit.
 
-## What This Is
+## Quickstart (5 minutes)
 
-| Component | Description |
-|-----------|-------------|
-| **Requiem Engine** | C++ native runtime for deterministic process execution, CAS, and replay verification |
-| **ReadyLayer** | Next.js web dashboard — the user-facing control plane |
-| **Reach CLI** | TypeScript CLI for tool execution, decision engine, junctions, and AI agent orchestration |
-| **@requiem/ai** | AI subsystem: MCP tools, skills, telemetry, policy, and evaluation |
-| **@requiem/ui** | Shared React component library and design tokens |
+This guide will show you Requiem's core value: **guaranteed deterministic execution and replay**.
 
-## Who It's For
+### 1. Setup Environment
 
-Teams that need **auditable, reproducible AI agent execution** with governance controls:
-policy enforcement at every step, signed artifacts, tenant isolation, and deterministic replay.
-
-## Key Differentiators
-
-- 🔒 **[Deterministic Execution](docs/DETERMINISM.md)** — Cryptographically verified reproducibility with BLAKE3; 200× repeat CI gate
-- 📦 **[Content-Addressable Storage](docs/CAS.md)** — Dual-hash verified (BLAKE3 + SHA-256), zstd-compressed, corruption-detecting CAS
-- 🛡️ **[Policy-as-Code](docs/POLICY.md)** — Machine-enforced guardrails, budgets, and RBAC; every AI request passes the Gate
-- 📐 **[Formally Verified](formal/README.md)** — TLA+ specifications for Determinism, CAS, Protocol, and Replay
-- ⚡ **[Multi-Scheduler](include/requiem/worker.hpp)** — Repro mode (max isolation) or turbo mode (max throughput), selectable per execution
-- 📊 **[Built-in Benchmarking](docs/BENCH.md)** — 200× determinism gate with latency histograms and drift detection
-- 🔍 **[Honest Security Posture](docs/THEATRE_AUDIT.md)** — Theatre audit with transparent implementation status table
-
-See [docs/DIFFERENTIATORS.md](docs/DIFFERENTIATORS.md) for detailed technical analysis and [contracts/competitive.matrix.json](contracts/competitive.matrix.json) for the machine-readable comparison matrix.
-
----
-
-## Security Features
-
-The platform implements defense-in-depth security across all layers:
-
-### Authentication & Authorization
-- **JWT Validation** — Token validation at MCP transport layer with expiry enforcement
-- **Tenant Isolation** — Row-level security (RLS) policies enforced server-side
-- **Role-Based Access** — MEMBER, VIEWER, ADMIN, OWNER roles with hierarchy
-
-### Sandboxing & Isolation
-- **Seccomp-BPF** — Linux syscall filtering with allowlisted calls
-- **Windows Mitigations** — Job Objects, restricted tokens, ASLR
-- **Workspace Confinement** — Path canonicalization with fail-closed behavior
-
-### Audit & Compliance
-- **Merkle Audit Chain** — Tamper-evident logs with hash linking
-- **Correlation IDs** — Full request tracing across services
-- **Proof Bundles** — Verifiable execution provenance with Merkle roots
-
-### Threat Mitigation
-- **Prompt Injection Filter** — Input sanitization for MCP tools
-- **Budget Enforcement** — DB-backed budgets prevent cost overruns
-- **Cost Anomaly Detection** — Statistical monitoring with alerting
-- **Circuit Breaker** — Resilience against downstream failures
-
-See [docs/SECURITY.md](docs/SECURITY.md) for complete security documentation.
-
----
-
-## Deployment Requirements
-
-### Environment Variables
-
-Required environment variables for production deployment:
+First, clone the repository. This project uses `pnpm` for package management.
 
 ```bash
-# Database
-DATABASE_URL=postgresql://user:pass@host:5432/db
-
-# CAS Storage
-CAS_STORAGE_PATH=/data/cas
-
-# JWT
-JWT_SECRET_KEY=<base64-encoded-key>
-JWT_ALGORITHM=RS256
-
-# Feature Flags
-REQUIEM_ENGINE_DUAL_RATE=0.01
-REQUIEM_DEFAULT_ENGINE=requiem
-REQUIEM_AUDIT_BACKEND=database
-REQUIEM_PROMPT_FILTER=enabled
-REQUIEM_COST_SINK=enabled
-
-# Monitoring
-PROMETHEUS_ENABLED=true
-DATADOG_API_KEY=<key>
-```
-
-### Infrastructure Requirements
-
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| Node.js | 20.x | 20.x LTS |
-| PostgreSQL | 14.x | 15.x |
-| Memory | 4GB | 8GB+ |
-| Disk (CAS) | 50GB | 500GB+ SSD |
-| CPU | 2 cores | 4+ cores |
-
-### Security Requirements
-
-- **TLS 1.2+** — All external connections
-- **MFA** — Required for admin access
-- **Secrets Manager** — Store credentials in Vault/Doppler
-- **Network Segmentation** — DMZ, app tier, data tier
-
----
-
-## Quickstart
-
-```bash
-# Clone and install
 git clone https://github.com/reachhq/requiem.git
 cd requiem
 pnpm install
-
-# Run the web dashboard (ReadyLayer)
-pnpm run web:dev
-
-# Run full verification (lint + typecheck + boundaries + build)
-pnpm run verify:preflight
 ```
 
-### Native Engine (optional)
-
-Requires CMake 3.20+, C++20 compiler, and OpenSSL:
+Next, copy the example environment file. For this quickstart, you won't need to change anything.
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-ctest --test-dir build --output-on-failure
+cp .env.example .env
 ```
 
----
+### 2. Start the Database
 
-## Architecture
+Requiem requires a PostgreSQL database. We've included a `docker-compose.yml` to make this easy.
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    ReadyLayer (Next.js)                       │
-│            Web dashboard + API routes + middleware            │
-└────────────────────────┬─────────────────────────────────────┘
-                          │
-           ┌───────────────┼───────────────┐
-           │               │               │
-  ┌────────▼───────┐ ┌─────▼──────┐ ┌──────▼───────┐
-  │  @requiem/ai   │ │ @requiem/ui│ │  @requiem/cli│
-  │  MCP + Skills  │ │ Components │ │  Reach CLI   │
-  └────────┬───────┘ └────────────┘ └──────┬───────┘
-           │                               │
-  ┌────────▼───────────────────────────────▼───────┐
-  │              Requiem Engine (C++)               │
-  │   Sandbox │ CAS │ Replay │ BLAKE3 │ Policy     │
-  └────────────────────────────────────────────────┘
+```bash
+docker-compose up -d
 ```
 
-## Repository Structure
+### 3. Run a Command & Get a Hash
 
-```
-requiem/
-├── ready-layer/        # ReadyLayer web app (Next.js 15)
-├── packages/
-│   ├── ai/             # AI subsystem (MCP, skills, telemetry)
-│   ├── cli/            # Reach CLI (decision engine, junctions, tools)
-│   └── ui/             # Shared component library
-├── src/                # C++ engine source
-├── include/            # C++ headers
-├── scripts/            # Verification and build scripts
-├── docs/               # Documentation
-├── formal/             # TLA+ formal specifications
-└── contracts/         # Compatibility and determinism contracts
+Now, execute a command through the Requiem CLI (`reach`). Every deterministic execution returns a unique, verifiable hash.
+
+```bash
+pnpm exec reach run "echo 'Hello, Determinism!'"
 ```
 
----
+You will see output that includes an `executionHash`. This is the cryptographic proof of your execution.
+
+### 4. Replay by Hash
+
+You can now use this hash to replay the execution. Requiem will re-run the command in a hermetic sandbox and verify that the new output cryptographically matches the original.
+
+```bash
+pnpm exec reach replay <paste-your-execution-hash-here>
+```
+
+You should see a `✅ Replay Successful` message. You have just proven that your command's execution is reproducible.
+
+> For a full list of available commands, see the **[CLI Reference](docs/cli.md)**.
+
+## Core Concepts
+
+At its heart, Requiem is a system for creating, storing, and verifying records of execution. The data model reflects this simple purpose. This is the Prisma schema that powers the ReadyLayer dashboard:
+
+```prisma
+// ready-layer/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  actorId    String   @map("actor_id")
+  action     String
+  resourceId String?  @map("resource_id")
+  traceId    String   @map("trace_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}
+
+// ─── AI Cost Records ──────────────────────────────────────────────────────────
+
+model AiCostRecord {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  actorId      String   @map("actor_id")
+  provider     String
+  model        String
+  inputTokens  Int      @map("input_tokens")
+  outputTokens Int      @map("output_tokens")
+  costCents    Int      @map("cost_cents")
+  latencyMs    Int      @map("latency_ms")
+  traceId      String   @map("trace_id")
+  phase        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@map("ai_cost_records")
+}
+
+// ─── Replay Records ───────────────────────────────────────────────────────────
+
+model ReplayRecord {
+  id          String   @id @default(cuid())
+  hash        String   @unique
+  tenantId    String   @map("tenant_id")
+  toolName    String   @map("tool_name")
+  toolVersion String   @map("tool_version")
+  inputHash   String   @map("input_hash")
+  integrity   String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, hash])
+  @@map("replay_records")
+}
+```
 
 ## Verification
 
-### Pre-flight Checks
+This repository contains a comprehensive verification suite.
 
-```bash
-# Full preflight (recommended before any PR)
-pnpm run verify:preflight
+-   **`pnpm run verify`**: Runs all fast, essential checks (lint, typecheck, boundaries). Run this before committing.
+-   **`pnpm run verify:ci`**: Runs the complete CI suite, including slower integration and determinism tests.
 
-# Individual checks
-pnpm run verify:lint          # ESLint
-pnpm run verify:typecheck     # TypeScript
-pnpm run verify:boundaries    # Import boundary checks
-pnpm run build:web            # Next.js production build
-```
-
-### Test Suites
-
-```bash
-# E2E tests
-pnpm run test:e2e             # Playwright tests
-
-# AI verification suite
-pnpm run verify:mcp           # MCP protocol tests
-pnpm run verify:ai-safety     # Security tests
-pnpm run verify:agent-quality # Agent behavior tests
-pnpm run verify:cost-accounting # Budget tests
-pnpm run verify:tenant-isolation # Isolation tests
-```
-
-### CI Verification
-
-The full verification suite runs in CI:
-
-| Check | Command | Status |
-|-------|---------|--------|
-| Lint | `pnpm run verify:lint` | ✅ |
-| TypeScript | `pnpm run verify:typecheck` | ✅ |
-| Boundaries | `pnpm run verify:boundaries` | ✅ |
-| Routes | `pnpm run verify:routes` | ✅ |
-| Secrets | `bash scripts/verify-secrets.sh` | ✅ |
-| Supply Chain | `bash scripts/verify-supply-chain.sh` | ✅ |
-| Tenant Isolation | `bash scripts/verify-tenant-isolation.sh` | ✅ |
-| MCP | `pnpm run verify:mcp` | ✅ |
-| AI Safety | `pnpm run verify:ai-safety` | ✅ |
-| Cost Accounting | `pnpm run verify:cost-accounting` | ✅ |
-
----
-
-## Documentation
-
-### Getting Started
-- [Getting Started](docs/GETTING_STARTED.md)
-- [Quickstart Guide](#quickstart)
-
-### Architecture & Design
-- [Architecture](docs/ARCHITECTURE.md)
-- [Determinism Invariants](docs/DETERMINISM.md)
-- [CAS Specification](docs/CAS.md)
-- [Policy](docs/POLICY.md)
-
-### Security & Compliance
-- [Security](docs/SECURITY.md)
-- [Threat Model](docs/THREAT_MODEL.md)
-- [MCP Security Review](docs/MCP_SECURITY_REVIEW.md)
-- [Theatre Audit](docs/THEATRE_AUDIT.md)
-
-### Operations
-- [Operations](docs/OPERATIONS.md)
-- [Operations Runbook](docs/internal/OPERATIONS_RUNBOOK.md)
-- [Migration Guide](docs/MIGRATION.md)
-- [Launch Checklist](docs/LAUNCH_GATE_CHECKLIST.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
-### Reference
-- [CLI Reference](docs/cli.md)
-- [Enterprise Features](docs/enterprise.md)
-- [Contributing](CONTRIBUTING.md)
-
----
+> For more details on the architecture, see the [Architecture Overview](docs/ARCHITECTURE.md).
 
 ## Contributing
 
@@ -266,12 +140,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.
 
 ## License
 
-[MIT](LICENSE) — See [SECURITY.md](SECURITY.md) for vulnerability reporting.
-
----
-
-## Support
-
-- **Security Issues**: security@readylayer.com
-- **General Inquiries**: support@readylayer.com
-- **Documentation**: docs@readylayer.com
+[MIT](LICENSE)
