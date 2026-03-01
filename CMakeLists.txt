@@ -78,6 +78,7 @@ add_library(requiem
   src/rbac.cpp                # Phase 2+7: RBAC roles, permissions, node auth
   src/autotune.cpp            # Phase 3: Performance auto-tuning feedback loop
   src/diagnostics.cpp         # Phase 4: AI-assisted root cause diagnostics
+  src/context_paging.cpp      # Phase 4: Cognitive Hypervisor (Context Virtualization)
 )
 
 target_include_directories(requiem
@@ -151,7 +152,21 @@ endif()
 # ---------------------------------------------------------------------------
 # CLI executable
 # ---------------------------------------------------------------------------
-add_executable(requiem_cli src/cli.cpp)
+# CONSOLIDATION: All harness binaries merged into main CLI as subcommands.
+# This eliminates binary sprawl and ensures the production binary is the same
+# artifact used for stress/chaos testing.
+add_executable(requiem_cli
+  src/cli.cpp
+  src/stress_harness.cpp
+  src/shadow_runner.cpp
+  src/billing_harness.cpp
+  src/security_gauntlet.cpp
+  src/recovery_harness.cpp
+  src/memory_harness.cpp
+  src/protocol_harness.cpp
+  src/chaos_harness.cpp
+)
+
 target_link_libraries(requiem_cli PRIVATE requiem)
 target_compile_definitions(requiem_cli PRIVATE PROJECT_VERSION="${PROJECT_VERSION}")
 set_target_properties(requiem_cli PROPERTIES OUTPUT_NAME "requiem")
@@ -193,61 +208,26 @@ else()
 endif()
 add_test(NAME requiem_tests COMMAND requiem_tests)
 
+add_executable(context_paging_test tests/context_paging_test.cpp)
+target_link_libraries(context_paging_test PRIVATE requiem)
+add_test(NAME context_paging_test COMMAND context_paging_test
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # ---------------------------------------------------------------------------
 # Production hardening harnesses (Phases 1-7)
 # ---------------------------------------------------------------------------
 
-add_executable(stress_harness src/stress_harness.cpp)
-target_link_libraries(stress_harness PRIVATE requiem)
-add_test(NAME stress_harness COMMAND stress_harness
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+# Tests now invoke the main binary with subcommands
+add_test(NAME stress_harness    COMMAND requiem stress   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME shadow_runner     COMMAND requiem shadow   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME billing_harness   COMMAND requiem billing  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME security_gauntlet COMMAND requiem security WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME recovery_harness  COMMAND requiem recovery WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME memory_harness    COMMAND requiem memory   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME protocol_harness  COMMAND requiem protocol WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME chaos_harness     COMMAND requiem chaos    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-add_executable(shadow_runner src/shadow_runner.cpp)
-target_link_libraries(shadow_runner PRIVATE requiem)
-add_test(NAME shadow_runner COMMAND shadow_runner
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-add_executable(billing_harness src/billing_harness.cpp)
-target_link_libraries(billing_harness PRIVATE requiem)
-add_test(NAME billing_harness COMMAND billing_harness
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-add_executable(security_gauntlet src/security_gauntlet.cpp)
-target_link_libraries(security_gauntlet PRIVATE requiem)
-add_test(NAME security_gauntlet COMMAND security_gauntlet
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-add_executable(recovery_harness src/recovery_harness.cpp)
-target_link_libraries(recovery_harness PRIVATE requiem)
-add_test(NAME recovery_harness COMMAND recovery_harness
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-add_executable(memory_harness src/memory_harness.cpp)
-target_link_libraries(memory_harness PRIVATE requiem)
-add_test(NAME memory_harness COMMAND memory_harness
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-add_executable(protocol_harness src/protocol_harness.cpp)
-target_link_libraries(protocol_harness PRIVATE requiem)
-add_test(NAME protocol_harness COMMAND protocol_harness
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-# Stress harness is slow — mark it so CI can skip with -LE slow.
-set_tests_properties(stress_harness PROPERTIES LABELS "slow")
-set_tests_properties(shadow_runner  PROPERTIES LABELS "slow")
-set_tests_properties(memory_harness PROPERTIES LABELS "slow")
-
-# ---------------------------------------------------------------------------
-# Phase 12: Chaos engineering harness
-# ---------------------------------------------------------------------------
-option(REQUIEM_BUILD_CHAOS "Build chaos engineering harness binary" OFF)
-
-if(REQUIEM_BUILD_CHAOS)
-  add_executable(chaos_harness src/chaos_harness.cpp)
-  target_link_libraries(chaos_harness PRIVATE requiem)
-  target_compile_definitions(chaos_harness PRIVATE REQUIEM_CHAOS_MAIN=1)
-  message(STATUS "Requiem: Chaos harness enabled")
-endif()
+set_tests_properties(stress_harness shadow_runner memory_harness PROPERTIES LABELS "slow")
 
 # ---------------------------------------------------------------------------
 # Phase 6: Fuzz targets (LLVM libFuzzer, clang only)

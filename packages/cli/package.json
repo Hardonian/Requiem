@@ -50,7 +50,7 @@
     "globals": "^14.0.0"
   },
   "engines": {
-    "node": "20.11.0"
+    "node": ">=20.11.0"
   },
   "license": "MIT",
   "repository": {

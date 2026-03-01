@@ -8,22 +8,22 @@
 #include <sstream>
 #include <vector>
 
-#include "requiem/audit.hpp"
-#include "requiem/autotune.hpp"
-#include "requiem/cas.hpp"
-#include "requiem/cluster.hpp"
-#include "requiem/debugger.hpp"
-#include "requiem/diagnostics.hpp"
-#include "requiem/hash.hpp"
-#include "requiem/jsonlite.hpp"
-#include "requiem/observability.hpp"
-#include "requiem/policy_linter.hpp"
-#include "requiem/rbac.hpp"
-#include "requiem/replay.hpp"
-#include "requiem/runtime.hpp"
-#include "requiem/sandbox.hpp"
-#include "requiem/version.hpp"
-#include "requiem/worker.hpp"
+#include "../include/requiem/audit.hpp"
+#include "../include/requiem/autotune.hpp"
+#include "../include/requiem/cas.hpp"
+#include "../include/requiem/cluster.hpp"
+#include "../include/requiem/debugger.hpp"
+#include "../include/requiem/diagnostics.hpp"
+#include "../include/requiem/hash.hpp"
+#include "../include/requiem/jsonlite.hpp"
+#include "../include/requiem/observability.hpp"
+#include "../include/requiem/policy_linter.hpp"
+#include "../include/requiem/rbac.hpp"
+#include "../include/requiem/replay.hpp"
+#include "../include/requiem/runtime.hpp"
+#include "../include/requiem/sandbox.hpp"
+#include "../include/requiem/version.hpp"
+#include "../include/requiem/worker.hpp"
 
 namespace {
 std::string read_file(const std::string &path) {
@@ -125,6 +125,16 @@ bool verify_hash_vectors() {
   return true;
 }
 
+// Harness entry points (renamed mains)
+extern int stress_main(int argc, char **argv);
+extern int shadow_main(int argc, char **argv);
+extern int billing_main(int argc, char **argv);
+extern int security_main(int argc, char **argv);
+extern int recovery_main(int argc, char **argv);
+extern int memory_main(int argc, char **argv);
+extern int protocol_main(int argc, char **argv);
+extern int chaos_main(int argc, char **argv);
+
 } // namespace
 
 int main(int argc, char **argv) {
@@ -147,6 +157,24 @@ int main(int argc, char **argv) {
   }
   if (cmd.empty())
     return 1;
+
+  // Dispatch harnesses
+  if (cmd == "stress")
+    return stress_main(argc, argv);
+  if (cmd == "shadow")
+    return shadow_main(argc, argv);
+  if (cmd == "billing")
+    return billing_main(argc, argv);
+  if (cmd == "security")
+    return security_main(argc, argv);
+  if (cmd == "recovery")
+    return recovery_main(argc, argv);
+  if (cmd == "memory")
+    return memory_main(argc, argv);
+  if (cmd == "protocol")
+    return protocol_main(argc, argv);
+  if (cmd == "chaos")
+    return chaos_main(argc, argv);
 
   if (cmd == "health") {
     const auto h = requiem::hash_runtime_info();
@@ -1342,13 +1370,14 @@ int main(int argc, char **argv) {
     auto dbg = requiem::TimeTravelDebugger::Load(cas, root);
     auto timeline = dbg->GetTimeline();
 
-    std::cout << "{\"ok\":true,\"count\":" << timeline.size() << ",\"timeline\":[";
+    std::cout << "{\"ok\":true,\"count\":" << timeline.size()
+              << ",\"timeline\":[";
     for (size_t i = 0; i < timeline.size(); ++i) {
       if (i > 0)
         std::cout << ",";
       const auto &step = timeline[i];
-      std::cout << "{\"sequence_id\":" << step.sequence_id
-                << ",\"type\":\"" << requiem::jsonlite::escape(step.type) << "\""
+      std::cout << "{\"sequence_id\":" << step.sequence_id << ",\"type\":\""
+                << requiem::jsonlite::escape(step.type) << "\""
                 << ",\"timestamp_ns\":" << step.timestamp_ns
                 << ",\"event_digest\":\"" << step.event_digest << "\""
                 << ",\"state_digest\":\"" << step.state_digest << "\"}";

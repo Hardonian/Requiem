@@ -36,6 +36,35 @@ Expected output:
 ```bash
 # View the active policy (hash algorithm, CAS version, tenant rules, license allowlist)
 ./build/requiem policy explain
+### 1. Interactive Setup (Recommended)
+
+The easiest way to get started is with the interactive quickstart command. It will check your environment, start the database, and run a demo.
+
+```bash
+pnpm exec reach quickstart
+```
+
+### 2. Manual Setup
+
+If you prefer to run commands manually:
+
+#### Setup Environment
+
+```bash
+git clone https://github.com/reachhq/requiem.git
+cd requiem
+pnpm install
+cp .env.example .env
+docker-compose up -d
+```
+
+#### Run a Command & Get a Hash
+
+Execute a command through the Requiem CLI (`reach`). Every deterministic execution returns a unique, verifiable hash.
+
+```bash
+pnpm exec reach run system.echo "Hello, Determinism!"
+```
 
 # View all version constants enforced at startup
 ./build/requiem version
@@ -54,11 +83,26 @@ Policy enforcement is not implicit. `policy explain` shows every active constrai
   --request docs/examples/exec_request_smoke.json \
   --result build/result.json \
   --cas .requiem/cas/v2
+#### Verify Determinism
+
+You can now use this hash to verify the execution. Requiem will re-run the command in a hermetic sandbox and verify that the new output cryptographically matches the original.
+
+```bash
+pnpm exec reach verify <paste-your-execution-hash-here>
 ```
 
 > **Two CLIs:** `./build/requiem` (C++ native engine — determinism, CAS, replay, policy) and `pnpm exec requiem` (TypeScript control plane — AI decisions, junctions, MCP). See **[CLI Reference](docs/cli.md)**.
 
 > For the web dashboard (requires PostgreSQL), see **[ReadyLayer setup](ready-layer/README.md)**.
+#### Launch Dashboard
+
+Visualize your executions and audit logs in the local dashboard.
+
+```bash
+pnpm exec reach ui
+```
+
+> For a full list of available commands, see the **[CLI Reference](docs/cli.md)**.
 
 ## Core Concepts
 

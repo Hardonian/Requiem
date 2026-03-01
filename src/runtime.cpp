@@ -29,8 +29,10 @@
 //   execute() is currently stateless and synchronous.
 //   Future: wrap in WorkerPool for "repro" (single-FIFO) or "dag" modes.
 
+#include <array>
 #include <chrono>
 #include <filesystem>
+#include <memory_resource>
 // MICRO_OPT: <fstream> no longer needed directly in runtime.cpp — output file
 // I/O moved into hash_file_blake3_hex() in hash.cpp (streaming 64 KB chunks).
 // Kept for documentation; safe to remove if linker confirms no ODR dependency.
@@ -165,6 +167,21 @@ bool key_in(const std::string &key, const std::vector<std::string> &list) {
   return false;
 }
 
+// Arena-aware shadow types for internal execution state
+using PmrString = std::pmr::string;
+using PmrMap = std::pmr::map<PmrString, PmrString>;
+
+struct PmrTraceEvent {
+  uint64_t seq;
+  uint64_t t_ns;
+  PmrString type;
+  PmrMap data;
+
+  PmrTraceEvent(uint64_t s, uint64_t t, const std::string_view ty,
+                const std::pmr::polymorphic_allocator<std::byte> &alloc)
+      : seq(s), t_ns(t), type(ty, alloc), data(alloc) {}
+};
+
 } // namespace
 
 std::string canonicalize_request(const ExecutionRequest &request) {
@@ -229,9 +246,15 @@ ExecutionResult execute(const ExecutionRequest &request) {
   ExecutionResult result;
 
   // Phase 1: Start total duration timer.
-  // EXTENSION_POINT: allocator_strategy — future: init per-execution arena
-  // here.
   const auto exec_start = std::chrono::steady_clock::now();
+
+  // EXTENSION_POINT: allocator_strategy — per-execution arena.
+  std::array<std::byte, 256 * 1024> arena_buffer; // 256KB stack buffer
+  std::pmr::monotonic_buffer_resource arena(arena_buffer.data(),
+                                            arena_buffer.size(),
+                                            std::pmr::new_delete_resource());
+  std::pmr::vector<PmrTraceEvent> pmr_trace_events(&arena);
+  pmr_trace_events.reserve(64);
 
   // Phase 2: Compute request digest (determinism anchor).
   {
@@ -344,10 +367,11 @@ ExecutionResult execute(const ExecutionRequest &request) {
     result.sandbox_applied.unsupported.push_back("restricted_token");
 
   // Phase 8: Execute process.
-  result.trace_events.push_back({1,
-                                 request.policy.deterministic ? 0ull : 1ull,
-                                 "process_start",
-                                 {{"command", request.command}, {"cwd", cwd}}});
+  PmrTraceEvent start_ev(1, request.policy.deterministic ? 0ull : 1ull,
+                         "process_start", &arena);
+  start_ev.data.emplace("command", request.command);
+  start_ev.data.emplace("cwd", cwd);
+  pmr_trace_events.push_back(std::move(start_ev));
 
   const auto sandbox_t0 = std::chrono::steady_clock::now();
   auto p = run_process(spec);
@@ -403,19 +427,29 @@ ExecutionResult execute(const ExecutionRequest &request) {
   }
 
   // Phase 10: Finalize trace and compute all remaining digests.
-  result.trace_events.push_back(
-      {2,
-       request.policy.deterministic ? 0ull : 1ull,
-       "process_end",
-       {{"exit_code", std::to_string(result.exit_code)}}});
+  PmrTraceEvent end_ev(2, request.policy.deterministic ? 0ull : 1ull,
+                       "process_end", &arena);
+  end_ev.data.emplace("exit_code", std::to_string(result.exit_code));
+  pmr_trace_events.push_back(std::move(end_ev));
 
   // MICRO_OPT: Pre-reserve trace_cat to avoid reallocations.
   std::string trace_cat;
-  trace_cat.reserve(result.trace_events.size() * 64);
-  for (const auto &e : result.trace_events) {
+  trace_cat.reserve(pmr_trace_events.size() * 64);
+
+  // Hydrate result.trace_events from arena and build digest string
+  result.trace_events.reserve(pmr_trace_events.size());
+  for (const auto &pe : pmr_trace_events) {
+    TraceEvent e;
+    e.seq = pe.seq;
+    e.t_ns = pe.t_ns;
+    e.type = std::string(pe.type);
+    for (const auto &[k, v] : pe.data)
+      e.data.emplace(std::string(k), std::string(v));
+
     trace_cat += std::to_string(e.seq);
     trace_cat += e.type;
     trace_cat += map_to_json(e.data);
+    result.trace_events.push_back(std::move(e));
   }
 
   {
@@ -475,6 +509,11 @@ ExecutionResult execute(const ExecutionRequest &request) {
   ev.ok = result.ok;
   ev.error_code = result.error_code;
   emit_execution_event(ev);
+
+  // Record arena usage metrics
+  // Note: monotonic_buffer_resource doesn't expose used bytes easily without
+  // upstream tracking, but we can infer high water mark if we wrapped the
+  // upstream. For now, we leave it as 0.
 
   return result;
 }

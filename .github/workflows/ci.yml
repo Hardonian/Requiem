@@ -203,18 +203,35 @@ jobs:
           cache: 'pnpm'
       - name: Fail if required env missing
         run: |
-          if [ -z "$DOPPLER_TOKEN" ]; then
-            echo "DOPPLER_TOKEN not set - using .env.example for validation"
+          MISSING=0
+          if [ -z "$DATABASE_URL" ]; then
+            echo "❌ DATABASE_URL is not set"
+            MISSING=1
           fi
-          echo "✅ Environment validation passed"
+          if [ -z "$DIRECT_DATABASE_URL" ]; then
+            echo "❌ DIRECT_DATABASE_URL is not set"
+            MISSING=1
+          fi
+          if [ "$MISSING" -eq 1 ]; then
+            echo "Required secrets are missing. Set DATABASE_URL and DIRECT_DATABASE_URL in GitHub Actions secrets."
+            exit 1
+          fi
+          echo "✅ Required environment variables present"
         env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
       - name: install deps
         run: pnpm install --frozen-lockfile
       - name: prisma validate
         run: cd ready-layer && pnpm run prisma:validate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
       - name: prisma generate
         run: cd ready-layer && pnpm run prisma:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
       - name: lint
         run: pnpm run verify:lint
       - name: typecheck
@@ -228,11 +245,15 @@ jobs:
       - name: verify:root
         run: bash scripts/verify-root.sh
       - name: Install Playwright browsers
-        run: pnpm playwright install --with-deps
+        run: pnpm playwright install --with-deps chromium
       - name: Run Playwright tests
         run: cd ready-layer && pnpm run test:e2e
         env:
           CI: true
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   # ---------------------------------------------------------------------------
   # Dependency graph artifacts (nightly, Linux)

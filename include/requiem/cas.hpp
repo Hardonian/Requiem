@@ -25,12 +25,18 @@
 //   must never change (BLAKE3, "cas:" domain prefix). Changing it would
 //   invalidate all existing stored objects without migration.
 
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <istream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace requiem {
@@ -41,6 +47,7 @@ struct CasObjectInfo {
   std::size_t original_size{0};
   std::size_t stored_size{0};
   std::string stored_blob_hash;
+  uint64_t created_at_unix_ts{0};
 };
 
 // ---------------------------------------------------------------------------
@@ -63,8 +70,20 @@ public:
   virtual std::string put(const std::string &data,
                           const std::string &compression = "off") = 0;
 
+  // Store data from a stream. Returns digest on success, "" on failure.
+  virtual std::string put_stream(std::istream &in,
+                                 const std::string &compression = "off") = 0;
+
   // Retrieve data by digest. Returns nullopt if not found or integrity fails.
   virtual std::optional<std::string> get(const std::string &digest) const = 0;
+
+  // Retrieve data as a stream. Returns nullptr if not found.
+  virtual std::unique_ptr<std::istream>
+  get_stream(const std::string &digest) const = 0;
+
+  // Remove data and metadata. Returns true if deleted or not found, false on
+  // failure.
+  virtual bool remove(const std::string &digest) = 0;
 
   // Check existence without loading data.
   virtual bool contains(const std::string &digest) const = 0;
@@ -74,7 +93,10 @@ public:
   info(const std::string &digest) const = 0;
 
   // Enumerate all stored objects.
-  virtual std::vector<CasObjectInfo> scan_objects() const = 0;
+  // limit: max records to return (0 = unlimited). start_after: resume token
+  // (digest).
+  virtual std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0, const std::string &start_after = "") const = 0;
 
   // Total number of stored objects.
   virtual std::size_t size() const = 0;
@@ -106,12 +128,26 @@ public:
 
   std::string put(const std::string &data,
                   const std::string &compression = "off") override;
+  std::string put_stream(std::istream &in,
+                         const std::string &compression = "off") override;
   std::optional<std::string> get(const std::string &digest) const override;
+  std::unique_ptr<std::istream>
+  get_stream(const std::string &digest) const override;
+  bool remove(const std::string &digest) override;
   std::optional<CasObjectInfo> info(const std::string &digest) const override;
   bool contains(const std::string &digest) const override;
   std::size_t size() const override;
-  std::vector<CasObjectInfo> scan_objects() const override;
+  std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0,
+               const std::string &start_after = "") const override;
   std::string backend_id() const override { return "local_fs"; }
+
+  // Rewrite index.ndjson to remove entries for deleted objects.
+  void compact();
+
+  // Scan all objects and verify content matches digest. Returns corrupted
+  // digests.
+  std::vector<std::string> verify_integrity();
 
   const std::string &root() const { return root_; }
 
@@ -120,8 +156,94 @@ private:
   mutable std::mutex index_mu_;
   mutable std::map<std::string, CasObjectInfo> index_;
   mutable bool index_loaded_{false};
+
+  std::string object_path(const std::string &digest) const;
+  std::string meta_path(const std::string &digest) const;
+  std::string index_path() const;
+
   void load_index() const;
   void save_index_entry(const CasObjectInfo &info) const;
+};
+
+// ---------------------------------------------------------------------------
+// CasGarbageCollector — Retention policy enforcement
+// ---------------------------------------------------------------------------
+class CasGarbageCollector {
+public:
+  explicit CasGarbageCollector(std::shared_ptr<ICASBackend> backend);
+
+  // Scan and remove objects older than max_age.
+  // Returns the number of objects removed.
+  size_t prune(std::chrono::seconds max_age, bool dry_run = false);
+
+private:
+  std::shared_ptr<ICASBackend> backend_;
+};
+
+// ---------------------------------------------------------------------------
+// ReplicatingBackend — Dual-write replication
+// ---------------------------------------------------------------------------
+class ReplicationManager; // Forward declaration
+
+enum class ReplicationDropPolicy { Block, DropOldest };
+
+class ReplicatingBackend : public ICASBackend {
+public:
+  ReplicatingBackend(
+      std::shared_ptr<ICASBackend> primary,
+      std::shared_ptr<ICASBackend> secondary, size_t max_queue_size = 1024,
+      ReplicationDropPolicy policy = ReplicationDropPolicy::Block);
+  ~ReplicatingBackend() override;
+
+  std::string backend_id() const override;
+  std::string put(const std::string &data,
+                  const std::string &compression = "off") override;
+  std::string put_stream(std::istream &in,
+                         const std::string &compression = "off") override;
+  std::optional<std::string> get(const std::string &digest) const override;
+  std::unique_ptr<std::istream>
+  get_stream(const std::string &digest) const override;
+  bool remove(const std::string &digest) override;
+  bool contains(const std::string &digest) const override;
+  std::optional<CasObjectInfo> info(const std::string &digest) const override;
+  std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0,
+               const std::string &start_after = "") const override;
+  std::size_t size() const override;
+
+  // Consistency check and repair.
+  bool verify_replication(const std::string &digest);
+
+private:
+  std::shared_ptr<ICASBackend> primary_;
+  std::shared_ptr<ICASBackend> secondary_;
+  std::unique_ptr<ReplicationManager> repl_mgr_;
+};
+
+// ---------------------------------------------------------------------------
+// ReplicationMonitor — Periodic drift detection
+// ---------------------------------------------------------------------------
+class ReplicationMonitor {
+public:
+  ReplicationMonitor(std::shared_ptr<ReplicatingBackend> backend,
+                     std::chrono::milliseconds interval, double sample_rate,
+                     size_t max_scan_items = 0);
+  ~ReplicationMonitor();
+
+  void start();
+  void stop();
+
+private:
+  void worker_loop();
+
+  std::shared_ptr<ReplicatingBackend> backend_;
+  std::chrono::milliseconds interval_;
+  double sample_rate_;
+  size_t max_scan_items_;
+  std::thread worker_;
+  std::mutex mu_;
+  std::condition_variable cv_;
+  std::atomic<bool> stopping_{false};
 };
 
 // ---------------------------------------------------------------------------
@@ -157,11 +279,18 @@ public:
   // Replace with real AWS SDK calls when activating.
   std::string put(const std::string & /*data*/,
                   const std::string & /*compression*/ = "off") override;
+  std::string put_stream(std::istream & /*in*/,
+                         const std::string & /*compression*/ = "off") override;
   std::optional<std::string> get(const std::string & /*digest*/) const override;
+  std::unique_ptr<std::istream>
+  get_stream(const std::string & /*digest*/) const override;
+  bool remove(const std::string & /*digest*/) override;
   bool contains(const std::string & /*digest*/) const override;
   std::optional<CasObjectInfo>
   info(const std::string & /*digest*/) const override;
-  std::vector<CasObjectInfo> scan_objects() const override;
+  std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0,
+               const std::string &start_after = "") const override;
   std::size_t size() const override;
   std::string backend_id() const override { return "s3_scaffold"; }
 
