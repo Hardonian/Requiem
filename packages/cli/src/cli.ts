@@ -15,6 +15,7 @@
  * - requiem serve                   Expose decision engine API
  * - requiem backup                  Dump database to JSON
  * - requiem restore                 Restore database from JSON
+ * - requiem import                  Ingest decision logs from CSV
  * - requiem nuke                    Clear database state
  * - requiem init                    Initialize configuration
  * - requiem config <subcommand>     Global configuration
@@ -55,6 +56,7 @@ COMMANDS:
   serve [--port <number>]                           Expose decision engine API
   backup [--file <path>]                            Dump database to JSON
   restore [--file <path>] [--clean]                 Restore database from JSON
+  import <file> [--tenant <id>]                     Ingest decision logs from CSV
   nuke [--force]                                    Clear database state
   init [--tenant <id>] [--force]                    Initialize configuration
   config <subcommand>                               Global configuration
@@ -187,6 +189,12 @@ async function main(): Promise<number> {
     case 'restore': {
       const { restore } = await import('./commands/restore');
       await restore.parseAsync([process.argv[0], process.argv[1], 'restore', ...subArgs]);
+      return 0;
+    }
+
+    case 'import': {
+      const { importCommand } = await import('./commands/import');
+      await importCommand.parseAsync([process.argv[0], process.argv[1], 'import', ...subArgs]);
       return 0;
     }
 
