@@ -266,7 +266,7 @@ importers:
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
       '@prisma/config':
-        specifier: latest
+        specifier: ^7.4.2
         version: 7.4.2
       '@types/js-yaml':
         specifier: ^4.0.9

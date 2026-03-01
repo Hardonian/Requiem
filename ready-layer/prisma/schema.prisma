@@ -54,15 +54,132 @@ model AiCostRecord {
 // ─── Replay Records ───────────────────────────────────────────────────────────
 
 model ReplayRecord {
-  id          String   @id @default(cuid())
-  hash        String   @unique
-  tenantId    String   @map("tenant_id")
-  toolName    String   @map("tool_name")
-  toolVersion String   @map("tool_version")
-  inputHash   String   @map("input_hash")
-  integrity   String
-  createdAt   DateTime @default(now()) @map("created_at")
+  id                   String    @id @default(cuid())
+  hash                 String    @unique
+  tenantId             String    @map("tenant_id")
+  toolName             String    @map("tool_name")
+  toolVersion          String    @map("tool_version")
+  inputHash            String    @map("input_hash")
+  integrity            String
+  createdAt            DateTime  @default(now()) @map("created_at")
+
+  // Microfracture Suite: Run Identity fields
+  runId                String?   @unique @map("run_id")
+  inputFingerprint     String?   @map("input_fingerprint")
+  outputFingerprint    String?   @map("output_fingerprint")
+  executionFingerprint String?   @map("execution_fingerprint")
+  replayVerified       Boolean   @default(false) @map("replay_verified")
+  replayMatchPercent   Int       @default(0) @map("replay_match_percent")
+  policyDecisions      Json?     @map("policy_decisions")
+  graphDigest          String?   @map("graph_digest")
 
   @@index([tenantId, hash])
+  @@index([tenantId, runId])
+  @@index([tenantId, createdAt])
   @@map("replay_records")
+}
+
+// ─── Run Lineage (DAG edges) ──────────────────────────────────────────────────
+
+model RunEdge {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  parentRunId  String   @map("parent_run_id")
+  childRunId   String   @map("child_run_id")
+  reason       String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, parentRunId, childRunId])
+  @@index([tenantId, parentRunId])
+  @@index([tenantId, childRunId])
+  @@map("run_edges")
+}
+
+// ─── Run Diffs (deterministic comparison cache) ─────────────────────────────────
+
+model RunDiff {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  runA        String   @map("run_a")
+  runB        String   @map("run_b")
+  diffJson    Json     @map("diff_json")
+  diffDigest  String   @map("diff_digest")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, runA, runB])
+  @@index([tenantId, runA])
+  @@index([tenantId, runB])
+  @@map("run_diffs")
+}
+
+// ─── Run Policy Simulations ───────────────────────────────────────────────────
+
+model RunPolicySimulation {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  runId      String   @map("run_id")
+  policyName String   @map("policy_name")
+  resultJson Json     @map("result_json")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, runId, policyName])
+  @@index([tenantId, runId])
+  @@map("run_policy_simulations")
+}
+
+// ─── Run Shares (share tokens for runs and diffs) ───────────────────────────────
+
+model RunShare {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  subjectType     String    @map("subject_type")
+  subjectA        String    @map("subject_a")
+  subjectB        String?   @map("subject_b")
+  token           String    @unique
+  tokenHash       String    @unique @map("token_hash")
+  scope           String    // 'public' | 'org'
+  expiresAt       DateTime  @map("expires_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  revokedAt       DateTime? @map("revoked_at")
+  redactionLevel  String    @default("safe") @map("redaction_level")
+
+  @@index([tenantId, subjectType, subjectA])
+  @@index([tenantId, subjectType, subjectA, subjectB])
+  @@index([tokenHash])
+  @@map("run_shares")
+}
+
+// ─── Run Drift Events ───────────────────────────────────────────────────────────
+
+model RunDriftEvent {
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  baselineRunId  String   @map("baseline_run_id")
+  comparedRunId  String   @map("compared_run_id")
+  driftJson      Json     @map("drift_json")
+  severityScore  Int      @default(0) @map("severity_score")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, baselineRunId, comparedRunId])
+  @@index([tenantId, baselineRunId])
+  @@index([tenantId, comparedRunId])
+  @@map("run_drift_events")
+}
+
+// ─── Usage Rollups ──────────────────────────────────────────────────────────────
+
+model UsageRollup {
+  id               String   @id @default(cuid())
+  tenantId         String   @map("tenant_id")
+  periodStart      DateTime @map("period_start")
+  periodEnd        DateTime @map("period_end")
+  runsCount        Int      @default(0) @map("runs_count")
+  replayStorageBytes Int    @default(0) @map("replay_storage_bytes")
+  policyEvalsCount Int      @default(0) @map("policy_evals_count")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, periodStart])
+  @@index([tenantId, periodStart])
+  @@map("usage_rollups")
 }

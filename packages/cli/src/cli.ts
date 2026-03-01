@@ -43,6 +43,17 @@ INSPECTION COMMANDS:
   status                              System health and enforcement state
   telemetry                           Real-time usage stats
 
+MICROFRACTURE SUITE (Proof Surfaces):
+  diff <runA> <runB> [--format]       Deterministic diff between runs
+  lineage <runId> [--depth=N]         Show run ancestry graph
+  simulate <runId> --policy=<name>    Simulate policy evaluation
+  drift --since=<runId> [--window]    Analyze behavior drift over time
+  explain <runId> [--format=md|json]  Generate deterministic explanation
+  usage [--format]                    Show tenant usage summary
+  tenant-check [--format]             Verify tenant isolation
+  chaos --quick [--format]            Run chaos verification checks
+  share <runId> [--ttl] [--scope]     Create shareable proof link
+
 ENTERPRISE COMMANDS:
   decide evaluate --junction <id>     Evaluate a decision for a junction
   decide explain --junction <id>      Explain why a decision was made
@@ -250,6 +261,61 @@ async function main(): Promise<number> {
       const { runDoctor } = await import('./commands/doctor');
       const json = subArgs.includes('--json');
       return await runDoctor({ json });
+    }
+
+    // Microfracture Suite Commands
+    case 'diff': {
+      const { diffCommand } = await import('./commands/microfracture');
+      await diffCommand.parseAsync([process.argv[0], process.argv[1], 'diff', ...subArgs]);
+      return 0;
+    }
+
+    case 'lineage': {
+      const { lineageCommand } = await import('./commands/microfracture');
+      await lineageCommand.parseAsync([process.argv[0], process.argv[1], 'lineage', ...subArgs]);
+      return 0;
+    }
+
+    case 'simulate': {
+      const { simulateCommand } = await import('./commands/microfracture');
+      await simulateCommand.parseAsync([process.argv[0], process.argv[1], 'simulate', ...subArgs]);
+      return 0;
+    }
+
+    case 'drift': {
+      const { driftCommand } = await import('./commands/microfracture');
+      await driftCommand.parseAsync([process.argv[0], process.argv[1], 'drift', ...subArgs]);
+      return 0;
+    }
+
+    case 'explain': {
+      const { explainCommand } = await import('./commands/microfracture');
+      await explainCommand.parseAsync([process.argv[0], process.argv[1], 'explain', ...subArgs]);
+      return 0;
+    }
+
+    case 'usage': {
+      const { usageCommand } = await import('./commands/microfracture');
+      await usageCommand.parseAsync([process.argv[0], process.argv[1], 'usage', ...subArgs]);
+      return 0;
+    }
+
+    case 'tenant-check': {
+      const { tenantCheckCommand } = await import('./commands/microfracture');
+      await tenantCheckCommand.parseAsync([process.argv[0], process.argv[1], 'tenant-check', ...subArgs]);
+      return 0;
+    }
+
+    case 'chaos': {
+      const { chaosCommand } = await import('./commands/microfracture');
+      await chaosCommand.parseAsync([process.argv[0], process.argv[1], 'chaos', ...subArgs]);
+      return 0;
+    }
+
+    case 'share': {
+      const { shareCommand } = await import('./commands/microfracture');
+      await shareCommand.parseAsync([process.argv[0], process.argv[1], 'share', ...subArgs]);
+      return 0;
     }
 
     case 'quickstart': {

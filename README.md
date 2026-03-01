@@ -98,6 +98,95 @@ pnpm exec reach verify <execution-hash>
 pnpm exec reach ui
 ```
 
+---
+
+## Microfracture Suite — Proof Surfaces
+
+The Microfracture Suite provides deterministic analysis, comparison, and verification tools for AI executions.
+
+### 10-Minute Proof Flow
+
+```bash
+# 1. Run a tool
+reach run system.echo "Hello, World!"
+# → Returns run ID: run_abc123...
+
+# 2. Run it again
+reach run system.echo "Hello, World!"
+# → Returns run ID: run_def456...
+
+# 3. Diff the runs
+reach diff run_abc123 run_def456 --format=table
+# → Shows deterministic comparison
+
+# 4. Create a shareable proof card
+reach diff run_abc123 run_def456 --share
+# → Prints share URL for /proof/diff/<token>
+
+# 5. Verify lineage
+reach lineage run_abc123 --depth=5
+# → Shows parent/child relationships
+
+# 6. Check tenant isolation
+reach tenant-check --format=table
+# → Verifies no cross-tenant data leakage
+```
+
+### CLI Commands
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `reach diff <A> <B>` | Deterministic run comparison | `reach diff run1 run2 --card` |
+| `reach lineage <id>` | Show run ancestry | `reach lineage run1 --depth=10` |
+| `reach simulate <id>` | Test policy evaluation | `reach simulate run1 --policy=strict` |
+| `reach drift --since=<id>` | Detect behavior changes | `reach drift --since=run1 --window=50` |
+| `reach explain <id>` | Generate run explanation | `reach explain run1 --format=md` |
+| `reach share <id>` | Create shareable proof link | `reach share run1 --ttl=48h` |
+| `reach usage` | Show tenant usage summary | `reach usage --format=json` |
+| `reach tenant-check` | Verify isolation boundaries | `reach tenant-check` |
+| `reach chaos --quick` | Run verification checks | `reach chaos --quick` |
+
+### Diff Proof Card
+
+The Diff Proof Card is a screenshot-worthy artifact showing:
+- Run A + Run B IDs (shortened)
+- Tenant scope indicator
+- Determinism VERIFIED badge
+- Replay Match percentages
+- Fingerprint summaries (with copy buttons)
+- Top 3 deltas (input/output/policy/graph)
+- First divergence point
+- "Verified by Requiem" footer with timestamp
+
+Access via:
+- CLI: `reach diff <A> <B> --card` → prints local URL
+- CLI: `reach diff <A> <B> --share` → creates share token
+- Web: `/proof/diff/<token>` → public share route
+- Web: `/runs/<id>/diff?with=<id>&card=1` → internal view
+
+### Exit Codes
+
+All commands follow standard exit codes:
+- `0` — Success / Determinism verified
+- `2` — User error (invalid arguments, missing run)
+- `3` — Invariant failure (determinism mismatch, tenant violation)
+- `4` — System error (database, network)
+
+### Web UI Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/runs/[runId]` | Run detail with Proof Panel |
+| `/runs/[runId]/diff?with=[runId]` | Diff comparison view |
+| `/runs/[runId]/lineage` | Lineage DAG visualization |
+| `/runs/[runId]/drift` | Drift timeline |
+| `/runs/[runId]/simulate` | Policy simulation results |
+| `/shares` | Share link management |
+| `/usage` | Usage dashboard |
+| `/tenant-check` | Tenant audit report |
+| `/chaos` | Chaos check results |
+| `/proof/diff/[token]` | Public proof card (shareable) |
+
 > **Two CLIs:** `./build/requiem` (C++ native engine — determinism, CAS, replay, policy) and `pnpm exec reach` (TypeScript control plane — AI decisions, junctions, MCP). See **[CLI Reference](docs/cli.md)**.
 
 ---
