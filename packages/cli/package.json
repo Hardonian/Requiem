@@ -8,8 +8,8 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "requiem": "./dist/cli.js",
-    "reach": "./dist/cli.js"
+    "requiem": "./dist/cli/src/cli.js",
+    "reach": "./dist/cli/src/cli.js"
   },
   "exports": {
     ".": {
@@ -31,7 +31,7 @@
   ],
   "scripts": {
     "build": "tsc && npm run make-executable",
-    "make-executable": "node -e \"const fs=require('fs'); fs.chmodSync('dist/cli.js', 0o755)\"",
+    "make-executable": "node -e \"const fs=require('fs'); fs.chmodSync('dist/cli/src/cli.js', 0o755)\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "verify": "npm run typecheck && npm run lint && npm run build"

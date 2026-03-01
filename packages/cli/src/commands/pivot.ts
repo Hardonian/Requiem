@@ -9,7 +9,6 @@
  */
 
 import { LearningPatchRepository } from '../db/governance';
-import { execSync } from 'child_process';
 import { randomUUID } from 'crypto';
 
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
