@@ -12,9 +12,7 @@
 
 import { Command } from 'commander';
 import { execSync, spawn } from 'child_process';
-import * as path from 'path';
 import * as readline from 'readline';
-import { fileExists } from '../lib/io';
 
 interface QuickstartResult {
   success: boolean;
@@ -201,7 +199,7 @@ function logStep(message: string, isJson: boolean): void {
   }
 }
 
-function success(message: string, isJson: boolean, results: QuickstartResult, stepName: string) {
+function success(message: string, isJson: boolean | undefined, results: QuickstartResult, stepName: string) {
   if (isJson) {
     results.steps.push({ step: stepName, status: 'passed' });
   } else {
@@ -209,7 +207,7 @@ function success(message: string, isJson: boolean, results: QuickstartResult, st
   }
 }
 
-function fail(message: string, isJson: boolean, results: QuickstartResult) {
+function fail(message: string, isJson: boolean | undefined, results: QuickstartResult) {
   if (isJson) {
     results.steps.push({ step: 'error', status: 'failed', error: message });
     results.success = false;

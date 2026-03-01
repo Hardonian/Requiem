@@ -14,7 +14,6 @@ import { getDB } from '../db/connection';
 import {
   computeDiff,
   formatDiffAsTable,
-  formatDiffAsJson,
   getTopDeltas,
   resolveLineage,
   formatLineageAsTree,
@@ -28,7 +27,6 @@ import {
   explainRun,
   formatExplainAsTable,
   formatExplainAsMarkdown,
-  aggregateUsage,
   generateUsageSummary,
   formatUsageAsTable,
   formatUsageAsJson,

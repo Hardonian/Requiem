@@ -12,7 +12,6 @@
  */
 
 import { 
-  LearningSignalRepository, 
   type SignalCategory,
   type LearningSignal 
 } from '../db/governance';
@@ -315,7 +314,18 @@ export interface SignalAnalysis {
  */
 export function analyzeSignals(
   signals: LearningSignal[],
-  skillTriggers: Record<SignalCategory, string[]> = {}
+  skillTriggers: Record<SignalCategory, string[]> = {
+    build_failure: [],
+    drift: [],
+    policy_violation: [],
+    replay_mismatch: [],
+    test_failure: [],
+    schema_gap: [],
+    skill_gap: [],
+    rollback_event: [],
+    cost_spike: [],
+    fairness_violation: [],
+  }
 ): SignalAnalysis {
   const recurringFailures = detectRecurringFailures(signals);
   const skillCoverage = detectSkillCoverage(signals, skillTriggers);

@@ -76,7 +76,7 @@ function getCostModel(): CostModelConfig {
       };
     }
   }
-  return costModelConfig;
+  return costModelConfig!;
 }
 
 // ─── Event Recording ───────────────────────────────────────────────────────────

@@ -39,7 +39,9 @@
     "verify:skills": "node scripts/verify-skills.mjs",
     "verify:schemas": "node scripts/verify-schemas.mjs",
     "verify:economics": "node scripts/verify-economics.mjs",
-    "verify:governance": "npm-run-all verify:skills verify:schemas verify:economics"
+    "verify:governance": "npm-run-all verify:skills verify:schemas verify:economics",
+    "audit": "pnpm audit",
+    "audit:fix": "pnpm audit --fix"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

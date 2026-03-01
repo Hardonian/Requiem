@@ -601,7 +601,7 @@ export const EconomicEventRepository = {
     
     sql += ` ORDER BY created_at DESC`;
     
-    return db.prepare(sql).all(...params) as EconomicEvent[];
+    return db.prepare(sql).all(...params) as unknown as EconomicEvent[];
   },
 
   sumByType(tenantId: string, since?: Date): Record<EventType, { resources: number; costs: number }> {
@@ -673,7 +673,7 @@ export const EconomicRollupRepository = {
       SELECT * FROM economic_rollups 
       WHERE tenant_id = ? 
       ORDER BY period_start DESC
-    `).all(tenantId) as EconomicRollup[];
+    `).all(tenantId) as unknown as EconomicRollup[];
     
     return rows;
   },

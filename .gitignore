@@ -85,3 +85,19 @@ test-results/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Node.js build outputs
+node_modules/
+dist/
+.next/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
