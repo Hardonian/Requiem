@@ -1,8 +1,8 @@
 import { Command } from 'commander';
-import fs from 'fs';
 import path from 'path';
-import { DecisionRepository } from '../db/decisions';
+import { DecisionRepository, type CreateDecisionInput } from '../db/decisions';
 import { hash } from '../lib/hash';
+import { readTextFile, fileExists } from '../lib/io';
 
 export const importCommand = new Command('import')
   .description('Ingest decision logs from an external CSV file')
@@ -10,13 +10,13 @@ export const importCommand = new Command('import')
   .option('--tenant <id>', 'Default tenant ID if missing in CSV')
   .action((file: string, options: { tenant?: string }) => {
     const filePath = path.resolve(process.cwd(), file);
-    if (!fs.existsSync(filePath)) {
+    if (!fileExists(filePath)) {
       console.error(`❌ File not found: ${filePath}`);
       process.exit(1);
     }
 
     console.log(`📖 Reading ${filePath}...`);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = readTextFile(filePath);
     const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
 
     if (lines.length < 2) {
@@ -46,17 +46,19 @@ export const importCommand = new Command('import')
         const input = tryParse(row['decision_input'] || '{}');
         const output = tryParse(row['decision_output'] || '{}');
 
-        DecisionRepository.create({
+        const decisionData: CreateDecisionInput = {
           tenant_id: tenantId,
           source_type: row['source_type'] || 'csv_import',
           source_ref: row['source_ref'] || 'unknown',
           input_fingerprint: row['input_fingerprint'] || hash(JSON.stringify(input)),
           decision_input: input,
           decision_output: output,
-          status: (row['status'] as any) || 'evaluated',
+          status: (row['status'] as CreateDecisionInput['status']) || 'evaluated',
           execution_latency: row['execution_latency'] ? parseFloat(row['execution_latency']) : undefined,
-          outcome_status: (row['outcome_status'] as any) || null
-        });
+          outcome_status: (row['outcome_status'] as CreateDecisionInput['outcome_status']) || null
+        };
+
+        DecisionRepository.create(decisionData);
         success++;
       } catch (e) {
         failed++;

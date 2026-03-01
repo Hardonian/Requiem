@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import fs from 'fs';
 import path from 'path';
 import { getDB } from '../db/connection';
+import { readJsonFile, fileExists } from '../lib/io';
 
 export const restore = new Command('restore')
   .description('Restore database from JSON backup')
@@ -11,7 +11,7 @@ export const restore = new Command('restore')
     const db = getDB();
     const inputPath = path.resolve(process.cwd(), options.file);
 
-    if (!fs.existsSync(inputPath)) {
+    if (!fileExists(inputPath)) {
       console.error(`❌ Backup file not found: ${inputPath}`);
       process.exit(1);
     }
@@ -19,12 +19,13 @@ export const restore = new Command('restore')
     console.log(`📦 Restoring from ${inputPath}...`);
 
     try {
-      const content = fs.readFileSync(inputPath, 'utf-8');
-      const dump = JSON.parse(content);
+      const dump = readJsonFile<Record<string, any[]>>(inputPath);
+      if (!dump) throw new Error('Failed to parse backup file');
+
       const tables = ['decisions', 'junctions', 'action_intents'];
 
       if (options.clean) {
-        console.log('   🧹 Clearing existing data...');
+        console.log('   净 Clearing existing data...');
         for (const table of tables) {
           db.prepare(`DELETE FROM ${table}`).run();
         }
@@ -48,7 +49,7 @@ export const restore = new Command('restore')
               const placeholders = keys.map(() => '?').join(', ');
 
               const stmt = db.prepare(`INSERT INTO ${table} (${cols}) VALUES (${placeholders})`);
-              stmt.run(row);
+              stmt.run(Object.values(row)); // Use values because we used ? placeholders
               success++;
             } catch (e) {
               fail++;

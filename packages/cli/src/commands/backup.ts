@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import fs from 'fs';
 import path from 'path';
 import { getDB } from '../db/connection';
+import { writeJsonFile } from '../lib/io';
 
 export const backup = new Command('backup')
   .description('Dump database to JSON file')
@@ -25,6 +25,6 @@ export const backup = new Command('backup')
     }
 
     const outputPath = path.resolve(process.cwd(), options.file);
-    fs.writeFileSync(outputPath, JSON.stringify(dump, null, 2));
+    writeJsonFile(outputPath, dump);
     console.log(`✅ Backup saved to: ${outputPath}`);
   });
