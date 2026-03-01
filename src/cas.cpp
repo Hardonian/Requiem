@@ -31,6 +31,7 @@
 #endif
 
 #include "requiem/hash.hpp"
+#include "requiem/jsonlite.hpp"
 
 namespace fs = std::filesystem;
 
@@ -136,35 +137,18 @@ void CasStore::load_index() const {
       if (line.empty())
         continue;
 
-      // REQUIEM_UPGRADE: Ad-hoc parsing for speed.
-      // In a full implementation, use jsonlite::parse().
-      auto find_in = [&](const std::string &l,
-                         std::string_view k) -> std::string {
-        auto p = l.find(k);
-        if (p == std::string::npos)
-          return {};
-        auto start = l.find(':', p);
-        if (start == std::string::npos)
-          return {};
-        if (l[start + 1] == '"') {
-          auto end = l.find('"', start + 2);
-          return l.substr(start + 2, end - start - 2);
-        } else {
-          auto end = l.find_first_of(",}", start + 1);
-          return l.substr(start + 1, end - start - 1);
-        }
-      };
+      std::optional<jsonlite::JsonError> err;
+      auto obj = jsonlite::parse(line, &err);
+      if (err)
+        continue;
 
       CasObjectInfo inf;
-      inf.digest = find_in(line, "\"digest\"");
-      inf.encoding = find_in(line, "\"encoding\"");
-      inf.stored_blob_hash = find_in(line, "\"stored_blob_hash\"");
-      try {
-        inf.original_size = std::stoull(find_in(line, "\"original_size\""));
-        inf.stored_size = std::stoull(find_in(line, "\"stored_size\""));
-        inf.created_at_unix_ts = std::stoull(find_in(line, "\"created_at\""));
-      } catch (...) {
-      }
+      inf.digest = jsonlite::get_string(obj, "digest", "");
+      inf.encoding = jsonlite::get_string(obj, "encoding", "identity");
+      inf.stored_blob_hash = jsonlite::get_string(obj, "stored_blob_hash", "");
+      inf.original_size = jsonlite::get_u64(obj, "original_size", 0);
+      inf.stored_size = jsonlite::get_u64(obj, "stored_size", 0);
+      inf.created_at_unix_ts = jsonlite::get_u64(obj, "created_at", 0);
 
       if (!inf.digest.empty())
         index_[inf.digest] = std::move(inf);
