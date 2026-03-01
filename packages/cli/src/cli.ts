@@ -7,6 +7,7 @@
  * Commands:
  * - requiem tool <subcommand>       AI tool registry operations
  * - requiem replay <hash>           Replay audit record lookup
+ * - requiem trace <id>              Visualize decision trace
  * - requiem decide <subcommand>     Decision engine operations
  * - requiem junctions <subcommand>  Junction management
  * - requiem agent <subcommand>      AI Agent orchestration (MCP)
@@ -22,7 +23,6 @@ import { parseDecideArgs, runDecideCommand } from './commands/decide';
 import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
 import { parseAgentArgs, runAgentCommand } from './commands/agent';
 import { parseAiArgs, runAiCommand } from './commands/ai';
-import { checkEngineAvailability } from './engine/adapter';
 
 const VERSION = '0.2.0';
 
@@ -37,6 +37,7 @@ COMMANDS:
   tool list [--json] [--capability <cap>]           List registered tools
   tool exec <name> [--input <json>] [--tenant <id>] Execute a tool
   replay <hash> [--tenant <id>] [--json]            Fetch a replay record
+  trace <id> [--json]                               Visualize decision trace
   decide <subcommand>                               Decision engine operations
   junctions <subcommand>                            Junction management
   agent <subcommand>                                AI Agent orchestration
@@ -91,31 +92,6 @@ function printVersion(): void {
   console.log(`Requiem CLI v${VERSION}`);
 }
 
-async function runDoctor(args: string[]): Promise<number> {
-  const json = args.includes('--json');
-
-  // Lazy load tool commands to keep startup fast
-  const { runDoctorFull } = await import('./commands/tool');
-  const engineCheck = await checkEngineAvailability();
-
-  const engineResult = {
-    check: 'decision_engine',
-    status: engineCheck.available ? 'ok' : 'fail',
-    message: engineCheck.available
-      ? `Engine available: ${engineCheck.engineType}`
-      : `Engine not available: ${engineCheck.error}`,
-  };
-
-  const code = await runDoctorFull({ json });
-
-  if (!json) {
-    const icon = engineResult.status === 'ok' ? '✓' : '✗';
-    console.log(`${icon} ${engineResult.check.padEnd(30)} ${engineResult.message}`);
-  }
-
-  return code;
-}
-
 async function main(): Promise<number> {
   const args = process.argv.slice(2);
 
@@ -147,8 +123,15 @@ async function main(): Promise<number> {
     }
 
     case 'replay': {
-      const { parseReplayArgs, runReplay } = await import('./commands/tool');
-      return await runReplay(parseReplayArgs(subArgs));
+      const { replay } = await import('./commands/replay');
+      await replay.parseAsync([process.argv[0], process.argv[1], 'replay', ...subArgs]);
+      return 0;
+    }
+
+    case 'trace': {
+      const { trace } = await import('./commands/trace');
+      await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
+      return 0;
     }
 
     case 'decide': {
@@ -189,8 +172,11 @@ async function main(): Promise<number> {
       return 0;
     }
 
-    case 'doctor':
-      return await runDoctor(subArgs);
+    case 'doctor': {
+      const { runDoctor } = await import('./commands/doctor');
+      const json = subArgs.includes('--json');
+      return await runDoctor({ json });
+    }
 
     case 'version':
     case '--version':

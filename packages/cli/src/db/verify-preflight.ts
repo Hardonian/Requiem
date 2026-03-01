@@ -4,10 +4,11 @@
  *
  * Verifies:
  * 1. 'replay' command is discoverable and has required subcommands.
- * 2. Database schema supports the 'usage' column.
+ * 2. atabase schema supports the 'usage' column.
  */
 
 import { replay } from '../commands/replay';
+import { trace } from '../commands/trace';
 import { getDB } from './connection';
 import { randomBytes } from 'crypto';
 import type { Command, Option } from 'commander';
@@ -33,9 +34,17 @@ async function main() {
     passed = false;
   }
 
-  // --- Check 2: Database Schema ---
+
+    console.log('\n[2] Checking "trace" command registration...');
+    if
+  } catch (e) {
+    console.error(`  ✗ CLI Check Failed: ${(e as Error).message}`);
+    passed = false;
+  }
+
+  // --- Check 3: Database Schema ---
   try {
-    console.log('\n[2] Checking database schema for "usage" column...');
+    console.log('\n[3] Checking database schema for "usage" column...');
     const db = getDB();
     const testId = `preflight_${randomBytes(4).toString('hex')}`;
     const testUsage = JSON.stringify({ prompt_tokens: 10, completion_tokens: 20, cost_usd: 0.001 });
