@@ -15,7 +15,9 @@ registerTool(
     version: '1.0.0',
     description: 'Returns the input payload unchanged. Used for testing and smoke checks.',
     inputSchema: z.object({
-      payload: z.any().describe('Any JSON value to echo back'),
+      // z.unknown() + refine ensures the key must be explicitly provided
+      // (z.any() silently accepts undefined, which would bypass required-field checks)
+      payload: z.unknown().refine(v => v !== undefined, { message: 'payload is required' }).describe('Any JSON value to echo back'),
     }),
     outputSchema: z.object({
       payload: z.any().describe('The echoed payload'),

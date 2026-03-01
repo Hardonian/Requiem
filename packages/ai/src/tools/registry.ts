@@ -155,8 +155,8 @@ async function defaultPolicyGate(
  */
 const tenantRegistries = new Map<string, Map<string, RegisteredTool>>();
 
-/** Default tenant ID for system-wide tools. */
-const SYSTEM_TENANT = 'system';
+/** Default tenant ID for system-wide tools. Exported for executor fallback lookup. */
+export const SYSTEM_TENANT = 'system';
 
 /**
  * Gets or creates a registry for a specific tenant.

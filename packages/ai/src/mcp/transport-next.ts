@@ -42,14 +42,18 @@ export type AuthStatus = typeof AUTH_STATUS;
 /**
  * Validate that required auth secrets are configured.
  *
- * In production (`NODE_ENV=production`) the absence of `REQUIEM_JWT_SECRET`
- * is a hard startup error — the process will throw immediately rather than
- * silently accepting unauthenticated requests.
+ * In production (`NODE_ENV=production`) at runtime the absence of
+ * `REQUIEM_JWT_SECRET` is a hard error — the handler throws immediately
+ * rather than silently accepting unauthenticated requests.
+ *
+ * During Next.js build phases (`NEXT_PHASE=phase-production-build`)
+ * the check is downgraded to a warning because secrets are runtime-only
+ * and must not be embedded in build artefacts.
  *
  * In non-production environments a prominent warning is logged but execution
  * continues (useful for local development and CI).
  *
- * @throws {Error} In production when REQUIEM_JWT_SECRET is not set.
+ * @throws {Error} In production at runtime when REQUIEM_JWT_SECRET is not set.
  */
 function assertAuthConfigured(): void {
   const secret = process.env.REQUIEM_JWT_SECRET ?? process.env.REQUIEM_AUTH_SECRET;
@@ -57,7 +61,11 @@ function assertAuthConfigured(): void {
     const msg =
       '[SECURITY] REQUIEM_JWT_SECRET is not set. ' +
       'Set this environment variable to a strong secret before accepting traffic.';
-    if (process.env.NODE_ENV === 'production') {
+    // NEXT_PHASE is set by Next.js during build; secrets are runtime-only.
+    const isDuringBuild =
+      process.env.NEXT_PHASE === 'phase-production-build' ||
+      process.env.NEXT_PHASE === 'phase-export';
+    if (process.env.NODE_ENV === 'production' && !isDuringBuild) {
       throw new Error(
         `[FATAL] ${msg} Refusing to start in production without a JWT secret.`
       );
@@ -67,6 +75,8 @@ function assertAuthConfigured(): void {
 }
 
 // Run the check at module load time so production containers fail fast.
+// NOTE: During `next build` the NEXT_PHASE env var prevents a hard throw
+// (secrets are runtime-only and must not be baked into build artefacts).
 assertAuthConfigured();
 
 // ─── JWT Claims ───────────────────────────────────────────────────────────────

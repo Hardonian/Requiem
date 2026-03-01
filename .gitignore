@@ -71,6 +71,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Committed-by-mistake artifact files (never check these in)
+lint_output.txt
+tsc_errors.txt
+full_errors.txt
+errors.txt
+
+# Generated manifests
+routes.manifest.json
+
 # AI runtime data (dev file stores — not for version control)
 .data/
 

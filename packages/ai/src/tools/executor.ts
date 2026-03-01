@@ -13,7 +13,7 @@
  */
 
 import { createHash } from 'crypto';
-import { getTool } from './registry';
+import { getTool, SYSTEM_TENANT } from './registry';
 import { validateInputOrThrow, validateOutputOrThrow } from './schema';
 import { evaluatePolicyWithBudget } from '../policy/gate';
 import { AiError } from '../errors/AiError';
@@ -93,7 +93,11 @@ export async function executeToolEnvelope(
 
     try {
       // ── 2. Tool lookup ──────────────────────────────────────────────────────
-      const registered = getTool(toolName, tenantId, opts?.version);
+      // First look in the tenant's own registry, then fall back to the system
+      // registry where built-in (tenantScoped: false) tools live.
+      const registered =
+        getTool(toolName, tenantId, opts?.version) ??
+        (tenantId !== SYSTEM_TENANT ? getTool(toolName, SYSTEM_TENANT, opts?.version) : undefined);
       if (!registered) {
         await _denyAudit(toolName, opts?.version ?? 'unknown', ctx, startMs, 'Tool not found');
         throw AiError.toolNotFound(toolName);
