@@ -12,6 +12,7 @@ import { AiError } from '../errors/AiError';
 import { AiErrorCode } from '../errors/codes';
 import { now } from '../types/index';
 import type { InvocationContext } from '../types/index';
+import type { ToolDefinition } from './types';
 
 // #region: Context Types
 
@@ -240,6 +241,15 @@ export function getToolVersion(name: string, tenantId: string = SYSTEM_TENANT): 
 export function getToolDigest(name: string, tenantId: string = SYSTEM_TENANT): string | undefined {
   const tool = getTool(name, tenantId);
   return tool?.definition.digest;
+}
+
+/**
+ * Gets the tool definition for a registered tool.
+ * @returns ToolDefinition or undefined if tool not found
+ */
+export function getToolDefinition(name: string, tenantId: string = SYSTEM_TENANT): ToolDefinition | undefined {
+  const tool = getTool(name, tenantId);
+  return tool?.definition;
 }
 
 /**

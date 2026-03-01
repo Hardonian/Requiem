@@ -12,3 +12,17 @@ export type {
   McpError,
   McpRequest,
 } from './types';
+
+// Policy enforcement at MCP entry point
+export { McpPolicyEnforcer, getPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer';
+
+// Correlation ID management
+export {
+  CorrelationManager,
+  attachCorrelationToContext,
+  formatCorrelationForLog,
+  extractCorrelationAuditData,
+  CORRELATION_ID_HEADER,
+  TRACEPARENT_HEADER,
+  type RequestContext,
+} from './correlation';
