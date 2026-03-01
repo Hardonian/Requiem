@@ -67,6 +67,8 @@ export const ToolDefinitionSchema = z.object({
   cost: ToolCostSchema.optional(),
   requiredCapabilities: z.array(z.string()).default([]),
   tenantScoped: z.boolean().default(true),
+  digest: z.string().optional(),
+  outputMaxBytes: z.number().positive().optional(),
 });
 
 /**
@@ -223,6 +225,29 @@ export function getTool(name: string, tenantId: string = SYSTEM_TENANT, version?
 }
 
 /**
+ * Gets the version of a registered tool.
+ * @returns Version string or undefined if tool not found
+ */
+export function getToolVersion(name: string, tenantId: string = SYSTEM_TENANT): string | undefined {
+  const tool = getTool(name, tenantId);
+  return tool?.definition.version;
+}
+
+/**
+ * Gets the digest (BLAKE3 hash) of a registered tool.
+ * @returns Digest string or undefined if tool not found or no digest set
+ */
+export function getToolDigest(name: string, tenantId: string = SYSTEM_TENANT): string | undefined {
+  const tool = getTool(name, tenantId);
+  return tool?.definition.digest;
+}
+
+/**
+ * Default maximum output size in bytes (1MB)
+ */
+export const DEFAULT_OUTPUT_MAX_BYTES = 1024 * 1024;
+
+/**
  * Lists all registered tools for a specific tenant, with optional filtering.
  */
 export function listTools(tenantId: string = SYSTEM_TENANT, filter?: ListToolsFilter): ToolDefinition[] {
@@ -338,6 +363,78 @@ export async function invokeTool(
       },
       latencyMs: Date.now() - startTime,
     };
+  }
+}
+
+/**
+ * Validates input against tool's input schema.
+ * @returns ValidationResult with errors if validation fails
+ */
+export function validateToolSchema(
+  tool: ToolDefinition,
+  input: unknown
+): { valid: boolean; errors: Array<{ path: string; message: string }> } {
+  const errors: Array<{ path: string; message: string }> = [];
+  
+  if (!tool.inputSchema) {
+    return { valid: true, errors: [] };
+  }
+  
+  try {
+    // Try to parse with Zod if it's a Zod schema
+    if (typeof tool.inputSchema === 'object' && 'parse' in tool.inputSchema) {
+      (tool.inputSchema as { parse: (input: unknown) => unknown }).parse(input);
+    } else if (typeof tool.inputSchema === 'object') {
+      // Basic JSON Schema validation (simplified)
+      validateJsonSchema(tool.inputSchema as Record<string, unknown>, input, '', errors);
+    }
+  } catch (e) {
+    errors.push({ path: '', message: e instanceof Error ? e.message : 'Validation failed' });
+  }
+  
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * Basic JSON Schema validation (simplified subset)
+ */
+function validateJsonSchema(
+  schema: Record<string, unknown>,
+  value: unknown,
+  path: string,
+  errors: Array<{ path: string; message: string }>
+): void {
+  if (value === undefined && schema.required?.includes(path.split('.').pop() ?? '')) {
+    errors.push({ path, message: 'Value is required' });
+    return;
+  }
+  
+  if (value === null && schema.nullable !== true && schema.type !== 'null') {
+    // null is allowed if not explicitly forbidden
+  }
+  
+  if (schema.type && typeof value !== schema.type) {
+    errors.push({ path, message: `Expected type ${schema.type}, got ${typeof value}` });
+  }
+  
+  if (schema.minLength !== undefined && typeof value === 'string' && value.length < schema.minLength) {
+    errors.push({ path, message: `String length must be at least ${schema.minLength}` });
+  }
+  
+  if (schema.maxLength !== undefined && typeof value === 'string' && value.length > schema.maxLength) {
+    errors.push({ path, message: `String length must be at most ${schema.maxLength}` });
+  }
+  
+  if (schema.minimum !== undefined && typeof value === 'number' && value < schema.minimum) {
+    errors.push({ path, message: `Value must be at least ${schema.minimum}` });
+  }
+  
+  if (schema.maximum !== undefined && typeof value === 'number' && value > schema.maximum) {
+    errors.push({ path, message: `Value must be at most ${schema.maximum}` });
+  }
+  
+  if (schema.enum !== undefined && !schema.enum.includes(value)) {
+    errors.push({ path, message: `Value must be one of: ${schema.enum.join(', ')}` });
   }
 }
 

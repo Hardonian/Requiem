@@ -18,7 +18,7 @@ export { AiErrorCode, AiErrorSeverity, aiErrorToHttpStatus } from './errors/code
 export { errorEnvelope, successEnvelope } from './errors/index';
 
 // ─── Tools ────────────────────────────────────────────────────────────────────
-export { registerTool, getTool, listTools, getToolCount, _clearRegistry } from './tools/registry';
+export { registerTool, getTool, listTools, getToolCount, _clearRegistry, getToolVersion, getToolDigest, isToolDeterministic, isToolIdempotent, validateToolSchema, DEFAULT_OUTPUT_MAX_BYTES } from './tools/registry';
 export { invokeToolWithPolicy } from './tools/invoke';
 export { validateInput, validateOutput, validateInputOrThrow, validateOutputOrThrow } from './tools/schema';
 export type { ToolDefinition, ToolHandler, RegisteredTool, ToolInvocationResult, JsonSchema } from './tools/types';
@@ -64,6 +64,7 @@ export type { McpToolDescriptor, McpListToolsResponse, McpCallToolResponse, McpH
 // ─── Skills ───────────────────────────────────────────────────────────────────
 export { registerSkill, getSkill, listSkills, getSkillCount } from './skills/registry';
 export { runSkill, validateSkillContext, type SkillContext } from './skills/runner';
+export { OutputSizeLimiter, getOutputLimiter, setOutputLimiter, parseTriggerDataWithLimit, DEFAULT_OUTPUT_MAX_BYTES, DEFAULT_TRIGGER_DATA_MAX_BYTES, type OutputSizeCheckResult, type OutputLimiterConfig } from './skills/outputLimiter';
 export type { SkillDefinition, SkillStep, StepResult, SkillRunResult } from './skills/types';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
@@ -91,6 +92,7 @@ export { storeMemoryItem, getMemoryItem, listMemoryItems, setMemoryStore, getMem
 export { hashContent, normalizeForHashing, verifyHash } from './memory/hashing';
 export { redactObject, redactString } from './memory/redaction';
 export { setVectorStore, getVectorStore, type VectorStore } from './memory/vectorPointers';
+export { ReplayCache, getReplayCache, setReplayCache, isCacheable, createReplayKey, type CachedToolResult, type ReplayCacheLookup, type ReplayCacheConfig } from './memory/replayCache';
 export type { MemoryItem, MemoryItemMetadata } from './memory/store';
 
 // ─── Telemetry ────────────────────────────────────────────────────────────────

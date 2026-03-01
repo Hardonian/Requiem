@@ -1,0 +1,74 @@
+{
+  "$schema": "./policy.schema.json",
+  "name": "default",
+  "version": "1.0.0",
+  "description": "Default policy configuration for Requiem MCP server",
+  "enforcedAt": "mcp-entry",
+  "rules": {
+    "allowList": {
+      "enabled": true,
+      "tools": []
+    },
+    "denyList": {
+      "enabled": true,
+      "tools": ["eval", "exec", "run_shell", "sudo", "root"],
+      "patterns": [
+        ".*eval.*",
+        ".*exec.*",
+        ".*__import__.*"
+      ]
+    },
+    "rateLimit": {
+      "enabled": true,
+      "maxRequestsPerMinute": 100,
+      "maxTokensPerMinute": 10000
+    },
+    "budget": {
+      "enabled": true,
+      "defaultLimitCents": 1000,
+      "warnThresholdPercent": 80
+    },
+    "capabilities": {
+      "enabled": true,
+      "requiredForTools": ["write", "delete", "admin"]
+    },
+    "ssrfProtection": {
+      "enabled": true,
+      "blockedDomains": ["localhost", "127.0.0.1", "0.0.0.0", "*.local", "169.254.169.254"],
+      "blockedIPs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+    },
+    "promptInjection": {
+      "enabled": true,
+      "blocklist": [
+        "ignore previous instructions",
+        "ignore all previous instructions",
+        "you are now",
+        "from now on",
+        "ANSWER:",
+        "<|user|>",
+        "<|system|>",
+        "### Instruction",
+        "### User",
+        "deviate from",
+        "disregard your",
+        "new system prompt",
+        "override your"
+      ],
+      " quarantineThreshold": 3
+    },
+    "outputFiltering": {
+      "enabled": true,
+      "maxOutputSizeBytes": 2097152,
+      "redactPatterns": [
+        "(api_key|secret|password|token)=[^&\\s]+",
+        "Bearer [A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+"
+      ]
+    }
+  },
+  "metadata": {
+    "createdAt": "2026-03-01T00:00:00.000Z",
+    "updatedAt": "2026-03-01T00:00:00.000Z",
+    "author": "requiem-core",
+    "auditEnabled": true
+  }
+}

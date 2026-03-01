@@ -50,6 +50,7 @@ export enum AiErrorCode {
 
   // ── Policy / Auth ─────────────────────────────────────────────────────────
   POLICY_DENIED = 'AI_POLICY_DENIED',
+  POLICY_CHECK_FAILED = 'AI_POLICY_CHECK_FAILED',
   TENANT_REQUIRED = 'AI_TENANT_REQUIRED',
   TENANT_MISMATCH = 'AI_TENANT_MISMATCH',
   UNAUTHORIZED = 'AI_UNAUTHORIZED',
@@ -117,6 +118,7 @@ export const AI_ERROR_HTTP_STATUS: Partial<Record<AiErrorCode, number>> = {
   [AiErrorCode.TENANT_REQUIRED]: 401,
   [AiErrorCode.FORBIDDEN]: 403,
   [AiErrorCode.POLICY_DENIED]: 403,
+  [AiErrorCode.POLICY_CHECK_FAILED]: 403,
   [AiErrorCode.CAPABILITY_MISSING]: 403,
   [AiErrorCode.BUDGET_EXCEEDED]: 402,
   [AiErrorCode.TOOL_NOT_FOUND]: 404,
