@@ -1,0 +1,36 @@
+../ai/src/mcp/policyEnforcer.ts(15,1): error TS6133: 'AiError' is declared but its value is never read.
+../ai/src/mcp/policyEnforcer.ts(16,1): error TS6133: 'AiErrorCode' is declared but its value is never read.
+../ai/src/mcp/policyEnforcer.ts(154,11): error TS6133: 'getDevPolicy' is declared but its value is never read.
+../ai/src/mcp/policyEnforcer.ts(203,5): error TS6133: 'ctx' is declared but its value is never read.
+../ai/src/mcp/policyEnforcer.ts(318,5): error TS6133: 'toolDef' is declared but its value is never read.
+../ai/src/mcp/policyEnforcer.ts(319,5): error TS6133: 'rule' is declared but its value is never read.
+../ai/src/mcp/policyEnforcer.ts(343,5): error TS6133: 'toolDef' is declared but its value is never read.
+../ai/src/mcp/server.ts(75,9): error TS2353: Object literal may only specify known properties, and 'request_count' does not exist in type 'McpHealthResponse'.
+../ai/src/mcp/transport-next.ts(29,30): error TS6133: 'attachCorrelationToContext' is declared but its value is never read.
+../ai/src/mcp/transport-next.ts(29,58): error TS6133: 'CORRELATION_ID_HEADER' is declared but its value is never read.
+../ai/src/mcp/transport-next.ts(29,81): error TS6133: 'TRACEPARENT_HEADER' is declared but its value is never read.
+../ai/src/memory/hashing.ts(14,27): error TS2307: Cannot find module 'blake3' or its corresponding type declarations.
+../ai/src/memory/replayCache.ts(16,1): error TS6133: 'AiErrorCode' is declared but its value is never read.
+../ai/src/policy/budgets.ts(712,11): error TS6133: 'clock' is declared but its value is never read.
+../ai/src/policy/guardrails.ts(150,81): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Capability'.
+../ai/src/policy/guardrails.ts(170,11): error TS6133: 'ctx' is declared but its value is never read.
+../ai/src/skills/outputLimiter.ts(140,7): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+../ai/src/skills/outputLimiter.ts(160,7): error TS2353: Object literal may only specify known properties, and 'details' does not exist in type 'AiErrorOptions'.
+../ai/src/skills/outputLimiter.ts(278,7): error TS2353: Object literal may only specify known properties, and 'details' does not exist in type 'AiErrorOptions'.
+../ai/src/skills/registry.ts(7,1): error TS6133: 'now' is declared but its value is never read.
+../ai/src/skills/runner.ts(51,12): error TS2551: Property 'tenantId' does not exist on type 'InvocationContext'. Did you mean 'tenant'?
+../ai/src/skills/runner.ts(59,19): error TS2551: Property 'tenantId' does not exist on type 'InvocationContext'. Did you mean 'tenant'?
+../ai/src/skills/runner.ts(60,14): error TS2352: Conversion of type 'InvocationContext' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'InvocationContext'.
+../ai/src/skills/runner.ts(90,56): error TS2551: Property 'tenantId' does not exist on type 'InvocationContext'. Did you mean 'tenant'?
+../ai/src/telemetry/cost.ts(311,37): error TS6133: 'tenantId' is declared but its value is never read.
+../ai/src/tools/builtins/web.fetch.ts(22,7): error TS6133: 'MAX_REDIRECTS' is declared but its value is never read.
+../ai/src/tools/registry.ts(15,33): error TS6196: 'IToolDefinition' is declared but never used.
+src/db/connection.ts(309,11): error TS6133: 'db' is declared but its value is never read.
+src/lib/tools.ts(42,34): error TS6133: 'tenantId' is declared but its value is never read.
+src/lib/tools.ts(47,25): error TS6133: 'tenantId' is declared but its value is never read.
+src/lib/tools.ts(135,16): error TS6133: 'recordBudgetUsage' is declared but its value is never read.
+src/run-doctor.ts(2,27): error TS2307: Cannot find module './db/doctor' or its corresponding type declarations.
+src/verify-dashboard.ts(33,30): error TS6133: 'data' is declared but its value is never read.
+src/verify-init.ts(3,28): error TS2307: Cannot find module './lib/global-config' or its corresponding type declarations.
+src/verify-serve.ts(32,30): error TS6133: 'data' is declared but its value is never read.

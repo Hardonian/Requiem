@@ -14,7 +14,7 @@ export type {
 } from './types';
 
 // Policy enforcement at MCP entry point
-export { McpPolicyEnforcer, getPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer';
+export { McpPolicyEnforcer, getPolicyEnforcer, getPolicyEnforcerAsync, resetPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer';
 
 // Correlation ID management
 export {

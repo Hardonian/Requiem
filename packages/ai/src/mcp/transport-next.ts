@@ -26,7 +26,7 @@ import { newId, now } from '../types/index';
 import { TenantRole } from '../types/index';
 import { getRateLimiter } from './rateLimit';
 import type { InvocationContext, TenantContext } from '../types/index';
-import { CorrelationManager, attachCorrelationToContext, CORRELATION_ID_HEADER, TRACEPARENT_HEADER } from './correlation';
+import { CorrelationManager } from './correlation';
 
 // ─── Auth Status ──────────────────────────────────────────────────────────────
 

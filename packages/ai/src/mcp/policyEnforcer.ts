@@ -12,8 +12,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
 import type { InvocationContext } from '../types/index';
 import type { RequestContext } from './correlation';
 import type { ToolDefinition } from '../tools/types';
@@ -441,11 +439,11 @@ export async function getPolicyEnforcerAsync(): Promise<McpPolicyEnforcer> {
     const instance = new McpPolicyEnforcer();
     instance.loadPolicy();
     policyEnforcerInstance = instance;
-    
+
     if (policyEnforcerResolve) {
       policyEnforcerResolve(instance);
     }
-    
+
     return instance;
   } catch (error) {
     // Reset promise on failure so retries can work
