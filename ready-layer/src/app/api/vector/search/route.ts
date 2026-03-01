@@ -40,11 +40,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTenantAuth, authErrorResponse } from '@/lib/auth';
-import { 
+import {
   vectorSearch,
-  generateEmbedding, 
+  generateEmbedding,
   logQuery,
   DEFAULT_VECTOR_SEARCH_CONFIG,
+  VectorSearchResult,
 } from '@/lib/vector-search';
 
 // Maximum allowed limit to prevent abuse
@@ -67,8 +68,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
     const body = await req.json();
-    const { 
-      query, 
+    const {
+      query,
       index_key = DEFAULT_VECTOR_SEARCH_CONFIG.index_key,
       limit = DEFAULT_LIMIT,
       min_similarity = DEFAULT_VECTOR_SEARCH_CONFIG.min_similarity,
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
 
     // Log the query for observability
-    const returnedDocIds = results.map(r => r.document_id);
+    const returnedDocIds = (results as VectorSearchResult[]).map(r => r.document_id);
     logQuery(
       tenant.tenant_id,
       'system', // Would be extracted from auth in production
@@ -122,14 +123,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Check for specific error types
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    
+
     // Return 503 if vector search is not configured
     if (errorMessage.includes('not configured') || errorMessage.includes('Supabase')) {
       return NextResponse.json(
-        { 
-          ok: false, 
-          error: 'vector_search_unavailable', 
-          message: 'Vector search is not configured. Please set up Supabase credentials.' 
+        {
+          ok: false,
+          error: 'vector_search_unavailable',
+          message: 'Vector search is not configured. Please set up Supabase credentials.'
         },
         { status: 503 }
       );
@@ -137,10 +138,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Return 500 for other errors (but not a hard 500)
     return NextResponse.json(
-      { 
-        ok: false, 
-        error: 'search_failed', 
-        message: 'An error occurred while searching. Please try again later.' 
+      {
+        ok: false,
+        error: 'search_failed',
+        message: 'An error occurred while searching. Please try again later.'
       },
       { status: 500 }
     );

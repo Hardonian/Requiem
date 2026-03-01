@@ -70,7 +70,6 @@ function unifiedDiff(oldLines: string[], newLines: string[], oldPath: string, ne
   }
   flushHunk();
 
-  void hunks; // unused var
   return result.join('\n');
 }
 
@@ -117,7 +116,7 @@ registerTool(
       },
     },
   },
-  async (_ctx, input) => {
+  async (_ctx, input: any) => {
     const { path_a, path_b, content_b } = input as {
       path_a: string;
       path_b?: string;
