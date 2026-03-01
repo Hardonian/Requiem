@@ -167,7 +167,7 @@ export const denyDangerousTools: GuardrailRule = {
   id: 'GR_DENY_001',
   description: 'Deny known dangerous tool combinations',
   priority: 50, // High priority - checked first
-  check: (ctx, tool) => {
+  check: (_ctx, tool) => {
     // Example: Block tools that could execute arbitrary code
     const dangerousPatterns = ['eval', 'exec', 'run_shell'];
     const isDangerous = dangerousPatterns.some(p =>

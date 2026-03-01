@@ -68,7 +68,7 @@ export interface BudgetChecker {
 
 /**
  * DefaultBudgetChecker enforces budget limits based on tenant tier.
- * 
+ *
  * INVARIANT: Returns DENY by default when no explicit limits are configured
  *            to prevent accidental unlimited usage.
  * INVARIANT: Free tier has hard limits; Enterprise has configurable limits.
@@ -113,8 +113,8 @@ export class DefaultBudgetChecker implements BudgetChecker {
     if (tier === 'free') {
       tenantTiers.set(tenantId, { tier: 'free', limits: FREE_TIER_LIMITS });
     } else {
-      tenantTiers.set(tenantId, { 
-        tier: 'enterprise', 
+      tenantTiers.set(tenantId, {
+        tier: 'enterprise',
         limits: customLimits ?? { maxCostCents: Number.MAX_SAFE_INTEGER, windowSeconds: 2592000 },
         customLimits: customLimits ? new Map([[tenantId, customLimits]]) : undefined
       });
@@ -131,7 +131,7 @@ export class DefaultBudgetChecker implements BudgetChecker {
   async check(tenantId: string, estimatedCostCents: number): Promise<BudgetCheckResult> {
     // Get tier configuration
     const config = tenantTiers.get(tenantId);
-    
+
     // Default: DENY if no configuration exists (fail-safe)
     if (!config) {
       return {
@@ -144,16 +144,16 @@ export class DefaultBudgetChecker implements BudgetChecker {
     // Use AtomicBudgetChecker for actual enforcement
     if (this.useAtomic) {
       const atomic = new AtomicBudgetChecker(globalLimits);
-      
+
       // Transfer tier configuration to atomic checker
       atomic.setLimit(tenantId, config.limits);
-      
+
       return atomic.check(tenantId, estimatedCostCents);
     }
 
     // Inline check (non-atomic, for reference)
     const limit = config.limits;
-    
+
     // For simplicity, we use in-memory tracking here
     // In production, this would query the database
     const currentUsage = this.getCurrentUsage(tenantId);
@@ -193,30 +193,30 @@ export class DefaultBudgetChecker implements BudgetChecker {
   private getCurrentUsage(tenantId: string): number {
     const state = this.usageTracker.get(tenantId);
     if (!state) return 0;
-    
+
     // Check if window expired (simplified - production would use proper window logic)
     const windowStart = new Date(state.windowStart).getTime();
     const windowEnd = windowStart + (2592000 * 1000); // 30 days
-    
+
     if (this.clock.now() > windowEnd) {
       this.usageTracker.delete(tenantId);
       return 0;
     }
-    
+
     return state.costCents;
   }
 
   private getCurrentTokens(tenantId: string): number {
     const state = this.usageTracker.get(tenantId);
     if (!state) return 0;
-    
+
     const windowStart = new Date(state.windowStart).getTime();
     const windowEnd = windowStart + (2592000 * 1000);
-    
+
     if (this.clock.now() > windowEnd) {
       return 0;
     }
-    
+
     return state.tokens;
   }
 
@@ -709,12 +709,10 @@ export class HttpBudgetStore implements PersistentBudgetStore {
 export class PersistentBudgetChecker implements BudgetChecker {
   private store: PersistentBudgetStore;
   private policy: Map<string, BudgetPolicy>;
-  private clock: Clock;
 
-  constructor(store: PersistentBudgetStore, clock: Clock = defaultClock) {
+  constructor(store: PersistentBudgetStore) {
     this.store = store;
     this.policy = new Map();
-    this.clock = clock;
   }
 
   /**

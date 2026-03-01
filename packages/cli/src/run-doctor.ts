@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { runDoctor } from './db/doctor';
+import { runDoctor } from './commands/doctor';
 
 async function main() {
   // Execute the doctor check
@@ -7,4 +7,7 @@ async function main() {
   await runDoctor({ json: false });
 }
 
-main();
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

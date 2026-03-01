@@ -170,7 +170,7 @@ export class McpPolicyEnforcer {
    * @returns PolicyCheckResult indicating if the call is allowed
    */
   enforce(
-    ctx: RequestContext | InvocationContext,
+    _ctx: RequestContext | InvocationContext,
     toolName: string,
     toolDef?: ToolDefinition
   ): PolicyCheckResult {
@@ -285,8 +285,8 @@ export class McpPolicyEnforcer {
    */
   private checkSSRFProtection(
     toolName: string,
-    toolDef: ToolDefinition,
-    rule: SSRFProtectionRule
+    _toolDef: ToolDefinition,
+    _rule: SSRFProtectionRule
   ): PolicyCheckResult {
     // Only check tools that fetch URLs
     const urlFetchingTools = ['fetch', 'http_get', 'http_post', 'curl', 'wget'];
@@ -310,7 +310,7 @@ export class McpPolicyEnforcer {
    */
   private checkCapabilities(
     toolName: string,
-    toolDef: ToolDefinition,
+    _toolDef: ToolDefinition,
     rule: CapabilitiesRule
   ): PolicyCheckResult {
     if (!rule.requiredForTools.includes(toolName)) {

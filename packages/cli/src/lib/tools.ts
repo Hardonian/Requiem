@@ -39,12 +39,12 @@ let defaultTier = 'free';
  * Configure CLI budget tier for a tenant.
  * Call this during CLI initialization or tenant setup.
  */
-export function setCLIBudgetTier(tenantId: string, tier: 'free' | 'enterprise'): void {
+export function setCLIBudgetTier(_tenantId: string, tier: 'free' | 'enterprise'): void {
   defaultTier = tier;
 }
 
 /** Get budget limit for a tenant tier */
-function getBudgetLimit(tenantId: string): BudgetLimit {
+function getBudgetLimit(_tenantId: string): BudgetLimit {
   // Check for tenant-specific override first
   // In production, this would query configuration
   const limit = CLI_BUDGET_LIMITS.get(defaultTier);
@@ -78,7 +78,7 @@ function releaseBudgetLock(tenantId: string): void {
 async function checkBudget(tenantId: string, estimatedCostCents: number): Promise<{ allowed: boolean; reason?: string; remaining?: number }> {
   // Get limit for tenant tier
   const limit = getBudgetLimit(tenantId);
-  
+
   // No limit for enterprise (or very high limit)
   if (limit.maxCostCents === Number.MAX_SAFE_INTEGER) {
     return { allowed: true, remaining: Number.MAX_SAFE_INTEGER };
@@ -87,7 +87,7 @@ async function checkBudget(tenantId: string, estimatedCostCents: number): Promis
   await acquireBudgetLock(tenantId);
   try {
     let state = budgetStates.get(tenantId);
-    
+
     // Initialize state if needed
     if (!state) {
       state = {
@@ -128,24 +128,7 @@ async function checkBudget(tenantId: string, estimatedCostCents: number): Promis
   }
 }
 
-/**
- * Record actual cost after tool execution.
- * Reconciles pre-debited estimate with actual cost.
- */
-async function recordBudgetUsage(tenantId: string, actualCostCents: number): Promise<void> {
-  const limit = getBudgetLimit(tenantId);
-  if (limit.maxCostCents === Number.MAX_SAFE_INTEGER) return;
 
-  await acquireBudgetLock(tenantId);
-  try {
-    const state = budgetStates.get(tenantId);
-    if (state) {
-      state.usedCostCents = Math.max(0, state.usedCostCents + actualCostCents);
-    }
-  } finally {
-    releaseBudgetLock(tenantId);
-  }
-}
 
 /**
  * Get current budget state for a tenant (for observability).
@@ -153,7 +136,7 @@ async function recordBudgetUsage(tenantId: string, actualCostCents: number): Pro
 export function getCLIBudgetState(tenantId: string): { used: number; limit: number; remaining: number } | undefined {
   const state = budgetStates.get(tenantId);
   if (!state) return undefined;
-  
+
   return {
     used: state.usedCostCents,
     limit: state.limit.maxCostCents,
@@ -201,10 +184,10 @@ export function logCLIAudit(
     reason,
     source: 'cli',
   };
-  
+
   // In production, this would be async and go to external storage
   auditRecords.push(record);
-  
+
   // Keep only last 1000 records in memory for debugging
   if (auditRecords.length > 1000) {
     auditRecords.shift();
@@ -361,7 +344,7 @@ export class ToolRegistry {
     const estimatedCost = tool.cost?.costCents ?? 0;
     if (tool.tenantScoped && ctx.tenantId) {
       const budgetResult = await checkBudget(ctx.tenantId, estimatedCost);
-      
+
       // Log the policy decision
       logCLIAudit(
         ctx.userId ?? 'unknown',
@@ -370,11 +353,11 @@ export class ToolRegistry {
         name,
         tool.version,
         budgetResult.allowed ? 'allow' : 'deny',
-        budgetResult.allowed 
-          ? `Budget check passed (${estimatedCost}¢ estimated)` 
+        budgetResult.allowed
+          ? `Budget check passed (${estimatedCost}¢ estimated)`
           : budgetResult.reason ?? 'Budget exceeded'
       );
-      
+
       if (!budgetResult.allowed) {
         throw new RequiemError({
           code: ErrorCode.BUDGET_EXCEEDED,

@@ -12,7 +12,7 @@ import { AiError } from '../errors/AiError';
 import { AiErrorCode } from '../errors/codes';
 import { now } from '../types/index';
 import type { InvocationContext } from '../types/index';
-import type { ToolDefinition as IToolDefinition, JsonSchema as _JsonSchema } from './types';
+import type { JsonSchema as _JsonSchema } from './types';
 
 // #region: Context Types
 

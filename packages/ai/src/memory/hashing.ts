@@ -20,7 +20,7 @@ const _blake3 = (() => {
   } catch {
     return null;
   }
-})() as typeof import('blake3') | null;
+})() as any;
 
 /**
  * Compute SHA-256 hash of content, returning hex string.

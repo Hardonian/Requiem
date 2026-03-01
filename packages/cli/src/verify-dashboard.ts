@@ -30,7 +30,7 @@ async function main() {
       }
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr.on('data', (_data) => {
       // console.error('[Dashboard stderr]', data.toString());
     });
   });
