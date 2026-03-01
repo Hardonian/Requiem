@@ -1143,6 +1143,42 @@ void test_s3_backend_put_stream() {
   fs::remove_all(tmp);
 }
 
+void test_cas_repair() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_repair_test";
+  fs::remove_all(tmp);
+  fs::create_directories(tmp);
+
+  auto primary =
+      std::make_shared<requiem::CasStore>((tmp / "primary").string());
+  auto secondary =
+      std::make_shared<requiem::CasStore>((tmp / "secondary").string());
+  requiem::ReplicatingBackend replicator(primary, secondary);
+
+  const std::string data = "data-to-be-repaired";
+
+  // 1. Put data into the replicating backend. This will write to primary and
+  //    (asynchronously) to secondary. We'll wait a moment to ensure it lands.
+  std::string digest = replicator.put(data, "off");
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  expect(primary->contains(digest), "primary contains data");
+  expect(secondary->contains(digest), "secondary contains data");
+
+  // 2. Corrupt the primary backend's copy of the object.
+  fs::path primary_obj_path = fs::path(primary->root()) / "objects" /
+                              digest.substr(0, 2) / digest.substr(2, 2) /
+                              digest;
+  {
+    std::ofstream ofs(primary_obj_path, std::ios::binary | std::ios::trunc);
+    ofs << "corrupted";
+  }
+  expect(!primary->get(digest).has_value(), "primary is now corrupted");
+
+  // 3. Call repair and verify it restores the object.
+  expect(primary->repair(digest, replicator), "repair should succeed");
+  expect(primary->get(digest).has_value(), "primary is repaired");
+  fs::remove_all(tmp);
+}
+
 // ============================================================================
 // Phase 5: C ABI
 // ============================================================================
@@ -2461,6 +2497,7 @@ int main() {
   run_test("CasGarbageCollector prune", test_cas_garbage_collector);
   run_test("CasStore put_stream zstd", test_cas_put_stream_compression);
   run_test("S3 put_stream large file", test_s3_backend_put_stream);
+  run_test("CasStore repair from replicator", test_cas_repair);
   run_test("CasStore compact", test_cas_compact);
 
   std::cout << "\n[Phase 4] Observability layer\n";
