@@ -1,0 +1,120 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_at": "2026-03-01T02:18:00.000Z",
+  "routes": [
+    {
+      "path": "/api/audit/logs",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/audit/logs/route.ts",
+      "auth_required": true,
+      "description": "Retrieve audit log entries"
+    },
+    {
+      "path": "/api/cas/integrity",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cas/integrity/route.ts",
+      "auth_required": true,
+      "description": "CAS integrity verification"
+    },
+    {
+      "path": "/api/cluster/drift",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cluster/drift/route.ts",
+      "auth_required": true,
+      "description": "Cluster drift detection"
+    },
+    {
+      "path": "/api/cluster/status",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cluster/status/route.ts",
+      "auth_required": true,
+      "description": "Cluster status"
+    },
+    {
+      "path": "/api/cluster/workers",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/cluster/workers/route.ts",
+      "auth_required": true,
+      "description": "Cluster workers list"
+    },
+    {
+      "path": "/api/engine/analyze",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/engine/analyze/route.ts",
+      "auth_required": true,
+      "description": "Engine analysis endpoint"
+    },
+    {
+      "path": "/api/engine/autotune",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/engine/autotune/route.ts",
+      "auth_required": true,
+      "description": "Engine autotune endpoint"
+    },
+    {
+      "path": "/api/engine/diagnostics",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/diagnostics/route.ts",
+      "auth_required": true,
+      "description": "Engine diagnostics"
+    },
+    {
+      "path": "/api/engine/metrics",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/metrics/route.ts",
+      "auth_required": true,
+      "description": "Engine metrics"
+    },
+    {
+      "path": "/api/engine/status",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/engine/status/route.ts",
+      "auth_required": true,
+      "description": "Engine status"
+    },
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/health/route.ts",
+      "auth_required": false,
+      "probe": true,
+      "description": "Health check endpoint"
+    },
+    {
+      "path": "/api/mcp/health",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/mcp/health/route.ts",
+      "auth_required": false,
+      "probe": true,
+      "description": "MCP health check"
+    },
+    {
+      "path": "/api/mcp/tool/call",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/mcp/tool/call/route.ts",
+      "auth_required": true,
+      "description": "MCP tool call endpoint"
+    },
+    {
+      "path": "/api/mcp/tools",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/mcp/tools/route.ts",
+      "auth_required": true,
+      "description": "MCP tools list"
+    },
+    {
+      "path": "/api/replay/verify",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/replay/verify/route.ts",
+      "auth_required": true,
+      "description": "Replay verification endpoint"
+    },
+    {
+      "path": "/api/vector/search",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/vector/search/route.ts",
+      "auth_required": true,
+      "description": "Vector search endpoint"
+    }
+  ]
+}

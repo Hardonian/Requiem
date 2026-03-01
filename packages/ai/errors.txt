@@ -1,0 +1,81 @@
+src/eval/__tests__/adversarial_goldens.test.ts(101,36): error TS2365: Operator '>' cannot be applied to types '{}' and 'number'.
+src/eval/__tests__/adversarial_goldens.test.ts(159,42): error TS2365: Operator '>' cannot be applied to types '{}' and 'number'.
+src/eval/__tests__/adversarial_goldens.test.ts(162,29): error TS2339: Property 'some' does not exist on type '{}'.
+src/eval/__tests__/adversarial_goldens.test.ts(182,38): error TS2339: Property 'includes' does not exist on type '{}'.
+src/eval/__tests__/adversarial_goldens.test.ts(185,59): error TS2339: Property 'includes' does not exist on type '{}'.
+src/eval/__tests__/load_stress.test.ts(478,22): error TS2341: Property 'successCount' is private and only accessible within class 'CountBasedCircuitBreaker'.
+src/eval/__tests__/tenant_isolation.test.ts(220,69): error TS2339: Property 'OPERATOR' does not exist on type 'typeof TenantRole'.
+src/eval/__tests__/tenant_isolation.test.ts(221,68): error TS2339: Property 'OPERATOR' does not exist on type 'typeof TenantRole'.
+src/eval/__tests__/tenant_isolation.test.ts(255,29): error TS2339: Property 'remaining' does not exist on type 'MockBudgetState'.
+src/eval/__tests__/tenant_isolation.test.ts(285,62): error TS2339: Property 'OPERATOR' does not exist on type 'typeof TenantRole'.
+src/eval/__tests__/tenant_isolation.test.ts(371,68): error TS2339: Property 'OPERATOR' does not exist on type 'typeof TenantRole'.
+src/eval/harness.ts(481,30): error TS2339: Property 'skipped' does not exist on type 'HarnessResult | TestReport'.
+  Property 'skipped' does not exist on type 'HarnessResult'.
+src/mcp/rateLimit.ts(367,10): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/rateLimit.ts(367,10): error TS2540: Cannot assign to 'config' because it is a read-only property.
+src/mcp/rateLimit.ts(370,14): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/rateLimit.ts(370,41): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/rateLimit.ts(371,79): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/rateLimit.ts(388,14): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/rateLimit.ts(388,32): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/rateLimit.ts(414,24): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/rateLimit.ts(414,42): error TS2341: Property 'config' is private and only accessible within class 'SlidingWindowRateLimiter'.
+src/mcp/transport-next.ts(107,25): error TS2339: Property 'EDITOR' does not exist on type 'typeof TenantRole'.
+src/memory/hashing.ts(96,27): error TS2339: Property 'hash' does not exist on type '{ (): { update(data: string | Uint8Array<ArrayBufferLike>): void; digest(format?: "binary" | "hex" | undefined): string | Uint8Array<ArrayBufferLike>; }; (): { ...; }; }'.
+src/migrations/runner.ts(367,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/migrations/runner.ts(368,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/migrations/runner.ts(369,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/migrations/runner.ts(375,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/migrations/runner.ts(376,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/migrations/runner.ts(377,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/migrations/runner.ts(383,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/migrations/runner.ts(394,22): error TS2341: Property 'query' is private and only accessible within class 'MigrationRunner'.
+src/models/circuitBreaker.ts(168,3): error TS18010: An accessibility modifier cannot be used with a private identifier.
+src/models/circuitBreaker.ts(217,3): error TS18010: An accessibility modifier cannot be used with a private identifier.
+src/policy/guardrails.ts(150,81): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Capability'.
+src/security/credentialRotation.ts(448,40): error TS2345: Argument of type 'RotationEvent' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'RotationEvent'.
+src/skills/outputLimiter.ts(140,7): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+src/skills/outputLimiter.ts(160,7): error TS2353: Object literal may only specify known properties, and 'details' does not exist in type 'AiErrorOptions'.
+src/skills/outputLimiter.ts(278,7): error TS2353: Object literal may only specify known properties, and 'details' does not exist in type 'AiErrorOptions'.
+src/skills/runner.ts(51,12): error TS2551: Property 'tenantId' does not exist on type 'InvocationContext'. Did you mean 'tenant'?
+src/skills/runner.ts(59,19): error TS2551: Property 'tenantId' does not exist on type 'InvocationContext'. Did you mean 'tenant'?
+src/skills/runner.ts(60,14): error TS2352: Conversion of type 'InvocationContext' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'InvocationContext'.
+src/skills/runner.ts(90,56): error TS2551: Property 'tenantId' does not exist on type 'InvocationContext'. Did you mean 'tenant'?
+src/tools/__tests__/registry.test.ts(10,64): error TS2305: Module '"../registry"' has no exported member 'isToolDeterministic'.
+src/tools/__tests__/registry.test.ts(10,85): error TS2305: Module '"../registry"' has no exported member 'isToolIdempotent'.
+src/tools/__tests__/registry.test.ts(10,103): error TS2305: Module '"../registry"' has no exported member 'getToolOutputMaxBytes'.
+src/tools/builtins/kilo.execute.ts(52,11): error TS2353: Object literal may only specify known properties, and 'maxItems' does not exist in type 'JsonSchema'.
+src/tools/builtins/kilo.execute.ts(63,11): error TS2353: Object literal may only specify known properties, and 'maxItems' does not exist in type 'JsonSchema'.
+src/tools/builtins/system.echo.ts(17,5): error TS2322: Type 'ZodObject<{ payload: ZodAny; }, $strip>' is not assignable to type 'JsonSchema'.
+  Types of property 'required' are incompatible.
+    Type '{ (): ZodObject<{ payload: ZodNonOptional<ZodAny>; }, $strip>; <M extends Mask<"payload">>(mask: M & Record<Exclude<keyof M, "payload">, never>): ZodObject<...>; }' is not assignable to type 'string[]'.
+src/tools/builtins/system.echo.ts(20,5): error TS2322: Type 'ZodObject<{ payload: ZodAny; echoed_at: ZodString; }, $strip>' is not assignable to type 'JsonSchema'.
+  Types of property 'required' are incompatible.
+    Type '{ (): ZodObject<{ payload: ZodNonOptional<ZodAny>; echoed_at: ZodNonOptional<ZodString>; }, $strip>; <M extends Mask<...>>(mask: M & Record<...>): ZodObject<...>; }' is not assignable to type 'string[]'.
+src/tools/builtins/system.health.ts(17,5): error TS2322: Type 'ZodObject<{}, $strip>' is not assignable to type 'JsonSchema'.
+  Types of property 'required' are incompatible.
+    Type '{ (): ZodObject<{}, $strip>; <M extends Mask<never>>(mask: M & Record<Exclude<keyof M, never>, never>): ZodObject<{}, $strip>; }' is not assignable to type 'string[]'.
+src/tools/builtins/system.health.ts(18,5): error TS2322: Type 'ZodObject<{ status: ZodEnum<{ ok: "ok"; degraded: "degraded"; }>; version: ZodString; tools_registered: ZodNumber; timestamp: ZodString; environment: ZodString; }, $strip>' is not assignable to type 'JsonSchema'.
+  Types of property 'required' are incompatible.
+    Type '{ (): ZodObject<{ status: ZodNonOptional<ZodEnum<{ ok: "ok"; degraded: "degraded"; }>>; version: ZodNonOptional<ZodString>; tools_registered: ZodNonOptional<...>; timestamp: ZodNonOptional<...>; environment: ZodNonOptional<...>; }, $strip>; <M extends Mask<...>>(mask: M & Record<...>): ZodObject<...>; }' is not assignable to type 'string[]'.
+src/tools/builtins/vector.search.ts(55,11): error TS2353: Object literal may only specify known properties, and 'minItems' does not exist in type 'JsonSchema'.
+src/tools/builtins/vector.upsert.ts(50,11): error TS2353: Object literal may only specify known properties, and 'minItems' does not exist in type 'JsonSchema'.
+src/tools/registry.ts(15,15): error TS2440: Import declaration conflicts with local declaration of 'ToolDefinition'.
+src/tools/registry.ts(99,15): error TS2315: Type 'ToolDefinition' is not generic.
+src/tools/registry.ts(122,12): error TS2315: Type 'ToolDefinition' is not generic.
+src/tools/registry.ts(138,12): error TS2315: Type 'ToolDefinition' is not generic.
+src/tools/registry.ts(417,47): error TS2339: Property 'includes' does not exist on type '{}'.
+src/tools/registry.ts(430,70): error TS2365: Operator '<' cannot be applied to types 'number' and '{}'.
+src/tools/registry.ts(430,85): error TS18047: 'schema.minLength' is possibly 'null'.
+src/tools/registry.ts(434,70): error TS2365: Operator '>' cannot be applied to types 'number' and '{}'.
+src/tools/registry.ts(434,85): error TS18047: 'schema.maxLength' is possibly 'null'.
+src/tools/registry.ts(438,68): error TS2365: Operator '<' cannot be applied to types 'number' and '{}'.
+src/tools/registry.ts(438,76): error TS18047: 'schema.minimum' is possibly 'null'.
+src/tools/registry.ts(442,68): error TS2365: Operator '>' cannot be applied to types 'number' and '{}'.
+src/tools/registry.ts(442,76): error TS18047: 'schema.maximum' is possibly 'null'.
+src/tools/registry.ts(446,37): error TS18047: 'schema.enum' is possibly 'null'.
+src/tools/registry.ts(446,49): error TS2339: Property 'includes' does not exist on type '{}'.
+src/tools/registry.ts(447,59): error TS18047: 'schema.enum' is possibly 'null'.
+src/tools/registry.ts(447,71): error TS2339: Property 'join' does not exist on type '{}'.

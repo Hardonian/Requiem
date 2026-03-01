@@ -35,8 +35,15 @@ async function main() {
   }
 
 
-    console.log('\n[2] Checking "trace" command registration...');
-    if
+  // --- Check 2: trace Command Registration ---
+  try {
+    console.log('[2] Checking "trace" command registration...');
+    if (trace.name() !== 'trace') throw new Error('Command name mismatch');
+
+    const jsonOption = trace.options.find((o: Option) => o.flags.includes('--json'));
+    if (!jsonOption) throw new Error('Option "--json" not found on "trace"');
+
+    console.log('  ✓ "trace --json" is discoverable');
   } catch (e) {
     console.error(`  ✗ CLI Check Failed: ${(e as Error).message}`);
     passed = false;

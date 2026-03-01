@@ -8,8 +8,9 @@ declare module 'blake3' {
 
 // Also declare it as default export for compatibility
 declare module 'blake3' {
-  default function createHash(): {
+  export function createHash(): {
     update(data: string | Uint8Array): void;
     digest(format?: 'hex' | 'binary'): string | Uint8Array;
   };
+  export default createHash;
 }

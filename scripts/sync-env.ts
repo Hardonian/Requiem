@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
  * Doppler Sync Script
- * 
+ *
  * Pulls environment variables from Doppler and exports them for runtime use.
  * Fails loudly if required secrets are missing.
- * 
+ *
  * Usage:
  *   node scripts/sync-env.ts              # Sync and print available vars
  *   node scripts/sync-env.ts --check      # Only check if vars exist
  *   node scripts/sync-env.ts --export     # Export to .env file
- * 
+ *
  * Required environment variables:
  *   - DOPPLER_TOKEN: Doppler service token
- * 
+ *
  * Required secrets (checked after sync):
  *   - SUPABASE_URL
  *   - SUPABASE_SERVICE_ROLE_KEY
@@ -26,7 +26,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(interface {}));
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = join(__dirname, '..');
 
 interface DopplerConfig {
@@ -68,16 +68,16 @@ async function checkDopplerInstalled(): Promise<boolean> {
  */
 async function fetchDopplerSecrets(config: DopplerConfig): Promise<Record<string, string>> {
   const { execSync } = await import('child_process');
-  
+
   try {
     const json = execSync(
       `doppler secrets download --project ${config.project} --config ${config.config} --format json`,
-      { 
+      {
         encoding: 'utf-8',
         env: { ...process.env }
       }
     );
-    
+
     return JSON.parse(json);
   } catch (error) {
     console.error('Failed to fetch secrets from Doppler:', error instanceof Error ? error.message : error);
@@ -90,13 +90,13 @@ async function fetchDopplerSecrets(config: DopplerConfig): Promise<Record<string
  */
 function validateSecrets(secrets: Record<string, string>): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
-  
+
   for (const secret of REQUIRED_SECRETS) {
     if (secret.required && !secrets[secret.key]) {
       missing.push(secret.key);
     }
   }
-  
+
   return {
     valid: missing.length === 0,
     missing,
@@ -109,14 +109,14 @@ function validateSecrets(secrets: Record<string, string>): { valid: boolean; mis
 function printSecretsSummary(secrets: Record<string, string>): void {
   console.log('\n📋 Available environment variables:');
   console.log('─'.repeat(40));
-  
+
   for (const secret of REQUIRED_SECRETS) {
     const value = secrets[secret.key];
     const status = value ? '✅ Set' : '❌ Missing';
     const visibility = secret.public ? '(public)' : '(secret)';
     console.log(`  ${secret.key} ${visibility} ${status}`);
   }
-  
+
   console.log('─'.repeat(40));
 }
 
@@ -129,13 +129,13 @@ function exportToEnvFile(secrets: Record<string, string>, outputPath: string): v
     `# Created at: ${new Date().toISOString()}`,
     '',
   ];
-  
+
   for (const [key, value] of Object.entries(secrets)) {
     if (value) {
       lines.push(`${key}=${value}`);
     }
   }
-  
+
   writeFileSync(outputPath, lines.join('\n') + '\n');
   console.log(`\n✅ Exported secrets to: ${outputPath}`);
 }
@@ -147,10 +147,10 @@ async function main() {
   const args = process.argv.slice(2);
   const checkOnly = args.includes('--check');
   const exportEnv = args.includes('--export');
-  
+
   console.log('🔄 Doppler Environment Sync');
   console.log('='.repeat(40));
-  
+
   // Check if Doppler is installed
   const dopplerInstalled = await checkDopplerInstalled();
   if (!dopplerInstalled) {
@@ -158,7 +158,7 @@ async function main() {
     console.error('   Or set DOPPLER_TOKEN environment variable directly.');
     process.exit(1);
   }
-  
+
   // Check for Doppler token
   const dopplerToken = process.env.DOPPLER_TOKEN;
   if (!dopplerToken) {
@@ -166,18 +166,18 @@ async function main() {
     console.error('   Set it with: export DOPPLER_TOKEN=your_token');
     process.exit(1);
   }
-  
+
   console.log('📥 Fetching secrets from Doppler...');
-  
+
   // Fetch secrets (using default project/config or environment variables)
   const project = process.env.DOPPLER_PROJECT || 'requiem';
   const config = process.env.DOPPLER_CONFIG || 'prd';
-  
+
   const secrets = await fetchDopplerSecrets({ project, config });
-  
+
   // Validate secrets
   const validation = validateSecrets(secrets);
-  
+
   if (!validation.valid) {
     console.error(`\n❌ Missing required secrets:`);
     for (const key of validation.missing) {
@@ -185,19 +185,19 @@ async function main() {
     }
     process.exit(1);
   }
-  
+
   printSecretsSummary(secrets);
-  
+
   if (checkOnly) {
     console.log('\n✅ All required secrets are present.');
     process.exit(0);
   }
-  
+
   if (exportEnv) {
     const outputPath = join(ROOT_DIR, '.env.local');
     exportToEnvFile(secrets, outputPath);
   }
-  
+
   console.log('\n✅ Doppler sync complete.');
 }
 
