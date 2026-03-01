@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Deterministic native runtime with UI kit for operational interfaces",
+  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",

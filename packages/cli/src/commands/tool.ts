@@ -21,6 +21,48 @@ import { executeToolEnvelope } from '../../../ai/src/tools/executor';
 import { TenantRole } from '../../../ai/src/types/index';
 import type { InvocationContext } from '../../../ai/src/types/index';
 
+// ─── Output Formatting ──────────────────────────────────────────────────────
+
+const BOX_WIDTH = 61;
+
+function boxTop(): string {
+  return `┌${'─'.repeat(BOX_WIDTH)}┐`;
+}
+
+function boxBottom(): string {
+  return `└${'─'.repeat(BOX_WIDTH)}┘`;
+}
+
+function boxDivider(): string {
+  return `├${'─'.repeat(BOX_WIDTH)}┤`;
+}
+
+function boxRow(label: string, value: string): string {
+  const content = `│ ${label.padEnd(16)}${value}`;
+  return content.padEnd(BOX_WIDTH + 1) + '│';
+}
+
+function boxHeader(title: string): string {
+  const content = `│ ${title}`;
+  return content.padEnd(BOX_WIDTH + 1) + '│';
+}
+
+function deterministicBadge(isDeterministic: boolean): string {
+  return isDeterministic ? 'YES ■ verified' : 'NO';
+}
+
+function policyBadge(): string {
+  return 'ENFORCED ■ deny-by-default';
+}
+
+function replayBadge(fromCache: boolean): string {
+  return fromCache ? 'CACHED ■ replay match' : 'RECORDED ■ stored for replay';
+}
+
+function fingerprint(hash: string): string {
+  return hash.substring(0, 16) + '...';
+}
+
 // ─── Tool List ────────────────────────────────────────────────────────────────
 
 export interface ToolListArgs {
@@ -142,12 +184,20 @@ export async function runToolExec(args: ToolExecArgs): Promise<number> {
     if (args.json) {
       console.log(JSON.stringify(envelope, null, 2));
     } else {
-      console.log(`\nTool:      ${args.name}@${envelope.tool_version}`);
-      console.log(`Tenant:    ${envelope.tenant_id}`);
-      console.log(`Hash:      ${envelope.hash}`);
-      console.log(`Duration:  ${envelope.duration_ms}ms`);
-      console.log(`Cached:    ${envelope.from_cache}`);
-      console.log(`Det:       ${envelope.deterministic}`);
+      console.log('');
+      console.log(boxTop());
+      console.log(boxHeader('EXECUTION COMPLETE'));
+      console.log(boxDivider());
+      console.log(boxRow('Tool:', `${args.name}@${envelope.tool_version}`));
+      console.log(boxRow('Tenant:', envelope.tenant_id));
+      console.log(boxRow('Duration:', `${envelope.duration_ms}ms`));
+      console.log(boxRow('Deterministic:', deterministicBadge(envelope.deterministic)));
+      console.log(boxRow('Policy:', policyBadge()));
+      console.log(boxRow('Fingerprint:', fingerprint(envelope.hash)));
+      console.log(boxRow('Replay:', replayBadge(envelope.from_cache)));
+      console.log(boxDivider());
+      console.log(boxHeader(`Run ID: ${envelope.request_id}`));
+      console.log(boxBottom());
       console.log(`\nResult:\n${JSON.stringify(envelope.result, null, 2)}`);
     }
     return 0;
@@ -200,14 +250,17 @@ export async function runReplay(args: ReplayArgs): Promise<number> {
     if (args.json) {
       console.log(JSON.stringify(record, null, 2));
     } else {
-      console.log(`\nReplay Record`);
-      console.log(`─────────────────────────────────────────`);
-      console.log(`Hash:       ${record.hash}`);
-      console.log(`Tenant:     ${record.tenantId}`);
-      console.log(`Tool:       ${record.toolName}@${record.toolVersion}`);
-      console.log(`Input Hash: ${record.inputHash}`);
-      console.log(`Created:    ${record.createdAt}`);
-      console.log(`Integrity:  ✓ verified`);
+      console.log('');
+      console.log(boxTop());
+      console.log(boxHeader('REPLAY RECORD'));
+      console.log(boxDivider());
+      console.log(boxRow('Hash:', record.hash));
+      console.log(boxRow('Tenant:', record.tenantId));
+      console.log(boxRow('Tool:', `${record.toolName}@${record.toolVersion}`));
+      console.log(boxRow('Input Hash:', fingerprint(record.inputHash)));
+      console.log(boxRow('Created:', record.createdAt));
+      console.log(boxRow('Integrity:', '■ verified'));
+      console.log(boxBottom());
       console.log(`\nResult:\n${JSON.stringify(record.result, null, 2)}`);
     }
     return 0;

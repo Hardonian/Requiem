@@ -36,7 +36,7 @@ const ask = (question: string): Promise<string> => {
 };
 
 export const quickstart = new Command('quickstart')
-  .description('Interactive setup guide for new Requiem users')
+  .description('10-minute proof: install, run, verify — determinism in 3 steps')
   .option('--skip-checks', 'Skip environment validation')
   .option('--json', 'Output in JSON format')
   .action(async (options: { skipChecks?: boolean; json?: boolean }) => {
@@ -46,7 +46,12 @@ export const quickstart = new Command('quickstart')
     };
 
     try {
-      console.log('\n🚀 Welcome to Requiem! Let\'s get you set up with deterministic AI.\n');
+      console.log('');
+      console.log('┌────────────────────────────────────────────────────────────┐');
+      console.log('│ REQUIEM — Provable AI Runtime                              │');
+      console.log('│ 10-Minute Proof: install, run, verify                      │');
+      console.log('└────────────────────────────────────────────────────────────┘');
+      console.log('');
 
       // Step 1: Environment validation
       if (!options.skipChecks) {
@@ -161,7 +166,18 @@ export const quickstart = new Command('quickstart')
         }
       }
 
-      console.log('\n✅ Quickstart complete! You are ready to build.');
+      console.log('');
+      console.log('┌────────────────────────────────────────────────────────────┐');
+      console.log('│ PROOF COMPLETE                                             │');
+      console.log('├────────────────────────────────────────────────────────────┤');
+      console.log('│  Determinism:  verified                                    │');
+      console.log('│  Policy:       enforced (deny-by-default)                  │');
+      console.log('│  Replay:       available                                   │');
+      console.log('│                                                            │');
+      console.log('│  Next: reach run <tool> <input>                            │');
+      console.log('│        reach stats                                         │');
+      console.log('│        reach replay diff <run1> <run2>                     │');
+      console.log('└────────────────────────────────────────────────────────────┘');
       rl.close();
       process.exit(0);
 

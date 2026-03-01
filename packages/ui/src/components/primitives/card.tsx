@@ -4,7 +4,7 @@
  * HARVESTED_FROM: ReadyLayer/components/ui/card.tsx
  * EXTENSION_POINT: Add new elevation variants or padding options
  * 
- * A flexible card component with header, content, and footer sections.
+ * A card component with header, content, and footer sections.
  */
 
 import * as React from 'react'

@@ -3,15 +3,29 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)](#verification)
 [![Node](https://img.shields.io/badge/node-20.x-green)](#quickstart)
-[![Security](https://img.shields.io/badge/security-audit_complete-brightgreen)](docs/SECURITY.md)
+[![Determinism](https://img.shields.io/badge/determinism-verified-blueviolet)](docs/DETERMINISM.md)
 
-Deterministic AI execution platform with tenant isolation, replay, and audit.
+## Every AI decision. Provable. Replayable. Enforced.
+
+Requiem is the **Provable AI Runtime** — the only execution layer where every AI decision produces a cryptographic proof, every outcome is replayable to the byte, and every policy violation is caught before it ships.
+
+Not a prompt router. Not a workflow engine. Not a Git wrapper.
+
+A runtime that proves what your AI actually did.
+
+---
+
+### Three Guarantees
+
+| Guarantee | What it means | How it works |
+|-----------|---------------|--------------|
+| **Provable Execution** | Identical inputs produce identical `result_digest` values across runs, workers, and time. | BLAKE3 domain-separated hashing, canonical JSON serialization, environment sanitization. 200x repeat verification in CI. |
+| **Enforced Governance** | Every tool invocation passes through a policy gate. No exceptions. No bypass. Deny-by-default. | Four-layer defense: RBAC capabilities, budget enforcement, content guardrails, audit logging. All enforced before execution. |
+| **Replayable Outcomes** | Any execution can be replayed and verified against its original proof. Divergence is detected, not hidden. | Content-addressable storage with dual-hash verification (BLAKE3 + SHA-256), immutable replay logs, Merkle chain tamper evidence. |
+
+---
 
 ## Quickstart (3 commands)
-
-This demonstrates Requiem's core guarantee: **identical inputs always produce an identical `result_digest`**, across runs, workers, and time.
-
-No database required for the core engine. The engine proves determinism on its own.
 
 ```bash
 # 1. Clone and install
@@ -20,7 +34,7 @@ git clone https://github.com/Hardonian/Requiem.git && cd Requiem && pnpm install
 # 2. Build the native engine
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
 
-# 3. Prove determinism — runs the same workload 3× and verifies all result_digests match
+# 3. Prove determinism — runs the same workload 3x and verifies all result_digests match
 ./build/requiem demo
 ```
 
@@ -31,155 +45,136 @@ Expected output:
 
 **Determinism is confirmed when `"deterministic":true` and all three runs share the same `result_digest`.**
 
-### Inspect Policy and Version Contracts
+### First Deterministic Execution (TypeScript Control Plane)
 
 ```bash
-# View the active policy (hash algorithm, CAS version, tenant rules, license allowlist)
-./build/requiem policy explain
-### 1. Interactive Setup (Recommended)
-
-The easiest way to get started is with the interactive quickstart command. It will check your environment, start the database, and run a demo.
-
-```bash
-pnpm exec reach quickstart
-```
-
-### 2. Manual Setup
-
-If you prefer to run commands manually:
-
-#### Setup Environment
-
-```bash
-git clone https://github.com/reachhq/requiem.git
-cd requiem
-pnpm install
-cp .env.example .env
-docker-compose up -d
-```
-
-#### Run a Command & Get a Hash
-
-Execute a command through the Requiem CLI (`reach`). Every deterministic execution returns a unique, verifiable hash.
-
-```bash
+# Run a tool through the policy gate and get a verifiable execution envelope
 pnpm exec reach run system.echo "Hello, Determinism!"
 ```
 
-# View all version constants enforced at startup
-./build/requiem version
+Output:
+```
+┌─────────────────────────────────────────────────────────────┐
+│ EXECUTION COMPLETE                                          │
+├─────────────────────────────────────────────────────────────┤
+│ Tool:          system.echo@1.0.0                            │
+│ Tenant:        cli-tenant                                   │
+│ Duration:      12ms                                         │
+│ Deterministic: YES                                          │
+│ Policy:        ENFORCED                                     │
+│ Fingerprint:   a1b2c3d4e5f6...                              │
+│ Replay:        VERIFIED                                     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Policy enforcement is not implicit. `policy explain` shows every active constraint. `version` shows every numeric constant that CI verifies.
-
-### Replay an Execution
+### Verify an Execution
 
 ```bash
-# Execute a workload and capture the result
-./build/requiem exec run --request docs/examples/exec_request_smoke.json --out build/result.json
+pnpm exec reach verify <execution-hash>
+```
 
-# Replay and verify: re-runs in sandbox, fails if result_digest diverges
+### Replay with Proof
+
+```bash
 ./build/requiem exec replay \
   --request docs/examples/exec_request_smoke.json \
   --result build/result.json \
   --cas .requiem/cas/v2
-#### Verify Determinism
-
-You can now use this hash to verify the execution. Requiem will re-run the command in a hermetic sandbox and verify that the new output cryptographically matches the original.
-
-```bash
-pnpm exec reach verify <paste-your-execution-hash-here>
 ```
 
-> **Two CLIs:** `./build/requiem` (C++ native engine — determinism, CAS, replay, policy) and `pnpm exec requiem` (TypeScript control plane — AI decisions, junctions, MCP). See **[CLI Reference](docs/cli.md)**.
+### Inspect Policy Enforcement
 
-> For the web dashboard (requires PostgreSQL), see **[ReadyLayer setup](ready-layer/README.md)**.
-#### Launch Dashboard
+```bash
+# View every active constraint — nothing is implicit
+./build/requiem policy explain
 
-Visualize your executions and audit logs in the local dashboard.
+# View every version constant CI verifies
+./build/requiem version
+```
+
+### Launch Dashboard
 
 ```bash
 pnpm exec reach ui
 ```
 
-> For a full list of available commands, see the **[CLI Reference](docs/cli.md)**.
+> **Two CLIs:** `./build/requiem` (C++ native engine — determinism, CAS, replay, policy) and `pnpm exec reach` (TypeScript control plane — AI decisions, junctions, MCP). See **[CLI Reference](docs/cli.md)**.
 
-## Core Concepts
+---
 
-At its heart, Requiem is a system for creating, storing, and verifying records of execution. The data model reflects this simple purpose. This is the Prisma schema that powers the ReadyLayer dashboard:
+## Architecture
 
-```prisma
-// ready-layer/prisma/schema.prisma
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-}
-
-// ─── Audit Log ────────────────────────────────────────────────────────────────
-
-model AuditLog {
-  id         String   @id @default(cuid())
-  tenantId   String   @map("tenant_id")
-  actorId    String   @map("actor_id")
-  action     String
-  resourceId String?  @map("resource_id")
-  traceId    String   @map("trace_id")
-  metadata   Json?
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@index([tenantId, createdAt])
-  @@map("audit_logs")
-}
-
-// ─── AI Cost Records ──────────────────────────────────────────────────────────
-
-model AiCostRecord {
-  id           String   @id @default(cuid())
-  tenantId     String   @map("tenant_id")
-  actorId      String   @map("actor_id")
-  provider     String
-  model        String
-  inputTokens  Int      @map("input_tokens")
-  outputTokens Int      @map("output_tokens")
-  costCents    Int      @map("cost_cents")
-  latencyMs    Int      @map("latency_ms")
-  traceId      String   @map("trace_id")
-  phase        String?
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  @@index([tenantId, createdAt])
-  @@map("ai_cost_records")
-}
-
-// ─── Replay Records ───────────────────────────────────────────────────────────
-
-model ReplayRecord {
-  id          String   @id @default(cuid())
-  hash        String   @unique
-  tenantId    String   @map("tenant_id")
-  toolName    String   @map("tool_name")
-  toolVersion String   @map("tool_version")
-  inputHash   String   @map("input_hash")
-  integrity   String
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  @@index([tenantId, hash])
-  @@map("replay_records")
-}
 ```
+┌─────────────────────────────────────────────────────────┐
+│                    Dashboard (Next.js)                    │
+│         Executions · Replay · Audit · Metrics            │
+├─────────────────────────────────────────────────────────┤
+│                  Control Plane (TypeScript)               │
+│     Policy Gate · Tool Registry · MCP · Skills           │
+├─────────────────────────────────────────────────────────┤
+│                  Native Engine (C++)                      │
+│   BLAKE3 Hashing · CAS v2 · Sandbox · Replay Verify     │
+├─────────────────────────────────────────────────────────┤
+│                  Formal Verification                     │
+│        TLA+ Specs · Model Checker · Chaos Harness        │
+└─────────────────────────────────────────────────────────┘
+```
+
+Every layer enforces the same invariants. Claims are verified in code, not implied in copy.
+
+---
+
+## Why Enterprises Switch
+
+| Problem | Without Requiem | With Requiem |
+|---------|-----------------|--------------|
+| "Did the AI do the same thing twice?" | Hope so | Prove it — `result_digest` match |
+| "Can we audit what happened?" | Grep through logs | Immutable Merkle chain with replay proof |
+| "Is policy being enforced?" | Trust the wrapper | Deny-by-default gate — every invocation, no bypass |
+| "Can we reproduce this in court?" | No | Replayable to the byte, with cryptographic evidence |
+
+---
+
+## Why Builders Prefer It
+
+- **10-second proof**: Run a tool, get a hash, verify it. Determinism is visible, not promised.
+- **No hidden steps**: `policy explain` shows every active constraint. Nothing is implicit.
+- **Replay is not logging**: Replay re-executes and verifies. Divergence is detected, not ignored.
+- **Policy is not middleware**: It's a gate. Deny-by-default. No tool executes without passing.
+
+---
+
+## Tiers
+
+| | OSS | Pro | Enterprise |
+|---|---|---|---|
+| Deterministic execution | Yes | Yes | Yes |
+| CAS with dual-hash verification | Yes | Yes | Yes |
+| Policy gate (deny-by-default) | Yes | Yes | Yes |
+| Replay verification | Yes | Yes | Yes |
+| CLI + Dashboard | Yes | Yes | Yes |
+| Execution credits / month | 1,000 | 50,000 | Unlimited |
+| Replay storage | 1 GB | 50 GB | Unlimited |
+| Policy events tracked | 10,000 | 500,000 | Unlimited |
+| Multi-tenant isolation | — | Yes | Yes |
+| SOC 2 compliance controls | — | — | Yes |
+| Signed artifact chain | — | — | Yes |
+| Cluster coordination | — | — | Yes |
+| SLA-backed support | — | — | Yes |
+
+---
 
 ## Verification
 
-This repository contains a comprehensive verification suite.
+```bash
+# Fast checks (lint, typecheck, boundaries) — run before every commit
+pnpm run verify
 
--   **`pnpm run verify`**: Runs all fast, essential checks (lint, typecheck, boundaries). Run this before committing.
--   **`pnpm run verify:ci`**: Runs the complete CI suite, including slower integration and determinism tests.
+# Full CI suite including determinism and integration tests
+pnpm run verify:ci
+```
 
-> For more details on the architecture, see the [Architecture Overview](docs/ARCHITECTURE.md).
+> For architecture details, see [Architecture Overview](docs/ARCHITECTURE.md).
 
 ## Contributing
 

@@ -1,32 +1,34 @@
-# Enterprise Features
+# Enterprise — Provable AI Runtime
 
-ReadyLayer Enterprise provides governance controls for AI delivery teams.
+Requiem Enterprise adds enforced governance, multi-tenant isolation, and compliance controls
+on top of the open-source deterministic execution engine.
 
-## Feature Gates
+## Three Guarantees (All Tiers)
 
-Enterprise features are gated at both compile-time and runtime. The open-source
-core functions independently — enterprise modules add governance, compliance,
-and multi-tenant controls on top.
+Every tier — OSS, Pro, Enterprise — enforces the same core guarantees:
 
-### OSS (Open Source)
+1. **Provable Execution** — Identical inputs produce identical `result_digest` values. BLAKE3 domain-separated hashing, canonical JSON serialization, 200x repeat verification in CI.
+2. **Enforced Governance** — Deny-by-default policy gate on every tool invocation. RBAC, budgets, guardrails, and audit logging enforced before execution.
+3. **Replayable Outcomes** — Content-addressable storage with dual-hash verification. Any execution replayable and verifiable against its original proof.
 
-- Deterministic execution engine
-- Content-addressable storage (CAS)
-- Replay verification
-- Policy engine (basic rules)
-- CLI tool execution and audit
-- Single-tenant operation
+## Tiers
 
-### Enterprise (Gated)
-
-- Multi-tenant isolation with RBAC
-- SOC 2 compliance controls
-- Advanced policy engine (DGL, CPX, SCCL)
-- Signed artifact chain and evidence exports
-- Cluster coordination and drift detection
-- Cost accounting and chargeback
-- Adversarial safety monitoring
-- SLA-backed support
+| | OSS | Pro | Enterprise |
+|---|---|---|---|
+| Deterministic execution | Yes | Yes | Yes |
+| CAS (dual-hash verification) | Yes | Yes | Yes |
+| Policy gate (deny-by-default) | Yes | Yes | Yes |
+| Replay verification | Yes | Yes | Yes |
+| CLI + Dashboard | Yes | Yes | Yes |
+| Execution credits / month | 1,000 | 50,000 | Unlimited |
+| Replay storage | 1 GB | 50 GB | Unlimited |
+| Policy events tracked | 10,000 | 500,000 | Unlimited |
+| Multi-tenant isolation | — | Yes | Yes |
+| SOC 2 compliance controls | — | — | Yes |
+| Signed artifact chain | — | — | Yes |
+| Cluster coordination | — | — | Yes |
+| Drift detection | — | — | Yes |
+| SLA-backed support | — | — | Yes |
 
 ## Architecture Boundary
 
@@ -45,6 +47,14 @@ The OSS build never imports enterprise-only modules. This is enforced by CI.
 | Cloud-managed | Hosted at readylayer.com |
 | On-premises | Self-hosted with license key |
 | Hybrid | Cloud control plane, on-prem execution |
+
+## Usage Metering
+
+Three primitives:
+
+- **Execution credits**: Each tool invocation through the policy gate consumes one credit.
+- **Replay storage**: Immutable execution records stored for replay verification.
+- **Policy events**: Every policy gate evaluation is tracked and auditable.
 
 ## Contact
 
