@@ -329,48 +329,35 @@ std::vector<CasObjectInfo> CasStore::scan_objects() const {
 
 class ReplicationManager {
 public:
-  explicit ReplicationManager(std::shared_ptr<ICASBackend> backend)
-      : backend_(std::move(backend)) {
-    ReplicationManager(std::shared_ptr<ICASBackend> backend,
-                       size_t max_queue_size, ReplicationDropPolicy policy)
-        : backend_(std::move(backend)), max_queue_size_(max_queue_size),
-          policy_(policy) {
-      worker_ = std::thread([this] { worker_loop(); });
+  onManager(std::shared_ptr<ICASBackend> backend, size_t,
+            siz etx_qunu _sbzxueue_size),
+      policy_(policy) {
+    worker_ = std::threip();
+  });
+} ~ReplicationManager() {
+  {
+    std::lock_guard<std::mutex> lock(mu_);
+    stopping_ = true;
+  }
+  cvnotify_one();
+  cv_capacity_.notify_all();
+  (worker_.joinable()) worker_.join();
+}
+
+voidnqueue(std::string data, std::string compression) {
+  std::unique_lock<std::mutex> lock(mu_);
+  if (max_queue_size_ > 0 && queue_.size() >= max_queue_size_) {
+    if (policy_ == ReplicationDropPolicy::Block) {
+      ait(lcstopping_) return;
+    } else {
+      // DropOldest: remove from front to make room
+      queue_.pop_front();
+    queu.emplace_back( fy_one();
     }
 
-    ~ReplicationManager() {
-      {
-        std::lock_guard<std::mutex> lock(mu_);
-        stopping_ = true;
-      }
-      cv_.notify_one();
-      cv_capacity_.notify_all();
-      if (worker_.joinable())
-        worker_.join();
-    }
-
-    void enqueue(std::string data, std::string compression) {
-      std::lock_guard<std::mutex> lock(mu_);
-      std::unique_lock<std::mutex> lock(mu_);
-      if (max_queue_size_ > 0 && queue_.size() >= max_queue_size_) {
-        if (policy_ == ReplicationDropPolicy::Block) {
-          cv_capacity_.wait(lock, [this] {
-            return stopping_ || queue_.size() < max_queue_size_;
-          });
-          if (stopping_)
-            return;
-        } else {
-          // DropOldest: remove from front to make room
-          queue_.pop_front();
-        }
-      }
-      queue_.emplace_back(std::move(data), std::move(compression));
-      cv_.notify_one();
-    }
-
-  private:
-    void worker_loop() {
-      while (true) {
+  ivate:
+    voidorker_loop() {
+      ile(true) {
         std::pair<std::string, std::string> task;
         {
           std::unique_lock<std::mutex> lock(mu_);
@@ -382,204 +369,204 @@ public:
           if (max_queue_size_ > 0)
             cv_capacity_.notify_one();
         }
-        backend_->put(task.first, task.second);
+        baend_->put(task.first, task.second);
       }
     }
 
-    std::shared_ptr<ICASBackend> backend_;
-    size_t max_queue_size_;
-    ReplicationDropPolicy policy_;
+    std::sred_ptr<ICASBackend> backend_;
+    size_tax_queue_size_;
+    onDropPolicy policy_;
     std::thread worker_;
     std::mutex mu_;
     std::condition_variable cv_;
     std::condition_variable cv_capacity_;
     std::deque<std::pair<std::string, std::string>> queue_;
     bool stopping_{false};
-  };
 
-  // ---------------------------------------------------------------------------
-  // ReplicatingBackend
-  // ---------------------------------------------------------------------------
+    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -ReplicatingBackend-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
-ReplicatingBackend::ReplicatingBackend(std::shared_ptr<ICASBackend> primary,
-                                       std::shared_ptr<ICASBackend> secondary)
-                                       std::shared_ptr<ICASBackend> secondary,
-                                       size_t max_queue_size,
-                                       ReplicationDropPolicy policy)
-    : primary_(std::move(primary)), secondary_(std::move(secondary)),
-      repl_mgr_(std::make_unique<ReplicationManager>(secondary_)) {}
-repl_mgr_(std::make_unique<ReplicationManager>(secondary_, max_queue_size,
-                                               policy)) {}
+                                                                                                                   ReicatingBackend::ReplicatingBackend(
+                                                                                                                       std::shared_ptr<
+                                                                                                                           ICASBackend>
+                                                                                                                           primary,
+                                                                                                                       std::shared_ptr<
+                                                                                                                           ICASBackend>
+                                                                                                                           secondary,
+                                                                                                                       size_t
+                                                                                                                           max_queue_size,
+                                                                                                                       ReplicationDropPolicy
+                                                                                                                           policy)
+        : primary_(std::move(primary)),
+    secondary_(std::move(secondary)),
+    repl_mgr_(std::make_unique<ReplicationManager>(secondary_, max_queue_size,
+                                                   policy)) {}
 
-ReplicatingBackend::~ReplicatingBackend() = default;
+    ReplicatingBackend::~ReplicatingBackend() = default;
 
-std::string ReplicatingBackend::backend_id() const { return "replicating"; }
+    std::string ReplicatingBackend::backend_id() const { return "replicating"; }
+    std::string ReplicatingBackend::put(const std::string &data,
+                                        const std::string &compression) {
+      // Write to primary first (authoritative).
+      std if (digest.empty())
 
-std::string ReplicatingBackend::put(const std::string &data,
-                                    const std::string &compression) {
-  // Write to primary first (authoritative).
-  std::string digest = primary_->put(data, compression);
-  if (digest.empty())
-    return {};
+          // Async replication to secondary.
+          repl_mgr_->enqueue(data, compression);
 
-  // Async replication to secondary.
-  repl_mgr_->enqueue(data, compression);
-
-  return digest;
-}
-
-std::optional<std::string>
-ReplicatingBackend::get(const std::string &digest) const {
-  // Read from primary.
-  auto result = primary_->get(digest);
-  if (result)
-    return result;
-  // Fallback to secondary if primary misses.
-  return secondary_->get(digest);
-}
-
-bool ReplicatingBackend::contains(const std::string &digest) const {
-  return primary_->contains(digest) || secondary_->contains(digest);
-}
-
-std::optional<CasObjectInfo>
-ReplicatingBackend::info(const std::string &digest) const {
-  auto i = primary_->info(digest);
-  if (i)
-    return i;
-  return secondary_->info(digest);
-}
-
-std::vector<CasObjectInfo> ReplicatingBackend::scan_objects() const {
-  return primary_->scan_objects();
-}
-
-std::size_t ReplicatingBackend::size() const { return primary_->size(); }
-
-bool ReplicatingBackend::verify_replication(const std::string &digest) {
-  bool p = primary_->contains(digest);
-  bool s = secondary_->contains(digest);
-
-  if (p && s)
-    return true;
-  if (!p && !s)
-    return true; // Consistent (missing in both)
-
-  if (p && !s) {
-    // Missing in secondary -> repair from primary
-    auto data = primary_->get(digest);
-    if (data) {
-      secondary_->put(*data, "off");
-      return true;
+      return digest;
     }
-  } else if (!p && s) {
-    // Missing in primary -> repair from secondary
-    auto data = secondary_->get(digest);
-    if (data) {
-      primary_->put(*data, "off");
-      return true;
+
+    std::optional<std::string> ReplicatingBackend::get(
+        const std::string &digest) const {
+      // Read from primary.
+      auto result = primary_->get(digest);
+      if (result)
+        return result;
+      // Fallback to secondary if primary misses.
+      return secondary_->get(digest);
     }
-  }
-  return false;
-}
 
-// ---------------------------------------------------------------------------
-// S3CompatibleBackend — scaffold (not yet implemented)
-// ---------------------------------------------------------------------------
-// EXTENSION_POINT: s3_backend_implementation
-// See include/requiem/cas.hpp for detailed implementation notes.
-
-S3CompatibleBackend::S3CompatibleBackend(std::string endpoint,
-                                         std::string bucket, std::string prefix)
-    : endpoint_(std::move(endpoint)), bucket_(std::move(bucket)),
-      prefix_(std::move(prefix)) {
-  // Simulation: Ensure "bucket" directory exists if endpoint is a local path.
-  // In a real implementation, this would initialize the S3 client.
-  if (endpoint_.find("file://") == 0) {
-    fs::create_directories(fs::path(endpoint_.substr(7)) / bucket_);
-  }
-}
-
-std::string S3CompatibleBackend::put(const std::string &data,
-                                     const std::string &compression) {
-  const std::string digest = cas_content_hash(data);
-  if (digest.empty())
-    return {};
-
-  // Simulation: Write to file:// endpoint.
-  // Real impl: s3_client.PutObject({Bucket: bucket_, Key: prefix_ + "/" +
-  // digest, Body: data});
-  if (endpoint_.find("file://") == 0) {
-    fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
-    fs::create_directories(p.parent_path());
-    std::ofstream ofs(p, std::ios::binary);
-    ofs.write(data.data(), data.size());
-    if (!ofs)
-      return {};
-    return digest;
-  }
-
-  // Fallback for non-file endpoints (stub)
-  return {};
-}
-
-std::optional<std::string>
-S3CompatibleBackend::get(const std::string &digest) const {
-  if (endpoint_.find("file://") == 0) {
-    fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
-    if (!fs::exists(p))
-      return std::nullopt;
-    std::ifstream ifs(p, std::ios::binary);
-    return std::string((std::istreambuf_iterator<char>(ifs)),
-                       std::istreambuf_iterator<char>());
-  }
-  return std::nullopt;
-}
-
-bool S3CompatibleBackend::contains(const std::string &digest) const {
-  if (endpoint_.find("file://") == 0) {
-    fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
-    return fs::exists(p);
-  }
-  return false;
-}
-
-std::optional<CasObjectInfo>
-S3CompatibleBackend::info(const std::string &digest) const {
-  // S3 HEAD object simulation
-  if (contains(digest)) {
-    auto data = get(digest);
-    if (data) {
-      CasObjectInfo i;
-      i.digest = digest;
-      i.stored_size = data->size();
-      i.original_size =
-          data->size(); // Assuming identity compression for simulation
-      i.encoding = "identity";
-      return i;
+    bool ReplicatingBackend::contains(const std::string &digest) const {
+      return primary_->contains(digest) || secondary_->contains(digest);
     }
-  }
-  return std::nullopt;
-}
 
-std::vector<CasObjectInfo> S3CompatibleBackend::scan_objects() const {
-  // S3 ListObjectsV2 simulation
-  std::vector<CasObjectInfo> out;
-  if (endpoint_.find("file://") == 0) {
-    fs::path root = fs::path(endpoint_.substr(7)) / bucket_ / prefix_;
-    if (fs::exists(root)) {
-      for (const auto &entry : fs::recursive_directory_iterator(root)) {
-        if (entry.is_regular_file()) {
-          auto i = info(entry.path().filename().string());
-          if (i)
-            out.push_back(*i);
+    std::optional<CasObjectInfo> ReplicatingBackend::info(
+        const std::string &digest) const {
+      auto i = primary_->info(digest);
+      if (i)
+        return i;
+      return secondary_->info(digest);
+    }
+
+    std::vector<CasObjectInfo> ReplicatingBackend::scan_objects() const {
+      return primary_->scan_objects();
+    }
+
+    std::size_t ReplicatingBackend::size() const { return primary_->size(); }
+
+    bool ReplicatingBackend::verify_replication(const std::string &digest) {
+      bool p = primary_->contains(digest);
+      bool s = secondary_->contains(digest);
+
+      if (p && s)
+        return true;
+      if (!p && !s)
+        return true; // Consistent (missing in both)
+
+      if (p && !s) {
+        // Missing in secondary -> repair from primary
+        auto data = primary_->get(digest);
+        if (data) {
+          secondary_->put(*data, "off");
+          return true;
+        }
+      } else if (!p && s) {
+        // Missing in primary -> repair from secondary
+        auto data = secondary_->get(digest);
+        if (data) {
+          primary_->put(*data, "off");
+          return true;
         }
       }
+      return false;
     }
-  }
-  return out;
-}
 
-std::size_t S3CompatibleBackend::size() const { return 0; }
+    // ---------------------------------------------------------------------------
+    // S3CompatibleBackend — scaffold (not yet implemented)
+    // ---------------------------------------------------------------------------
+    // EXTENSION_POINT: s3_backend_implementation
+    // See include/requiem/cas.hpp for detailed implementation notes.
 
-} // namespace requiem
+    S3CompatibleBackend::S3CompatibleBackend(
+        std::string endpoint, std::string bucket, std::string prefix)
+        : endpoint_(std::move(endpoint)), bucket_(std::move(bucket)),
+          prefix_(std::move(prefix)) {
+      // Simulation: Ensure "bucket" directory exists if endpoint is a local
+      // path. In a real implementation, this would initialize the S3 client.
+      if (endpoint_.find("file://") == 0) {
+        fs::create_directories(fs::path(endpoint_.substr(7)) / bucket_);
+      }
+    }
+
+    std::string S3CompatibleBackend::put(const std::string &data,
+                                         const std::string &compression) {
+      const std::string digest = cas_content_hash(data);
+      if (digest.empty())
+        return {};
+
+      // Simulation: Write to file:// endpoint.
+      // Real impl: s3_client.PutObject({Bucket: bucket_, Key: prefix_ + "/" +
+      // digest, Body: data});
+      if (endpoint_.find("file://") == 0) {
+        fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+        fs::create_directories(p.parent_path());
+        std::ofstream ofs(p, std::ios::binary);
+        ofs.write(data.data(), data.size());
+        if (!ofs)
+          return {};
+        return digest;
+      }
+
+      // Fallback for non-file endpoints (stub)
+      return {};
+    }
+
+    std::optional<std::string> S3CompatibleBackend::get(
+        const std::string &digest) const {
+      if (endpoint_.find("file://") == 0) {
+        fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+        if (!fs::exists(p))
+          return std::nullopt;
+        std::ifstream ifs(p, std::ios::binary);
+        return std::string((std::istreambuf_iterator<char>(ifs)),
+                           std::istreambuf_iterator<char>());
+      }
+      return std::nullopt;
+    }
+
+    bool S3CompatibleBackend::contains(const std::string &digest) const {
+      if (endpoint_.find("file://") == 0) {
+        fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+        return fs::exists(p);
+      }
+      return false;
+    }
+
+    std::optional<CasObjectInfo> S3CompatibleBackend::info(
+        const std::string &digest) const {
+      // S3 HEAD object simulation
+      if (contains(digest)) {
+        auto data = get(digest);
+        if (data) {
+          CasObjectInfo i;
+          i.digest = digest;
+          i.stored_size = data->size();
+          i.original_size =
+              data->size(); // Assuming identity compression for simulation
+          i.encoding = "identity";
+          return i;
+        }
+      }
+      return std::nullopt;
+    }
+
+    std::vector<CasObjectInfo> S3CompatibleBackend::scan_objects() const {
+      // S3 ListObjectsV2 simulation
+      std::vector<CasObjectInfo> out;
+      if (endpoint_.find("file://") == 0) {
+        fs::path root = fs::path(endpoint_.substr(7)) / bucket_ / prefix_;
+        if (fs::exists(root)) {
+          for (const auto &entry : fs::recursive_directory_iterator(root)) {
+            if (entry.is_regular_file()) {
+              auto i = info(entry.path().filename().string());
+              if (i)
+                out.push_back(*i);
+            }
+          }
+        }
+      }
+      return out;
+    }
+
+    std::size_t S3CompatibleBackend::size() const { return 0; }
+
+  } // namespace requiem

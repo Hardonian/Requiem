@@ -129,10 +129,14 @@ private:
 // ---------------------------------------------------------------------------
 class ReplicationManager; // Forward declaration
 
+enum class ReplicationDropPolicy { Block, DropOldest };
+
 class ReplicatingBackend : public ICASBackend {
 public:
-  ReplicatingBackend(std::shared_ptr<ICASBackend> primary,
-                     std::shared_ptr<ICASBackend> secondary);
+  ReplicatingBackend(
+      std::shared_ptr<ICASBackend> primary,
+      std::shared_ptr<ICASBackend> secondary, size_t max_queue_size = 1024,
+      ReplicationDropPolicy policy = ReplicationDropPolicy::Block);
   ~ReplicatingBackend() override;
 
   std::string backend_id() const override;
