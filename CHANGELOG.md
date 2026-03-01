@@ -1,5 +1,79 @@
 # Changelog
 
+## 1.4.0 — Audit Remediation Complete (2026-03-01)
+
+### Security
+
+#### Phase 1A: JWT Validation & MCP Security
+- **JWT token validation** — MCP transport now validates JWT tokens with expiry and claims verification
+- **Correlation ID generation** — Every request gets a correlation ID for distributed tracing
+- **Request attribution** — All operations logged with user and tenant context
+
+#### Phase 1B: Seccomp, Signed Bundles & Audit
+- **Seccomp-BPF syscall filtering** — Linux sandbox with allowlisted syscalls
+- **Signed provenance bundles** — Execution proofs with Merkle root computation
+- **Audit persistence** — Database-backed audit logs with append-only semantics
+- **Merkle audit chain** — Tamper-evident log chain with hash linking
+- **Capability truth** — Honest reporting of sandbox capabilities (enforced/unsupported/partial)
+
+#### Phase 2A: DB-Backed Budgets & Cost Control
+- **Persistent budget tracking** — Budgets stored in database, survive restarts
+- **Cross-instance coordination** — Shared budget state across cluster
+- **Cost anomaly detection** — Statistical modeling to detect unusual spending patterns
+- **Budget enforcement** — Hard limits enforced at policy gate before execution
+
+#### Phase 2B: Tool Registry Security
+- **Tool output limits** — Maximum output size enforced at registry level
+- **Flag-based capabilities** — Feature flags control tool behavior
+- **Replay cache** — Deterministic replay with cached results
+
+#### Phase 3A: MCP Policy Enforcement
+- **Policy at entry point** — All MCP requests pass through policy enforcer
+- **Prompt injection filter** — Input sanitization with pattern detection
+- **Correlation propagation** — IDs flow through entire request lifecycle
+- **Input validation** — Zod schemas for all inputs
+
+#### Infrastructure Security (Phase 4)
+- **Circuit breaker persistence** — State saved to database for cluster resilience
+- **Database migration runner** — Transactional migrations with rollback support
+- **Automated credential rotation** — 90-day API key, 30-day DB credential rotation
+- **Production cost sink** — Real-time cost tracking with alerting
+
+### Policy
+
+- **DB-backed budgets** — Policy budgets now persist across restarts
+- **Cost anomaly detection** — Statistical monitoring with configurable thresholds
+- **Tool output limits** — Prevents DoS via large outputs
+- **Policy enforcement at MCP** — Gate validates all requests before execution
+
+### Tool Registry
+
+- **Flag system** — Dynamic feature flags for tool behavior control
+- **Output limits** — Per-tool and global output size limits
+- **Replay cache** — Enables deterministic replay of tool executions
+
+### MCP Integration
+
+- **Policy enforcement** — Middleware validates all MCP requests
+- **Correlation IDs** — Full request tracing across services
+- **Prompt injection filter** — Sanitizes potentially malicious inputs
+- **Rate limiting** — Per-tenant token bucket rate limiting
+
+### Infrastructure
+
+- **Circuit breaker persistence** — State survives restarts and enables cluster coordination
+- **Database migrations** — Migration runner with checksums and rollback
+- **Credential rotation** — Automated workflow for API keys, DB credentials, JWT keys
+- **Cost sink** — Real-time cost aggregation with anomaly alerts
+
+### Testing
+
+- **Adversarial goldens** — Test cases for prompt injection, budget bypass
+- **Tenant isolation tests** — Red-team style tests for cross-tenant access
+- **Performance benchmarks** — Latency histograms with regression detection
+
+---
+
 ## 1.0.0 — Initial Public Release (2026-02-28)
 
 ### Added
@@ -60,22 +134,21 @@ pnpm run verify:preflight
 │                    ReadyLayer (Next.js)                       │
 │            Web dashboard + API routes + middleware            │
 └────────────────────────┬─────────────────────────────────────┘
-                         │
-          ┌───────────────┼───────────────┐
-          │               │               │
- ┌────────▼───────┐ ┌─────▼──────┐ ┌──────▼───────┐
- │  @requiem/ai   │ │ @requiem/ui│ │  @requiem/cli│
- │  MCP + Skills  │ │ Components │ │  Reach CLI   │
- └────────┬───────┘ └────────────┘ └──────┬───────┘
-          │                               │
- ┌────────▼───────────────────────────────▼───────┐
- │              Requiem Engine (C++)               │
- │   Sandbox │ CAS │ Replay │ BLAKE3 │ Policy    │
- └────────────────────────────────────────────────┘
+                          │
+           ┌───────────────┼───────────────┐
+           │               │               │
+  ┌────────▼───────┐ ┌─────▼──────┐ ┌──────▼───────┐
+  │  @requiem/ai   │ │ @requiem/ui│ │  @requiem/cli│
+  │  MCP + Skills  │ │ Components │ │  Reach CLI   │
+  └────────┬───────┘ └────────────┘ └──────┬───────┘
+           │                               │
+  ┌────────▼───────────────────────────────▼───────┐
+  │              Requiem Engine (C++)               │
+  │   Sandbox │ CAS │ Replay │ BLAKE3 │ Policy    │
+  └────────────────────────────────────────────────┘
 ```
 
 ---
-
 
 ### Fixed
 - **routes.manifest.json restored to repo root** — file was relocated to
