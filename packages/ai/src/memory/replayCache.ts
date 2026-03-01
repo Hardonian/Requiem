@@ -12,8 +12,7 @@
  */
 
 import { createHash } from 'crypto';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
+import type { AiError } from '../errors/AiError';
 import { logger } from '../telemetry/logger';
 
 /**

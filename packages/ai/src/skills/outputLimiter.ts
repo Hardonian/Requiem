@@ -65,7 +65,7 @@ export interface OutputLimiterConfig {
 export class OutputSizeLimiter {
   private readonly maxBytes: number;
   private readonly truncateOnExceed: boolean;
-  private readonly onWarning?: (message: string, details: Record<string, unknown>) => void;
+  private readonly onWarning: (message: string, details: Record<string, unknown>) => void;
 
   constructor(config: Partial<OutputLimiterConfig> = {}) {
     // Allow override from environment variable
@@ -157,7 +157,7 @@ export class OutputSizeLimiter {
       code: AiErrorCode.TOOL_OUTPUT_TOO_LARGE,
       message: `Tool output exceeds maximum size of ${this.maxBytes} bytes (got ${sizeBytes} bytes)`,
       phase: 'outputLimiter',
-      details: {
+      meta: {
         sizeBytes,
         maxBytes: this.maxBytes,
       },
@@ -275,7 +275,7 @@ export function parseTriggerDataWithLimit(triggerData: string): unknown {
       code: AiErrorCode.TRIGGER_DATA_TOO_LARGE,
       message: `trigger_data exceeds maximum size of ${maxBytes} bytes (got ${sizeBytes} bytes)`,
       phase: 'triggerDataParser',
-      details: {
+      meta: {
         sizeBytes,
         maxBytes,
       },

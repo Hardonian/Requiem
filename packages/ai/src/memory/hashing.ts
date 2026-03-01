@@ -10,14 +10,17 @@
 
 import { createHash } from 'crypto';
 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 // Try to load BLAKE3, fall back to SHA-256 if not available
-let blake3: typeof import('blake3') | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  blake3 = require('blake3');
-} catch {
-  blake3 = null;
-}
+const blake3 = (() => {
+  try {
+    return require('blake3');
+  } catch {
+    return null;
+  }
+})() as typeof import('blake3') | null;
 
 /**
  * Compute SHA-256 hash of content, returning hex string.
@@ -91,11 +94,12 @@ export function isBLAKE3Available(): boolean {
  */
 export function hashContentBLAKE3(content: unknown): string {
   const normalized = normalizeForHashing(content);
-  
+
   if (blake3) {
-    return blake3.default.hash(normalized).toString('hex');
+    const b3 = (blake3 as any).default || blake3;
+    return (b3 as any).hash(normalized).toString('hex');
   }
-  
+
   // Fallback to SHA-256
   return createHash('sha256').update(normalized, 'utf8').digest('hex');
 }

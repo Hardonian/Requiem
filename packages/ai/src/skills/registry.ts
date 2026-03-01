@@ -4,7 +4,6 @@
 
 import { AiError } from '../errors/AiError';
 import { AiErrorCode } from '../errors/codes';
-import { now } from '../types/index';
 import type { SkillDefinition } from './types';
 
 const _registry = new Map<string, SkillDefinition>();

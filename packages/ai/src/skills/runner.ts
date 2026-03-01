@@ -48,7 +48,7 @@ export interface SkillContext {
  * @returns A validated SkillContext snapshot
  */
 export function validateSkillContext(ctx: InvocationContext): SkillContext {
-  if (!ctx.tenantId) {
+  if (!ctx.tenant?.tenantId) {
     throw new AiError({
       code: AiErrorCode.INVALID_CONTEXT,
       message: 'tenantId is required in SkillContext before tool execution',
@@ -56,8 +56,8 @@ export function validateSkillContext(ctx: InvocationContext): SkillContext {
     });
   }
   return {
-    tenantId: ctx.tenantId,
-    userId: (ctx as Record<string, unknown>)['userId'] as string | undefined,
+    tenantId: ctx.tenant.tenantId,
+    userId: ctx.tenant.userId,
     requestId: ctx.traceId,
     recursionDepth: getRecursionDepth(ctx.traceId),
   };
@@ -87,7 +87,7 @@ export async function runSkill(
   // Attach budget remaining (best-effort, non-blocking)
   try {
     const budgetChecker = getBudgetChecker();
-    const budgetResult = await budgetChecker.check(ctx.tenantId!, 0);
+    const budgetResult = await budgetChecker.check(ctx.tenant.tenantId, 0);
     skillCtx.budgetRemaining = budgetResult.remaining?.costCents;
   } catch {
     // Budget lookup failure is non-fatal for skill execution start
