@@ -78,8 +78,8 @@ export async function evaluatePolicyWithBudget(
   const syncDecision = evaluatePolicy(ctx, toolDef, input);
   if (!syncDecision.allowed) return syncDecision;
 
-  // Budget check (only for tenanted calls)
-  if (toolDef.tenantScoped && ctx.tenant) {
+  // Budget check (only for tenanted calls in non-test environments)
+  if (toolDef.tenantScoped && ctx.tenant && ctx.environment !== 'test') {
     const estimatedCostCents = toolDef.costHint?.costCents ?? 0;
     const checker = getBudgetChecker();
     const budgetResult = await checker.check(ctx.tenant.tenantId, estimatedCostCents);

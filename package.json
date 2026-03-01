@@ -9,7 +9,7 @@
     "reach": "pnpm --filter @requiem/cli",
     "build": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j",
     "build:ui": "pnpm --filter @requiem/ui build",
-    "build:web": "pnpm --filter ready-layer build",
+    "build:web": "pnpm run build:ai && pnpm --filter ready-layer build",
     "build:ai": "pnpm --filter @requiem/ai build",
     "test": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build --output-on-failure",
     "build:cpp": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j",
@@ -22,7 +22,7 @@
     "web:dev": "pnpm --filter ready-layer dev",
     "test:e2e": "pnpm --filter ready-layer test:e2e",
     "doctor": "bash scripts/doctor.sh",
-    "verify:full": "npm-run-all lint typecheck verify:boundaries build:web",
+    "verify:full": "npm-run-all lint typecheck verify:boundaries build:ai build:web",
     "verify": "npm-run-all --parallel lint typecheck verify:boundaries",
     "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes",
     "verify:cpp": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j && ctest --test-dir build --output-on-failure",
@@ -41,7 +41,9 @@
     "verify:economics": "node scripts/verify-economics.mjs",
     "verify:governance": "npm-run-all verify:skills verify:schemas verify:economics",
     "audit": "pnpm audit",
-    "audit:fix": "pnpm audit --fix"
+    "audit:fix": "pnpm audit --fix",
+    "analyze:size": "pnpm --filter ready-layer exec -- node -e \"const {execSync}=require('child_process'); const r=execSync('du -sh .next 2>/dev/null || echo N/A').toString().trim(); console.log('Next.js build size:', r);\" && du -sh packages/*/dist 2>/dev/null || echo 'Run build first'",
+    "analyze:deps": "pnpm list --recursive --depth 1 2>/dev/null | head -80"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

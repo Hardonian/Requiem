@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 
 const CLI_PATH = path.join(process.cwd(), 'packages/cli/src/cli.ts');
-const CSV_PATH = path.join(process.cwd(), 'decisions.csv');
+const CSV_PATH = path.join(process.cwd(), 'testdata', 'decisions.csv');
 
 async function main() {
   console.log('📥 Verifying Import command...');

@@ -1,11 +1,22 @@
 /**
  * @fileoverview JSON Schema validation for tool inputs/outputs.
  * Uses lightweight structural validation against JsonSchema definitions.
+ * Also supports Zod schemas (detected by the presence of a `safeParse` method).
  * Raises AiError.TOOL_SCHEMA_VIOLATION on failure.
  */
 
 import { AiError } from '../errors/AiError';
 import type { ToolDefinition, ValidationResult, ValidationError, JsonSchema } from './types';
+
+/** Minimal Zod-compatible interface for duck-typing detection. */
+interface ZodLike {
+  safeParse(value: unknown): { success: boolean; error?: { issues: Array<{ path: (string | number)[]; message: string }> } };
+}
+
+/** Returns true if `schema` is a Zod schema (has `safeParse`). */
+function isZodSchema(schema: unknown): schema is ZodLike {
+  return typeof schema === 'object' && schema !== null && typeof (schema as ZodLike).safeParse === 'function';
+}
 
 /**
  * Validates a value against a JSON Schema definition.
@@ -63,7 +74,7 @@ function validateAgainstSchema(
 
   if (schema.type === 'object' || (typeof value === 'object' && value !== null && !Array.isArray(value))) {
     const obj = value as Record<string, unknown>;
-    if (schema.required) {
+    if (schema.required && Array.isArray(schema.required)) {
       for (const key of schema.required) {
         if (!(key in obj)) {
           errors.push({
@@ -92,12 +103,31 @@ function validateAgainstSchema(
 }
 
 /**
+ * Validate a value against either a Zod schema or a plain JSON Schema.
+ * Returns structured errors — does NOT throw.
+ */
+function validateWithSchema(schema: JsonSchema, value: unknown): ValidationResult {
+  if (isZodSchema(schema)) {
+    const result = schema.safeParse(value);
+    if (result.success) {
+      return { valid: true, errors: [] };
+    }
+    const errors: ValidationError[] = (result.error?.issues ?? []).map(issue => ({
+      path: issue.path.join('.') || 'root',
+      message: issue.message,
+    }));
+    return { valid: false, errors };
+  }
+  const errors = validateAgainstSchema(schema, value);
+  return { valid: errors.length === 0, errors };
+}
+
+/**
  * Validates tool input against its schema.
  * Returns ValidationResult (does not throw).
  */
 export function validateInput(toolDef: ToolDefinition, input: unknown): ValidationResult {
-  const errors = validateAgainstSchema(toolDef.inputSchema, input);
-  return { valid: errors.length === 0, errors };
+  return validateWithSchema(toolDef.inputSchema, input);
 }
 
 /**
@@ -105,8 +135,7 @@ export function validateInput(toolDef: ToolDefinition, input: unknown): Validati
  * Returns ValidationResult (does not throw).
  */
 export function validateOutput(toolDef: ToolDefinition, output: unknown): ValidationResult {
-  const errors = validateAgainstSchema(toolDef.outputSchema, output);
-  return { valid: errors.length === 0, errors };
+  return validateWithSchema(toolDef.outputSchema, output);
 }
 
 /**

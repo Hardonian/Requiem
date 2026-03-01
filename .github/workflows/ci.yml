@@ -183,7 +183,7 @@ jobs:
           node --test packages/ai/src/policy/__tests__/adversarial_policy.test.ts
           node --test packages/ai/src/eval/__tests__/eval_cases.test.ts
           node --test packages/ai/src/tools/__tests__/adversarial.test.ts
-          node --test wrapper.test.ts
+          node --test packages/cli/src/db/wrapper.test.ts
       - name: Verify differentiator infrastructure
         run: node --test packages/ai/src/policy/__tests__/differentiators.test.ts
 
