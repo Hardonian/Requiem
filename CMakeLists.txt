@@ -208,6 +208,11 @@ else()
 endif()
 add_test(NAME requiem_tests COMMAND requiem_tests)
 
+add_executable(context_paging_test tests/context_paging_test.cpp)
+target_link_libraries(context_paging_test PRIVATE requiem)
+add_test(NAME context_paging_test COMMAND context_paging_test
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # ---------------------------------------------------------------------------
 # Production hardening harnesses (Phases 1-7)
 # ---------------------------------------------------------------------------

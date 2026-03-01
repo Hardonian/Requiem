@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <random>
 #include <string_view> // MICRO_OPT: zero-alloc key lookup in info() lambda
 
@@ -320,6 +321,61 @@ std::vector<CasObjectInfo> CasStore::scan_objects() const {
 }
 
 // ---------------------------------------------------------------------------
+// ReplicatingBackend
+// ---------------------------------------------------------------------------
+
+class ReplicatingBackend : public ICASBackend {
+ public:
+  ReplicatingBackend(std::shared_ptr<ICASBackend> primary,
+                     std::shared_ptr<ICASBackend> secondary)
+      : primary_(std::move(primary)), secondary_(std::move(secondary)) {}
+
+  std::string backend_id() const override { return "replicating"; }
+
+  std::string put(const std::string &data,
+                  const std::string &compression) override {
+    // Write to primary first (authoritative).
+    std::string digest = primary_->put(data, compression);
+    if (digest.empty()) return {};
+
+    // Dual-write to secondary.
+    // In a production system, this might be asynchronous or fail-open.
+    // Here we attempt it synchronously.
+    secondary_->put(data, compression);
+
+    return digest;
+  }
+
+  std::optional<std::string> get(const std::string &digest) const override {
+    // Read from primary.
+    auto result = primary_->get(digest);
+    if (result) return result;
+    // Fallback to secondary if primary misses.
+    return secondary_->get(digest);
+  }
+
+  bool contains(const std::string &digest) const override {
+    return primary_->contains(digest) || secondary_->contains(digest);
+  }
+
+  std::optional<CasObjectInfo> info(const std::string &digest) const override {
+    auto i = primary_->info(digest);
+    if (i) return i;
+    return secondary_->info(digest);
+  }
+
+  std::vector<CasObjectInfo> scan_objects() const override {
+    return primary_->scan_objects();
+  }
+
+  std::size_t size() const override { return primary_->size(); }
+
+ private:
+  std::shared_ptr<ICASBackend> primary_;
+  std::shared_ptr<ICASBackend> secondary_;
+};
+
+// ---------------------------------------------------------------------------
 // S3CompatibleBackend — scaffold (not yet implemented)
 // ---------------------------------------------------------------------------
 // EXTENSION_POINT: s3_backend_implementation
@@ -328,31 +384,92 @@ std::vector<CasObjectInfo> CasStore::scan_objects() const {
 S3CompatibleBackend::S3CompatibleBackend(std::string endpoint,
                                          std::string bucket, std::string prefix)
     : endpoint_(std::move(endpoint)), bucket_(std::move(bucket)),
-      prefix_(std::move(prefix)) {}
+      prefix_(std::move(prefix)) {
+  // Simulation: Ensure "bucket" directory exists if endpoint is a local path.
+  // In a real implementation, this would initialize the S3 client.
+  if (endpoint_.find("file://") == 0) {
+    fs::create_directories(fs::path(endpoint_.substr(7)) / bucket_);
+  }
+}
 
-std::string S3CompatibleBackend::put(const std::string & /*data*/,
-                                     const std::string & /*compression*/) {
-  // Not yet implemented. See cas.hpp EXTENSION_POINT:
-  // s3_backend_implementation.
+std::string S3CompatibleBackend::put(const std::string &data,
+                                     const std::string &compression) {
+  const std::string digest = cas_content_hash(data);
+  if (digest.empty())
+    return {};
+
+  // Simulation: Write to file:// endpoint.
+  // Real impl: s3_client.PutObject({Bucket: bucket_, Key: prefix_ + "/" +
+  // digest, Body: data});
+  if (endpoint_.find("file://") == 0) {
+    fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+    fs::create_directories(p.parent_path());
+    std::ofstream ofs(p, std::ios::binary);
+    ofs.write(data.data(), data.size());
+    if (!ofs)
+      return {};
+    return digest;
+  }
+
+  // Fallback for non-file endpoints (stub)
   return {};
 }
 
 std::optional<std::string>
-S3CompatibleBackend::get(const std::string & /*digest*/) const {
+S3CompatibleBackend::get(const std::string &digest) const {
+  if (endpoint_.find("file://") == 0) {
+    fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+    if (!fs::exists(p))
+      return std::nullopt;
+    std::ifstream ifs(p, std::ios::binary);
+    return std::string((std::istreambuf_iterator<char>(ifs)),
+                       std::istreambuf_iterator<char>());
+  }
   return std::nullopt;
 }
 
-bool S3CompatibleBackend::contains(const std::string & /*digest*/) const {
+bool S3CompatibleBackend::contains(const std::string &digest) const {
+  if (endpoint_.find("file://") == 0) {
+    fs::path p = fs::path(endpoint_.substr(7)) / bucket_ / prefix_ / digest;
+    return fs::exists(p);
+  }
   return false;
 }
 
 std::optional<CasObjectInfo>
-S3CompatibleBackend::info(const std::string & /*digest*/) const {
+S3CompatibleBackend::info(const std::string &digest) const {
+  // S3 HEAD object simulation
+  if (contains(digest)) {
+    auto data = get(digest);
+    if (data) {
+      CasObjectInfo i;
+      i.digest = digest;
+      i.stored_size = data->size();
+      i.original_size =
+          data->size(); // Assuming identity compression for simulation
+      i.encoding = "identity";
+      return i;
+    }
+  }
   return std::nullopt;
 }
 
 std::vector<CasObjectInfo> S3CompatibleBackend::scan_objects() const {
-  return {};
+  // S3 ListObjectsV2 simulation
+  std::vector<CasObjectInfo> out;
+  if (endpoint_.find("file://") == 0) {
+    fs::path root = fs::path(endpoint_.substr(7)) / bucket_ / prefix_;
+    if (fs::exists(root)) {
+      for (const auto &entry : fs::recursive_directory_iterator(root)) {
+        if (entry.is_regular_file()) {
+          auto i = info(entry.path().filename().string());
+          if (i)
+            out.push_back(*i);
+        }
+      }
+    }
+  }
+  return out;
 }
 
 std::size_t S3CompatibleBackend::size() const { return 0; }

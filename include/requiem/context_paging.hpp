@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "requiem/cas.hpp"
+#include "cas.hpp"
 
 namespace requiem {
 
@@ -25,7 +25,7 @@ struct PageManifest {
 
 /**
  * ContextPager manages virtualization and recall of large contexts.
- * It shards large payloads into CAS chunks and stiches them back on demand.
+ * It shards large payloads into CAS chunks and stitches them back on demand.
  */
 class ContextPager {
 public:

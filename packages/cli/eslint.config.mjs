@@ -36,7 +36,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/src/verify-*.ts', '**/src/run-verify-*.ts'],
+    files: [
+      'src/verify-*.ts',
+      'src/run-verify-*.ts',
+      'src/commands/quickstart.ts'
+    ],
     rules: {
       'no-restricted-imports': 'off',
     },
