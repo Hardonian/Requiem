@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import path from 'path';
+import * as path from 'path';
 import { getDB } from '../db/connection';
 import { writeJsonFile } from '../lib/io';
 

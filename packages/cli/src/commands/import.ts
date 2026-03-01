@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import path from 'path';
+import * as path from 'path';
 import { DecisionRepository, type CreateDecisionInput } from '../db/decisions';
 import { hash } from '../lib/hash';
 import { readTextFile, fileExists } from '../lib/io';

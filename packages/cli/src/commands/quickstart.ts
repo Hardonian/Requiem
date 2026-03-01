@@ -11,15 +11,21 @@
 
 import { Command } from 'commander';
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import * as path from 'path';
+import { fileExists } from '../lib/io';
+
+interface QuickstartResult {
+  success: boolean;
+  steps: Array<Record<string, unknown>>;
+  error?: string;
+}
 
 export const quickstart = new Command('quickstart')
   .description('Interactive setup guide for new Requiem users')
   .option('--skip-checks', 'Skip environment validation')
   .option('--json', 'Output in JSON format')
-  .action(async (options) => {
-    const results: Record<string, unknown> = {
+  .action(async (options: { skipChecks?: boolean; json?: boolean }) => {
+    const results: QuickstartResult = {
       success: true,
       steps: [],
     };
@@ -27,7 +33,7 @@ export const quickstart = new Command('quickstart')
     try {
       // Step 1: Environment validation
       if (!options.skipChecks) {
-        logStep('Step 1: Validating environment...', options.json);
+        logStep('Step 1: Validating environment...', !!options.json);
 
         const nodeVersion = process.version;
         const requiredNode = '20.';
@@ -73,10 +79,10 @@ export const quickstart = new Command('quickstart')
       }
 
       // Step 2: Configuration
-      logStep('Step 2: Checking configuration...', options.json);
+      logStep('Step 2: Checking configuration...', !!options.json);
 
-      const configPath = join(process.cwd(), '.requiem', 'config.json');
-      const hasConfig = existsSync(configPath);
+      const configPath = path.join(process.cwd(), '.requiem', 'config.json');
+      const hasConfig = fileExists(configPath);
 
       if (hasConfig) {
         if (options.json) {
@@ -93,7 +99,7 @@ export const quickstart = new Command('quickstart')
       }
 
       // Step 3: Tool registry check
-      logStep('Step 3: Checking tool registry...', options.json);
+      logStep('Step 3: Checking tool registry...', !!options.json);
 
       if (options.json) {
         results.steps.push({ step: 'tools', status: 'ready', message: 'Use: requiem tool list' });
@@ -103,7 +109,7 @@ export const quickstart = new Command('quickstart')
       }
 
       // Step 4: Next steps
-      logStep('Step 4: Next steps', options.json);
+      logStep('Step 4: Next steps', !!options.json);
 
       const nextSteps = [
         'requiem doctor          - Validate your setup',
