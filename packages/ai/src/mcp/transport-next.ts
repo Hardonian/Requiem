@@ -17,8 +17,7 @@
  */
 
 // jsonwebtoken is a required dependency — see note in file header above.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 import { handleListTools, handleCallTool, handleHealth } from './server';
 import { AiError } from '../errors/AiError';
@@ -104,7 +103,7 @@ function mapRole(role: string | undefined): TenantRole {
       return TenantRole.ADMIN;
     case 'editor':
     case 'write':
-      return TenantRole.EDITOR;
+      return TenantRole.MEMBER;
     default:
       return TenantRole.VIEWER;
   }
@@ -131,7 +130,7 @@ async function resolveContext(req: Request): Promise<InvocationContext> {
   // Extract correlation ID from request headers (S-20: Request correlation smuggling)
   const correlationManager = CorrelationManager.fromHeaders(req.headers);
   const correlationId = correlationManager.getCorrelationId();
-  
+
   const traceId = newId('trace');
   const env = (process.env.NODE_ENV ?? 'development') as InvocationContext['environment'];
 

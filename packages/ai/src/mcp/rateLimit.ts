@@ -59,7 +59,7 @@ export function loadRateLimitConfig(): RateLimitConfig {
   const ipRpm = parseInt(process.env.REQUIEM_RATE_LIMIT_IP_RPM ?? '120', 10);
   const distributed = process.env.REQUIEM_RATE_LIMIT_DISTRIBUTED === 'true';
   const distributedEndpoint = process.env.REQUIEM_RATE_LIMIT_ENDPOINT;
-  
+
   return {
     rpm: Number.isFinite(rpm) && rpm > 0 ? rpm : 60,
     burst: Number.isFinite(burst) && burst >= 0 ? burst : 10,
@@ -85,7 +85,7 @@ interface BucketState {
  */
 export class SlidingWindowRateLimiter {
   private readonly buckets = new Map<string, BucketState>();
-  private readonly config: RateLimitConfig;
+  protected readonly config: RateLimitConfig;
   /** Window size in milliseconds (60 s). */
   private static readonly WINDOW_MS = 60_000;
 
@@ -301,9 +301,9 @@ export class IpRateLimiter {
     const windowStart = now - this.windowMs;
     const limit = this.config.ipRpm;
     const bucket = this.buckets.get(ip);
-    
+
     if (!bucket) return limit;
-    
+
     const active = bucket.timestamps.filter(t => t > windowStart).length;
     return Math.max(0, limit - active);
   }
@@ -314,13 +314,13 @@ export class IpRateLimiter {
   isBlocked(ip: string): boolean {
     const bucket = this.buckets.get(ip);
     if (!bucket?.blocked) return false;
-    
+
     if (bucket.blockedUntil && Date.now() >= bucket.blockedUntil) {
       bucket.blocked = false;
       delete bucket.blockedUntil;
       return false;
     }
-    
+
     return true;
   }
 
@@ -343,7 +343,7 @@ export class IpRateLimiter {
     const blocked = this.isBlocked(ip);
     const remaining = this.remaining(ip);
     const resetAt = new Date(Date.now() + this.windowMs).toISOString();
-    
+
     return {
       allowed: !blocked && remaining > 0,
       remaining,
@@ -364,9 +364,8 @@ export class EnhancedRateLimiter extends SlidingWindowRateLimiter {
 
   constructor(config?: RateLimitConfig, distributedStore?: DistributedRateLimitStore) {
     super(config);
-    this.config = config ?? loadRateLimitConfig();
     this.ipLimiter = new IpRateLimiter(config);
-    
+
     if (this.config.distributed && this.config.distributedEndpoint) {
       this.distributedStore = distributedStore ?? new HttpRateLimitStore(this.config.distributedEndpoint);
     }
@@ -413,9 +412,9 @@ export class EnhancedRateLimiter extends SlidingWindowRateLimiter {
   async getStatus(tenantId: string): Promise<RateLimitStatus> {
     const limit = this.config.rpm + this.config.burst;
     const windowMs = 60_000;
-    
+
     let remaining: number;
-    
+
     if (this.distributedStore) {
       remaining = await this.distributedStore.remaining(tenantId, windowMs, limit);
     } else {
@@ -442,14 +441,34 @@ let _ipLimiter: IpRateLimiter | null = null;
 /**
  * Get (or lazily create) the singleton rate limiter.
  * Config is read from env on first access; subsequent calls reuse the instance.
+ * 
+ * WARNING: In production (NODE_ENV=production), distributed rate limiting is REQUIRED.
+ * Set REQUIEM_RATE_LIMIT_DISTRIBUTED=true and configure REQUIEM_RATE_LIMIT_ENDPOINT.
  */
 export function getRateLimiter(): SlidingWindowRateLimiter {
   if (!_limiter) {
     const config = loadRateLimitConfig();
+    
+    // Production validation: warn if distributed mode is not enabled
+    if (process.env.NODE_ENV === 'production' && !config.distributed) {
+      logger.error(
+        '[rate-limiter] CRITICAL: In-memory rate limiting is not safe for multi-instance production deployments. ' +
+        'Set REQUIEM_RATE_LIMIT_DISTRIBUTED=true and configure REQUIEM_RATE_LIMIT_ENDPOINT for Redis-based rate limiting.'
+      );
+    }
+    
     if (config.distributed) {
       _limiter = new EnhancedRateLimiter(config);
     } else {
       _limiter = new SlidingWindowRateLimiter(config);
+      
+      // Log warning about in-memory limitations
+      if (!config.distributed) {
+        logger.warn(
+          '[rate-limiter] Using in-memory rate limiter - not suitable for multi-instance deployments. ' +
+          'Requests may bypass rate limits when load-balanced across multiple pods.'
+        );
+      }
     }
   }
   return _limiter;

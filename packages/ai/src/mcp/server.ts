@@ -55,6 +55,34 @@ export interface McpHandlerResult<T> {
   trace_id?: string;
 }
 
+// ─── Health Counter ───────────────────────────────────────────────────────────
+
+let _healthRequestCounter = 0;
+
+/**
+ * Handle system/health — returns AI layer status.
+ * No auth required.
+ * Uses a monotonic counter instead of wall-clock time to avoid information disclosure.
+ */
+export async function handleHealth(): Promise<McpHandlerResult<McpHealthResponse>> {
+  try {
+    _healthRequestCounter++;
+    return {
+      ok: true,
+      data: {
+        status: 'ok',
+        // Use request counter instead of timestamp to avoid leaking server time
+        request_count: _healthRequestCounter,
+        tool_count: getToolCount(),
+        version: '0.1.0',
+      },
+    };
+  } catch (err) {
+    const aiErr = AiError.fromUnknown(err, 'mcp.health');
+    return { ok: false, error: aiErr.toSafeJson() };
+  }
+}
+
 // ─── Tenant Access Validation ─────────────────────────────────────────────────
 
 /**
@@ -208,26 +236,5 @@ export async function handleCallTool(
       error: aiErr.toSafeJson(),
       trace_id: ctx.traceId,
     };
-  }
-}
-
-/**
- * Handle system/health — returns AI layer status.
- * No auth required.
- */
-export async function handleHealth(): Promise<McpHandlerResult<McpHealthResponse>> {
-  try {
-    return {
-      ok: true,
-      data: {
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        tool_count: getToolCount(),
-        version: '0.1.0',
-      },
-    };
-  } catch (err) {
-    const aiErr = AiError.fromUnknown(err, 'mcp.health');
-    return { ok: false, error: aiErr.toSafeJson() };
   }
 }

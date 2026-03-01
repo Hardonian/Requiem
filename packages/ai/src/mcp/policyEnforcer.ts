@@ -137,14 +137,14 @@ export class McpPolicyEnforcer {
       console.log(`[MCP Policy] Loaded policy: ${this.policy.name} v${this.policy.version}`);
     } catch (err) {
       const error = err as Error;
+      // FAIL CLOSED: Policy is mandatory in all environments
+      // Use an explicit dev policy file (contracts/dev.policy.json) for development
       console.error(`[MCP Policy] Failed to load policy from ${this.policyPath}: ${error.message}`);
-      // In production, this is a fatal error
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error(`[FATAL] Cannot start MCP server without policy: ${error.message}`);
-      }
-      // In dev, use minimal permissive policy
-      this.policy = this.getDevPolicy();
-      this.loaded = true;
+      throw new Error(
+        `[FATAL] Cannot start MCP server without valid policy configuration. ` +
+        `Policy path: ${this.policyPath}. ` +
+        `Create a dev.policy.json for development or ensure default.policy.json exists.`
+      );
     }
   }
 
@@ -211,16 +211,12 @@ export class McpPolicyEnforcer {
 
     const policy = this.policy;
     if (!policy) {
-      // No policy loaded — deny by default in production
-      if (process.env.NODE_ENV === 'production') {
-        return {
-          allowed: false,
-          reason: 'No policy configuration loaded',
-          rule: 'policy.load',
-        };
-      }
-      // Allow in dev mode
-      return { allowed: true, reason: 'No policy loaded, allowing in dev mode' };
+      // FAIL CLOSED: No policy loaded - deny all requests
+      return {
+        allowed: false,
+        reason: 'No policy configuration loaded - deny by default',
+        rule: 'policy.load',
+      };
     }
 
     // 1. Check deny list
@@ -392,16 +388,70 @@ export class McpPolicyEnforcer {
 // ─── Singleton Instance ─────────────────────────────────────────────────────────
 
 let policyEnforcerInstance: McpPolicyEnforcer | null = null;
+let policyEnforcerInitPromise: Promise<McpPolicyEnforcer> | null = null;
+let policyEnforcerResolve: ((value: McpPolicyEnforcer) => void) | null = null;
 
 /**
  * Get the singleton policy enforcer instance.
+ * Thread-safe with double-checked locking pattern.
  */
 export function getPolicyEnforcer(): McpPolicyEnforcer {
-  if (!policyEnforcerInstance) {
-    policyEnforcerInstance = new McpPolicyEnforcer();
-    policyEnforcerInstance.loadPolicy();
+  // Fast path: already initialized
+  if (policyEnforcerInstance) {
+    return policyEnforcerInstance;
   }
-  return policyEnforcerInstance;
+
+  // Synchronize initialization
+  return _initPolicyEnforcerSync();
+}
+
+function _initPolicyEnforcerSync(): McpPolicyEnforcer {
+  // Double-checked locking - check again after acquiring initialization lock
+  if (policyEnforcerInstance) {
+    return policyEnforcerInstance;
+  }
+
+  // Initialize synchronously
+  const instance = new McpPolicyEnforcer();
+  instance.loadPolicy();
+  policyEnforcerInstance = instance;
+  return instance;
+}
+
+/**
+ * Get the singleton policy enforcer instance asynchronously.
+ * Safe for concurrent initialization.
+ */
+export async function getPolicyEnforcerAsync(): Promise<McpPolicyEnforcer> {
+  if (policyEnforcerInstance) {
+    return policyEnforcerInstance;
+  }
+
+  // If another async call is in progress, wait for it
+  if (policyEnforcerInitPromise) {
+    return policyEnforcerInitPromise;
+  }
+
+  // Start initialization
+  policyEnforcerInitPromise = new Promise<McpPolicyEnforcer>((resolve) => {
+    policyEnforcerResolve = resolve;
+  });
+
+  try {
+    const instance = new McpPolicyEnforcer();
+    instance.loadPolicy();
+    policyEnforcerInstance = instance;
+    
+    if (policyEnforcerResolve) {
+      policyEnforcerResolve(instance);
+    }
+    
+    return instance;
+  } catch (error) {
+    // Reset promise on failure so retries can work
+    policyEnforcerInitPromise = null;
+    throw error;
+  }
 }
 
 /**

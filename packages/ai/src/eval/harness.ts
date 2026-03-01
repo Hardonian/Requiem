@@ -42,6 +42,7 @@ export interface HarnessResult {
   results: EvalRunResult[];
   startedAt: string;
   endedAt: string;
+  skipped?: number;
 }
 
 // ─── Eval Context ─────────────────────────────────────────────────────────────
@@ -478,7 +479,7 @@ export function generateReport(results: HarnessResult | TestReport | Array<Harne
       totalCases += result.totalCases;
       totalPassed += result.passed;
       totalFailed += result.failed;
-      totalSkipped += result.skipped || 0;
+      totalSkipped += (result as any).skipped || 0;
       if ('details' in result) {
         allDetails.push(...result.details);
       }

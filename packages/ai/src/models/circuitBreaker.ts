@@ -115,24 +115,24 @@ export class HttpCircuitBreakerStore implements CircuitBreakerPersistence {
     if (this.cache.has(key)) {
       return this.cache.get(key)!;
     }
-    
+
     // Try to load from remote
     try {
       const response = await fetch(`${this.endpoint}/${encodeURIComponent(key)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
-      
+
       if (response.ok) {
         const data = await response.json() as CircuitData;
         this.cache.set(key, data);
         return data;
       }
-      
+
       if (response.status === 404) {
         return null;
       }
-      
+
       logger.warn('[circuit:http] Failed to load state', { key, status: response.status });
       return null;
     } catch (err) {
@@ -155,7 +155,7 @@ export class HttpCircuitBreakerStore implements CircuitBreakerPersistence {
 
   async deleteState(key: string): Promise<void> {
     this.cache.delete(key);
-    
+
     try {
       await fetch(`${this.endpoint}/${encodeURIComponent(key)}`, {
         method: 'DELETE',
@@ -165,9 +165,9 @@ export class HttpCircuitBreakerStore implements CircuitBreakerPersistence {
     }
   }
 
-  private async #persist(key: string, state: CircuitData): Promise<void> {
+  async #persist(key: string, state: CircuitData): Promise<void> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const response = await fetch(`${this.endpoint}/${encodeURIComponent(key)}`, {
@@ -175,28 +175,28 @@ export class HttpCircuitBreakerStore implements CircuitBreakerPersistence {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(state),
         });
-        
+
         if (response.ok) {
           return;
         }
-        
+
         logger.warn('[circuit:http] Failed to persist state', { key, status: response.status });
       } catch (err) {
         lastError = err as Error;
         logger.warn('[circuit:http] Error persisting state', { key, attempt, error: String(err) });
       }
-      
+
       // Exponential backoff
       if (attempt < this.maxRetries - 1) {
-        await new Promise(resolve => 
+        await new Promise(resolve =>
           setTimeout(resolve, this.initialBackoffMs * Math.pow(2, attempt))
         );
       }
     }
-    
-    logger.error('[circuit:http] Failed to persist state after retries', { 
-      key, 
-      error: lastError?.message 
+
+    logger.error('[circuit:http] Failed to persist state after retries', {
+      key,
+      error: lastError?.message
     });
   }
 }
@@ -214,12 +214,12 @@ export class FileCircuitBreakerStore implements CircuitBreakerPersistence {
     this.dir = dir ?? '.data/circuit-state';
   }
 
-  private async #ensureInitialized(): Promise<void> {
+  async #ensureInitialized(): Promise<void> {
     if (this.initialized) return;
-    
+
     try {
       const { mkdirSync, existsSync, readFileSync, readdirSync } = await import('fs');
-      
+
       if (!existsSync(this.dir)) {
         mkdirSync(this.dir, { recursive: true });
       } else {
@@ -236,7 +236,7 @@ export class FileCircuitBreakerStore implements CircuitBreakerPersistence {
           }
         }
       }
-      
+
       this.initialized = true;
     } catch (err) {
       logger.warn('[circuit:file] Failed to initialize', { error: String(err) });
@@ -247,14 +247,14 @@ export class FileCircuitBreakerStore implements CircuitBreakerPersistence {
   async saveState(key: string, state: CircuitData): Promise<void> {
     await this.#ensureInitialized();
     this.cache.set(key, state);
-    
+
     try {
       const { writeFileSync, existsSync, mkdirSync } = await import('fs');
-      
+
       if (!existsSync(this.dir)) {
         mkdirSync(this.dir, { recursive: true });
       }
-      
+
       const filePath = `${this.dir}/${key}.json`;
       writeFileSync(filePath, JSON.stringify(state, null, 2));
     } catch (err) {
@@ -264,23 +264,23 @@ export class FileCircuitBreakerStore implements CircuitBreakerPersistence {
 
   async loadState(key: string): Promise<CircuitData | null> {
     await this.#ensureInitialized();
-    
+
     // Check cache first
     if (this.cache.has(key)) {
       return this.cache.get(key)!;
     }
-    
+
     try {
       const { existsSync, readFileSync } = await import('fs');
       const filePath = `${this.dir}/${key}.json`;
-      
+
       if (existsSync(filePath)) {
         const content = readFileSync(filePath, 'utf-8');
         const data = JSON.parse(content) as CircuitData;
         this.cache.set(key, data);
         return data;
       }
-      
+
       return null;
     } catch (err) {
       logger.warn('[circuit:file] Failed to load state', { key, error: String(err) });
@@ -290,7 +290,7 @@ export class FileCircuitBreakerStore implements CircuitBreakerPersistence {
 
   async listStates(): Promise<CircuitStateSummary[]> {
     await this.#ensureInitialized();
-    
+
     return Array.from(this.cache.entries()).map(([key, state]) => ({
       key,
       state: state.state,
@@ -304,11 +304,11 @@ export class FileCircuitBreakerStore implements CircuitBreakerPersistence {
   async deleteState(key: string): Promise<void> {
     await this.#ensureInitialized();
     this.cache.delete(key);
-    
+
     try {
       const { unlinkSync, existsSync } = await import('fs');
       const filePath = `${this.dir}/${key}.json`;
-      
+
       if (existsSync(filePath)) {
         unlinkSync(filePath);
       }
@@ -344,7 +344,7 @@ export function getCircuitStore(): CircuitStore {
  */
 export function initCircuitStore(config?: CircuitBreakerConfig): void {
   const storeType = config?.circuitStateStore ?? 'memory';
-  
+
   if (storeType === 'http') {
     const endpoint = process.env.REQUIEM_CIRCUIT_STATE_ENDPOINT;
     if (endpoint) {
@@ -449,7 +449,7 @@ const _circuitLoadPromises = new Map<string, Promise<void>>();
  */
 async function loadCircuitFromStore(key: string): Promise<void> {
   if (!_circuitStore) return;
-  
+
   try {
     const persisted = await _circuitStore.loadState(key);
     if (persisted) {
@@ -465,7 +465,7 @@ async function loadCircuitFromStore(key: string): Promise<void> {
  */
 function persistCircuit(key: string, data: CircuitData): void {
   if (!_circuitStore) return;
-  
+
   // Fire-and-forget to maintain sync API compatibility
   _circuitStore.saveState(key, data).catch(err => {
     logger.warn('[circuit] Failed to persist state', { key, error: String(err) });
@@ -477,18 +477,18 @@ function getCircuit(key: string): CircuitData {
   if (_circuitStore && !_circuits.has(key) && !_circuitLoadPromises.has(key)) {
     // Initialize with default state
     _circuits.set(key, { state: 'CLOSED', failures: 0, successes: 0 });
-    
+
     // Start async load from persistence
     const loadPromise = loadCircuitFromStore(key).finally(() => {
       _circuitLoadPromises.delete(key);
     });
     _circuitLoadPromises.set(key, loadPromise);
   }
-  
+
   if (!_circuits.has(key)) {
     _circuits.set(key, { state: 'CLOSED', failures: 0, successes: 0 });
   }
-  
+
   return _circuits.get(key)!;
 }
 
@@ -501,7 +501,7 @@ export async function getCircuitAsync(key: string): Promise<CircuitData> {
   if (pendingLoad) {
     await pendingLoad;
   }
-  
+
   return getCircuit(key);
 }
 
@@ -543,7 +543,7 @@ export function recordSuccess(modelKey: string, config: CircuitBreakerConfig = D
     // Reset failure count on success
     circuit.failures = 0;
   }
-  
+
   persistCircuit(modelKey, circuit);
 }
 
@@ -564,7 +564,7 @@ export function recordFailure(modelKey: string, error: string, config: CircuitBr
     circuit.openedAt = Date.now();
     logger.warn(`[circuit] ${modelKey}: HALF_OPEN → OPEN (probe failed)`);
   }
-  
+
   persistCircuit(modelKey, circuit);
 }
 
@@ -579,7 +579,7 @@ export async function getCircuitStateAsync(modelKey: string): Promise<CircuitSta
 
 export function resetCircuit(modelKey: string): void {
   _circuits.delete(modelKey);
-  
+
   if (_circuitStore) {
     _circuitStore.deleteState(modelKey).catch(err => {
       logger.warn('[circuit] Failed to delete persisted state', { key: modelKey, error: String(err) });
@@ -593,7 +593,7 @@ export function resetCircuit(modelKey: string): void {
 export async function listAllCircuitStates(): Promise<CircuitStateSummary[]> {
   const results: CircuitStateSummary[] = [];
   const seenKeys = new Set<string>();
-  
+
   // Add in-memory circuits
   for (const [key, data] of _circuits.entries()) {
     results.push({
@@ -606,7 +606,7 @@ export async function listAllCircuitStates(): Promise<CircuitStateSummary[]> {
     });
     seenKeys.add(key);
   }
-  
+
   // Add persisted circuits not in memory
   if (_circuitStore) {
     const persisted = await _circuitStore.listStates();
@@ -616,7 +616,7 @@ export async function listAllCircuitStates(): Promise<CircuitStateSummary[]> {
       }
     }
   }
-  
+
   return results;
 }
 
@@ -626,7 +626,7 @@ export async function listAllCircuitStates(): Promise<CircuitStateSummary[]> {
  */
 export async function preloadCircuitStates(): Promise<number> {
   if (!_circuitStore) return 0;
-  
+
   try {
     const states = await _circuitStore.listStates();
     for (const summary of states) {

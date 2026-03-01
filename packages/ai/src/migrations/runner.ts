@@ -49,6 +49,8 @@ export interface Migration {
   down?: (runner: MigrationRunner) => Promise<void>;
   /** Whether this migration is critical (requires rollback support). */
   critical?: boolean;
+  /** Pre-computed checksum of migration content for integrity verification. */
+  checksum?: string;
 }
 
 /**
@@ -331,7 +333,7 @@ export class MigrationRunner {
       await migration.up(this);
 
       // Record the migration
-      const checksum = await this.#computeChecksum(migration.name);
+      const checksum = await this.#computeChecksum(migration);
       const durationMs = Date.now() - start;
 
       await tx.query(
@@ -346,11 +348,19 @@ export class MigrationRunner {
     }
   }
 
-  async #computeChecksum(name: string): Promise<string> {
-    // Simple checksum based on timestamp (for tracking purposes)
-    // In production, use a proper hash of the migration content
+  async #computeChecksum(migration: Migration): Promise<string> {
+    // Use provided checksum if available
+    if (migration.checksum) {
+      return migration.checksum;
+    }
+    // Fallback: compute checksum from migration name (less secure)
+    // This is a last-resort fallback - migrations should always provide a checksum
     const crypto = await import('crypto');
-    return crypto.createHash('sha256').update(name).digest('hex').slice(0, 16);
+    logger.warn(
+      `[migrations] Migration "${migration.name}" has no checksum defined. ` +
+      `Provide a checksum in the Migration definition for production integrity.`
+    );
+    return crypto.createHash('sha256').update(migration.name).digest('hex').slice(0, 16);
   }
 }
 

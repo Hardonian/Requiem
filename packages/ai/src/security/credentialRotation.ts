@@ -104,17 +104,39 @@ export interface SecretStorage {
 // ─── Default Secret Storage (Environment Variables) ───────────────────────────
 
 class EnvSecretStorage implements SecretStorage {
+  private readonly isProduction: boolean;
+
+  constructor() {
+    this.isProduction = process.env.NODE_ENV === 'production';
+  }
+
   async get(key: string): Promise<string | undefined> {
     return process.env[key];
   }
 
-  async set(key: string, value: string): Promise<void> {
+  async set(key: string, value: string, metadata?: Record<string, unknown>): Promise<void> {
+    // In production, we must have a real secret manager
+    if (this.isProduction) {
+      throw new Error(
+        `[FATAL] EnvSecretStorage.set is not supported in production. ` +
+        `Configure a real secret storage adapter (AWS Secrets Manager, Doppler, HashiCorp Vault). ` +
+        `Key: ${key}`
+      );
+    }
+    // In development, allow env var setting but warn
     process.env[key] = value;
-    // Note: In production, this should write to a proper secret manager
-    logger.warn('[credentials] EnvSecretStorage.set is a no-op - use a real secret manager in production');
+    logger.warn(
+      `[credentials] EnvSecretStorage.set: ${key} (dev mode only - will not persist across restarts)`
+    );
   }
 
   async delete(key: string): Promise<void> {
+    if (this.isProduction) {
+      throw new Error(
+        `[FATAL] EnvSecretStorage.delete is not supported in production. ` +
+        `Use a real secret storage adapter. Key: ${key}`
+      );
+    }
     delete process.env[key];
   }
 

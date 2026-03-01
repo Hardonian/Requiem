@@ -48,10 +48,30 @@ interface FlagRegistry {
 // ─── Cache ────────────────────────────────────────────────────────────────────
 
 let _cachedFlags: FeatureFlags | null = null;
+let _lastLoadTime: number = 0;
+const FLAG_TTL_MS = 60_000; // 1 minute TTL for flag cache
 
 /** Reset the flag cache (for testing only). */
 export function _resetFlagCache(): void {
   _cachedFlags = null;
+  _lastLoadTime = 0;
+}
+
+/**
+ * Force refresh flags from registry, bypassing TTL.
+ * Use this for hot-reload scenarios (e.g., SIGHUP signal handler).
+ */
+export function _forceRefreshFlags(): void {
+  _cachedFlags = null;
+  _lastLoadTime = 0;
+}
+
+/**
+ * Check if flags need refresh based on TTL.
+ */
+function _flagsNeedRefresh(): boolean {
+  if (!_cachedFlags) return true;
+  return Date.now() - _lastLoadTime > FLAG_TTL_MS;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -79,10 +99,10 @@ function resolveFlag(flag: RegistryFlag, isEnterprise: boolean): boolean {
 
 /**
  * Load and resolve the full feature flag set.
- * Results are cached for the process lifetime. Call _resetFlagCache() to clear.
+ * Results are cached with 1-minute TTL. Call _resetFlagCache() or _forceRefreshFlags() to clear.
  */
 export function loadFlags(): FeatureFlags {
-  if (_cachedFlags) return _cachedFlags;
+  if (_cachedFlags && !_flagsNeedRefresh()) return _cachedFlags;
 
   const isEnterprise = isEnterpriseEnabled();
   let registry: FlagRegistry;
@@ -117,6 +137,7 @@ export function loadFlags(): FeatureFlags {
     enable_soft_delete: resolved['enable_soft_delete'] ?? false,
   };
 
+  _lastLoadTime = Date.now();
   return _cachedFlags;
 }
 
