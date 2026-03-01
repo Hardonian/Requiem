@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { runDoctor } from '../packages/cli/src/db/doctor';
+import { runDoctor } from './db/doctor';
 
 async function main() {
   // Execute the doctor check

@@ -136,6 +136,7 @@ export class DecisionRepository {
     sourceType?: string;
     status?: string;
     outcomeStatus?: string;
+    createdAfter?: string;
     limit?: number;
     offset?: number;
   }): DecisionReport[] {
@@ -162,6 +163,11 @@ export class DecisionRepository {
     if (options?.outcomeStatus) {
       conditions.push('outcome_status = ?');
       params.push(options.outcomeStatus);
+    }
+
+    if (options?.createdAfter) {
+      conditions.push('created_at >= ?');
+      params.push(options.createdAfter);
     }
 
     if (conditions.length > 0) {

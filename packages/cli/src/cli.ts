@@ -9,6 +9,8 @@
  * - requiem replay <hash>           Replay audit record lookup
  * - requiem trace <id>              Visualize decision trace
  * - requiem stats                   Aggregated telemetry
+ * - requiem telemetry               Real-time usage stats
+ * - requiem stress                  Generate synthetic load
  * - requiem nuke                    Clear database state
  * - requiem init                    Initialize configuration
  * - requiem config <subcommand>     Global configuration
@@ -43,6 +45,8 @@ COMMANDS:
   replay <hash> [--tenant <id>] [--json]            Fetch a replay record
   trace <id> [--json]                               Visualize decision trace
   stats [--tenant <id>] [--json]                    Display aggregated telemetry
+  telemetry [--window <sec>] [--json]               Show real-time usage stats
+  stress [--duration <sec>] [--rate <rps>]          Generate synthetic load
   nuke [--force]                                    Clear database state
   init [--tenant <id>] [--force]                    Initialize configuration
   config <subcommand>                               Global configuration
@@ -139,6 +143,18 @@ async function main(): Promise<number> {
     case 'trace': {
       const { trace } = await import('./commands/trace');
       await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
+      return 0;
+    }
+
+    case 'telemetry': {
+      const { telemetry } = await import('./commands/telemetry');
+      await telemetry.parseAsync([process.argv[0], process.argv[1], 'telemetry', ...subArgs]);
+      return 0;
+    }
+
+    case 'stress': {
+      const { stress } = await import('./commands/stress');
+      await stress.parseAsync([process.argv[0], process.argv[1], 'stress', ...subArgs]);
       return 0;
     }
 

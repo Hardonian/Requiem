@@ -13,6 +13,8 @@ export { stats } from './commands/stats';
 export { nuke } from './commands/nuke';
 export { config } from './commands/config';
 export { init } from './commands/init';
+export { telemetry } from './commands/telemetry';
+export { stress } from './commands/stress';
 
 // Engine
 export {

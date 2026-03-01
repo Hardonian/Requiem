@@ -441,12 +441,68 @@ interface CircuitData {
 }
 
 const _circuits = new Map<string, CircuitData>();
+const _circuitLoadPromises = new Map<string, Promise<void>>();
+
+/**
+ * Load circuit state from persistence if available.
+ * Called lazily on first access to a circuit.
+ */
+async function loadCircuitFromStore(key: string): Promise<void> {
+  if (!_circuitStore) return;
+  
+  try {
+    const persisted = await _circuitStore.loadState(key);
+    if (persisted) {
+      _circuits.set(key, persisted);
+    }
+  } catch (err) {
+    logger.warn('[circuit] Failed to load from persistence', { key, error: String(err) });
+  }
+}
+
+/**
+ * Persist circuit state to the store (fire-and-forget).
+ */
+function persistCircuit(key: string, data: CircuitData): void {
+  if (!_circuitStore) return;
+  
+  // Fire-and-forget to maintain sync API compatibility
+  _circuitStore.saveState(key, data).catch(err => {
+    logger.warn('[circuit] Failed to persist state', { key, error: String(err) });
+  });
+}
 
 function getCircuit(key: string): CircuitData {
+  // If we have a pending load, return current data (will be updated async)
+  if (_circuitStore && !_circuits.has(key) && !_circuitLoadPromises.has(key)) {
+    // Initialize with default state
+    _circuits.set(key, { state: 'CLOSED', failures: 0, successes: 0 });
+    
+    // Start async load from persistence
+    const loadPromise = loadCircuitFromStore(key).finally(() => {
+      _circuitLoadPromises.delete(key);
+    });
+    _circuitLoadPromises.set(key, loadPromise);
+  }
+  
   if (!_circuits.has(key)) {
     _circuits.set(key, { state: 'CLOSED', failures: 0, successes: 0 });
   }
+  
   return _circuits.get(key)!;
+}
+
+/**
+ * Get circuit state asynchronously, ensuring persistence is loaded.
+ */
+export async function getCircuitAsync(key: string): Promise<CircuitData> {
+  // Wait for any pending load
+  const pendingLoad = _circuitLoadPromises.get(key);
+  if (pendingLoad) {
+    await pendingLoad;
+  }
+  
+  return getCircuit(key);
 }
 
 /**
@@ -462,6 +518,7 @@ export function checkCircuit(modelKey: string, config: CircuitBreakerConfig = DE
       circuit.state = 'HALF_OPEN';
       circuit.successes = 0;
       logger.info(`[circuit] ${modelKey}: OPEN → HALF_OPEN (recovery probe)`);
+      persistCircuit(modelKey, circuit);
     } else {
       throw AiError.circuitOpen(modelKey);
     }
@@ -486,6 +543,8 @@ export function recordSuccess(modelKey: string, config: CircuitBreakerConfig = D
     // Reset failure count on success
     circuit.failures = 0;
   }
+  
+  persistCircuit(modelKey, circuit);
 }
 
 /**
@@ -505,12 +564,83 @@ export function recordFailure(modelKey: string, error: string, config: CircuitBr
     circuit.openedAt = Date.now();
     logger.warn(`[circuit] ${modelKey}: HALF_OPEN → OPEN (probe failed)`);
   }
+  
+  persistCircuit(modelKey, circuit);
 }
 
 export function getCircuitState(modelKey: string): CircuitState {
   return getCircuit(modelKey).state;
 }
 
+export async function getCircuitStateAsync(modelKey: string): Promise<CircuitState> {
+  const circuit = await getCircuitAsync(modelKey);
+  return circuit.state;
+}
+
 export function resetCircuit(modelKey: string): void {
   _circuits.delete(modelKey);
+  
+  if (_circuitStore) {
+    _circuitStore.deleteState(modelKey).catch(err => {
+      logger.warn('[circuit] Failed to delete persisted state', { key: modelKey, error: String(err) });
+    });
+  }
+}
+
+/**
+ * List all circuit states from memory and persistence.
+ */
+export async function listAllCircuitStates(): Promise<CircuitStateSummary[]> {
+  const results: CircuitStateSummary[] = [];
+  const seenKeys = new Set<string>();
+  
+  // Add in-memory circuits
+  for (const [key, data] of _circuits.entries()) {
+    results.push({
+      key,
+      state: data.state,
+      failures: data.failures,
+      successes: data.successes,
+      openedAt: data.openedAt,
+      lastFailure: data.lastFailure,
+    });
+    seenKeys.add(key);
+  }
+  
+  // Add persisted circuits not in memory
+  if (_circuitStore) {
+    const persisted = await _circuitStore.listStates();
+    for (const state of persisted) {
+      if (!seenKeys.has(state.key)) {
+        results.push(state);
+      }
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Preload circuit states from persistence.
+ * Call at startup to warm the cache.
+ */
+export async function preloadCircuitStates(): Promise<number> {
+  if (!_circuitStore) return 0;
+  
+  try {
+    const states = await _circuitStore.listStates();
+    for (const summary of states) {
+      // Only load if not already in memory
+      if (!_circuits.has(summary.key)) {
+        const fullState = await _circuitStore.loadState(summary.key);
+        if (fullState) {
+          _circuits.set(summary.key, fullState);
+        }
+      }
+    }
+    return states.length;
+  } catch (err) {
+    logger.warn('[circuit] Failed to preload states', { error: String(err) });
+    return 0;
+  }
 }
