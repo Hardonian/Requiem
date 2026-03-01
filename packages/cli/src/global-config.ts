@@ -1,6 +1,6 @@
-import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { readJsonFile, writeJsonFile } from './lib/io';
 
 const CONFIG_DIR = path.join(os.homedir(), '.requiem');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
@@ -11,27 +11,12 @@ export interface GlobalConfig {
   [key: string]: unknown;
 }
 
-function ensureConfigDir() {
-  if (!fs.existsSync(CONFIG_DIR)) {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  }
-}
-
 export function readConfig(): GlobalConfig {
-  if (!fs.existsSync(CONFIG_FILE)) {
-    return {};
-  }
-  try {
-    const content = fs.readFileSync(CONFIG_FILE, 'utf-8');
-    return JSON.parse(content);
-  } catch (e) {
-    return {};
-  }
+  return readJsonFile<GlobalConfig>(CONFIG_FILE) || {};
 }
 
 export function writeConfig(config: GlobalConfig) {
-  ensureConfigDir();
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  writeJsonFile(CONFIG_FILE, config);
 }
 
 export function setConfigValue(key: string, value: unknown) {
