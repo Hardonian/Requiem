@@ -8,3 +8,19 @@ export { checkCircuit, recordSuccess, recordFailure, getCircuitState, resetCircu
 export { AnthropicProvider } from './providers/anthropic';
 export { OpenAIProvider } from './providers/openai';
 export type { ModelProvider, GenerateTextRequest, GenerateTextResponse, Message } from './providers/types';
+
+// Arbitration exports
+export { ArbitrationEngine, getArbitrationEngine, setArbitrationEngine, generateWithArbitration, createArbitrationRequest } from './arbitration-engine';
+export type {
+  RequestPurpose,
+  QualityTier,
+  ProviderRequirements,
+  ProviderConstraints,
+  ArbitrationRequest,
+  ArbitrationResult,
+  DecisionFactor,
+  SelectionStrategy,
+  ArbitrationPolicy,
+  ArbitrationDecisionLog,
+  IArbitrationEngine,
+} from './arbitration';

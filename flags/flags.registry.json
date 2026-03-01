@@ -139,6 +139,36 @@
       },
       "owner": "compliance",
       "status": "experimental"
+    },
+    {
+      "id": "enable_provider_arbitration",
+      "type": "feature",
+      "tier": "enterprise",
+      "default": false,
+      "description": "Enables deterministic provider arbitration layer that selects (provider, model, parameters) per request based on policies and constraints. When disabled, existing pinned provider flows work unchanged.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "staged",
+        "staged_tenants": []
+      },
+      "owner": "platform-core",
+      "status": "experimental"
+    },
+    {
+      "id": "enable_artifact_signing",
+      "type": "feature",
+      "tier": "enterprise",
+      "default": true,
+      "description": "Enables cryptographic signing of CAS objects and run manifests. Signatures are always-on by default for artifacts produced by runs. Can be disabled via REQUIEM_FLAG_ENABLE_ARTIFACT_SIGNING=false.",
+      "determinism_safe": true,
+      "affects_determinism": false,
+      "rollout": {
+        "strategy": "global",
+        "staged_tenants": []
+      },
+      "owner": "security",
+      "status": "experimental"
     }
   ],
 

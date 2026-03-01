@@ -23,6 +23,8 @@ export interface FeatureFlags {
   enable_signed_replay_bundles: boolean;
   enable_economic_quotas: boolean;
   enable_merkle_audit_chain: boolean;
+  enable_provider_arbitration: boolean;
+  enable_artifact_signing: boolean;
 
   // Internal / CI-only
   enable_chaos_testing: boolean;
@@ -132,6 +134,8 @@ export function loadFlags(): FeatureFlags {
     enable_signed_replay_bundles: resolved['enable_signed_replay_bundles'] ?? false,
     enable_economic_quotas: resolved['enable_economic_quotas'] ?? false,
     enable_merkle_audit_chain: resolved['enable_merkle_audit_chain'] ?? false,
+    enable_provider_arbitration: resolved['enable_provider_arbitration'] ?? false,
+    enable_artifact_signing: resolved['enable_artifact_signing'] ?? true,
     enable_chaos_testing: resolved['enable_chaos_testing'] ?? false,
     enable_formal_spec_runtime_assertions: resolved['enable_formal_spec_runtime_assertions'] ?? false,
     enable_soft_delete: resolved['enable_soft_delete'] ?? false,
