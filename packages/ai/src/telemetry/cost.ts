@@ -118,7 +118,7 @@ export class ProductionCostSink {
     this.maxRetries = config.maxRetries ?? 3;
     this.initialBackoffMs = config.initialBackoffMs ?? 250;
     this.defaultTenantId = config.defaultTenantId ?? 'default';
-    
+
     // Ensure clean shutdown
     this.#setupShutdownHooks();
   }
@@ -132,7 +132,7 @@ export class ProductionCostSink {
     if (!endpoint) {
       return null;
     }
-    
+
     return new ProductionCostSink({
       endpoint,
       batchSize: parseInt(process.env.REQUIEM_COST_BATCH_SIZE ?? '100', 10),
@@ -152,9 +152,9 @@ export class ProductionCostSink {
       ...record,
       tenantId: record.tenantId || this.defaultTenantId,
     };
-    
+
     this.buffer.push(recordWithTenant);
-    
+
     if (this.buffer.length >= this.batchSize) {
       await this.flush();
     } else {
@@ -172,25 +172,25 @@ export class ProductionCostSink {
       await this.flushPromise;
       return;
     }
-    
+
     if (this.buffer.length === 0) {
       return;
     }
-    
+
     // Clear scheduled flush if any
     if (this.flushTimer) {
       clearTimeout(this.flushTimer);
       this.flushTimer = null;
     }
-    
+
     // Take current buffer and flush
     const batch = this.buffer;
     this.buffer = [];
-    
+
     this.flushPromise = this.#flushBatch(batch).finally(() => {
       this.flushPromise = null;
     });
-    
+
     await this.flushPromise;
   }
 
@@ -214,7 +214,7 @@ export class ProductionCostSink {
 
   #scheduleFlush(): void {
     if (this.flushTimer) return;
-    
+
     this.flushTimer = setTimeout(() => {
       this.flushTimer = null;
       this.flush().catch(err => {
@@ -225,7 +225,7 @@ export class ProductionCostSink {
 
   async #flushBatch(batch: CostRecord[]): Promise<void> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const response = await fetch(this.endpoint, {
@@ -236,12 +236,12 @@ export class ProductionCostSink {
           },
           body: JSON.stringify({ records: batch }),
         });
-        
+
         if (response.ok) {
           logger.debug('[cost:production] Flushed batch', { count: batch.length });
           return;
         }
-        
+
         const errorText = await response.text().catch(() => 'Unknown error');
         lastError = new Error(`HTTP ${response.status}: ${errorText}`);
         logger.warn('[cost:production] Flush failed', {
@@ -257,14 +257,14 @@ export class ProductionCostSink {
           count: batch.length
         });
       }
-      
+
       // Exponential backoff
       if (attempt < this.maxRetries - 1) {
         const delay = this.initialBackoffMs * Math.pow(2, attempt);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-    
+
     logger.error('[cost:production] Failed to flush batch after retries', {
       count: batch.length,
       error: lastError?.message,
@@ -280,7 +280,7 @@ export class ProductionCostSink {
         });
       }
     };
-    
+
     process.on('beforeExit', flushOnExit);
     process.on('SIGINT', () => {
       this.dispose().finally(() => process.exit(0));
@@ -308,7 +308,7 @@ export function createProductionCostSink(config: ProductionCostSinkConfig): Cost
  *
  * @param tenantId The tenant to get summary for.
  */
-export function getTelemetrySummary(tenantId: string): TelemetrySummary {
+export function getTelemetrySummary(_tenantId: string): TelemetrySummary {
   // In production, this would query the database
   // For now, return mock data
   return {

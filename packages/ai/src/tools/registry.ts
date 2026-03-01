@@ -12,7 +12,7 @@ import { AiError } from '../errors/AiError';
 import { AiErrorCode } from '../errors/codes';
 import { now } from '../types/index';
 import type { InvocationContext } from '../types/index';
-import type { ToolDefinition as IToolDefinition, JsonSchema } from './types';
+import type { ToolDefinition as IToolDefinition, JsonSchema as _JsonSchema } from './types';
 
 // #region: Context Types
 
@@ -423,7 +423,7 @@ export function validateToolSchema(
       (tool.inputSchema as { parse: (input: unknown) => unknown }).parse(input);
     } else if (typeof tool.inputSchema === 'object') {
       // Basic JSON Schema validation (simplified)
-      validateJsonSchema(tool.inputSchema as JsonSchema, input, '', errors);
+      validateJsonSchema(tool.inputSchema as _JsonSchema, input, '', errors);
     }
   } catch (e) {
     errors.push({ path: '', message: e instanceof Error ? e.message : 'Validation failed' });
@@ -436,7 +436,7 @@ export function validateToolSchema(
  * Basic JSON Schema validation (simplified subset)
  */
 function validateJsonSchema(
-  schema: JsonSchema,
+  schema: _JsonSchema,
   value: unknown,
   path: string,
   errors: Array<{ path: string; message: string }>

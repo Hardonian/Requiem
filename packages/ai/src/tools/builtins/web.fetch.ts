@@ -19,7 +19,6 @@ import { logger } from '../../telemetry/logger';
 const MAX_PAYLOAD_BYTES = 1_048_576; // 1 MiB
 const DEFAULT_TIMEOUT_MS = 10_000;
 const MAX_TIMEOUT_MS = 30_000;
-const MAX_REDIRECTS = 3;
 const ALLOWED_CONTENT_TYPES = ['text/', 'application/json', 'application/xml'];
 
 /** Parse domain allowlist from env */

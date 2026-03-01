@@ -14,7 +14,7 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 // Try to load BLAKE3, fall back to SHA-256 if not available
-const blake3 = (() => {
+const _blake3 = (() => {
   try {
     return require('blake3');
   } catch {
@@ -85,7 +85,7 @@ export interface ToolResult {
  * Check if BLAKE3 is available.
  */
 export function isBLAKE3Available(): boolean {
-  return blake3 !== null;
+  return _blake3 !== null;
 }
 
 /**
@@ -95,8 +95,8 @@ export function isBLAKE3Available(): boolean {
 export function hashContentBLAKE3(content: unknown): string {
   const normalized = normalizeForHashing(content);
 
-  if (blake3) {
-    const b3 = (blake3 as any).default || blake3;
+  if (_blake3) {
+    const b3 = (_blake3 as any).default || _blake3;
     return (b3 as any).hash(normalized).toString('hex');
   }
 
