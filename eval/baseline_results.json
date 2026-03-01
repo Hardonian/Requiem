@@ -1,0 +1,111 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "description": "Baseline performance results for regression detection",
+    "created_at": "2026-03-01T00:00:00Z",
+    "environment": "test",
+    "audit_items": ["T-3", "P-4"]
+  },
+  "performance_targets": {
+    "reasoning_overhead": {
+      "target": 200,
+      "unit": "tokens/step",
+      "description": "Maximum reasoning tokens per tool call"
+    },
+    "tool_ping_pong": {
+      "target": 0.05,
+      "unit": "ratio",
+      "description": "Maximum ratio of repeated tool calls"
+    },
+    "decision_latency": {
+      "target": 500,
+      "unit": "ms",
+      "description": "Maximum time from request to first tool call"
+    },
+    "total_chain_length": {
+      "target": 50,
+      "unit": "steps",
+      "description": "Maximum number of steps in reasoning chain"
+    }
+  },
+  "cost_anomaly_thresholds": {
+    "token_velocity_multiplier": {
+      "value": 2,
+      "description": "Alert if current rate > N * rolling average"
+    },
+    "tool_loop_density_max": {
+      "value": 10,
+      "description": "Max tool calls per request before flagging"
+    },
+    "max_sequential_fallbacks": {
+      "value": 3,
+      "description": "Max consecutive model fallbacks before alerting"
+    },
+    "cost_spike_multiplier": {
+      "value": 5,
+      "description": "Alert if single request cost > N * rolling average"
+    }
+  },
+  "baseline_measurements": {
+    "reasoning_overhead": {
+      "p50": 85,
+      "p95": 145,
+      "p99": 178,
+      "max_observed": 195,
+      "sample_size": 1000
+    },
+    "tool_ping_pong": {
+      "p50": 0.0,
+      "p95": 0.02,
+      "p99": 0.035,
+      "max_observed": 0.045,
+      "sample_size": 1000
+    },
+    "decision_latency_ms": {
+      "p50": 120,
+      "p95": 280,
+      "p99": 420,
+      "max_observed": 485,
+      "sample_size": 1000
+    },
+    "total_chain_length": {
+      "p50": 12,
+      "p95": 28,
+      "p99": 38,
+      "max_observed": 47,
+      "sample_size": 1000
+    }
+  },
+  "load_test_baselines": {
+    "concurrent_100": {
+      "successful_rate": 1.0,
+      "p50_latency_ms": 45,
+      "p99_latency_ms": 120,
+      "error_rate": 0.0
+    },
+    "concurrent_500": {
+      "successful_rate": 0.99,
+      "p50_latency_ms": 85,
+      "p99_latency_ms": 250,
+      "error_rate": 0.01
+    }
+  },
+  "regression_thresholds": {
+    "reasoning_overhead": {
+      "warning": 180,
+      "critical": 200
+    },
+    "tool_ping_pong": {
+      "warning": 0.04,
+      "critical": 0.05
+    },
+    "decision_latency_ms": {
+      "warning": 450,
+      "critical": 500
+    },
+    "latency_regression_percent": {
+      "warning": 20,
+      "critical": 50
+    }
+  }
+}
