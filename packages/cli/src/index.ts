@@ -19,6 +19,7 @@ export { dashboard } from './commands/dashboard';
 export { serve } from './commands/serve';
 export { backup } from './commands/backup';
 export { restore } from './commands/restore';
+export { importCommand } from './commands/import';
 
 // Engine
 export {

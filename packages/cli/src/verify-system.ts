@@ -53,4 +53,7 @@ runScript('verify-dashboard.ts');
 // 6. Verify Serve
 runScript('verify-serve.ts');
 
+// 7. Verify Import
+runScript('verify-import.ts');
+
 console.log('\n✅ Verification Sequence Complete');
