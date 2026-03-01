@@ -36,6 +36,8 @@ const telResult = spawnSync('npx', ['tsx', path.join(CLI_SRC, 'cli.ts'), 'teleme
 if (telResult.status === 0) console.log('  ✓ Telemetry command runs successfully');
 else console.error('  ❌ Telemetry command failed', telResult.stderr);
 
+1 context item
+
 // 4. Verify Stress Command
 console.log('\n⚡ Executing requiem stress (1s smoke test)...');
 const stressResult = spawnSync('npx', ['tsx', path.join(CLI_SRC, 'cli.ts'), 'stress', '--duration', '1', '--rate', '2'], {

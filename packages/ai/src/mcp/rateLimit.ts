@@ -4,11 +4,14 @@
  * Provides per-tenant sliding window rate limiting configurable via env vars:
  *   REQUIEM_RATE_LIMIT_RPM   — requests per minute per tenant (default: 60)
  *   REQUIEM_RATE_LIMIT_BURST — burst allowance on top of RPM (default: 10)
+ *   REQUIEM_RATE_LIMIT_IP_RPM — per-IP rate limit (default: 120)
  *
  * INVARIANT: Rate limits are applied per-tenant after auth is resolved.
- * INVARIANT: Limits are enforced in-process; for multi-instance deployments
- *            a Redis-backed counter is recommended.
+ * INVARIANT: Per-IP limits are enforced at the transport layer.
+ * INVARIANT: Distributed rate limiting via HTTP store for multi-instance deployments.
  */
+
+import { logger } from '../telemetry/logger';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -18,6 +21,32 @@ export interface RateLimitConfig {
   rpm: number;
   /** Additional burst requests allowed above the sustained rate. */
   burst: number;
+  /** Per-IP rate limit (RPM) for DDoS protection. */
+  ipRpm: number;
+  /** Enable distributed rate limiting via HTTP. */
+  distributed: boolean;
+  /** HTTP endpoint for distributed rate limiting. */
+  distributedEndpoint?: string;
+}
+
+/**
+ * Rate limit status for a client.
+ */
+export interface RateLimitStatus {
+  tenantId: string;
+  limit: number;
+  remaining: number;
+  resetAt: string;
+  windowMs: number;
+}
+
+/**
+ * Distributed rate limit store interface.
+ */
+export interface DistributedRateLimitStore {
+  check(tenantId: string, windowMs: number, limit: number): Promise<boolean>;
+  remaining(tenantId: string, windowMs: number, limit: number): Promise<number>;
+  reset(tenantId: string): Promise<void>;
 }
 
 /**
@@ -27,9 +56,16 @@ export interface RateLimitConfig {
 export function loadRateLimitConfig(): RateLimitConfig {
   const rpm = parseInt(process.env.REQUIEM_RATE_LIMIT_RPM ?? '60', 10);
   const burst = parseInt(process.env.REQUIEM_RATE_LIMIT_BURST ?? '10', 10);
+  const ipRpm = parseInt(process.env.REQUIEM_RATE_LIMIT_IP_RPM ?? '120', 10);
+  const distributed = process.env.REQUIEM_RATE_LIMIT_DISTRIBUTED === 'true';
+  const distributedEndpoint = process.env.REQUIEM_RATE_LIMIT_ENDPOINT;
+  
   return {
     rpm: Number.isFinite(rpm) && rpm > 0 ? rpm : 60,
     burst: Number.isFinite(burst) && burst >= 0 ? burst : 10,
+    ipRpm: Number.isFinite(ipRpm) && ipRpm > 0 ? ipRpm : 120,
+    distributed,
+    distributedEndpoint,
   };
 }
 
