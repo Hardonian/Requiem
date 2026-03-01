@@ -4,7 +4,7 @@
  *
  * Verifies:
  * 1. 'replay' command is discoverable and has required subcommands.
- * 2. atabase schema supports the 'usage' column.
+ * 2. Database schema supports the 'usage' column.
  */
 
 import { replay } from '../commands/replay';
