@@ -72,7 +72,8 @@ public:
   // Retrieve data by digest. Returns nullopt if not found or integrity fails.
   virtual std::optional<std::string> get(const std::string &digest) const = 0;
 
-  // Remove data and metadata. Returns true if deleted or not found, false on failure.
+  // Remove data and metadata. Returns true if deleted or not found, false on
+  // failure.
   virtual bool remove(const std::string &digest) = 0;
 
   // Check existence without loading data.
@@ -83,8 +84,10 @@ public:
   info(const std::string &digest) const = 0;
 
   // Enumerate all stored objects.
-  // limit: max records to return (0 = unlimited). start_after: resume token (digest).
-  virtual std::vector<CasObjectInfo> scan_objects(size_t limit = 0, const std::string& start_after = "") const = 0;
+  // limit: max records to return (0 = unlimited). start_after: resume token
+  // (digest).
+  virtual std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0, const std::string &start_after = "") const = 0;
 
   // Total number of stored objects.
   virtual std::size_t size() const = 0;
@@ -121,8 +124,13 @@ public:
   std::optional<CasObjectInfo> info(const std::string &digest) const override;
   bool contains(const std::string &digest) const override;
   std::size_t size() const override;
-  std::vector<CasObjectInfo> scan_objects(size_t limit = 0, const std::string& start_after = "") const override;
+  std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0,
+               const std::string &start_after = "") const override;
   std::string backend_id() const override { return "local_fs"; }
+
+  // Rewrite index.ndjson to remove entries for deleted objects.
+  void compact();
 
   const std::string &root() const { return root_; }
 
@@ -139,14 +147,14 @@ private:
 // CasGarbageCollector — Retention policy enforcement
 // ---------------------------------------------------------------------------
 class CasGarbageCollector {
- public:
+public:
   explicit CasGarbageCollector(std::shared_ptr<ICASBackend> backend);
 
   // Scan and remove objects older than max_age.
   // Returns the number of objects removed.
   size_t prune(std::chrono::seconds max_age, bool dry_run = false);
 
- private:
+private:
   std::shared_ptr<ICASBackend> backend_;
 };
 
@@ -172,7 +180,9 @@ public:
   bool remove(const std::string &digest) override;
   bool contains(const std::string &digest) const override;
   std::optional<CasObjectInfo> info(const std::string &digest) const override;
-  std::vector<CasObjectInfo> scan_objects(size_t limit = 0, const std::string& start_after = "") const override;
+  std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0,
+               const std::string &start_after = "") const override;
   std::size_t size() const override;
 
   // Consistency check and repair.
@@ -248,7 +258,9 @@ public:
   bool contains(const std::string & /*digest*/) const override;
   std::optional<CasObjectInfo>
   info(const std::string & /*digest*/) const override;
-  std::vector<CasObjectInfo> scan_objects(size_t limit = 0, const std::string& start_after = "") const override;
+  std::vector<CasObjectInfo>
+  scan_objects(size_t limit = 0,
+               const std::string &start_after = "") const override;
   std::size_t size() const override;
   std::string backend_id() const override { return "s3_scaffold"; }
 

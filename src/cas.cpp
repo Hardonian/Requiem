@@ -335,6 +335,35 @@ std::size_t CasStore::size() const {
   return index_.size();
 }
 
+void CasStore::compact() {
+  if (!index_loaded_)
+    load_index();
+
+  std::lock_guard<std::mutex> lk(index_mu_);
+
+  const std::string tmp_path = index_path() + ".tmp";
+  {
+    std::ofstream ofs(tmp_path, std::ios::binary | std::ios::trunc);
+    for (const auto &[_, info] : index_) {
+      const std::string line =
+          "{\"digest\":\"" + info.digest + "\",\"encoding\":\"" +
+          info.encoding +
+          "\",\"original_size\":" + std::to_string(info.original_size) +
+          ",\"stored_size\":" + std::to_string(info.stored_size) +
+          ",\"stored_blob_hash\":\"" + info.stored_blob_hash +
+          "\",\"created_at\":" + std::to_string(info.created_at_unix_ts) +
+          "}\n";
+      ofs.write(line.data(), line.size());
+    }
+  }
+
+  std::error_code ec;
+  fs::rename(tmp_path, index_path(), ec);
+  if (ec) {
+    fs::remove(tmp_path, ec);
+  }
+}
+
 std::vector<CasObjectInfo>
 CasStore::scan_objects(size_t limit, const std::string &start_after) const {
   std::vector<CasObjectInfo> out;

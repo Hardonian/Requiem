@@ -980,6 +980,64 @@ void test_replication_monitor() {
   fs::remove_all(tmp);
 }
 
+void test_cas_garbage_collector() {
+  const fs::path tmp = fs::temp_directory_path() / "requiem_cas_gc_test";
+  fs::remove_all(tmp);
+  fs::create_directories(tmp);
+
+  // 1. Setup CAS and add objects
+  std::string d1, d2;
+  {
+    requiem::CasStore cas(tmp.string());
+    d1 = cas.put("obj1_old");
+    d2 = cas.put("obj2_new");
+  }
+
+  // 2. Backdate obj1 in index.ndjson to simulate age
+  fs::path idx_path = tmp / "index.ndjson";
+  {
+    std::ofstream ofs(idx_path, std::ios::trunc);
+    // obj1: created at timestamp 1000 (very old)
+    ofs << "{\"digest\":\"" << d1
+        << "\",\"encoding\":\"identity\",\"original_size\":8,\"stored_size\":8,"
+           "\"stored_blob_hash\":\""
+        << requiem::blake3_hex("obj1_old") << "\",\"created_at\":1000}\n";
+    // obj2: created now
+    uint64_t now = static_cast<uint64_t>(std::time(nullptr));
+    ofs << "{\"digest\":\"" << d2
+        << "\",\"encoding\":\"identity\",\"original_size\":8,\"stored_size\":8,"
+           "\"stored_blob_hash\":\""
+        << requiem::blake3_hex("obj2_new") << "\",\"created_at\":" << now
+        << "}\n";
+  }
+
+  // 3. Run GC with dry_run=true
+  {
+    auto cas = std::make_shared<requiem::CasStore>(tmp.string());
+    requiem::CasGarbageCollector gc(cas);
+
+    // Max age 1 hour. obj1 (ts=1000) is definitely older. obj2 (ts=now) is
+    // newer.
+    size_t count = gc.prune(std::chrono::hours(1), true);
+    expect(count == 1, "dry_run should find 1 expired object");
+    expect(cas->contains(d1), "dry_run should not delete obj1");
+    expect(cas->contains(d2), "dry_run should not delete obj2");
+  }
+
+  // 4. Run GC with dry_run=false
+  {
+    auto cas = std::make_shared<requiem::CasStore>(tmp.string());
+    requiem::CasGarbageCollector gc(cas);
+
+    size_t count = gc.prune(std::chrono::hours(1), false);
+    expect(count == 1, "prune should delete 1 expired object");
+    expect(!cas->contains(d1), "obj1 should be deleted");
+    expect(cas->contains(d2), "obj2 should be preserved");
+  }
+
+  fs::remove_all(tmp);
+}
+
 // ============================================================================
 // Phase 5: C ABI
 // ============================================================================
@@ -2294,6 +2352,7 @@ int main() {
   run_test("S3 backend file:// write", test_s3_backend_file_write);
   run_test("ReplicatingBackend repair", test_replicating_backend_repair);
   run_test("ReplicationMonitor drift repair", test_replication_monitor);
+  run_test("CasGarbageCollector prune", test_cas_garbage_collector);
 
   std::cout << "\n[Phase 4] Observability layer\n";
   run_test("engine stats accumulation", test_engine_stats_accumulation);
