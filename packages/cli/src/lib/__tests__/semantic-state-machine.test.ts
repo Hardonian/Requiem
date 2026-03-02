@@ -681,7 +681,7 @@ describe('LocalSSMStore', () => {
 
       const dot = storeWithGraph.toDotGraph();
       expect(dot).toContain('digraph SemanticStateMachine');
-      expect(dot).toContain('abc123de'); // Short ID in label
+      expect(dot).toContain(stateId.substring(0, 8)); // Short ID in label
       expect(dot).toContain('gpt-4');
     });
   });
@@ -701,7 +701,7 @@ describe('Model Migration Simulation', () => {
 
   it('should identify states needing re-eval for model change', () => {
     const state: SemanticState = {
-      id: 'state-1',
+      id: testId('migr-reval-1'),
       descriptor: createTestDescriptor({ modelId: 'gpt-4' }),
       createdAt: '2024-01-15T10:00:00Z',
       actor: 'test',
@@ -719,7 +719,7 @@ describe('Model Migration Simulation', () => {
 
   it('should identify compatible states for same model', () => {
     const state: SemanticState = {
-      id: 'state-1',
+      id: testId('migr-compat-1'),
       descriptor: createTestDescriptor({ modelId: 'gpt-4', evalSnapshotId: 'eval-123' }),
       createdAt: '2024-01-15T10:00:00Z',
       actor: 'test',
@@ -736,7 +736,7 @@ describe('Model Migration Simulation', () => {
 
   it('should detect policy risk when model unchanged', () => {
     const state: SemanticState = {
-      id: 'state-1',
+      id: testId('migr-policy-1'),
       descriptor: createTestDescriptor({ modelId: 'gpt-4', policySnapshotId: 'policy-old' }),
       createdAt: '2024-01-15T10:00:00Z',
       actor: 'test',
@@ -756,21 +756,21 @@ describe('Model Migration Simulation', () => {
 
   it('should summarize multiple states', () => {
     store.putState({
-      id: 'state-1',
+      id: testId('migr-sum-1'),
       descriptor: createTestDescriptor({ modelId: 'gpt-4' }),
       createdAt: '2024-01-15T10:00:00Z',
       actor: 'test',
       integrityScore: 80,
     });
     store.putState({
-      id: 'state-2',
+      id: testId('migr-sum-2'),
       descriptor: createTestDescriptor({ modelId: 'gpt-4' }),
       createdAt: '2024-01-15T11:00:00Z',
       actor: 'test',
       integrityScore: 90,
     });
     store.putState({
-      id: 'state-3',
+      id: testId('migr-sum-3'),
       descriptor: createTestDescriptor({ modelId: 'claude-3' }),
       createdAt: '2024-01-15T12:00:00Z',
       actor: 'test',
