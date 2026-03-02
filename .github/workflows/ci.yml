@@ -38,7 +38,7 @@ jobs:
         run: ./scripts/generate_golden_corpus.sh
       - name: upload golden corpus digests
         if: runner.os == 'Linux' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: golden-corpus-digests
           path: testdata/golden/*.expected_digest
@@ -81,7 +81,7 @@ jobs:
         run: ./scripts/verify_determinism.sh
       - name: upload determinism report
         if: runner.os == 'Linux' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: determinism-report
           path: artifacts/reports/determinism_report.json
@@ -100,7 +100,7 @@ jobs:
         run: ./scripts/verify_chaos.sh
       - name: upload chaos report
         if: runner.os == 'Linux' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: chaos-report
           path: artifacts/reports/chaos_report.json
@@ -148,7 +148,7 @@ jobs:
         run: ./scripts/verify_claims.sh
       - name: upload governance artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: governance-reports
           path: |
@@ -286,7 +286,7 @@ jobs:
       - name: verify:deps
         run: ./scripts/verify_deps.sh
       - name: upload dep graph
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dep-graph
           path: |
@@ -407,7 +407,7 @@ jobs:
           fi
       - name: upload fuzz artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fuzz-corpus
           path: fuzz-corpus/
@@ -464,7 +464,7 @@ jobs:
         run: ./scripts/verify_chaos.sh
       - name: upload chaos report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: chaos-report-nightly
           path: artifacts/reports/chaos_report.json
