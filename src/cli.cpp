@@ -124,6 +124,7 @@ bool verify_hash_vectors() {
   }
   return true;
 }
+} // namespace
 
 // Harness entry points (renamed mains)
 extern int stress_main(int argc, char **argv);
@@ -134,8 +135,6 @@ extern int recovery_main(int argc, char **argv);
 extern int memory_main(int argc, char **argv);
 extern int protocol_main(int argc, char **argv);
 extern int chaos_main(int argc, char **argv);
-
-} // namespace
 
 int main(int argc, char **argv) {
   // Honor FORCE_RUST: if set, refuse to run so the caller falls back to Rust
