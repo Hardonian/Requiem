@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Type declarations to bypass packages/ai type checking
 // This allows the project to compile while packages/ai has type errors
+// Note: This file intentionally uses 'any' as a type bypass mechanism
 
 declare module '@requiem/ai' {
   export const registerTool: any;
