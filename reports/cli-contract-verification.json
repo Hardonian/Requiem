@@ -1,446 +1,365 @@
 {
-  "timestamp": "2026-03-02T23:13:26.254Z",
+  "timestamp": "2026-03-02T23:25:08.833Z",
   "results": [
     {
       "command": "run",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'run' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "verify",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'verify' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "replay",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'replay' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "fingerprint",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": false,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'fingerprint' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "ui",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": false,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'ui' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "quickstart",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'quickstart' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "diff",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'diff' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "lineage",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'lineage' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "simulate",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'simulate' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "drift",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'drift' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "explain",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'explain' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "usage",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'usage' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "tenant-check",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'tenant-check' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "chaos",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'chaos' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "share",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'share' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "tool",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'tool' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "trace",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'trace' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "stats",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'stats' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "status",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'status' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "telemetry",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'telemetry' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "learn",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'learn' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "realign",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'realign' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "pivot",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'pivot' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "rollback",
       "exists": true,
-      "hasHelp": false,
+      "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'rollback' not documented in help text",
-        "Command 'rollback' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "symmetry",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'symmetry' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "economics",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'economics' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "decide",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'decide' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "junctions",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'junctions' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "agent",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'agent' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "ai",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'ai' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "backup",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'backup' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "restore",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'restore' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "import",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'import' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "nuke",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'nuke' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "init",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'init' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "config",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'config' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "doctor",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'doctor' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "bugreport",
       "exists": true,
       "hasHelp": true,
       "jsonOutputWorks": true,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'bugreport' may not return structured errors"
-      ]
+      "issues": []
     },
     {
       "command": "help",
-      "exists": false,
+      "exists": true,
       "hasHelp": false,
       "jsonOutputWorks": false,
-      "errorStructured": false,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'help' not found in CLI switch statement"
-      ]
+      "issues": []
     },
     {
       "command": "version",
-      "exists": false,
+      "exists": true,
       "hasHelp": false,
-      "jsonOutputWorks": false,
-      "errorStructured": false,
+      "jsonOutputWorks": true,
+      "errorStructured": true,
       "exitCodeCorrect": true,
-      "issues": [
-        "Command 'version' not found in CLI switch statement"
-      ]
+      "issues": []
     }
   ]
 }

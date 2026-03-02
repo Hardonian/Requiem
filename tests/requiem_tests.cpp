@@ -1556,16 +1556,18 @@ void test_audit_log_append() {
 
   // Verify file exists and has content
   expect(fs::exists(tmp), "audit log file must exist");
-  std::ifstream ifs(tmp.string());
-  std::string line1, line2;
-  std::getline(ifs, line1);
-  std::getline(ifs, line2);
-  expect(!line1.empty(), "first audit log line must be non-empty");
-  expect(!line2.empty(), "second audit log line must be non-empty");
-  expect(line1.find("exec-1") != std::string::npos,
-         "first line must contain exec-1");
-  expect(line2.find("exec-2") != std::string::npos,
-         "second line must contain exec-2");
+  {
+    std::ifstream ifs(tmp.string());
+    std::string line1, line2;
+    std::getline(ifs, line1);
+    std::getline(ifs, line2);
+    expect(!line1.empty(), "first audit log line must be non-empty");
+    expect(!line2.empty(), "second audit log line must be non-empty");
+    expect(line1.find("exec-1") != std::string::npos,
+           "first line must contain exec-1");
+    expect(line2.find("exec-2") != std::string::npos,
+           "second line must contain exec-2");
+  }
 
   fs::remove(tmp);
 }

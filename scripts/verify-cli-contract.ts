@@ -8,7 +8,7 @@
  */
 
 import { execSync } from 'child_process';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 // Canonical command registry - single source of truth
@@ -443,7 +443,8 @@ function verifyCommand(contract: CommandContract): VerificationResult {
   
   try {
     // Check command exists by looking for it in CLI source
-    const cliSource = execSync('cat packages/cli/src/cli.ts', { encoding: 'utf-8', shell: 'powershell.exe' });
+    // Use cross-platform Node.js fs instead of shell commands
+    const cliSource = readFileSync('packages/cli/src/cli.ts', 'utf-8');
     const commandPattern = new RegExp(`case ['"]${contract.name}['"]:`);
     result.exists = commandPattern.test(cliSource);
     
@@ -473,7 +474,7 @@ function verifyCommand(contract: CommandContract): VerificationResult {
     if (contract.returnsStructuredErrors && result.exists) {
       // Check if error handling uses handleError
       const hasProperErrorHandling = cliSource.includes('handleError') &&
-                                    cliSource.includes('isAppError');
+                                     (cliSource.includes('isAppError') || cliSource.includes('isLightweightAppError'));
       result.errorStructured = hasProperErrorHandling;
       if (!hasProperErrorHandling) {
         result.issues.push(`Command '${contract.name}' may not return structured errors`);

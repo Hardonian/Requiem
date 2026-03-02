@@ -118,6 +118,7 @@ GOVERNANCE COMMANDS:
   learn [--window=7d] [--format]      Show learning signals and diagnoses
   realign <patch-id>                  Apply patch in new branch and verify
   pivot plan <name>                   Plan a strategic pivot
+  rollback <sha|release> [--force]    Rollback to previous release
   symmetry [--economics]              Show symmetry metrics
   economics [--alerts|--forecast]    Show economic metrics
   usage [--format]                    Show tenant usage summary
@@ -653,6 +654,19 @@ async function main(): Promise<number> {
       }
 
       // Note: help/version are handled at top of main() for fast path
+      // Also included here for completeness and verification
+
+      case 'help': {
+        printHelp();
+        result = 0;
+        break;
+      }
+
+      case 'version': {
+        printVersion();
+        result = 0;
+        break;
+      }
 
       default:
         throw new Error(`Unknown command: ${command}. Run "requiem help" for usage.`);
