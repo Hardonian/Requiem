@@ -549,3 +549,45 @@ export const shareCommand = new Command('share')
       process.exit(4);
     }
   });
+
+/**
+ * Dispatcher for microfracture suite
+ */
+export async function runMicrofractureCommand(command: string, args: string[], _ctx: unknown): Promise<number> {
+  const node = process.argv[0];
+  const script = process.argv[1];
+
+  switch (command) {
+    case 'diff':
+      await diffCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'lineage':
+      await lineageCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'simulate':
+      await simulateCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'drift':
+      await driftCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'explain':
+      await explainCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'usage':
+      await usageCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'tenant-check':
+      await tenantCheckCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'chaos':
+      await chaosCommand.parseAsync([node, script, ...args]);
+      break;
+    case 'share':
+      await shareCommand.parseAsync([node, script, ...args]);
+      break;
+    default:
+      throw new Error(`Unknown microfracture command: ${command}`);
+  }
+
+  return 0;
+}
