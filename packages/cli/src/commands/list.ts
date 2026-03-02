@@ -249,7 +249,7 @@ export const list = new Command('list')
       for (const run of runs) {
         const statusIcon = run.status === 'success' ? '✓' : run.status === 'failure' ? '✗' : '?';
         const duration = run.duration ? `${run.duration}ms` : '-';
-        const time = run.timestamp.split('T)[0] || run.timestamp.slice(0, 10);
+        const time = run.timestamp.split('T')[0] || run.timestamp.slice(0, 10);
         console.log(
           run.id.slice(0, 12).padEnd(12) +
           run.tool.slice(0, 19).padEnd(20) +

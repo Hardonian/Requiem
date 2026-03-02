@@ -20,7 +20,7 @@ interface RunDetails {
   tool: string;
   timestamp: string;
   status: string;
-  duration:?: unknown;
+  duration?: unknown;
   output?: unknown;
   error?: string;
   input?: string;

@@ -169,7 +169,7 @@ export const logs = new Command('logs')
     };
 
     if (options.level) {
-      filter.level = options.level.split(',').map(l => l.trim().toLowerCase());
+      filter.level = options.level.split(',').map((l: string) => l.trim().toLowerCase());
     }
 
     if (options.pattern) {
@@ -248,7 +248,7 @@ logs.command('tail')
     const filter: LogFilter = { limit };
 
     if (options.level) {
-      filter.level = options.level.split(',').map(l => l.trim().toLowerCase());
+      filter.level = options.level.split(',').map((l: string) => l.trim().toLowerCase());
     }
 
     const logDir = join(process.cwd(), '.requiem', 'logs');

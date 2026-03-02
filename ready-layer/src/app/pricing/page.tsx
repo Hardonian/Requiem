@@ -244,3 +244,17 @@ export default function PricingPage() {
               },
               {
                 title: 'Reproducible AI decisions',
+                body: 'Full execution replay with identical outputs. Debug production issues with certainty.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="border border-gray-100 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                <p className="text-sm text-gray-500 mt-1">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
