@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 
 namespace fs = std::filesystem;
