@@ -2321,15 +2321,18 @@ int main(int argc, char **argv) {
     std::string data;
     data += "{\"ok\":true";
     data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(tenant) + "\"";
-    data += ",\"budgets\":{"exec":{"limit\":" + std::to_string(budget.exec_limit);
+    data += ",\"budgets\":{" exec ":{" limit\":" +
+            std::to_string(budget.exec_limit);
     data += ",\"used\":" + std::to_string(budget.exec_used);
     data += ",\"remaining\":" + std::to_string(budget.exec_remaining) + "}";
     data += ",\"cas_put\":{\"limit\":" + std::to_string(budget.cas_put_limit);
     data += ",\"used\":" + std::to_string(budget.cas_put_used);
     data += ",\"remaining\":" + std::to_string(budget.cas_put_remaining) + "}";
-    data += ",\"policy_eval\":{\"limit\":" + std::to_string(budget.policy_eval_limit);
+    data += ",\"policy_eval\":{\"limit\":" +
+            std::to_string(budget.policy_eval_limit);
     data += ",\"used\":" + std::to_string(budget.policy_eval_used);
-    data += ",\"remaining\":" + std::to_string(budget.policy_eval_remaining) + "}";
+    data +=
+        ",\"remaining\":" + std::to_string(budget.policy_eval_remaining) + "}";
     data += "}";
     data += ",\"budget_hash\":\"" + budget.budget_hash + "\"";
     data += "}";
@@ -2382,9 +2385,11 @@ int main(int argc, char **argv) {
     auto receipt = requiem::receipt_get_by_hash(receipt_hash);
     std::string data;
     data += "{\"ok\":true";
-    data += ",\"receipt\":{"receipt_version\":" + std::to_string(receipt.receipt_version);
+    data += ",\"receipt\":{" receipt_version\":" +
+            std::to_string(receipt.receipt_version);
     data += ",\"operation\":\"" + receipt.operation + "\"";
-    data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(receipt.tenant_id) + "\"";
+    data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(receipt.tenant_id) +
+            "\"";
     data += ",\"request_digest\":\"" + receipt.request_digest + "\"";
     data += ",\"units_charged\":" + std::to_string(receipt.units_charged);
     data += ",\"budget_before\":" + std::to_string(receipt.budget_before);
@@ -2441,13 +2446,16 @@ int main(int argc, char **argv) {
     auto snapshot = requiem::snapshot_create(tenant);
     std::string data;
     data += "{\"ok\":true";
-    data += ",\"snapshot\":{"snapshot_version\":" + std::to_string(snapshot.snapshot_version);
+    data += ",\"snapshot\":{\"snapshot_version\":" +
+            std::to_string(snapshot.snapshot_version);
     data += ",\"logical_time\":" + std::to_string(snapshot.logical_time);
     data += ",\"event_log_head\":\"" + snapshot.event_log_head + "\"";
     data += ",\"cas_root_hash\":\"" + snapshot.cas_root_hash + "\"";
     data += ",\"snapshot_hash\":\"" + snapshot.snapshot_hash + "\"";
-    data += ",\"active_caps_count\":" + std::to_string(snapshot.active_caps.size());
-    data += ",\"revoked_caps_count\":" + std::to_string(snapshot.revoked_caps.size());
+    data +=
+        ",\"active_caps_count\":" + std::to_string(snapshot.active_caps.size());
+    data += ",\"revoked_caps_count\":" +
+            std::to_string(snapshot.revoked_caps.size());
     data += "}}";
     auto env = requiem::make_envelope("snapshot.create", data);
     std::cout << requiem::envelope_to_json(env) << "\n";
@@ -2465,8 +2473,9 @@ int main(int argc, char **argv) {
     data += "{\"ok\":true";
     data += ",\"snapshots\":[";
     bool first = true;
-    for (const auto& snap : snapshots) {
-      if (!first) data += ",";
+    for (const auto &snap : snapshots) {
+      if (!first)
+        data += ",";
       first = false;
       data += "{\"snapshot_hash\":\"" + snap.snapshot_hash + "\"";
       data += ",\"logical_time\":" + std::to_string(snap.logical_time);
@@ -2508,8 +2517,10 @@ int main(int argc, char **argv) {
     auto result = requiem::snapshot_restore(snapshot_hash);
     std::string data;
     data += "{\"ok\":" + std::string(result.ok ? "true" : "false");
-    data += ",\"restored_logical_time\":" + std::to_string(result.restored_logical_time);
-    data += ",\"message\":\"" + requiem::jsonlite::escape(result.message) + "\"";
+    data += ",\"restored_logical_time\":" +
+            std::to_string(result.restored_logical_time);
+    data +=
+        ",\"message\":\"" + requiem::jsonlite::escape(result.message) + "\"";
     data += "}";
     auto env = requiem::make_envelope("snapshot.restore", data);
     std::cout << requiem::envelope_to_json(env) << "\n";
@@ -2534,14 +2545,16 @@ int main(int argc, char **argv) {
     }
     if (plan_id.empty() || steps_file.empty()) {
       std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
-                       "missing_argument", "--plan-id and --steps required", false))
+                       "missing_argument", "--plan-id and --steps required",
+                       false))
                 << "\n";
       return 2;
     }
     auto plan = requiem::plan_add(plan_id, read_file(steps_file));
     std::string data;
     data += "{\"ok\":true";
-    data += ",\"plan\":{\"plan_id\":\"" + requiem::jsonlite::escape(plan.plan_id) + "\"";
+    data += ",\"plan\":{\"plan_id\":\"" +
+            requiem::jsonlite::escape(plan.plan_id) + "\"";
     data += ",\"plan_version\":" + std::to_string(plan.plan_version);
     data += ",\"plan_hash\":\"" + plan.plan_hash + "\"";
     data += ",\"step_count\":" + std::to_string(plan.steps.size()) + "}";
@@ -2562,10 +2575,12 @@ int main(int argc, char **argv) {
     data += "{\"ok\":true";
     data += ",\"plans\":[";
     bool first = true;
-    for (const auto& plan : plans) {
-      if (!first) data += ",";
+    for (const auto &plan : plans) {
+      if (!first)
+        data += ",";
       first = false;
-      data += "{\"plan_id\":\"" + requiem::jsonlite::escape(plan.plan_id) + "\"";
+      data +=
+          "{\"plan_id\":\"" + requiem::jsonlite::escape(plan.plan_id) + "\"";
       data += ",\"plan_hash\":\"" + plan.plan_hash + "\"";
       data += ",\"step_count\":" + std::to_string(plan.steps.size()) + "}";
     }
@@ -2590,14 +2605,17 @@ int main(int argc, char **argv) {
     auto result = requiem::plan_show(plan_hash);
     std::string data;
     data += "{\"ok\":true";
-    data += ",\"plan\":{\"plan_id\":\"" + requiem::jsonlite::escape(result.plan.plan_id) + "\"";
+    data += ",\"plan\":{\"plan_id\":\"" +
+            requiem::jsonlite::escape(result.plan.plan_id) + "\"";
     data += ",\"plan_version\":" + std::to_string(result.plan.plan_version);
     data += ",\"plan_hash\":\"" + result.plan.plan_hash + "\"";
-    data += ",\"steps\":" + requiem::plan_steps_to_json(result.plan.steps) + "}";
+    data +=
+        ",\"steps\":" + requiem::plan_steps_to_json(result.plan.steps) + "}";
     data += ",\"runs\":[";
     bool first = true;
-    for (const auto& run : result.runs) {
-      if (!first) data += ",";
+    for (const auto &run : result.runs) {
+      if (!first)
+        data += ",";
       first = false;
       data += "{\"run_id\":\"" + run.run_id + "\"";
       data += ",\"ok\":" + std::string(run.ok ? "true" : "false");
@@ -2630,8 +2648,10 @@ int main(int argc, char **argv) {
     data += "{\"ok\":" + std::string(result.ok ? "true" : "false");
     data += ",\"original_run_id\":\"" + result.original_run_id + "\"";
     data += ",\"replay_run_id\":\"" + result.replay_run_id + "\"";
-    data += ",\"exact_match\":" + std::string(result.exact_match ? "true" : "false");
-    data += ",\"receipt_hash_original\":\"" + result.receipt_hash_original + "\"";
+    data += ",\"exact_match\":" +
+            std::string(result.exact_match ? "true" : "false");
+    data +=
+        ",\"receipt_hash_original\":\"" + result.receipt_hash_original + "\"";
     data += ",\"receipt_hash_replay\":\"" + result.receipt_hash_replay + "\"";
     data += "}";
     auto env = requiem::make_envelope("plan.replay", data);

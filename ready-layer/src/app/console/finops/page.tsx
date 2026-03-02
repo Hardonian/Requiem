@@ -30,11 +30,11 @@ export default function ConsoleFinOpsPage() {
       setLoading(true);
       const response = await fetch(`/api/budgets?tenant=${tenant}`);
       const result = await response.json();
-      
+
       if (result.data?.ok && result.data.budget) {
         const budgetData = result.data.budget;
         const budgetViews: BudgetView[] = [];
-        
+
         if (budgetData.budgets.exec) {
           budgetViews.push({
             name: 'Executions',
@@ -75,7 +75,7 @@ export default function ConsoleFinOpsPage() {
             remaining: budgetData.budgets.plan_step.remaining,
           });
         }
-        
+
         setBudgets(budgetViews);
       } else {
         // Use mock data if API returns empty
@@ -110,7 +110,7 @@ export default function ConsoleFinOpsPage() {
         body: JSON.stringify({ action: 'reset-window', tenant_id: tenant }),
       });
       const result = await response.json();
-      
+
       if (result.data?.ok) {
         alert('Budget window reset successfully');
         fetchBudgets();
@@ -192,10 +192,15 @@ export default function ConsoleFinOpsPage() {
                     <span>{budget.used.toLocaleString()} / {budget.limit.toLocaleString()}</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${getUsageColor(percent)}`} 
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${getUsageColor(percent)}`}
                       style={{ width: `${percent}%` }}
-                    ></div>
+                      role="progressbar"
+                      aria-valuenow={percent}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`${budget.name} usage: ${percent.toFixed(1)}%`}
+                    />
                   </div>
                 </div>
                 <div className="flex justify-between text-sm mt-4">
