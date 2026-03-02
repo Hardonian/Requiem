@@ -383,9 +383,10 @@ function parseManualCommandFile(fileName: string, content: string): CliCommand |
   };
 }
 
-function parseExports(filePath: string): ExportedItem[] {
+function parseExports(filePath: string, includeReExports: boolean = false): ExportedItem[] {
   const content = readFile(filePath);
   const exports: ExportedItem[] = [];
+  const baseDir = dirname(filePath);
 
   // Named exports
   const namedExportPattern = /export\s+(?:\{|type)\s*\{([^}]+)\}/g;
@@ -428,6 +429,23 @@ function parseExports(filePath: string): ExportedItem[] {
       name: `* from ${match[1]}`,
       kind: 'export-all',
     });
+
+    // Optionally recursively parse re-exports
+    if (includeReExports) {
+      try {
+        const sourceFile = match[1].replace('.js', '.ts');
+        const baseDir = dirname(filePath);
+        const fullPath = join(baseDir, sourceFile);
+        const reExports = parseExports(fullPath, false);
+        for (const reExp of reExports) {
+          if (reExp.kind !== 'export-all' && !exports.find(e => e.name === reExp.name)) {
+            exports.push({ ...reExp, source: `via ${match[1]}` });
+          }
+        }
+      } catch {
+        // Ignore re-export parsing errors
+      }
+    }
   }
 
   // Default exports and individual exports
@@ -551,9 +569,9 @@ function generateSnapshot(): PublicSurfaceSnapshot {
   // Sort commands by name
   commands.sort((a, b) => a.name.localeCompare(b.name));
 
-  // Parse exports
+  // Parse exports (include re-exports for core to get full surface)
   const mainExports = parseExports(PATHS.cliIndex);
-  const coreExports = parseExports(PATHS.coreIndex);
+  const coreExports = parseExports(PATHS.coreIndex, true);
 
   // Parse exit codes
   const exitCodes = parseExitCodes();

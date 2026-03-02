@@ -1,0 +1,3881 @@
+{
+  "violations": 775,
+  "timestamp": "2026-03-02T01:12:42.392Z",
+  "details": [
+    {
+      "file": "packages\\cli\\src\\commands\\agent.ts",
+      "line": 47,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\agent.ts",
+      "line": 51,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 70,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 74,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 86,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 88,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 91,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 94,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 95,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 96,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 97,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 98,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 105,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 114,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 116,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 119,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 122,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 123,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 124,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 125,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 134,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 135,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 141,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 142,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 150,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 151,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 152,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 155,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 166,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 176,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 178,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 179,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 180,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 181,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 182,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "line": 183,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\backup.ts",
+      "line": 14,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\backup.ts",
+      "line": 20,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\backup.ts",
+      "line": 22,
+      "match": "console.warn("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\backup.ts",
+      "line": 29,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bench.ts",
+      "line": 12,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bench.ts",
+      "line": 28,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bench.ts",
+      "line": 30,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bench.ts",
+      "line": 44,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bench.ts",
+      "line": 46,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bench.ts",
+      "line": 50,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bugreport.ts",
+      "line": 86,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bugreport.ts",
+      "line": 88,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\config.ts",
+      "line": 14,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\config.ts",
+      "line": 22,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\config.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\dashboard.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\dashboard.ts",
+      "line": 32,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 111,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 116,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 121,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 129,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 136,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 142,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 182,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 188,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 189,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 190,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 191,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 192,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 194,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 196,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 204,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 211,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 217,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 226,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 236,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 237,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 238,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 239,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 242,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 244,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 245,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 253,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 258,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 265,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 271,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 294,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 303,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 304,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 305,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 307,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 310,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 312,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 325,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 331,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 332,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 336,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 337,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 338,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 339,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 340,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 349,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 356,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 362,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 368,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 374,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 375,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 376,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 377,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 378,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 379,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 380,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 381,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 382,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 383,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 386,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 390,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 393,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 394,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 397,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 398,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 404,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "line": 405,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "line": 422,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "line": 424,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "line": 425,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "line": 430,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "line": 434,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "line": 437,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 49,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 50,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 51,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 52,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 53,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 56,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 59,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 62,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 66,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 67,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 74,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 75,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 76,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 77,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 78,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 79,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 80,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 81,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 82,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 83,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 84,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 85,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 86,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 87,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 94,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 95,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 96,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 97,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 98,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 99,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 100,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 101,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 104,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 105,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 107,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 110,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 113,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 114,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 120,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 121,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 122,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 123,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 124,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 125,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 126,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 127,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 128,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 129,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 130,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 131,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 132,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 133,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 134,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 135,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 137,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 139,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 140,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 141,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 142,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 143,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 146,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 147,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 148,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 150,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 154,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 155,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "line": 159,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\import.ts",
+      "line": 14,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\import.ts",
+      "line": 18,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\import.ts",
+      "line": 23,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\import.ts",
+      "line": 30,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\import.ts",
+      "line": 68,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 13,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 14,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 15,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 33,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 34,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 35,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 36,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "line": 37,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 136,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 141,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 146,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 154,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 166,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 173,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 174,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 175,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 179,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 180,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 181,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 182,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 183,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 184,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 185,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 200,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 206,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 207,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 211,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 212,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 213,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 214,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 223,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 231,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 237,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 245,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 250,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 251,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 252,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 253,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 254,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 255,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 256,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 257,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 258,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 261,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 264,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 265,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 267,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 268,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "line": 271,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 77,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 78,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 79,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 80,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 83,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 84,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 86,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 89,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 90,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 91,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 92,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 95,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 96,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 98,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 101,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 104,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 108,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 111,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 112,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 113,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 114,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 115,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 116,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 118,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 119,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 151,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "line": 188,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 71,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 75,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 107,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 116,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 123,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 124,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 141,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 142,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 148,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 186,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 188,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 193,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 210,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 216,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 217,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 238,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 247,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 252,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 269,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 305,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 307,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 312,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 328,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 346,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 354,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 356,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 361,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 403,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 405,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 410,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 440,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 442,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 447,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 472,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 474,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 479,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 503,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 524,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 535,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 536,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 537,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 538,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 540,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 542,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "line": 548,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\nuke.ts",
+      "line": 9,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\nuke.ts",
+      "line": 13,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 31,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 38,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 39,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 40,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 41,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 42,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 70,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 71,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 72,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 73,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 74,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 75,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 76,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 77,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 78,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 79,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 80,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 81,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 82,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 83,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 84,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 85,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 86,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 95,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 103,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 104,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 105,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 106,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 107,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 110,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 139,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 140,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 143,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 144,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 147,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 148,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 153,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 154,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 155,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 156,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 157,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 158,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 159,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 160,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 161,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 162,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "line": 177,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 47,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 48,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 49,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 50,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 51,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 52,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 79,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 81,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 94,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 96,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 99,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 102,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 104,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 107,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 116,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 128,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 129,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 130,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 134,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 138,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 140,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 144,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 147,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 148,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 157,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 167,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 168,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 169,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 170,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 171,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 172,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 173,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 174,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 175,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 176,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 177,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 178,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 187,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 189,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 198,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 206,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 214,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "line": 216,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 24,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 32,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 33,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 34,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 35,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 41,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 45,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 46,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 47,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 48,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 51,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 56,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 62,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 63,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 64,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 69,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 70,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 71,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 75,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 81,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 88,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 91,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 94,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 95,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 100,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 101,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 102,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 103,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 104,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 105,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 106,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 107,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 108,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "line": 112,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 9,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 21,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 28,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 29,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 30,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 32,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 33,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 34,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 35,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 36,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 37,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 40,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 41,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 42,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 43,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 50,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 52,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 56,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 62,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 65,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 68,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 69,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 70,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 79,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 93,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 97,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 109,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 118,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 119,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 120,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 121,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 122,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 123,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 124,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 125,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 126,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 129,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 130,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 131,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 133,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 134,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 135,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 139,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 143,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 148,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 149,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 157,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 161,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 185,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\replay.ts",
+      "line": 217,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\restore.ts",
+      "line": 15,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\restore.ts",
+      "line": 19,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\restore.ts",
+      "line": 28,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\restore.ts",
+      "line": 37,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\restore.ts",
+      "line": 58,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\restore.ts",
+      "line": 62,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\restore.ts",
+      "line": 64,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\run.ts",
+      "line": 24,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\run.ts",
+      "line": 25,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\serve.ts",
+      "line": 54,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\serve.ts",
+      "line": 55,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 12,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 16,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 17,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 18,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 19,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 33,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 36,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stats.ts",
+      "line": 37,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 113,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 126,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 128,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 138,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 139,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 140,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 141,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 144,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 145,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 146,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 148,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 149,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 150,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 151,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 152,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 154,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 155,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 156,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 157,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 159,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 160,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 161,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 162,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 164,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 165,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 167,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 171,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 175,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 177,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 178,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 179,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\status.ts",
+      "line": 180,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stress.ts",
+      "line": 15,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stress.ts",
+      "line": 16,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stress.ts",
+      "line": 17,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stress.ts",
+      "line": 18,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stress.ts",
+      "line": 19,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\stress.ts",
+      "line": 55,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 33,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 34,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 35,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 36,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 37,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 38,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 39,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 40,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 41,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 42,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 43,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 44,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 45,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 46,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 47,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 48,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 49,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 50,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 51,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 52,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 53,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 54,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 57,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 58,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 59,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 60,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 61,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 62,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 63,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 68,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 69,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 70,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 71,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 72,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 73,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 74,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 75,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 76,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 77,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 78,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 80,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 82,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 83,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 84,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 85,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 86,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 88,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 90,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 95,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 96,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\symmetry.ts",
+      "line": 100,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 40,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 57,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 58,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 59,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 60,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 61,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 62,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 63,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 64,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 65,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 66,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 67,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\telemetry.ts",
+      "line": 68,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 94,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 99,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 103,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 104,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 110,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 113,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 143,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 158,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 185,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 187,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 188,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 189,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 190,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 191,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 192,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 193,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 194,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 195,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 196,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 197,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 198,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 199,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 200,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 201,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 207,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 209,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 239,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 251,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 253,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 254,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 255,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 256,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 257,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 258,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 259,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 260,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 261,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 262,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 263,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 264,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 270,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 272,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 342,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 344,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 347,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\tool.ts",
+      "line": 349,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 14,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 25,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 46,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 47,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 48,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 49,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 50,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 51,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 52,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 53,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 54,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 55,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 59,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\trace.ts",
+      "line": 78,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\verify.ts",
+      "line": 12,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\verify.ts",
+      "line": 13,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\verify.ts",
+      "line": 26,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\verify.ts",
+      "line": 35,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\verify.ts",
+      "line": 39,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-latency.ts",
+      "line": 12,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-latency.ts",
+      "line": 18,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-latency.ts",
+      "line": 30,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-latency.ts",
+      "line": 34,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-usage.ts",
+      "line": 12,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-usage.ts",
+      "line": 18,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-usage.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\migrate-decisions-usage.ts",
+      "line": 35,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 17,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 22,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 33,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 40,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 46,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 48,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 54,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 68,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 70,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\db\\verify-preflight.ts",
+      "line": 74,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\lib\\ai-skills.ts",
+      "line": 34,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\lib\\ai-tools.ts",
+      "line": 105,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\lib\\mcp.ts",
+      "line": 93,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\lib\\state-machine.ts",
+      "line": 102,
+      "match": "console.warn("
+    },
+    {
+      "file": "packages\\cli\\src\\run-doctor.ts",
+      "line": 11,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\run-verify-dashboard.ts",
+      "line": 6,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\run-verify-dashboard.ts",
+      "line": 14,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\run-verify-serve.ts",
+      "line": 6,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\run-verify-serve.ts",
+      "line": 14,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-dashboard.ts",
+      "line": 9,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-dashboard.ts",
+      "line": 13,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-dashboard.ts",
+      "line": 38,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-dashboard.ts",
+      "line": 56,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-dashboard.ts",
+      "line": 68,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-dashboard.ts",
+      "line": 73,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-init.ts",
+      "line": 7,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-init.ts",
+      "line": 20,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-init.ts",
+      "line": 21,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-init.ts",
+      "line": 25,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-nuke.ts",
+      "line": 7,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-nuke.ts",
+      "line": 21,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-nuke.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-nuke.ts",
+      "line": 35,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-nuke.ts",
+      "line": 39,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-serve.ts",
+      "line": 9,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-serve.ts",
+      "line": 12,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-serve.ts",
+      "line": 37,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-serve.ts",
+      "line": 60,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-serve.ts",
+      "line": 63,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-serve.ts",
+      "line": 68,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 6,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 12,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 38,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 45,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 48,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 51,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 53,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-stats.ts",
+      "line": 57,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 9,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 17,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 22,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 31,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 36,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 37,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 41,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 46,
+      "match": "console.log("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 47,
+      "match": "console.error("
+    },
+    {
+      "file": "packages\\cli\\src\\verify-system.ts",
+      "line": 58,
+      "match": "console.log("
+    },
+    {
+      "file": "ready-layer\\src\\app\\api\\vector\\search\\route.ts",
+      "line": 122,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\app\\error.tsx",
+      "line": 18,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\env.ts",
+      "line": 54,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 117,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 126,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 176,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 237,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 240,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 246,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 279,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 282,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 288,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 349,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 382,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 385,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 391,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 420,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 423,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 429,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 458,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 464,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\lib\\vector-search.ts",
+      "line": 504,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\middleware\\proxy.ts",
+      "line": 135,
+      "match": "console.error("
+    },
+    {
+      "file": "ready-layer\\src\\middleware\\proxy.ts",
+      "line": 221,
+      "match": "console.warn("
+    },
+    {
+      "file": "ready-layer\\src\\middleware\\proxy.ts",
+      "line": 259,
+      "match": "console.warn("
+    }
+  ]
+}

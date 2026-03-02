@@ -1,0 +1,258 @@
+{
+  "unusedExports": 761,
+  "totalExports": 761,
+  "unusedPercentage": 100,
+  "timestamp": "2026-03-02T01:12:42.371Z",
+  "exports": [
+    {
+      "file": "packages\\cli\\src\\cli.ts",
+      "name": "CommandContext",
+      "line": 20
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\agent.ts",
+      "name": "AgentCliArgs",
+      "line": 13
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\agent.ts",
+      "name": "parseAgentArgs",
+      "line": 19
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\agent.ts",
+      "name": "runAgentCommand",
+      "line": 41
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "name": "AiCliArgs",
+      "line": 15
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "name": "parseAiArgs",
+      "line": 24
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\ai.ts",
+      "name": "runAiCommand",
+      "line": 57
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\backup.ts",
+      "name": "backup",
+      "line": 6
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bench.ts",
+      "name": "runBench",
+      "line": 11
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\bugreport.ts",
+      "name": "bugreport",
+      "line": 74
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\config.ts",
+      "name": "config",
+      "line": 4
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\dashboard.ts",
+      "name": "dashboard",
+      "line": 5
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "name": "DecisionReportOutput",
+      "line": 15
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "name": "DecideCliArgs",
+      "line": 32
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "name": "parseDecideArgs",
+      "line": 42
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\decide.ts",
+      "name": "runDecideCommand",
+      "line": 91
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "name": "DoctorCheck",
+      "line": 24
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "name": "DoctorResult",
+      "line": 31
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\doctor.ts",
+      "name": "runDoctor",
+      "line": 361
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "name": "EconomicsArgs",
+      "line": 17
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "name": "runEconomicsCommand",
+      "line": 26
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\economics.ts",
+      "name": "economics",
+      "line": 166
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\import.ts",
+      "name": "importCommand",
+      "line": 7
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\init.ts",
+      "name": "init",
+      "line": 6
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "name": "JunctionsCliArgs",
+      "line": 14
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "name": "parseJunctionsArgs",
+      "line": 24
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\junctions.ts",
+      "name": "runJunctionsCommand",
+      "line": 126
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "name": "LearnArgs",
+      "line": 15
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "name": "parseLearnArgs",
+      "line": 22
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "name": "runLearnCommand",
+      "line": 156
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\learn.ts",
+      "name": "learn",
+      "line": 195
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "diffCommand",
+      "line": 51
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "lineageCommand",
+      "line": 156
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "simulateCommand",
+      "line": 201
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "driftCommand",
+      "line": 260
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "explainCommand",
+      "line": 320
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "usageCommand",
+      "line": 369
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "tenantCheckCommand",
+      "line": 418
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "chaosCommand",
+      "line": 455
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\microfracture.ts",
+      "name": "shareCommand",
+      "line": 487
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\nuke.ts",
+      "name": "nuke",
+      "line": 4
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "name": "PivotPlanArgs",
+      "line": 16
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "name": "RollbackArgs",
+      "line": 22
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "name": "runPivotPlanCommand",
+      "line": 29
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "name": "runRollbackCommand",
+      "line": 93
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "name": "pivot",
+      "line": 169
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\pivot.ts",
+      "name": "rollbackCommand",
+      "line": 182
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\quickstart.ts",
+      "name": "quickstart",
+      "line": 36
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "name": "RealignArgs",
+      "line": 15
+    },
+    {
+      "file": "packages\\cli\\src\\commands\\realign.ts",
+      "name": "runRealignCommand",
+      "line": 22
+    }
+  ]
+}

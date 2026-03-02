@@ -4,6 +4,7 @@
 
 import { getDB } from './connection';
 import { newId } from './helpers';
+import { ArtifactStore } from './artifacts';
 import type { DecisionInput, DecisionOutput } from '../lib/fallback';
 
 export interface DecisionReport {
@@ -49,6 +50,15 @@ export interface UpdateDecisionInput {
 }
 
 export class DecisionRepository {
+  private static stmtCache = new Map<string, any>();
+
+  private static getStmt(query: string) {
+    if (!this.stmtCache.has(query)) {
+      this.stmtCache.set(query, getDB().prepare(query));
+    }
+    return this.stmtCache.get(query);
+  }
+
   /**
    * Creates a new decision report
    */
@@ -65,9 +75,9 @@ export class DecisionRepository {
       source_type: input.source_type,
       source_ref: input.source_ref,
       input_fingerprint: input.input_fingerprint,
-      decision_input: JSON.stringify(input.decision_input),
-      decision_output: input.decision_output ? JSON.stringify(input.decision_output) : null,
-      decision_trace: input.decision_trace ? JSON.stringify(input.decision_trace) : null,
+      decision_input: ArtifactStore.collapseSync(input.decision_input),
+      decision_output: input.decision_output ? ArtifactStore.collapseSync(input.decision_output) : null,
+      decision_trace: input.decision_trace ? ArtifactStore.collapseSync(input.decision_trace) : null,
       usage: input.usage ? JSON.stringify(input.usage) : JSON.stringify({ prompt_tokens: 0, completion_tokens: 0, cost_usd: 0 }),
       recommended_action_id: input.recommended_action_id || null,
       status: input.status || 'pending',
@@ -77,7 +87,7 @@ export class DecisionRepository {
       execution_latency: input.execution_latency ?? null,
     };
 
-    const stmt = db.prepare(`
+    const stmt = this.getStmt(`
       INSERT INTO decisions (
         id, tenant_id, created_at, updated_at, source_type, source_ref, input_fingerprint,
         decision_input, decision_output, decision_trace, usage, recommended_action_id,
@@ -97,11 +107,22 @@ export class DecisionRepository {
    * Finds a decision by ID
    */
   static findById(id: string, tenantId?: string): DecisionReport | undefined {
-    const db = getDB();
+    let report: DecisionReport | undefined;
+
     if (tenantId) {
-      return db.prepare('SELECT * FROM decisions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as unknown as DecisionReport | undefined;
+      report = this.getStmt('SELECT * FROM decisions WHERE id = ? AND tenant_id = ?').get(id, tenantId) as unknown as DecisionReport | undefined;
+    } else {
+      report = this.getStmt('SELECT * FROM decisions WHERE id = ?').get(id) as unknown as DecisionReport | undefined;
     }
-    return db.prepare('SELECT * FROM decisions WHERE id = ?').get(id) as unknown as DecisionReport | undefined;
+
+    if (report) {
+      // Expand artifacts
+      report.decision_input = ArtifactStore.expand(report.decision_input) || report.decision_input;
+      report.decision_output = ArtifactStore.expand(report.decision_output);
+      report.decision_trace = ArtifactStore.expand(report.decision_trace);
+    }
+
+    return report;
   }
 
   /**
@@ -194,8 +215,7 @@ export class DecisionRepository {
    * Deletes a decision
    */
   static delete(id: string): boolean {
-    const db = getDB();
-    const result = db.prepare('DELETE FROM decisions WHERE id = ?').run(id);
+    const result = this.getStmt('DELETE FROM decisions WHERE id = ?').run(id);
     return result.changes > 0;
   }
 

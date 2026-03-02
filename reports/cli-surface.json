@@ -1,0 +1,42 @@
+{
+  "version": "0.1.0",
+  "commands": [
+    "backup",
+    "bugreport",
+    "doctor",
+    "economics",
+    "import",
+    "init",
+    "learn",
+    "nuke",
+    "quickstart",
+    "restore",
+    "stats",
+    "status",
+    "symmetry",
+    "telemetry",
+    "tenant-check",
+    "ui",
+    "usage"
+  ],
+  "flags": [
+    "--alerts",
+    "--depth",
+    "--economics",
+    "--forecast",
+    "--format",
+    "--help",
+    "--id",
+    "--json",
+    "--junction",
+    "--policy",
+    "--quick",
+    "--scope",
+    "--since",
+    "--tenant",
+    "--ttl",
+    "--version",
+    "--window"
+  ],
+  "timestamp": "2026-03-02T01:12:42.471Z"
+}

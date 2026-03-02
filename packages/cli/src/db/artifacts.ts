@@ -18,7 +18,7 @@ export class ArtifactStore {
   /**
    * Store a blob and return a ref if it exceeds threshold
    */
-  static async collapse(data: string | object): Promise<string> {
+  static collapseSync(data: string | object): string {
     const raw = typeof data === 'string' ? data : JSON.stringify(data);
 
     if (raw.length < COLLAPSE_THRESHOLD) {
