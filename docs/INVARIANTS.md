@@ -218,14 +218,14 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 
 **Rules:**
 
-| From → To          | Allowed |
-| ------------------- | ------- |
-| Core → Server      | ❌ No   |
-| Core → UI          | ❌ No   |
-| Server → Core      | ✅ Yes  |
-| UI → Core          | ✅ Yes  |
-| UI → Server        | ❌ No   |
-| CLI → ready-layer  | ❌ No   |
+| From | To | Allowed |
+| --- | --- | --- |
+| Core | Server | ❌ No |
+| Core | UI | ❌ No |
+| Server | Core | ✅ Yes |
+| UI | Core | ✅ Yes |
+| UI | Server | ❌ No |
+| CLI | ready-layer | ❌ No |
 
 **Enforcement:**
 
@@ -417,23 +417,23 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 
 ## Verification Matrix
 
-| Invariant               | Unit Test | Runtime Assert | CI Script              | Formal | Branded Type       |
-| ----------------------- | --------- | -------------- | ---------------------- | ------ | ------------------ |
-| INV-1 (Determinism)     | ✅        | ✅             | verify_determinism     | ✅     | Fingerprint        |
-| INV-2 (CAS)             | ✅        | ✅             | verify_cas             | -      | CASDigest          |
-| INV-3 (Errors)          | ✅        | -              | verify_boundaries      | -      | ErrorCode          |
-| INV-4 (Tenant)          | ✅        | -              | verify_tenant_isolation | -     | TenantId           |
-| INV-5 (State)           | ✅        | ✅             | invariant tests        | ✅     | RunLifecycleState  |
-| INV-6 (Audit)           | -         | -              | verify_enterprise      | -      | -                  |
-| INV-7 (No 500)          | -         | -              | verify_no_hard_500     | -      | -                  |
-| INV-8 (Boundaries)      | -         | -              | verify_boundaries      | -      | -                  |
-| INV-9 (Clock)           | ✅        | -              | verify_provenance      | -      | Clock              |
-| INV-10 (Secrets)        | -         | -              | verify_secrets         | -      | -                  |
-| INV-11 (Deps)           | -         | -              | verify_deps            | -      | -                  |
-| INV-12 (Migrations)     | -         | -              | verify_migrations      | -      | -                  |
-| INV-13 (OSS)            | -         | -              | verify_oss_boundaries  | -      | -                  |
-| INV-14 (Policy)         | ✅        | ✅             | invariant tests        | -      | PolicySnapshotHash |
-| INV-15 (Arbitration)    | ✅        | ✅             | invariant tests        | -      | ArbitrationDecision |
-| INV-16 (Cost)           | ✅        | ✅             | invariant tests        | -      | -                  |
-| INV-17 (Ledger)         | ✅        | ✅             | invariant tests        | -      | LedgerId           |
-| INV-18 (Lifecycle)      | ✅        | ✅             | invariant tests        | -      | RunLifecycleState  |
+| Invariant | Unit Test | Runtime Assert | CI Script | Formal | Branded Type |
+| --- | --- | --- | --- | --- | --- |
+| INV-1 (Determinism) | ✅ | ✅ | verify_determinism | ✅ | Fingerprint |
+| INV-2 (CAS) | ✅ | ✅ | verify_cas | - | CASDigest |
+| INV-3 (Errors) | ✅ | - | verify_boundaries | - | ErrorCode |
+| INV-4 (Tenant) | ✅ | - | verify_tenant_isolation | - | TenantId |
+| INV-5 (State) | ✅ | ✅ | invariant tests | ✅ | RunLifecycleState |
+| INV-6 (Audit) | - | - | verify_enterprise | - | - |
+| INV-7 (No 500) | - | - | verify_no_hard_500 | - | - |
+| INV-8 (Boundaries) | - | - | verify_boundaries | - | - |
+| INV-9 (Clock) | ✅ | - | verify_provenance | - | Clock |
+| INV-10 (Secrets) | - | - | verify_secrets | - | - |
+| INV-11 (Deps) | - | - | verify_deps | - | - |
+| INV-12 (Migrations) | - | - | verify_migrations | - | - |
+| INV-13 (OSS) | - | - | verify_oss_boundaries | - | - |
+| INV-14 (Policy) | ✅ | ✅ | invariant tests | - | PolicySnapshotHash |
+| INV-15 (Arbitration) | ✅ | ✅ | invariant tests | - | ArbitrationDecision |
+| INV-16 (Cost) | ✅ | ✅ | invariant tests | - | - |
+| INV-17 (Ledger) | ✅ | ✅ | invariant tests | - | LedgerId |
+| INV-18 (Lifecycle) | ✅ | ✅ | invariant tests | - | RunLifecycleState |
