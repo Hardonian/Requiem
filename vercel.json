@@ -1,6 +1,6 @@
 {
+  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm run build:ai && pnpm run build:web",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": "nextjs",
-  "installCommand": "mkdir -p node_modules/next && echo '{\"version\":\"16.1.6\"}' > node_modules/next/package.json",
-  "buildCommand": "cd packages/ai && pnpm install && pnpm run build && cd ../../ready-layer && pnpm install && pnpm run build",
   "outputDirectory": "ready-layer/.next"
 }
