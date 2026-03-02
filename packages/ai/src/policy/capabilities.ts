@@ -8,7 +8,7 @@
  * INVARIANT: Admin-only tools require 'ai:admin' capability.
  */
 
-import { TenantRole } from '../types/index';
+import { TenantRole } from '../types/index.js';
 
 // ─── Capability Definitions ───────────────────────────────────────────────────
 

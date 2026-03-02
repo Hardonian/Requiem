@@ -12,8 +12,8 @@
 import { createHash } from 'crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
-import { signContent, verifyContent, isSigningEnabled, type ArtifactSignature, type VerificationResult } from './signing';
-import { logger } from '../telemetry/logger';
+import { signContent, verifyContent, isSigningEnabled, type ArtifactSignature, type VerificationResult } from './signing.js';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Path Configuration ────────────────────────────────────────────────────────
 

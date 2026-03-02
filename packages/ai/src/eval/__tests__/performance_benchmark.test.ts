@@ -18,8 +18,8 @@
 
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { TraceAnalytics, type TraceRecord, type TraceMetrics } from '../../telemetry/traceAnalytics';
-import { CostAnomalyDetector, type AnomalyContext, type AnomalyResult } from '../../policy/costAnomaly';
+import { TraceAnalytics, type TraceRecord, type TraceMetrics } from '../../telemetry/traceAnalytics.js';
+import { CostAnomalyDetector, type AnomalyContext, type AnomalyResult } from '../../policy/costAnomaly.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

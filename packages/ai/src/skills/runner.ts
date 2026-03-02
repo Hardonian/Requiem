@@ -6,16 +6,16 @@
  * INVARIANT: Runs rollback if skill fails after side-effecting steps.
  */
 
-import { invokeToolWithPolicy } from '../tools/invoke';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { withSpan } from '../telemetry/trace';
-import { logger } from '../telemetry/logger';
-import { now } from '../types/index';
-import type { InvocationContext } from '../types/index';
-import type { SkillDefinition, SkillStep, StepResult, SkillRunResult } from './types';
-import { enterRecursion, exitRecursion, getRecursionDepth } from '../models/circuitBreaker';
-import { getBudgetChecker } from '../policy/budgets';
+import { invokeToolWithPolicy } from '../tools/invoke.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { withSpan } from '../telemetry/trace.js';
+import { logger } from '../telemetry/logger.js';
+import { now } from '../types/index.js';
+import type { InvocationContext } from '../types/index.js';
+import type { SkillDefinition, SkillStep, StepResult, SkillRunResult } from './types.js';
+import { enterRecursion, exitRecursion, getRecursionDepth } from '../models/circuitBreaker.js';
+import { getBudgetChecker } from '../policy/budgets.js';
 
 // ─── SkillContext ─────────────────────────────────────────────────────────────
 
@@ -212,7 +212,7 @@ async function executeStep(
       });
 
       // Lazy import to avoid circular deps
-      const { generateText } = await import('../models/arbitrator');
+      const { generateText } = await import('../models/arbitrator.js');
       try {
         const response = await generateText({
           prompt: resolvedPrompt as string,

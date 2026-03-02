@@ -12,6 +12,6 @@ export {
   type EvalRunResult,
   type HarnessResult,
   type TestReport,
-} from './harness';
-export { diff, diffValues, type DiffResult, type DiffEntry } from './diff';
-export { loadEvalCases, loadGoldens, type EvalCase, type EvalGolden, type EvalMethod } from './cases';
+} from './harness.js';
+export { diff, diffValues, type DiffResult, type DiffEntry } from './diff.js';
+export { loadEvalCases, loadGoldens, type EvalCase, type EvalGolden, type EvalMethod } from './cases.js';

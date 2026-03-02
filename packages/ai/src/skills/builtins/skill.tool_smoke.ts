@@ -5,7 +5,7 @@
  * No LLM required. Used in verify scripts and CI.
  */
 
-import { registerSkill } from '../registry';
+import { registerSkill } from '../registry.js';
 
 registerSkill({
   name: 'skill.tool_smoke',

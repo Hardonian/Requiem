@@ -6,8 +6,8 @@
  * INVARIANT: Error codes are stable across releases.
  */
 
-import { AiErrorCode, AiErrorSeverity, aiErrorToHttpStatus } from './codes';
-import type { SerializedAiError } from '../types/index';
+import { AiErrorCode, AiErrorSeverity, aiErrorToHttpStatus } from './codes.js';
+import type { SerializedAiError } from '../types/index.js';
 
 export interface AiErrorOptions {
   code: AiErrorCode;

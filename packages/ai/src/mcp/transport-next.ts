@@ -19,14 +19,14 @@
 // jsonwebtoken is a required dependency — see note in file header above.
 import * as jwt from 'jsonwebtoken';
 
-import { handleListTools, handleCallTool, handleHealth } from './server';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { newId, now } from '../types/index';
-import { TenantRole } from '../types/index';
-import { getRateLimiter } from './rateLimit';
-import type { InvocationContext, TenantContext } from '../types/index';
-import { CorrelationManager } from './correlation';
+import { handleListTools, handleCallTool, handleHealth } from './server.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { newId, now } from '../types/index.js';
+import { TenantRole } from '../types/index.js';
+import { getRateLimiter } from './rateLimit.js';
+import type { InvocationContext, TenantContext } from '../types/index.js';
+import { CorrelationManager } from './correlation.js';
 
 // ─── Auth Status ──────────────────────────────────────────────────────────────
 

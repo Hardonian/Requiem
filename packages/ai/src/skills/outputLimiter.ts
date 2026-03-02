@@ -8,9 +8,9 @@
  * INVARIANT: trigger_data parsing MUST enforce size limits.
  */
 
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { logger } from '../telemetry/logger';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { logger } from '../telemetry/logger.js';
 
 /**
  * Default maximum output size in bytes (1MB)

@@ -12,8 +12,8 @@
 import { createHash, createSign, createVerify, randomBytes } from 'crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
-import { loadFlags } from '../flags/index';
-import { logger } from '../telemetry/logger';
+import { loadFlags } from '../flags/index.js';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Signature Types ───────────────────────────────────────────────────────────
 

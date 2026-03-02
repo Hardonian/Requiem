@@ -14,7 +14,7 @@
  *   - formal/verify_policies.sh
  */
 
-import { logger } from '../telemetry/logger';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -246,4 +246,4 @@ function compareObjects(
 /**
  * Re-export types for consumers
  */
-export type { ReplayRecord } from './replay';
+export type { ReplayRecord } from './replay.js';

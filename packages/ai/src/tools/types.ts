@@ -2,7 +2,7 @@
  * @fileoverview Core types for the tool registry system.
  */
 
-import type { InvocationContext } from '../types/index';
+import type { InvocationContext } from '../types/index.js';
 
 // ─── JSON Schema ──────────────────────────────────────────────────────────────
 

@@ -12,8 +12,8 @@
  */
 
 import { createHash } from 'crypto';
-import type { AiError } from '../errors/AiError';
-import { logger } from '../telemetry/logger';
+import type { AiError } from '../errors/AiError.js';
+import { logger } from '../telemetry/logger.js';
 
 /**
  * Cached tool result with metadata

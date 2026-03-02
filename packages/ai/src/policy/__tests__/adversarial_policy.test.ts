@@ -12,12 +12,12 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { evaluatePolicy } from '../gate';
-import type { PolicyDecision } from '../gate';
-import { TenantRole } from '../../types/index';
-import type { InvocationContext } from '../../types/index';
-import type { ToolDefinition } from '../../tools/types';
-import { Capabilities } from '../capabilities';
+import { evaluatePolicy } from '../gate.js';
+import type { PolicyDecision } from '../gate.js';
+import { TenantRole } from '../../types/index.js';
+import type { InvocationContext } from '../../types/index.js';
+import type { ToolDefinition } from '../../tools/types.js';
+import { Capabilities } from '../capabilities.js';
 
 // ─── Load case file dynamically ───────────────────────────────────────────────
 

@@ -7,8 +7,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
-import { registerTool, getTool, getToolVersion, getToolDigest, isToolDeterministic, isToolIdempotent, getToolOutputMaxBytes, validateToolSchema, _clearRegistry, DEFAULT_OUTPUT_MAX_BYTES } from '../registry';
-import { ToolDefinitionSchema } from '../registry';
+import { registerTool, getTool, getToolVersion, getToolDigest, isToolDeterministic, isToolIdempotent, getToolOutputMaxBytes, validateToolSchema, _clearRegistry, DEFAULT_OUTPUT_MAX_BYTES } from '../registry.js';
+import { ToolDefinitionSchema } from '../registry.js';
 
 describe('Tool Registry - New Methods', () => {
   afterEach(() => {

@@ -22,9 +22,9 @@
  *   The chain_hash field is populated on the record automatically.
  */
 
-import { loadFlags } from '../flags/index';
-import { logger } from './logger';
-import type { ToolAuditRecord } from '../tools/types';
+import { loadFlags } from '../flags/index.js';
+import { logger } from './logger.js';
+import type { ToolAuditRecord } from '../tools/types.js';
 import {
   type IAuditSink,
   type TenantAuditRecord,
@@ -33,8 +33,8 @@ import {
   FileAuditSink,
   DatabaseAuditSink,
   CompositeSink,
-} from './auditSink';
-import { getGlobalMerkleChain } from './merkleChain';
+} from './auditSink.js';
+import { getGlobalMerkleChain } from './merkleChain.js';
 
 export type { IAuditSink, TenantAuditRecord };
 export { InMemoryAuditSink, FileAuditSink, DatabaseAuditSink, CompositeSink };

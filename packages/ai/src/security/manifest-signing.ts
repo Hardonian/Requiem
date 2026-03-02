@@ -12,8 +12,8 @@
 import { createHash } from 'crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
-import { signRunManifest, verifyRunManifest, type ManifestSignature, type VerificationResult, isSigningEnabled } from './signing';
-import { logger } from '../telemetry/logger';
+import { signRunManifest, verifyRunManifest, type ManifestSignature, type VerificationResult, isSigningEnabled } from './signing.js';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Path Configuration ────────────────────────────────────────────────────────
 
@@ -293,7 +293,7 @@ export async function verifyArtifactAtRead(artifactHash: string): Promise<{
   error?: string;
 }> {
   // Import dynamically to avoid circular dependencies
-  const { verifyCASObjectSignature } = await import('./cas-signing');
+  const { verifyCASObjectSignature } = await import('./cas-signing.js');
   
   const result = await verifyCASObjectSignature(artifactHash);
   return {

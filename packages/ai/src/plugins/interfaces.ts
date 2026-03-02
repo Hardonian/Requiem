@@ -12,8 +12,8 @@
  * Plugins are loaded via config/env.
  */
 
-import type { TraceEvent } from '../telemetry/trace';
-import type { PolicyCheckResult } from '../mcp/policyEnforcer';
+import type { TraceEvent } from '../telemetry/trace.js';
+import type { PolicyCheckResult } from '../mcp/policyEnforcer.js';
 
 // ─── Common Types ───────────────────────────────────────────────────────────
 

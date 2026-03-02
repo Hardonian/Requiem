@@ -9,7 +9,7 @@
  * INVARIANT: Grace period allows for zero-downtime rotation.
  */
 
-import { logger } from '../telemetry/logger';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -5,9 +5,9 @@
  * To activate: set OPENAI_API_KEY environment variable.
  */
 
-import { AiError } from '../../errors/AiError';
-import { AiErrorCode } from '../../errors/codes';
-import type { ModelProvider, GenerateTextRequest, GenerateTextResponse } from './types';
+import { AiError } from '../../errors/AiError.js';
+import { AiErrorCode } from '../../errors/codes.js';
+import type { ModelProvider, GenerateTextRequest, GenerateTextResponse } from './types.js';
 
 export class OpenAIProvider implements ModelProvider {
   readonly name = 'openai';

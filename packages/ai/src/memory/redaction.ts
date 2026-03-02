@@ -12,7 +12,7 @@
  * All output paths MUST go through this module to ensure no secrets leak.
  */
 
-import type { LogEntry } from '../telemetry/logger';
+import type { LogEntry } from '../telemetry/logger.js';
 
 // ─── Core Redaction Patterns ─────────────────────────────────────────────────
 

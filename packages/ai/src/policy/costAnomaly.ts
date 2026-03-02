@@ -13,7 +13,7 @@
  * INVARIANT: All thresholds are configurable via env vars or constructor config.
  */
 
-import { logger } from '../telemetry/logger';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Public Types ─────────────────────────────────────────────────────────────
 

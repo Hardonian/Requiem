@@ -9,8 +9,8 @@
  * INVARIANT: Graceful degradation - never hard-500, always fallback.
  */
 
-import type { InvocationContext } from '../types/index';
-import type { ModelDefinition } from './registry';
+import type { InvocationContext } from '../types/index.js';
+import type { ModelDefinition } from './registry.js';
 
 // ─── Request Purpose Enum ───────────────────────────────────────────────────────
 

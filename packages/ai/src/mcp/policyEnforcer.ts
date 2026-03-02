@@ -12,9 +12,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import type { InvocationContext } from '../types/index';
-import type { RequestContext } from './correlation';
-import type { ToolDefinition } from '../tools/types';
+import type { InvocationContext } from '../types/index.js';
+import type { RequestContext } from './correlation.js';
+import type { ToolDefinition } from '../tools/types.js';
 
 // ─── Policy Configuration Types ─────────────────────────────────────────────────
 

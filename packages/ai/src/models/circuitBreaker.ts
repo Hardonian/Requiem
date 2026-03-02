@@ -9,9 +9,9 @@
  * Supports persistent storage via CircuitBreakerPersistence interface.
  */
 
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { logger } from '../telemetry/logger';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { logger } from '../telemetry/logger.js';
 
 export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 

@@ -12,7 +12,7 @@
  * INVARIANT: Metrics can be enabled via REQUIEM_ENABLE_METRICS env flag.
  */
 
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 

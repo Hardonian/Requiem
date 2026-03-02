@@ -15,8 +15,8 @@
 
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { logger } from './logger';
-import type { ToolAuditRecord } from '../tools/types';
+import { logger } from './logger.js';
+import type { ToolAuditRecord } from '../tools/types.js';
 
 // ─── Extended Audit Record (RLS-ready) ───────────────────────────────────────
 

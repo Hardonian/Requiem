@@ -13,7 +13,7 @@
  * The PersistentBudgetChecker uses a PersistentBudgetStore for multi-instance safety.
  */
 
-import { logger } from '../telemetry/logger';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Clock Interface ──────────────────────────────────────────────────────────
 

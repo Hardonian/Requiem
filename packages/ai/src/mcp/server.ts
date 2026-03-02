@@ -13,20 +13,20 @@
  * INVARIANT: Health endpoint NEVER discloses auth configuration or secrets.
  */
 
-import { listTools, getToolDefinition } from '../tools/registry';
-import { invokeToolWithPolicy } from '../tools/invoke';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { getToolCount } from '../tools/registry';
-import { TenantRole, hasRequiredRole } from '../types/index';
-import type { InvocationContext } from '../types/index';
+import { listTools, getToolDefinition } from '../tools/registry.js';
+import { invokeToolWithPolicy } from '../tools/invoke.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { getToolCount } from '../tools/registry.js';
+import { TenantRole, hasRequiredRole } from '../types/index.js';
+import type { InvocationContext } from '../types/index.js';
 import type {
   McpListToolsResponse,
   McpCallToolResponse,
   McpHealthResponse,
   McpToolDescriptor,
-} from './types';
-import { getPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer';
+} from './types.js';
+import { getPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer.js';
 
 // ─── Output Size Cap ──────────────────────────────────────────────────────────
 

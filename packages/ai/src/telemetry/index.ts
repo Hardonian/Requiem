@@ -2,8 +2,8 @@
  * @fileoverview Telemetry module public exports.
  */
 
-export { logger, setLogSink, type LogLevel, type LogEntry } from './logger';
-export { startSpan, endSpan, getSpansForTrace, withSpan, type Span, type SpanAttributes } from './trace';
+export { logger, setLogSink, type LogLevel, type LogEntry } from './logger.js';
+export { startSpan, endSpan, getSpansForTrace, withSpan, type Span, type SpanAttributes } from './trace.js';
 export {
   writeAuditRecord,
   flushAuditLog,
@@ -18,19 +18,19 @@ export {
   FileAuditSink,
   DatabaseAuditSink,
   CompositeSink,
-} from './audit';
+} from './audit.js';
 export {
   type DatabaseAuditSinkConfig,
   createDefaultAuditSink,
-} from './auditSink';
+} from './auditSink.js';
 export {
   MerkleAuditChain,
   getGlobalMerkleChain,
   computeChainHash,
   GENESIS_HASH,
   _resetMerkleChain,
-} from './merkleChain';
-export { recordCost, recordToolCost, setCostSink, type CostRecord, type CostRecordInput } from './cost';
+} from './merkleChain.js';
+export { recordCost, recordToolCost, setCostSink, type CostRecord, type CostRecordInput } from './cost.js';
 export {
   TraceAnalytics,
   computeTraceMetrics,
@@ -39,7 +39,7 @@ export {
   type TraceMetrics,
   type TraceAnomaly,
   type TraceAnomalyThresholds,
-} from './traceAnalytics';
+} from './traceAnalytics.js';
 export {
   recordTiming,
   flushTimingHistogram,
@@ -63,7 +63,7 @@ export {
   type MemoryDelta,
   type CasMetrics,
   type ReplayVerification,
-} from './metrics';
+} from './metrics.js';
 export {
   OBSERVABILITY_SCHEMA_VERSION,
   startTrace,
@@ -91,4 +91,4 @@ export {
   type TraceMetadata,
   type TraceContext,
   type EventType,
-} from './structured';
+} from './structured.js';

@@ -10,9 +10,9 @@
 
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { newId, now } from '../types/index';
-import { logger } from './logger';
-import type { InvocationContext } from '../types/index';
+import { newId, now } from '../types/index.js';
+import { logger } from './logger.js';
+import type { InvocationContext } from '../types/index.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

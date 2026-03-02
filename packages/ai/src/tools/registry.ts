@@ -8,11 +8,11 @@
  */
 
 import { z, ZodError } from 'zod';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { now } from '../types/index';
-import type { InvocationContext } from '../types/index';
-import type { JsonSchema as _JsonSchema } from './types';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { now } from '../types/index.js';
+import type { InvocationContext } from '../types/index.js';
+import type { JsonSchema as _JsonSchema } from './types.js';
 
 // #region: Context Types
 

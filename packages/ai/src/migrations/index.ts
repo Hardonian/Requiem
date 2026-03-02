@@ -8,7 +8,7 @@
 export {
   MigrationRunner,
   createStandardMigrations,
-} from './runner';
+} from './runner.js';
 
 export type {
   Migration,
@@ -19,4 +19,4 @@ export type {
   Transaction,
   RlsPolicy,
   StateConstraint,
-} from './runner';
+} from './runner.js';

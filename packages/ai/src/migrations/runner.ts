@@ -9,7 +9,7 @@
  * INVARIANT: Rollback is supported for critical migrations.
  */
 
-import { logger } from '../telemetry/logger';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

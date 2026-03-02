@@ -7,7 +7,7 @@
  * Used for: smoke testing, demo flows, eval harness.
  */
 
-import { registerSkill } from '../registry';
+import { registerSkill } from '../registry.js';
 
 registerSkill({
   name: 'skill.trace_summary',

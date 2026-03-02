@@ -23,7 +23,7 @@
  */
 
 import { createHash } from 'crypto';
-import type { TenantAuditRecord } from './auditSink';
+import type { TenantAuditRecord } from './auditSink.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

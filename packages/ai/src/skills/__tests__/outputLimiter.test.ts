@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { OutputSizeLimiter, getOutputLimiter, setOutputLimiter, parseTriggerDataWithLimit, DEFAULT_OUTPUT_MAX_BYTES, DEFAULT_TRIGGER_DATA_MAX_BYTES } from '../outputLimiter';
-import { AiErrorCode } from '../../errors/codes';
+import { OutputSizeLimiter, getOutputLimiter, setOutputLimiter, parseTriggerDataWithLimit, DEFAULT_OUTPUT_MAX_BYTES, DEFAULT_TRIGGER_DATA_MAX_BYTES } from '../outputLimiter.js';
+import { AiErrorCode } from '../../errors/codes.js';
 
 describe('OutputSizeLimiter', () => {
   describe('calculateBytes', () => {

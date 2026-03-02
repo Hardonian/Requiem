@@ -9,7 +9,7 @@
  * INVARIANT: Filter is configurable via policy rules.
  */
 
-import { getPolicyEnforcer } from '../mcp/policyEnforcer';
+import { getPolicyEnforcer } from '../mcp/policyEnforcer.js';
 
 // ─── Detection Result ───────────────────────────────────────────────────────────
 

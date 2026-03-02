@@ -2,4 +2,4 @@
  * @fileoverview Serialization Module Public Exports
  */
 
-export * from './versioned';
+export * from './versioned.js';

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 function walk(dir) {
+    if (!fs.existsSync(dir)) return;
     const files = fs.readdirSync(dir);
     for (const file of files) {
         const fullPath = path.join(dir, file);
@@ -15,32 +16,63 @@ function walk(dir) {
 
 function fixFile(filePath) {
     let content = fs.readFileSync(filePath, 'utf8');
-
-    // Replace relative imports/exports that don't have an extension
-    // We check for: from './foo' or from '../foo' or import('./foo')
-    // We avoid: from 'commander' or from 'node:fs'
-
-    const regex = /(from|import)\s*\(?\s*['"](\.\.?\/[^'"]+)['"]\s*\)?/g;
+    const dirOfFile = path.dirname(filePath);
 
     let changed = false;
-    const newContent = content.replace(regex, (match, type, path) => {
-        // If it already has an extension (like .js, .json, .css), leave it
-        if (path.match(/\.[a-z0-9]+$/i)) {
-            return match;
+
+    // Helper to resolve extension
+    function resolvePath(importPath) {
+        if (importPath.match(/\.[a-z0-9]+$/i)) {
+            return importPath;
         }
 
-        changed = true;
-        // Add .js
-        if (match.includes('(')) {
-            return `${type}('${path}.js')`;
+        const absolutePath = path.resolve(dirOfFile, importPath);
+        const possibleTsFile = absolutePath + '.ts';
+        const possibleJsFile = absolutePath + '.js';
+        const possibleDir = absolutePath;
+
+        if (fs.existsSync(possibleTsFile) || fs.existsSync(possibleJsFile)) {
+            return importPath + '.js';
+        } else if (fs.existsSync(possibleDir) && fs.statSync(possibleDir).isDirectory()) {
+            return importPath + (importPath.endsWith('/') ? '' : '/') + 'index.js';
         }
-        return `${type} '${path}.js'`;
+        return importPath + '.js'; // Default guess
+    }
+
+    // 1. Static imports/exports: import ... from './foo'
+    content = content.replace(/(import|export)(\s+[\w\s\*\{\},]*from\s+)['"](\.\.?\/[^'"]+)['"]/g, (match, type, middle, importPath) => {
+        const fixed = resolvePath(importPath);
+        if (fixed !== importPath) {
+            changed = true;
+            return `${type}${middle}'${fixed}'`;
+        }
+        return match;
+    });
+
+    // 2. Bare imports: import './foo'
+    content = content.replace(/(import\s+)['"](\.\.?\/[^'"]+)['"]/g, (match, type, importPath) => {
+        const fixed = resolvePath(importPath);
+        if (fixed !== importPath) {
+            changed = true;
+            return `${type}'${fixed}'`;
+        }
+        return match;
+    });
+
+    // 3. Dynamic imports: import('./foo')
+    content = content.replace(/(import\s*\(\s*)['"](\.\.?\/[^'"]+)['"](\s*\))/g, (match, prefix, importPath, suffix) => {
+        const fixed = resolvePath(importPath);
+        if (fixed !== importPath) {
+            changed = true;
+            return `${prefix}'${fixed}'${suffix}`;
+        }
+        return match;
     });
 
     if (changed) {
-        fs.writeFileSync(filePath, newContent);
+        fs.writeFileSync(filePath, content);
     }
 }
 
-walk('packages/cli/src');
-console.log('Done fixing extensions in packages/cli/src');
+['packages/cli/src', 'packages/ai/src'].forEach(walk);
+console.log('Done fixing extensions with robust regex and directory support');

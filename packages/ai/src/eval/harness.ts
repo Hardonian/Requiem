@@ -9,19 +9,19 @@
  * INVARIANT: Diffs are structural — not LLM-judged in scaffold mode.
  */
 
-import { runSkill } from '../skills/runner';
-import { invokeToolWithPolicy } from '../tools/invoke';
-import { getSkill } from '../skills/registry';
-import { diff } from './diff';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { newId, now } from '../types/index';
-import { TenantRole } from '../types/index';
-import { logger } from '../telemetry/logger';
+import { runSkill } from '../skills/runner.js';
+import { invokeToolWithPolicy } from '../tools/invoke.js';
+import { getSkill } from '../skills/registry.js';
+import { diff } from './diff.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { newId, now } from '../types/index.js';
+import { TenantRole } from '../types/index.js';
+import { logger } from '../telemetry/logger.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import type { InvocationContext } from '../types/index';
-import type { EvalCase } from './cases';
+import type { InvocationContext } from '../types/index.js';
+import type { EvalCase } from './cases.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

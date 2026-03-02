@@ -9,11 +9,11 @@
  * INVARIANT: All guardrails MUST be documented and tested.
  */
 
-import { TenantRole } from '../types/index';
-import type { ToolDefinition } from '../tools/types';
-import type { InvocationContext } from '../types/index';
-import { getCapabilitiesForRole } from './capabilities';
-import { Clock, defaultClock } from './budgets';
+import { TenantRole } from '../types/index.js';
+import type { ToolDefinition } from '../tools/types.js';
+import type { InvocationContext } from '../types/index.js';
+import { getCapabilitiesForRole } from './capabilities.js';
+import { Clock, defaultClock } from './budgets.js';
 
 // ─── Token Bucket Rate Limiter ────────────────────────────────────────────────
 

@@ -10,7 +10,7 @@ export {
   setCredentialManager,
   rotateCredential,
   scheduleCredentialRotation,
-} from './credentialRotation';
+} from './credentialRotation.js';
 
 export type {
   Credential,
@@ -21,7 +21,7 @@ export type {
   RotationEvent,
   RotationSchedule,
   Duration,
-} from './credentialRotation';
+} from './credentialRotation.js';
 
 // Artifact Signing
 export {
@@ -36,7 +36,7 @@ export {
   type ArtifactSignature,
   type ManifestSignature,
   type VerificationResult,
-} from './signing';
+} from './signing.js';
 
 // CAS Signing Integration
 export {
@@ -47,7 +47,7 @@ export {
   getCASObjectMetadata,
   getCASObjectPath,
   getCASSignaturePath,
-} from './cas-signing';
+} from './cas-signing.js';
 
 // Manifest Signing
 export {
@@ -60,4 +60,4 @@ export {
   verifyManifestAtServe,
   type RunManifest,
   type RunStep,
-} from './manifest-signing';
+} from './manifest-signing.js';

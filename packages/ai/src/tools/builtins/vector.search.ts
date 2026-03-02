@@ -11,12 +11,12 @@
  */
 
 import { createHash } from 'crypto';
-import { registerTool } from '../registry';
-import { getVectorStore } from '../../memory/vectorPointers';
-import { AiError } from '../../errors/AiError';
-import { AiErrorCode } from '../../errors/codes';
-import { logger } from '../../telemetry/logger';
-import type { VectorSearchResult } from '../../memory/vectorPointers';
+import { registerTool } from '../registry.js';
+import { getVectorStore } from '../../memory/vectorPointers.js';
+import { AiError } from '../../errors/AiError.js';
+import { AiErrorCode } from '../../errors/codes.js';
+import { logger } from '../../telemetry/logger.js';
+import type { VectorSearchResult } from '../../memory/vectorPointers.js';
 
 const EMBEDDING_DIMENSIONS: Record<string, number> = {
   'text-embedding-3-small': 1536,

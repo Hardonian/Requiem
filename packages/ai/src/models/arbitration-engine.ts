@@ -9,13 +9,13 @@
  */
 
 import { createHash } from 'crypto';
-import { getModel, listModels, getDefaultModel } from './registry';
-import { checkCircuit } from './circuitBreaker';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { logger } from '../telemetry/logger';
-import type { InvocationContext } from '../types/index';
-import type { ModelDefinition } from './registry';
+import { getModel, listModels, getDefaultModel } from './registry.js';
+import { checkCircuit } from './circuitBreaker.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { logger } from '../telemetry/logger.js';
+import type { InvocationContext } from '../types/index.js';
+import type { ModelDefinition } from './registry.js';
 import {
   type ArbitrationRequest,
   type ArbitrationResult,
@@ -30,8 +30,8 @@ import {
   estimateLatencyTier,
   modelMeetsRequirements,
   modelPassesConstraints,
-} from './arbitration';
-import { loadFlags } from '../flags/index';
+} from './arbitration.js';
+import { loadFlags } from '../flags/index.js';
 
 // ─── Engine State ───────────────────────────────────────────────────────────────
 

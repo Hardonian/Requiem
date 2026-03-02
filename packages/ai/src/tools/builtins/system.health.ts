@@ -5,8 +5,8 @@
  * Used by operations and verify scripts to confirm the AI layer is live.
  */
 
-import { registerTool, getToolCount } from '../registry';
-import type { InvocationContext } from '../../types/index';
+import { registerTool, getToolCount } from '../registry.js';
+import type { InvocationContext } from '../../types/index.js';
 import { z } from 'zod';
 
 registerTool(

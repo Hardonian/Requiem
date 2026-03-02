@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ReplayCache, getReplayCache, setReplayCache, isCacheable, createReplayKey } from '../replayCache';
+import { ReplayCache, getReplayCache, setReplayCache, isCacheable, createReplayKey } from '../replayCache.js';
 
 describe('ReplayCache', () => {
   let cache: ReplayCache;

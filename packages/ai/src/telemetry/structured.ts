@@ -11,7 +11,7 @@
  */
 
 import { randomBytes } from 'crypto';
-import { redactObject, redactTrace } from '../memory/redaction';
+import { redactObject, redactTrace } from '../memory/redaction.js';
 
 // ─── Schema Version ─────────────────────────────────────────────────────────
 

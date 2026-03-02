@@ -9,8 +9,8 @@
  * INVARIANT: Review status is tracked for audit purposes.
  */
 
-import { getPolicyEnforcer } from '../mcp/policyEnforcer';
-import type { ToolDefinition } from './types';
+import { getPolicyEnforcer } from '../mcp/policyEnforcer.js';
+import type { ToolDefinition } from './types.js';
 
 // ─── Review Status ───────────────────────────────────────────────────────────────
 

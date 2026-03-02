@@ -17,12 +17,12 @@ import { join } from 'node:path';
 // Side-effect imports to populate registries before assertions
 import '../../tools/builtins/system.echo';
 import '../../tools/builtins/system.health';
-import '../../skills/builtins/skill.tool_smoke';
-import '../../skills/builtins/skill.trace_summary';
+import '../../skills/builtins/skill.tool_smoke.js';
+import '../../skills/builtins/skill.trace_summary.js';
 
-import { getTool, listTools } from '../../tools/registry';
-import { getSkill, listSkills } from '../../skills/registry';
-import { registerSkill } from '../../skills/registry';
+import { getTool, listTools } from '../../tools/registry.js';
+import { getSkill, listSkills } from '../../skills/registry.js';
+import { registerSkill } from '../../skills/registry.js';
 
 // ─── Case file types ──────────────────────────────────────────────────────────
 

@@ -13,15 +13,15 @@
  */
 
 import { createHash } from 'crypto';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { checkCircuit, recordSuccess, recordFailure } from './circuitBreaker';
-import { recordCost } from '../telemetry/cost';
-import { logger } from '../telemetry/logger';
-import { getModel } from './registry';
-import { loadFlags } from '../flags/index';
-import type { InvocationContext } from '../types/index';
-import type { GenerateTextResponse, Message } from './providers/types';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { checkCircuit, recordSuccess, recordFailure } from './circuitBreaker.js';
+import { recordCost } from '../telemetry/cost.js';
+import { logger } from '../telemetry/logger.js';
+import { getModel } from './registry.js';
+import { loadFlags } from '../flags/index.js';
+import type { InvocationContext } from '../types/index.js';
+import type { GenerateTextResponse, Message } from './providers/types.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 

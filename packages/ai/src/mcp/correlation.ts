@@ -9,8 +9,8 @@
  * INVARIANT: Correlation IDs are propagated to all audit records and logs.
  */
 
-import { newId } from '../types/index';
-import type { InvocationContext } from '../types/index';
+import { newId } from '../types/index.js';
+import type { InvocationContext } from '../types/index.js';
 
 // ─── Correlation ID Header Names ───────────────────────────────────────────────
 

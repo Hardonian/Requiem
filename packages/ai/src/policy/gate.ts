@@ -7,12 +7,12 @@
  * INVARIANT: VIEWER role cannot execute tools with side effects.
  */
 
-import type { InvocationContext } from '../types/index';
-import { TenantRole, hasRequiredRole } from '../types/index';
-import { hasCapabilities, capabilitiesFromRole } from './capabilities';
-import { getBudgetChecker } from './budgets';
-import type { ToolDefinition } from '../tools/types';
-import { evaluateGuardrails } from './guardrails';
+import type { InvocationContext } from '../types/index.js';
+import { TenantRole, hasRequiredRole } from '../types/index.js';
+import { hasCapabilities, capabilitiesFromRole } from './capabilities.js';
+import { getBudgetChecker } from './budgets.js';
+import type { ToolDefinition } from '../tools/types.js';
+import { evaluateGuardrails } from './guardrails.js';
 
 // ─── Policy Decision ──────────────────────────────────────────────────────────
 

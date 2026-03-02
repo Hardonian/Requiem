@@ -2,4 +2,4 @@
  * @fileoverview Plugin Architecture Public Exports
  */
 
-export * from './interfaces';
+export * from './interfaces.js';

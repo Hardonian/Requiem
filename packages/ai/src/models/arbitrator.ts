@@ -11,14 +11,14 @@
  * INVARIANT: Always record cost even on failure (partial accounting).
  */
 
-import { getModel, getProvider, getDefaultModel } from './registry';
-import { checkCircuit, recordSuccess, recordFailure } from './circuitBreaker';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import { recordCost } from '../telemetry/cost';
-import { logger } from '../telemetry/logger';
-import type { InvocationContext } from '../types/index';
-import type { GenerateTextResponse } from './providers/types';
+import { getModel, getProvider, getDefaultModel } from './registry.js';
+import { checkCircuit, recordSuccess, recordFailure } from './circuitBreaker.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import { recordCost } from '../telemetry/cost.js';
+import { logger } from '../telemetry/logger.js';
+import type { InvocationContext } from '../types/index.js';
+import type { GenerateTextResponse } from './providers/types.js';
 
 // ─── Arbitrator Request ───────────────────────────────────────────────────────
 

@@ -15,12 +15,12 @@
 
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { TenantRole, type TenantContext, type InvocationContext } from '../../types/index';
+import { TenantRole, type TenantContext, type InvocationContext } from '../../types/index.js';
 
 // OPERATOR is not in TenantRole enum, using MEMBER as equivalent for tests
 const OPERATOR = TenantRole.MEMBER;
-import { newId, now } from '../../types/index';
-import { AiErrorCode } from '../../errors/codes';
+import { newId, now } from '../../types/index.js';
+import { AiErrorCode } from '../../errors/codes.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

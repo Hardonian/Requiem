@@ -10,11 +10,11 @@
  * that delegates to the full ExecutionEnvelope pipeline in executor.ts.
  */
 
-import { executeToolEnvelope } from './executor';
-import { AiError } from '../errors/AiError';
-import { AiErrorCode } from '../errors/codes';
-import type { InvocationContext } from '../types/index';
-import type { ToolInvocationResult } from './types';
+import { executeToolEnvelope } from './executor.js';
+import { AiError } from '../errors/AiError.js';
+import { AiErrorCode } from '../errors/codes.js';
+import type { InvocationContext } from '../types/index.js';
+import type { ToolInvocationResult } from './types.js';
 
 /**
  * Invoke a tool by name, enforcing:

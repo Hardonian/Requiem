@@ -11,11 +11,11 @@
  * Mode: diff | full_file | patch
  */
 
-import { registerTool } from '../registry';
-import { sandboxPath } from '../sandbox';
-import { AiError } from '../../errors/AiError';
-import { AiErrorCode } from '../../errors/codes';
-import { logger } from '../../telemetry/logger';
+import { registerTool } from '../registry.js';
+import { sandboxPath } from '../sandbox.js';
+import { AiError } from '../../errors/AiError.js';
+import { AiErrorCode } from '../../errors/codes.js';
+import { logger } from '../../telemetry/logger.js';
 
 const WORKSPACE_ROOT = process.env['REQUIEM_WORKSPACE_ROOT'] ?? process.cwd();
 const MAX_PATCH_LINES = 2000;
@@ -139,7 +139,7 @@ registerTool(
     // The actual Kilo integration is wired via the model router.
     // Here we produce a structured output envelope for Requiem to validate.
 
-    const { routeModelCall } = await import('../../models/router');
+    const { routeModelCall } = await import('../../models/router.js');
 
     const systemPrompt = `You are a code editor assistant (Kilo). Your job is to produce code changes ONLY.
 Output format: ${mode === 'diff' ? 'unified diff' : mode === 'patch' ? 'patch format' : 'full file contents'}.

@@ -18,10 +18,10 @@ import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { AiErrorCode } from '../../errors/codes';
-import { AiError } from '../../errors/AiError';
-import { TenantRole, type TenantContext, type InvocationContext } from '../../types/index';
-import { newId, now } from '../../types/index';
+import { AiErrorCode } from '../../errors/codes.js';
+import { AiError } from '../../errors/AiError.js';
+import { TenantRole, type TenantContext, type InvocationContext } from '../../types/index.js';
+import { newId, now } from '../../types/index.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

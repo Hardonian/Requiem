@@ -8,7 +8,7 @@
  * - All crashes redacted and structured
  */
 
-import { redactError, createSafeError } from '../memory/redaction';
+import { redactError, createSafeError } from '../memory/redaction.js';
 
 // ─── Error Codes ───────────────────────────────────────────────────────────
 

@@ -8,8 +8,8 @@
  * INVARIANT: Every tool invocation creates a child span.
  */
 
-import { newId } from '../types/index';
-import { logger } from './logger';
+import { newId } from '../types/index.js';
+import { logger } from './logger.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

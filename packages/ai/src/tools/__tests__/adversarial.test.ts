@@ -19,10 +19,10 @@ import { describe, it, before, afterEach } from 'node:test';
 
 // ─── Imports (dynamic to avoid side-effect pollution across tests) ─────────────
 
-import { AiErrorCode } from '../../errors/codes';
-import { AiError } from '../../errors/AiError';
-import { TenantRole } from '../../types/index';
-import type { InvocationContext } from '../../types/index';
+import { AiErrorCode } from '../../errors/codes.js';
+import { AiError } from '../../errors/AiError.js';
+import { TenantRole } from '../../types/index.js';
+import type { InvocationContext } from '../../types/index.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -46,7 +46,7 @@ function makeCtx(overrides?: Partial<InvocationContext>): InvocationContext {
 
 describe('Sandbox: path escape prevention', () => {
   it('rejects ../ traversal', async () => {
-    const { sandboxPath } = await import('../sandbox');
+    const { sandboxPath } = await import('../sandbox.js');
     const root = '/workspace/safe';
 
     let threw = false;
@@ -61,7 +61,7 @@ describe('Sandbox: path escape prevention', () => {
   });
 
   it('rejects absolute paths outside root', async () => {
-    const { sandboxPath } = await import('../sandbox');
+    const { sandboxPath } = await import('../sandbox.js');
     const root = '/workspace/safe';
 
     let threw = false;
@@ -76,7 +76,7 @@ describe('Sandbox: path escape prevention', () => {
   });
 
   it('rejects null byte injection', async () => {
-    const { sandboxPath } = await import('../sandbox');
+    const { sandboxPath } = await import('../sandbox.js');
     const root = '/workspace/safe';
 
     let threw = false;
@@ -91,7 +91,7 @@ describe('Sandbox: path escape prevention', () => {
   });
 
   it('allows valid path within root', async () => {
-    const { sandboxPath } = await import('../sandbox');
+    const { sandboxPath } = await import('../sandbox.js');
     const root = '/workspace/safe';
 
     // Should NOT throw
@@ -104,12 +104,12 @@ describe('Sandbox: path escape prevention', () => {
 
 describe('Sandbox: recursion limit enforcement', () => {
   afterEach(async () => {
-    const { _resetSandbox } = await import('../sandbox');
+    const { _resetSandbox } = await import('../sandbox.js');
     _resetSandbox();
   });
 
   it('throws TOOL_RECURSION_LIMIT at depth > MAX_DEPTH', async () => {
-    const { checkDepth, releaseDepth, MAX_DEPTH } = await import('../sandbox');
+    const { checkDepth, releaseDepth, MAX_DEPTH } = await import('../sandbox.js');
     const traceId = 'recursion-test';
 
     let threw = false;
@@ -123,14 +123,14 @@ describe('Sandbox: recursion limit enforcement', () => {
       assert.equal(err.code, AiErrorCode.TOOL_RECURSION_LIMIT);
     } finally {
       // Cleanup: release all acquired depths
-      const { _resetSandbox } = await import('../sandbox');
+      const { _resetSandbox } = await import('../sandbox.js');
       _resetSandbox();
     }
     assert.ok(threw, 'Must enforce recursion depth limit');
   });
 
   it('throws TOOL_CHAIN_LIMIT at total chain > MAX_CHAIN_LENGTH', async () => {
-    const { checkDepth, releaseDepth, MAX_CHAIN_LENGTH } = await import('../sandbox');
+    const { checkDepth, releaseDepth, MAX_CHAIN_LENGTH } = await import('../sandbox.js');
     const traceId = 'chain-test';
 
     let threw = false;
@@ -154,7 +154,7 @@ describe('Sandbox: recursion limit enforcement', () => {
 describe('Replay: integrity protection', () => {
   it('rejects tampered replay record (hash mismatch)', async () => {
     const { InMemoryReplaySink, setReplaySink, storeReplayRecord, checkReplayCache } =
-      await import('../replay');
+      await import('../replay.js');
 
     const sink = new InMemoryReplaySink();
     setReplaySink(sink);
@@ -188,7 +188,7 @@ describe('Replay: integrity protection', () => {
 
   it('enforces tenant isolation on replay lookup', async () => {
     const { InMemoryReplaySink, setReplaySink, storeReplayRecord, checkReplayCache } =
-      await import('../replay');
+      await import('../replay.js');
 
     const sink = new InMemoryReplaySink();
     setReplaySink(sink);
@@ -211,7 +211,7 @@ describe('Replay: integrity protection', () => {
 
   it('rejects getReplayRecord with wrong tenant (throws VECTOR_TENANT_MISMATCH)', async () => {
     const { InMemoryReplaySink, setReplaySink, storeReplayRecord, getReplayRecord } =
-      await import('../replay');
+      await import('../replay.js');
 
     const sink = new InMemoryReplaySink();
     setReplaySink(sink);
@@ -247,7 +247,7 @@ describe('Replay: integrity protection', () => {
 
 describe('Policy: tenant isolation hard stop', () => {
   it('rejects invocation without tenantId', async () => {
-    const { invokeToolWithPolicy } = await import('../invoke');
+    const { invokeToolWithPolicy } = await import('../invoke.js');
 
     const ctxNoTenant = {
       tenant: { tenantId: '', userId: 'u', role: TenantRole.ADMIN, derivedAt: '' },
@@ -269,8 +269,8 @@ describe('Policy: tenant isolation hard stop', () => {
   });
 
   it('VIEWER role cannot invoke side-effect tools', async () => {
-    const { evaluatePolicy } = await import('../../policy/gate');
-    const { listTools } = await import('../registry');
+    const { evaluatePolicy } = await import('../../policy/gate.js');
+    const { listTools } = await import('../registry.js');
 
     // Find a side-effect tool or mock one
     const tools = listTools(undefined, { sideEffect: true });
@@ -301,7 +301,7 @@ describe('Policy: tenant isolation hard stop', () => {
 
 describe('Budget: economic guardrails', () => {
   it('AtomicBudgetChecker prevents concurrent over-spend', async () => {
-    const { AtomicBudgetChecker } = await import('../../policy/budgets');
+    const { AtomicBudgetChecker } = await import('../../policy/budgets.js');
 
     const checker = new AtomicBudgetChecker({
       '*': { maxCostCents: 100, windowSeconds: 3600 },
@@ -324,7 +324,7 @@ describe('Budget: economic guardrails', () => {
   });
 
   it('budget resets after window expiry', async () => {
-    const { AtomicBudgetChecker } = await import('../../policy/budgets');
+    const { AtomicBudgetChecker } = await import('../../policy/budgets.js');
 
     const checker = new AtomicBudgetChecker({
       '*': { maxCostCents: 50, windowSeconds: 0 }, // 0-second window = always expired
@@ -369,7 +369,7 @@ describe('Vector DB: cross-tenant query rejection', () => {
 
 describe('Web fetch: safety bounds', () => {
   it('rejects non-HTTPS URLs', async () => {
-    const { listTools } = await import('../registry');
+    const { listTools } = await import('../registry.js');
     const fetchTool = listTools().find(t => t.name === 'web.fetch');
 
     if (!fetchTool) {
@@ -384,7 +384,7 @@ describe('Web fetch: safety bounds', () => {
   });
 
   it('rejects empty URL', async () => {
-    const { listTools } = await import('../registry');
+    const { listTools } = await import('../registry.js');
     const fetchTool = listTools().find(t => t.name === 'web.fetch');
 
     if (!fetchTool) {

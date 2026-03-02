@@ -12,7 +12,7 @@ import {
   containsSecrets,
   getFakeSecrets,
   redactConfig 
-} from '../redaction';
+} from '../redaction.js';
 
 describe('Redaction', () => {
   describe('redactString', () => {

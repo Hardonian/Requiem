@@ -2,8 +2,8 @@
  * @fileoverview MCP module public exports.
  */
 
-export { handleListTools, handleCallTool, handleHealth, type McpHandlerResult } from './server';
-export { GET_health, GET_tools, POST_callTool } from './transport-next';
+export { handleListTools, handleCallTool, handleHealth, type McpHandlerResult } from './server.js';
+export { GET_health, GET_tools, POST_callTool } from './transport-next.js';
 export type {
   McpListToolsResponse,
   McpCallToolResponse,
@@ -11,10 +11,10 @@ export type {
   McpToolDescriptor,
   McpError,
   McpRequest,
-} from './types';
+} from './types.js';
 
 // Policy enforcement at MCP entry point
-export { McpPolicyEnforcer, getPolicyEnforcer, getPolicyEnforcerAsync, resetPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer';
+export { McpPolicyEnforcer, getPolicyEnforcer, getPolicyEnforcerAsync, resetPolicyEnforcer, type PolicyCheckResult } from './policyEnforcer.js';
 
 // Correlation ID management
 export {
@@ -25,4 +25,4 @@ export {
   CORRELATION_ID_HEADER,
   TRACEPARENT_HEADER,
   type RequestContext,
-} from './correlation';
+} from './correlation.js';

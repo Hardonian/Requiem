@@ -4,5 +4,5 @@
  */
 
 // Built-in skills
-import './builtins/skill.trace_summary';
-import './builtins/skill.tool_smoke';
+import './builtins/skill.trace_summary.js';
+import './builtins/skill.tool_smoke.js';

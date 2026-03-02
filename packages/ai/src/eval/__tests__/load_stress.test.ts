@@ -15,7 +15,7 @@
 
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { AiErrorCode } from '../../errors/codes';
+import { AiErrorCode } from '../../errors/codes.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

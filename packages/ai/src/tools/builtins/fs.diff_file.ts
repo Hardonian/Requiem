@@ -7,10 +7,10 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { registerTool } from '../registry';
-import { sandboxPath } from '../sandbox';
-import { AiError } from '../../errors/AiError';
-import { AiErrorCode } from '../../errors/codes';
+import { registerTool } from '../registry.js';
+import { sandboxPath } from '../sandbox.js';
+import { AiError } from '../../errors/AiError.js';
+import { AiErrorCode } from '../../errors/codes.js';
 
 const WORKSPACE_ROOT = process.env['REQUIEM_WORKSPACE_ROOT'] ?? process.cwd();
 const MAX_DIFF_LINES = 2000;

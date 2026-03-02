@@ -12,9 +12,9 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { createHash } from 'crypto';
-import { registerTool } from '../registry';
-import { sandboxPath } from '../sandbox';
-import { logger } from '../../telemetry/logger';
+import { registerTool } from '../registry.js';
+import { sandboxPath } from '../sandbox.js';
+import { logger } from '../../telemetry/logger.js';
 
 const MAX_WRITE_SIZE = 1_048_576; // 1 MiB
 const WORKSPACE_ROOT = process.env['REQUIEM_WORKSPACE_ROOT'] ?? process.cwd();

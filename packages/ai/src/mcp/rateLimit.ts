@@ -11,7 +11,7 @@
  * INVARIANT: Distributed rate limiting via HTTP store for multi-instance deployments.
  */
 
-import { logger } from '../telemetry/logger';
+import { logger } from '../telemetry/logger.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
