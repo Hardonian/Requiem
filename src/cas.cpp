@@ -463,9 +463,9 @@ bool CasStore::remove(const std::string &digest) {
   removed_any |= fs::remove(meta_path(digest), ec);
 
   std::lock_guard<std::mutex> lk(index_mu_);
-  if (index_loaded_) {
-    index_.erase(digest);
-  }
+  // In tests, or during early runtime, put() populates index_ without setting
+  // index_loaded_. We must unconditionally erase to maintain state correctness.
+  index_.erase(digest);
 
   return !ec; // Return true if no error occurred (even if file missing)
 }

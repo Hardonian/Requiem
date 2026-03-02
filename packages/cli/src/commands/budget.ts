@@ -365,7 +365,7 @@ export function createBudgetCommand(): Command {
         const RECEIPTS_DIR = join(process.cwd(), '.reach', 'budgets', 'receipts');
         const receiptPath = join(RECEIPTS_DIR, `${id}.json`);
 
-        if (!existsSync(receiptPath)) {
+        if (!fileExists(receiptPath)) {
           handleError(`Receipt not found: ${id}`, budgetCmd.opts().json);
         }
 
@@ -398,7 +398,7 @@ export function createBudgetCommand(): Command {
         const RECEIPTS_DIR = join(process.cwd(), '.reach', 'budgets', 'receipts');
         const receiptPath = join(RECEIPTS_DIR, `${id}.json`);
 
-        if (!existsSync(receiptPath)) {
+        if (!fileExists(receiptPath)) {
           handleError(`Receipt not found: ${id}`, budgetCmd.opts().json);
         }
 

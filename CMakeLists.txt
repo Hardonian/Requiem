@@ -261,14 +261,14 @@ add_test(NAME kernel_tests COMMAND kernel_tests
 # ---------------------------------------------------------------------------
 
 # Tests now invoke the main binary with subcommands
-add_test(NAME stress_harness    COMMAND requiem stress   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME shadow_runner     COMMAND requiem shadow   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME billing_harness   COMMAND requiem billing  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME security_gauntlet COMMAND requiem security WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME recovery_harness  COMMAND requiem recovery WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME memory_harness    COMMAND requiem memory   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME protocol_harness  COMMAND requiem protocol WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME chaos_harness     COMMAND requiem chaos    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME stress_harness    COMMAND $<TARGET_FILE:requiem_cli> stress   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME shadow_runner     COMMAND $<TARGET_FILE:requiem_cli> shadow   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME billing_harness   COMMAND $<TARGET_FILE:requiem_cli> billing  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME security_gauntlet COMMAND $<TARGET_FILE:requiem_cli> security WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME recovery_harness  COMMAND $<TARGET_FILE:requiem_cli> recovery WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME memory_harness    COMMAND $<TARGET_FILE:requiem_cli> memory   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME protocol_harness  COMMAND $<TARGET_FILE:requiem_cli> protocol WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME chaos_harness     COMMAND $<TARGET_FILE:requiem_cli> chaos    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 set_tests_properties(stress_harness shadow_runner memory_harness PROPERTIES LABELS "slow")
 

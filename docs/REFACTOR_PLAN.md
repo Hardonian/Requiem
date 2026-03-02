@@ -1,146 +1,43 @@
-# REFACTOR PLAN
-
+# REFACTOR PLAN (SAFE, SEQUENCED, MINIMAL)
 **Date**: 2026-03-02
-**Repository**: Requiem (c:/Users/scott/GitHub/Requiem)
+**Context**: Re-aligning the repository to the "Determinism First" / Antigravity specs.
 
----
+## 1. Ordered Refactor Sequence
 
-## PHASE 3: IMPLEMENT FIXES
+### Stage A: CLI & Build Tooling Correctness
+1.  **C++ Build Tests Alignment** (`CMakeLists.txt`): Use `$<TARGET_FILE:requiem_cli>` instead of raw `requiem` binary name in CTest macros, to ensure Windows MSVC runner paths map correctly to `Release\requiem.exe`.
+    *   *Risk*: Low.
+    *   *Rationale*: Tests cannot execute without finding the command. Allows true signal on regression.
 
-### Order of Changes (Risk-Sorted)
+### Stage B: C++ Kernel Determinism & Correctness
+2.  **CAS Compact Logic Update** (`src/cas.cpp`): Ensure memory writes un-flag or forcibly erase deleted entries regardless of lazy `index_loaded_` states so that compaction doesn't recover orphaned JSON headers to disk.
+    *   *Risk*: Medium.
+    *   *Rationale*: Eliminates a core failure in the `CAS Scale Readiness` test suite.
+3.  **Remove Wall-Clock Dependency** (`src/audit.cpp`, `src/event_log.cpp`): Instead of hashing `std::chrono::system_clock::now()` inside the kernel log struct generator, pass `0` or an injected logical sequence time exclusively stringified in the payload.
+    *   *Risk*: High. Modifies the fundamental event hash output structure.
+    *   *Rationale*: The "No wall-clock inside kernel paths" mandate.
+4.  **Remove Raw Exceptions** (`src/policy_linter.cpp`): Replace `throw std::runtime_error()` with standard error tracking strings, removing stack leak potential across boundaries.
+    *   *Risk*: Medium. Modifies linter semantics.
+    *   *Rationale*: Deterministic sandboxing requires deterministic error envelopes.
+5.  **Consolidate Event Log & Audit Log**: Determine if `ImmutableAuditLog` can subclass or wrap `EventLog`, rather than duplicating 250 LOC.
+    *   *Risk*: Medium.
+    *   *Rationale*: "One event append path" rule.
 
-#### 3.1 Fix CAS Compact Test (BLOCKER)
+### Stage C: Web Route Consolidation
+6.  **Eliminate "Hard-500" & TODO Markers** (`ready-layer/src/app/api/...`): Systematically replace `status: 500` with proper `status: 200` enclosing the `kind: 'error'` typed envelope. Remove `// TODO: Replace with actual CLI call` stubs.
+    *   *Risk*: Low.
+    *   *Rationale*: Mocks are valid if they fulfill the typed schema interface for UI prototyping, but fake tests and hard-500s violate the error wrapping rules.
 
-**Rationale**: This is a correctness bug in core functionality. The compact() function incorrectly reloads the index from disk.
+## 2. Compatibility Contracts
+*   **CLI Inputs/Outputs**: The `requiem` native binary args and JSON payload formats must not break.
+*   **API Schemas (ready-layer/...)**: `ApiResponse<T>` wrappers must remain perfectly aligned with UI expectations. No breaking changes to `Envelope` attributes.
+*   **Chain Hashes**: The format of the `Events.jsonl` lines must be structurally comparable after the fix (i.e., sequence and prev hash must remain the core hashing roots).
 
-**Files to Change**:
+## 3. Test Strategy
+*   Before addressing the C++ bugs, we will resolve the CMake CTest references to get the baseline red.
+*   We rely on the existing, heavily-detailed `kernel_tests.cpp` to prove deterministic chain hashes post-fix.
+*   Run the full set of `verify:*` scripts across the TS ecosystem to prevent regressions.
 
-- `src/cas.cpp` lines 486-513
-
-**Change**: Remove the `load_index()` call at line 487-488. The compact function should use the in-memory index directly since `remove()` already updated it.
-
-```cpp
-// BEFORE (buggy):
-void CasStore::compact() {
-  if (!index_loaded_)
-    load_index();  // <-- This reloads stale data from disk!
-  std::lock_guard<std::mutex> lk(index_mu_);
-  // ... writes all entries including removed ones
-}
-
-// AFTER (fixed):
-void CasStore::compact() {
-  // Ensure index is loaded but don't reload if already in memory
-  if (!index_loaded_) {
-    load_index();
-  }
-  // Now index_ contains only valid entries (remove() already erased invalid ones)
-  std::lock_guard<std::mutex> lk(index_mu_);
-  // ... writes only valid entries
-}
-```
-
-**Risk**: Low - this is a straightforward logic fix.
-
-**Test Strategy**: Run `requiem_tests.exe` before and after to verify CAS compact passes.
-
----
-
-#### 3.2 Rebuild CLI Package (BLOCKER)
-
-**Rationale**: The CLI dist is stale - 46 commands are missing. This breaks all CLI verification.
-
-**Files to Change**: None - just run the build command.
-
-**Change**:
-
-```bash
-cd c:/Users/scott/GitHub/Requiem
-pnpm --filter @requiem/cli build
-```
-
-**Risk**: Medium - need to ensure build succeeds and no new errors introduced.
-
-**Test Strategy**: Run `pnpm run verify:contracts` after build.
-
----
-
-#### 3.3 Restore/Create verify_determinism.ts (HIGH)
-
-**Rationale**: The script is missing, breaking the verify:determinism command.
-
-**Files to Change**: Create `scripts/verify_determinism.ts`
-
-**Change**: Check git history for original content, or create minimal stub that runs the C++ determinism tests.
-
-**Risk**: Low - just recreating a missing file.
-
----
-
-### Compatibility Contracts (Must Not Break)
-
-| Contract          | Location                             | Protection                       |
-| ----------------- | ------------------------------------ | -------------------------------- |
-| CLI command flags | `packages/cli/src/cli.ts`            | Snapshot test exists             |
-| API route schemas | `ready-layer/src/app/api/*/route.ts` | Typed responses                  |
-| C++ API surface   | `include/requiem/*.hpp`              | Header-only                      |
-| Exit codes        | Various                              | Test in `verify-cli-contract.ts` |
-
----
-
-### Test Strategy
-
-| Before Fix                                         | After Fix                                      |
-| -------------------------------------------------- | ---------------------------------------------- |
-| Run `requiem_tests.exe` - CAS compact fails        | Run `requiem_tests.exe` - CAS compact passes   |
-| Run `pnpm run verify:contracts` - 40 failures      | Run `pnpm run verify:contracts` - all pass     |
-| Run `pnpm run verify:determinism` - script missing | Run `pnpm run verify:determinism` - runs tests |
-
----
-
-### Rollback Strategy
-
-1. **CAS Fix**: Revert `src/cas.cpp` - the bug is well-understood
-2. **CLI Rebuild**: Just re-run build if issues - no source changes
-3. **Script Restore**: Recreate from git if needed
-
----
-
-## PHASE 4: QA HARDENING
-
-After Phase 3 fixes, add:
-
-### 4.1 Test Coverage Expansion
-
-- Unit tests for CAS compact (currently integrated in requiem_tests)
-- Integration tests for CLI commands (currently smoke tests only)
-
-### 4.2 Regression Detection
-
-- Ensure `pnpm run verify:contracts` is in CI
-- Ensure C++ tests run in CI
-
----
-
-## PHASE 5: DOCS + READMEs
-
-Update after fixes verified:
-
-1. **README.md** - Ensure verify commands match reality
-2. **docs/KERNEL_SPEC.md** - Verify claims match code
-3. **CLI docs** - Auto-generated from --help
-
----
-
-## EXECUTION SEQUENCE
-
-```
-1. Fix CAS compact in src/cas.cpp
-2. Rebuild CLI: pnpm --filter @requiem/cli build
-3. Create/restore verify_determinism.ts
-4. Run: ctest -C Release --output-on-failure
-5. Run: pnpm run verify:contracts
-6. Run: pnpm run verify:determinism (if script exists)
-7. Update BASELINE_AUDIT.md with results
-8. Create FINAL_QA_SUMMARY.md
-```
+## 4. Rollback Strategy
+*   Every group (Stage A, B, C) will be wrapped in isolated git commits: e.g., `fix(cmake): resolve ctest target path`, `fix(cas): enforce correct compaction indices`.
+*   If any tests fail during the process, standard `git reset --hard` will be applied per commit boundary.
