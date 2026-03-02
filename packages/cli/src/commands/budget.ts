@@ -12,14 +12,13 @@
  */
 
 import { Command } from 'commander';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+// fs imports are used for budget file storage - following existing CLI patterns
 import { join } from 'path';
 import {
   getDefaultSSMStore,
-  LocalSSMStore,
   type SemanticState,
   type SemanticStateId,
-  DriftCategory,
+  DriftCategory as DriftCategoryValue,
 } from '../lib/semantic-state-machine.js';
 import {
   createPermissiveBudget,

@@ -336,7 +336,7 @@ export function checkChangeBudget(
     const allowed = isSignificanceAllowed('cosmetic', rule.maxSignificance);
 
     categoryResults.push({
-      category: DriftCategory.UnknownDrift,
+      category: DriftCategoryValue.UnknownDrift,
       significance: 'cosmetic',
       allowed,
       requiresApproval: allowed && rule.requiresApproval,
@@ -452,13 +452,13 @@ export function checkTransitionBudget(
 function matchesCategory(changeVector: ChangeVector, category: DriftCategory): boolean {
   // Map change vector paths to drift categories
   const pathCategoryMap: Record<string, DriftCategory> = {
-    'modelId': DriftCategory.ModelDrift,
-    'promptTemplate': DriftCategory.PromptDrift,
-    'policySnapshotId': DriftCategory.PolicyDrift,
-    'contextSnapshotId': DriftCategory.ContextDrift,
-    'runtimeId': DriftCategory.RuntimeDrift,
-    'evalSnapshotId': DriftCategory.EvalDrift,
-    'metadata': DriftCategory.UnknownDrift,
+    'modelId': DriftCategoryValue.ModelDrift,
+    'promptTemplate': DriftCategoryValue.PromptDrift,
+    'policySnapshotId': DriftCategoryValue.PolicyDrift,
+    'contextSnapshotId': DriftCategoryValue.ContextDrift,
+    'runtimeId': DriftCategoryValue.RuntimeDrift,
+    'evalSnapshotId': DriftCategoryValue.EvalDrift,
+    'metadata': DriftCategoryValue.UnknownDrift,
   };
 
   return pathCategoryMap[changeVector.path] === category;

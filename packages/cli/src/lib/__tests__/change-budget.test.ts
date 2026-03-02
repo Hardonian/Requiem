@@ -15,7 +15,7 @@ import {
 } from '../change-budget.js';
 import {
   createSemanticState,
-  DriftCategory,
+  DriftCategory as DriftCategoryValue,
 } from '../semantic-state-machine.js';
 
 describe('Change Budget Governance', () => {
@@ -40,13 +40,13 @@ describe('Change Budget Governance', () => {
   describe('createStrictBudget', () => {
     it('should require approval for model drift', () => {
       const budget = createStrictBudget('strict-test');
-      const modelRule = budget.rules.get(DriftCategory.ModelDrift);
+      const modelRule = budget.rules.get(DriftCategoryValue.ModelDrift);
       expect(modelRule?.requiresApproval).toBe(true);
     });
 
     it('should require approval for policy drift', () => {
       const budget = createStrictBudget('strict-test');
-      const policyRule = budget.rules.get(DriftCategory.PolicyDrift);
+      const policyRule = budget.rules.get(DriftCategoryValue.PolicyDrift);
       expect(policyRule?.requiresApproval).toBe(true);
     });
   });
@@ -54,13 +54,13 @@ describe('Change Budget Governance', () => {
   describe('createProductionBudget', () => {
     it('should disallow model drift entirely', () => {
       const budget = createProductionBudget('prod-test');
-      const modelRule = budget.rules.get(DriftCategory.ModelDrift);
+      const modelRule = budget.rules.get(DriftCategoryValue.ModelDrift);
       expect(modelRule?.maxSignificance).toBeNull();
     });
 
     it('should disallow prompt drift entirely', () => {
       const budget = createProductionBudget('prod-test');
-      const promptRule = budget.rules.get(DriftCategory.PromptDrift);
+      const promptRule = budget.rules.get(DriftCategoryValue.PromptDrift);
       expect(promptRule?.maxSignificance).toBeNull();
     });
   });
@@ -68,24 +68,24 @@ describe('Change Budget Governance', () => {
   describe('createCustomBudget', () => {
     it('should create budget from specs', () => {
       const specs: BudgetRuleSpec[] = [
-        { category: DriftCategory.ModelDrift, maxSignificance: 'major', requiresApproval: true },
-        { category: DriftCategory.ContextDrift, maxSignificance: 'minor' },
+        { category: DriftCategoryValue.ModelDrift, maxSignificance: 'major', requiresApproval: true },
+        { category: DriftCategoryValue.ContextDrift, maxSignificance: 'minor' },
       ];
 
       const budget = createCustomBudget('custom-test', specs, 'minor');
 
-      expect(budget.rules.get(DriftCategory.ModelDrift)?.maxSignificance).toBe('major');
-      expect(budget.rules.get(DriftCategory.ContextDrift)?.maxSignificance).toBe('minor');
+      expect(budget.rules.get(DriftCategoryValue.ModelDrift)?.maxSignificance).toBe('major');
+      expect(budget.rules.get(DriftCategoryValue.ContextDrift)?.maxSignificance).toBe('minor');
       expect(budget.defaultRule.maxSignificance).toBe('minor');
     });
 
     it('should handle "none" as null maxSignificance', () => {
       const specs: BudgetRuleSpec[] = [
-        { category: DriftCategory.ModelDrift, maxSignificance: 'none' },
+        { category: DriftCategoryValue.ModelDrift, maxSignificance: 'none' },
       ];
 
       const budget = createCustomBudget('custom-test', specs);
-      expect(budget.rules.get(DriftCategory.ModelDrift)?.maxSignificance).toBeNull();
+      expect(budget.rules.get(DriftCategoryValue.ModelDrift)?.maxSignificance).toBeNull();
     });
   });
 
@@ -112,7 +112,7 @@ describe('Change Budget Governance', () => {
       const result = checkChangeBudget(budget, fromState, toState);
 
       expect(result.summary.totalChanges).toBeGreaterThan(0);
-      expect(result.categoryResults.some(r => r.category === DriftCategory.ModelDrift)).toBe(true);
+      expect(result.categoryResults.some(r => r.category === DriftCategoryValue.ModelDrift)).toBe(true);
     });
 
     it('should block disallowed drift', () => {
@@ -156,7 +156,7 @@ describe('Change Budget Governance', () => {
   describe('serialization', () => {
     it('should serialize and deserialize budget', () => {
       const specs: BudgetRuleSpec[] = [
-        { category: DriftCategory.ModelDrift, maxSignificance: 'major', requiresApproval: true },
+        { category: DriftCategoryValue.ModelDrift, maxSignificance: 'major', requiresApproval: true },
       ];
       const original = createCustomBudget('serialize-test', specs);
 
@@ -165,7 +165,7 @@ describe('Change Budget Governance', () => {
 
       expect(deserialized.name).toBe(original.name);
       expect(deserialized.version).toBe(original.version);
-      expect(deserialized.rules.get(DriftCategory.ModelDrift)?.maxSignificance).toBe('major');
+      expect(deserialized.rules.get(DriftCategoryValue.ModelDrift)?.maxSignificance).toBe('major');
     });
   });
 

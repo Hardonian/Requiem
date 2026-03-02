@@ -15,7 +15,7 @@ import {
 import {
   createSemanticState,
   createSemanticTransition,
-  DriftCategory,
+  DriftCategory as DriftCategoryValue,
 } from '../semantic-state-machine.js';
 
 describe('Replay Attestation Capsule', () => {
@@ -187,7 +187,7 @@ describe('Replay Attestation Capsule', () => {
       const state = createSemanticState(mockDescriptor);
       const capsule = createCapsule(state, []);
 
-      expect(capsuleHasDrift(capsule, DriftCategory.ModelDrift)).toBe(false);
+      expect(capsuleHasDrift(capsule, DriftCategoryValue.ModelDrift)).toBe(false);
     });
 
     it('should check drift classification when present', () => {
@@ -196,13 +196,13 @@ describe('Replay Attestation Capsule', () => {
       const withDrift = {
         ...capsule,
         driftClassification: {
-          driftCategories: [DriftCategory.ModelDrift],
+          driftCategories: [DriftCategoryValue.ModelDrift],
           changeVectors: [],
         },
       };
 
-      expect(capsuleHasDrift(withDrift, DriftCategory.ModelDrift)).toBe(true);
-      expect(capsuleHasDrift(withDrift, DriftCategory.PolicyDrift)).toBe(false);
+      expect(capsuleHasDrift(withDrift, DriftCategoryValue.ModelDrift)).toBe(true);
+      expect(capsuleHasDrift(withDrift, DriftCategoryValue.PolicyDrift)).toBe(false);
     });
   });
 
