@@ -25,6 +25,7 @@ export interface DecisionReport {
   outcome_notes: string | null;
   calibration_delta: number | null;
   execution_latency: number | null;
+  policy_snapshot_hash: string | null;
 }
 
 export interface CreateDecisionInput {
@@ -40,6 +41,7 @@ export interface CreateDecisionInput {
   status?: 'pending' | 'evaluated' | 'accepted' | 'rejected' | 'reviewed';
   execution_latency?: number;
   outcome_status?: 'success' | 'failure' | 'mixed' | 'unknown' | null;
+  policy_snapshot_hash?: string;
 }
 
 export interface UpdateDecisionInput {
@@ -86,17 +88,20 @@ export class DecisionRepository {
       outcome_notes: null,
       calibration_delta: null,
       execution_latency: input.execution_latency ?? null,
+      policy_snapshot_hash: input.policy_snapshot_hash || null,
     };
 
     const stmt = this.getStmt(`
       INSERT INTO decisions (
         id, tenant_id, created_at, updated_at, source_type, source_ref, input_fingerprint,
         decision_input, decision_output, decision_trace, usage, recommended_action_id,
-        status, outcome_status, outcome_notes, calibration_delta, execution_latency
+        status, outcome_status, outcome_notes, calibration_delta, execution_latency,
+        policy_snapshot_hash
       ) VALUES (
         @id, @tenant_id, @created_at, @updated_at, @source_type, @source_ref, @input_fingerprint,
         @decision_input, @decision_output, @decision_trace, @usage, @recommended_action_id,
-        @status, @outcome_status, @outcome_notes, @calibration_delta, @execution_latency
+        @status, @outcome_status, @outcome_notes, @calibration_delta, @execution_latency,
+        @policy_snapshot_hash
       )
     `);
 
@@ -149,7 +154,11 @@ export class DecisionRepository {
   }
 
   /**
-   * Lists decisions with optional filtering
+   * Lists decisions with optional filtering.
+   *
+   * NOTE: List results contain raw CAS refs (cas:xxxx) for large fields.
+   * Use findById() to get expanded content for a single decision.
+   * This is intentional for performance — list should not expand large blobs.
    */
   static list(options?: {
     tenantId?: string;
@@ -160,7 +169,6 @@ export class DecisionRepository {
     limit?: number;
     offset?: number;
   }): DecisionReport[] {
-    const db = getDB();
     let query = 'SELECT * FROM decisions';
     const params: unknown[] = [];
     const conditions: string[] = [];
@@ -281,10 +289,12 @@ export class CalibrationRepository {
   static getAverageDelta(tenantId: string, sourceType: string): number {
     const result = getDB().prepare(`
       SELECT AVG(calibration_delta) as avg_delta
-      FROM decisions
-      WHERE tenant_id = ? AND source_type = ? AND calibration_delta IS NOT NULL
-      ORDER BY created_at DESC
-      LIMIT 100
+      FROM (
+        SELECT calibration_delta FROM decisions
+        WHERE tenant_id = ? AND source_type = ? AND calibration_delta IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT 100
+      )
     `).get(tenantId, sourceType) as { avg_delta: number | null };
 
     return result?.avg_delta || 0;

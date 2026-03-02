@@ -1,0 +1,190 @@
+{
+  "schema": "cli_surface_v1",
+  "version": "0.2.0",
+  "generated_at": "2026-03-01T20:00:00Z",
+  "commands": {
+    "run": {
+      "args": ["name", "input"],
+      "flags": ["--json", "--help", "-h"],
+      "description": "Execute a tool with determinism proof"
+    },
+    "verify": {
+      "args": ["hash"],
+      "flags": ["--json", "--help"],
+      "description": "Verify execution determinism"
+    },
+    "replay": {
+      "subcommands": ["run", "diff"],
+      "flags": ["--json", "--format"],
+      "description": "Replay execution with verification"
+    },
+    "fingerprint": {
+      "args": ["hash"],
+      "flags": [],
+      "description": "Generate shareable execution proof"
+    },
+    "ui": {
+      "flags": ["--port", "--host"],
+      "description": "Launch web dashboard"
+    },
+    "quickstart": {
+      "flags": [],
+      "description": "10-minute proof flow"
+    },
+    "learn": {
+      "flags": ["--window", "--format"],
+      "description": "Show learning signals"
+    },
+    "realign": {
+      "args": ["patch-id"],
+      "description": "Apply patch in new branch"
+    },
+    "pivot": {
+      "subcommands": ["plan"],
+      "args": ["name"],
+      "description": "Plan strategic pivot"
+    },
+    "rollback": {
+      "args": ["sha|release"],
+      "description": "Rollback to version"
+    },
+    "symmetry": {
+      "flags": ["--economics"],
+      "description": "Show symmetry metrics"
+    },
+    "economics": {
+      "flags": ["--alerts", "--forecast"],
+      "description": "Show economic metrics"
+    },
+    "tool": {
+      "subcommands": ["list", "exec"],
+      "flags": ["--json"],
+      "description": "Tool management"
+    },
+    "trace": {
+      "args": ["id"],
+      "description": "Visualize decision trace"
+    },
+    "stats": {
+      "flags": ["--json"],
+      "description": "Determinism metrics"
+    },
+    "status": {
+      "flags": ["--json"],
+      "description": "System health"
+    },
+    "telemetry": {
+      "description": "Real-time usage stats"
+    },
+    "diff": {
+      "args": ["runA", "runB"],
+      "flags": ["--format"],
+      "description": "Deterministic diff"
+    },
+    "lineage": {
+      "args": ["runId"],
+      "flags": ["--depth"],
+      "description": "Show run ancestry"
+    },
+    "simulate": {
+      "args": ["runId"],
+      "flags": ["--policy"],
+      "description": "Simulate policy"
+    },
+    "drift": {
+      "flags": ["--since", "--window"],
+      "description": "Analyze behavior drift"
+    },
+    "explain": {
+      "args": ["runId"],
+      "flags": ["--format"],
+      "description": "Deterministic explanation"
+    },
+    "usage": {
+      "flags": ["--format"],
+      "description": "Tenant usage"
+    },
+    "tenant-check": {
+      "flags": ["--format"],
+      "description": "Verify isolation"
+    },
+    "chaos": {
+      "flags": ["--quick", "--format"],
+      "description": "Chaos verification"
+    },
+    "share": {
+      "args": ["runId"],
+      "flags": ["--ttl", "--scope"],
+      "description": "Create shareable proof"
+    },
+    "decide": {
+      "subcommands": ["evaluate", "explain", "outcome"],
+      "flags": ["--junction", "--id"],
+      "description": "Decision evaluation"
+    },
+    "junctions": {
+      "subcommands": ["scan"],
+      "flags": ["--since"],
+      "description": "Junction scanning"
+    },
+    "agent": {
+      "subcommands": ["serve"],
+      "flags": ["--tenant"],
+      "description": "MCP server"
+    },
+    "ai": {
+      "subcommands": ["tools", "skills"],
+      "flags": [],
+      "description": "AI operations"
+    },
+    "backup": {
+      "description": "Dump database"
+    },
+    "restore": {
+      "description": "Restore database"
+    },
+    "import": {
+      "description": "Ingest logs"
+    },
+    "nuke": {
+      "description": "Clear state"
+    },
+    "init": {
+      "description": "Initialize config"
+    },
+    "doctor": {
+      "flags": ["--json"],
+      "description": "Validate environment"
+    },
+    "bugreport": {
+      "description": "Diagnostic report"
+    }
+  },
+  "flags": {
+    "global": ["--json", "--help", "-h", "--version", "-v"],
+    "deprecated": []
+  },
+  "exit_codes": {
+    "SUCCESS": 0,
+    "GENERAL_ERROR": 1,
+    "INVALID_ARGUMENTS": 2,
+    "POLICY_VIOLATION": 3,
+    "DETERMINISM_FAILURE": 4,
+    "REPLAY_MISMATCH": 5,
+    "CONFIG_ERROR": 6,
+    "DB_ERROR": 7,
+    "NETWORK_ERROR": 8,
+    "PERMISSION_DENIED": 9
+  },
+  "exports": [
+    ".",
+    "./commands/decide",
+    "./commands/junctions"
+  ],
+  "invariants": [
+    "No command bypasses policy gate",
+    "Every execution produces trace",
+    "All outputs are deterministic",
+    "No console.* in production paths"
+  ]
+}

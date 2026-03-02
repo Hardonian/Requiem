@@ -11,6 +11,7 @@ import { ActionIntentRepository, JunctionRepository, Junction } from '../db/junc
 import { evaluateDecision } from '../engine/adapter';
 import type { DecisionInput, DecisionOutput } from '../lib/fallback';
 import { DecisionRepository, DecisionReport, CalibrationRepository } from '../db/decisions';
+import { capturePolicySnapshotHash, writeLedgerEntry, recordExecutionCost } from '../lib/policy-snapshot';
 
 export interface DecisionReportOutput {
   id: string;
@@ -160,9 +161,14 @@ async function handleEvaluate(args: DecideCliArgs, tenantId: string): Promise<nu
     algorithm: 'minimax_regret',
   };
 
-  const result = await evaluateDecision(decisionInput);
+  // Capture policy snapshot BEFORE execution for audit traceability
+  const policySnapshotHash = capturePolicySnapshotHash();
 
-  // Create decision report
+  const startTime = Date.now();
+  const result = await evaluateDecision(decisionInput);
+  const executionLatency = Date.now() - startTime;
+
+  // Create decision report with policy snapshot
   const decisionReport = DecisionRepository.create({
     tenant_id: tenantId,
     source_type: junction.source_type,
@@ -173,6 +179,28 @@ async function handleEvaluate(args: DecideCliArgs, tenantId: string): Promise<nu
     decision_trace: result.trace,
     recommended_action_id: result.recommended_action,
     status: 'evaluated',
+    execution_latency: executionLatency,
+    policy_snapshot_hash: policySnapshotHash,
+  });
+
+  // Write immutable ledger entry (atomic with decision)
+  writeLedgerEntry({
+    tenantId,
+    eventType: 'decision_evaluated',
+    description: `Decision ${decisionReport.id} evaluated for junction ${junction.id}`,
+    metadata: {
+      decision_id: decisionReport.id,
+      junction_id: junction.id,
+      policy_snapshot_hash: policySnapshotHash,
+      recommended_action: result.recommended_action,
+    },
+  });
+
+  // Record economic event (cost tied to run)
+  recordExecutionCost({
+    tenantId,
+    runId: decisionReport.id,
+    latencyMs: executionLatency,
   });
 
   // Link junction to decision
@@ -194,6 +222,7 @@ async function handleEvaluate(args: DecideCliArgs, tenantId: string): Promise<nu
       console.log(`  ${idx + 1}. ${action}`);
     });
     console.log(`\nDecision Report ID: ${decisionReport.id}`);
+    console.log(`Policy Snapshot: ${policySnapshotHash.substring(0, 16)}...`);
   }
 
   return 0;

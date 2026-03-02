@@ -56,18 +56,51 @@ replay
       console.log('\n  DETERMINISM VERIFICATION');
 
       const computedOutputDigest = decision.decision_output ? hash(decision.decision_output) : null;
+      let verificationPassed = true;
 
       if (decision.status === 'evaluated') {
         if (!decision.decision_output) {
           console.error('  FAIL: Status is evaluated but output is missing.');
-          process.exit(1);
+          verificationPassed = false;
+        } else {
+          console.log(`  ■ Output digest: ${computedOutputDigest?.substring(0, 8)}... (verified via local hash)`);
         }
-        console.log(`  ■ Output digest: ${computedOutputDigest?.substring(0, 8)}... (verified via local hash)`);
       }
 
-      console.log('  ■ Trace integrity verified (CAS signature match)');
-      console.log('  ■ Output digest matches recorded state');
-      console.log('  ■ Policy enforcement: confirmed (deny-by-default)');
+      // Actually verify trace step integrity
+      if (trace.length > 0) {
+        let traceIntact = true;
+        for (let i = 0; i < trace.length; i++) {
+          const step = trace[i];
+          if (step.output === undefined && !step.error) {
+            traceIntact = false;
+            console.log(`  ✗ Step ${i + 1} (${step.tool || 'unknown'}): missing output and no error`);
+          }
+        }
+        if (traceIntact) {
+          console.log(`  ■ Trace integrity: PASSED (${trace.length} steps verified)`);
+        } else {
+          console.log(`  ✗ Trace integrity: FAILED (gaps detected)`);
+          verificationPassed = false;
+        }
+      } else {
+        console.log('  ■ Trace integrity: EMPTY (no steps to verify)');
+      }
+
+      // Report policy snapshot if present
+      const policyHash = decision.policy_snapshot_hash;
+      if (policyHash) {
+        console.log(`  ■ Policy snapshot: ${String(policyHash).substring(0, 16)}...`);
+      } else {
+        console.log('  ⚠ Policy snapshot: NOT RECORDED (pre-enforcement decision)');
+      }
+
+      if (verificationPassed) {
+        console.log('  ■ Result: VERIFICATION PASSED');
+      } else {
+        console.log('  ✗ Result: VERIFICATION FAILED');
+        process.exit(1);
+      }
     }
   });
 
@@ -179,7 +212,7 @@ replay
   .description('Export run data with provenance metadata')
   .argument('<runId>', 'Run ID to export')
   .option('-f, --format <format>', 'Output format (json, yaml)', 'json')
-  .action((runId: string, options: { format?: string }) => {
+  .action((runId: string, _options: { format?: string }) => {
     const decision = DecisionRepository.findById(runId);
     if (!decision) {
       console.error(`Error: Run ${runId} not found.`);
@@ -202,13 +235,14 @@ replay
         status: decision.status,
         created_at: decision.created_at,
         output_digest: decision.decision_output ? hash(decision.decision_output) : null,
+        policy_snapshot_hash: decision.policy_snapshot_hash || null,
       },
       trace,
       usage,
       verification: {
-        deterministic: true,
-        policy_enforced: true,
-        replay_available: true,
+        deterministic: decision.decision_output !== null && decision.status === 'evaluated',
+        policy_enforced: decision.policy_snapshot_hash !== null,
+        replay_available: trace.length > 0,
         hash_algorithm: 'BLAKE3-v1',
         cas_version: 'v2',
       },
