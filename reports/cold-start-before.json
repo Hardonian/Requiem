@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-03-02T01:44:08.975Z",
+  "nodeVersion": "v24.12.0",
+  "measurements": [
+    {
+      "command": "--help",
+      "args": [],
+      "firstOutputMs": 35.194,
+      "totalMs": 40.00489999999999,
+      "exitCode": 0,
+      "output": "\nRequiem CLI v0.2.0  ─  Provable AI Runtime\n\nUSAGE:\n  requiem <command> [options]\n\nCORE COMMANDS:\n  run <name> [input]                  Execute a tool with determinism proof\n  verify <hash>                       Verify execution determinism\n  replay run <id>                     Replay an execution with verification\n  replay diff <run1> <run2>           Deterministic diff between two runs\n  fingerprint <hash>                  Generate shareable execution proof\n  ui                                "
+    },
+    {
+      "command": "version",
+      "args": [],
+      "firstOutputMs": 36.6422,
+      "totalMs": 41.75569999999999,
+      "exitCode": 0,
+      "output": "Requiem CLI v0.2.0 — Provable AI Runtime\n"
+    },
+    {
+      "command": "status",
+      "args": [],
+      "firstOutputMs": 44.38159999999999,
+      "totalMs": 49.33439999999999,
+      "exitCode": 1,
+      "output": "{\"timestamp\":\"2026-03-02T01:44:09.141Z\",\"level\":\"error\",\"event\":\"cli.command_failed\",\"message\":\"Cannot find module 'C:\\\\Users\\\\scott\\\\GitHub\\\\Requiem\\\\packages\\\\cli\\\\dist\\\\cli\\\\src\\\\db\\\\connection' imported from C:\\\\Users\\\\scott\\\\GitHub\\\\Requiem\\\\packages\\\\cli\\\\dist\\\\cli\\\\src\\\\commands\\\\status.js\",\"fields\":{\"code\":\"ERR_MODULE_NOT_FOUND\",\"command\":\"status\",\"durationMs\":9,\"traceId\":\"mm8imtv0-1d8pw5\"}}\n[ERR_MODULE_NOT_FOUND] Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli\\sr"
+    }
+  ]
+}

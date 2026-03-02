@@ -1,6 +1,6 @@
 /**
  * Structured Data Components - SEO Optimization
- * 
+ *
  * Provides JSON-LD structured data for:
  * - SoftwareApplication
  * - Organization
@@ -8,7 +8,7 @@
  * - WebSite
  */
 
-import type { ReactNode } from 'react';
+// Types inlined — no React types needed at module level
 
 interface JsonLdProps {
   data: Record<string, unknown>;

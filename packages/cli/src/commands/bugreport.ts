@@ -14,9 +14,10 @@
  */
 
 import { Command } from 'commander';
+// eslint-disable-next-line no-restricted-imports -- bugreport legitimately needs execSync for tool version diagnostics
 import { execSync } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { fileExists, readTextFile, readJsonFile } from '../lib/io';
 
 const VERSION = '0.2.0';
 
@@ -120,22 +121,20 @@ function generateBugReport(): BugReport {
 function sanitizeEnvironment(): Record<string, string | undefined> {
   const env: Record<string, string | undefined> = {};
 
+  // Include safe env vars with their values
   for (const key of SAFE_ENV_VARS) {
     if (process.env[key] !== undefined) {
       env[key] = process.env[key];
     }
   }
 
-  // Add other env vars but redact potential secrets
-  for (const [key, value] of Object.entries(process.env)) {
+  // For all other env vars, show presence only — never values.
+  // This prevents accidental credential leakage (e.g. DATABASE_URL with embedded password).
+  for (const key of Object.keys(process.env)) {
     if (SAFE_ENV_VARS.includes(key)) continue;
 
     const isSecret = SECRET_PATTERNS.some(pattern => pattern.test(key));
-    if (isSecret) {
-      env[key] = '[REDACTED]';
-    } else if (value !== undefined) {
-      env[key] = value;
-    }
+    env[key] = isSecret ? '[REDACTED]' : '[PRESENT]';
   }
 
   return env;
@@ -144,12 +143,12 @@ function sanitizeEnvironment(): Record<string, string | undefined> {
 function loadConfiguration(): BugReport['configuration'] {
   const configPath = join(process.cwd(), '.requiem', 'config.json');
 
-  if (!existsSync(configPath)) {
+  if (!fileExists(configPath)) {
     return { exists: false };
   }
 
   try {
-    const content = readFileSync(configPath, 'utf8');
+    const content = readTextFile(configPath);
     const parsed = JSON.parse(content);
 
     // Redact any sensitive fields in config
@@ -197,9 +196,9 @@ function getDependencyVersions(): Record<string, string> {
   try {
     // Try to get package.json version
     const packagePath = join(process.cwd(), 'package.json');
-    if (existsSync(packagePath)) {
-      const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
-      deps['project'] = pkg.version || 'unknown';
+    if (fileExists(packagePath)) {
+      const pkg = readJsonFile<{ version?: string }>(packagePath);
+      deps['project'] = pkg?.version || 'unknown';
     }
   } catch {
     // Ignore errors
@@ -208,9 +207,9 @@ function getDependencyVersions(): Record<string, string> {
   // Try to get CLI version
   try {
     const cliPath = join(process.cwd(), 'packages/cli/package.json');
-    if (existsSync(cliPath)) {
-      const pkg = JSON.parse(readFileSync(cliPath, 'utf8'));
-      deps['cli'] = pkg.version || 'unknown';
+    if (fileExists(cliPath)) {
+      const pkg = readJsonFile<{ version?: string }>(cliPath);
+      deps['cli'] = pkg?.version || 'unknown';
     }
   } catch {
     // Ignore errors

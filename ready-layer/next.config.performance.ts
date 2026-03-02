@@ -1,15 +1,15 @@
 /**
  * Next.js Performance Configuration
- * 
+ *
  * Bundle budgets, optimization, and performance ceilings
  */
 
 import type { NextConfig } from 'next';
 
-const PERFORMANCE_BUDGETS = {
+export const PERFORMANCE_BUDGETS = {
   // Marketing pages: < 100kb gzipped
   marketing: 100 * 1024,
-  // App routes: < 200kb gzipped  
+  // App routes: < 200kb gzipped
   app: 200 * 1024,
   // API routes: < 50kb
   api: 50 * 1024,
@@ -26,20 +26,19 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'requiem.hardonian.com' },
     ],
-    // Disable blur placeholder for faster LCP
-    placeholder: 'empty',
   },
 
   // Bundle analyzer in analyze mode
   ...(process.env.ANALYZE === 'true' && {
-    webpack: (config, { isServer }) => {
-      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+    webpack: async (config: { plugins: { push: (plugin: unknown) => void } }, { isServer }: { isServer: boolean }) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer') as { BundleAnalyzerPlugin: new (opts: Record<string, unknown>) => unknown };
       config.plugins.push(
         new BundleAnalyzerPlugin({
           analyzerMode: 'static',
           openAnalyzer: false,
           reportFilename: isServer ? '../analyze/server.html' : './analyze/client.html',
-        })
+        }),
       );
       return config;
     },

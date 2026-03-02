@@ -1,6 +1,6 @@
 /**
  * Sitemap Generator - SEO Optimization
- * 
+ *
  * Auto-generates sitemap.xml with all routes
  * Run during build: npx tsx src/lib/sitemap.ts
  */
@@ -40,14 +40,14 @@ const staticRoutes: SitemapEntry[] = [
 ];
 
 // Dynamic routes that need to be fetched
-const dynamicRoutePatterns = [
+export const dynamicRoutePatterns = [
   { path: '/runs/[runId]', priority: 0.7, changefreq: 'never' as const },
   { path: '/proof/diff/[token]', priority: 0.6, changefreq: 'never' as const },
 ];
 
 function generateSitemapXML(entries: SitemapEntry[]): string {
   const today = new Date().toISOString().split('T')[0];
-  
+
   const urlEntries = entries.map(entry => {
     const lastmod = entry.lastmod || today;
     return `  <url>
@@ -89,12 +89,12 @@ Host: ${BASE_URL}
 
 export function generateSitemap(): void {
   const publicDir = join(process.cwd(), 'public');
-  
+
   // Generate sitemap
   const sitemapXML = generateSitemapXML(staticRoutes);
   writeFileSync(join(publicDir, 'sitemap.xml'), sitemapXML);
   console.log('Generated sitemap.xml');
-  
+
   // Generate robots.txt
   const robotsTxt = generateRobotsTxt();
   writeFileSync(join(publicDir, 'robots.txt'), robotsTxt);

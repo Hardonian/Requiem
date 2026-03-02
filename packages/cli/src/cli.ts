@@ -10,11 +10,36 @@
  * INVARIANT: No duplicate logic between CLI and programmatic API.
  * INVARIANT: Every execution passes through the policy gate.
  * INVARIANT: No console.* in production paths (use logger).
+ * 
+ * COLD START OPTIMIZATION: help/version have zero heavy imports.
+ * All heavy modules (logger, db, providers, signing) are lazy loaded.
  */
 
-import { logger, enablePrettyLogs, formatHuman, isAppError, toJSONObject } from './core/index.js';
-
 const VERSION = '0.2.0';
+
+// Lightweight error check for fast paths (avoids importing full error system)
+function isLightweightAppError(error: unknown): error is { code: string; message: string; severity?: string } {
+  return typeof error === 'object' && error !== null && 'code' in error && 'message' in error;
+}
+
+// Lazy loaded heavy modules - only imported when needed
+let _logger: typeof import('./core/index.js')['logger'] | null = null;
+let _coreModule: typeof import('./core/index.js') | null = null;
+
+async function getCoreModule(): Promise<typeof import('./core/index.js')> {
+  if (!_coreModule) {
+    _coreModule = await import('./core/index.js');
+  }
+  return _coreModule;
+}
+
+async function getLogger(): Promise<typeof import('./core/index.js')['logger']> {
+  if (!_logger) {
+    const core = await getCoreModule();
+    _logger = core.logger;
+  }
+  return _logger;
+}
 
 // Track command timing for perf metrics
 export interface CommandContext {
@@ -133,38 +158,51 @@ function printFingerprint(fpHash: string): void {
 `);
 }
 
-function handleError(error: unknown, ctx: CommandContext): number {
+async function handleError(error: unknown, ctx: CommandContext): Promise<number> {
   const duration = Date.now() - ctx.startTime;
 
-  if (isAppError(error)) {
-    logger.logError('cli.command_failed', error, {
+  if (isLightweightAppError(error)) {
+    // Lazy load logger only on error paths
+    const logger = await getLogger();
+    logger.error('cli.command_failed', error.message, {
+      code: error.code,
       command: ctx.command,
       durationMs: duration,
       traceId: ctx.traceId,
     });
 
     if (ctx.json) {
-      const jsonError = toJSONObject(error);
       process.stdout.write(JSON.stringify({
         success: false,
-        error: jsonError,
+        error: {
+          code: error.code,
+          message: error.message,
+          severity: error.severity || 'error',
+        },
         traceId: ctx.traceId,
         durationMs: duration,
       }) + '\n');
     } else {
-      process.stderr.write(formatHuman(error) + '\n');
+      process.stderr.write(`[${error.code}] ${error.message}\n`);
     }
     return 1;
   }
 
   // Unknown error - wrap it
   const message = error instanceof Error ? error.message : String(error);
-  logger.error('cli.unexpected_error', 'Command failed with unexpected error', {
-    command: ctx.command,
-    error: message,
-    durationMs: duration,
-    traceId: ctx.traceId,
-  });
+  
+  // Lazy load logger only on error paths
+  try {
+    const logger = await getLogger();
+    logger.error('cli.unexpected_error', 'Command failed with unexpected error', {
+      command: ctx.command,
+      error: message,
+      durationMs: duration,
+      traceId: ctx.traceId,
+    });
+  } catch {
+    // Logger failed to load - silently continue
+  }
 
   if (ctx.json) {
     process.stdout.write(JSON.stringify({
@@ -196,22 +234,29 @@ async function main(): Promise<number> {
   const args = process.argv.slice(2);
   const traceId = generateTraceId();
 
+  // FAST PATH: help/version require NO heavy imports
+  if (args.length === 0 || args[0] === '--help' || args[0] === '-h' || args[0] === 'help') {
+    printHelp();
+    return 0;
+  }
+  if (args[0] === '--version' || args[0] === '-v' || args[0] === 'version') {
+    printVersion();
+    return 0;
+  }
+
   // Enable pretty logs in dev, JSON in production (detected by env)
   const isDev = process.env.NODE_ENV === 'development' || process.env.REQUIEM_DEBUG;
   if (isDev) {
-    enablePrettyLogs('debug');
+    const core = await getCoreModule();
+    core.enablePrettyLogs('debug');
   }
 
+  const logger = await getLogger();
   logger.debug('cli.startup', 'CLI starting', {
     version: VERSION,
     traceId,
     args: args.join(' '),
   });
-
-  if (args.length === 0) {
-    printHelp();
-    return 0;
-  }
 
   const command = args[0];
   const subArgs = args.slice(1);
@@ -401,6 +446,7 @@ async function main(): Promise<number> {
 
       case 'fast-start': {
         // Fast start skips expensive adaptive checks if cached
+        const logger = await getLogger();
         logger.info('cli.fast_start', 'Skipping adaptive environment checks');
         result = 0;
         break;
@@ -487,25 +533,14 @@ async function main(): Promise<number> {
         break;
       }
 
-      case 'version':
-      case '--version':
-      case '-v':
-        printVersion();
-        result = 0;
-        break;
-
-      case 'help':
-      case '--help':
-      case '-h':
-        printHelp();
-        result = 0;
-        break;
+      // Note: help/version are handled at top of main() for fast path
 
       default:
         throw new Error(`Unknown command: ${command}. Run "requiem help" for usage.`);
     }
 
     const duration = Date.now() - startTime;
+    const logger = await getLogger();
     logger.info('cli.command_complete', 'Command completed', {
       command,
       result,
@@ -516,7 +551,7 @@ async function main(): Promise<number> {
     return result;
 
   } catch (error) {
-    return handleError(error, ctx);
+    return await handleError(error, ctx);
   }
 }
 

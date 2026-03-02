@@ -3,6 +3,8 @@ import { DecisionRepository } from '../db/decisions';
 import { hash } from '../lib/hash';
 import { AgentStep } from '../lib/agent-runner';
 
+const DEFAULT_TENANT = process.env.REQUIEM_TENANT_ID ?? 'default';
+
 export const replay = new Command('replay')
   .description('Replay, verify, and diff deterministic execution records')
   .action(() => {
@@ -15,8 +17,10 @@ replay
   .argument('<runId>', 'Run ID to replay')
   .option('-v, --verbose', 'Verbose output')
   .option('--verify', 'Verify determinism by re-running logic locally')
-  .action(async (runId: string, options: { verbose?: boolean; verify?: boolean }) => {
-    const decision = DecisionRepository.findById(runId);
+  .option('--tenant <tenantId>', 'Tenant ID for tenant-scoped lookup', DEFAULT_TENANT)
+  .action(async (runId: string, options: { verbose?: boolean; verify?: boolean; tenant?: string }) => {
+    const tenantId = options.tenant ?? DEFAULT_TENANT;
+    const decision = DecisionRepository.findById(runId, tenantId);
     if (!decision) {
       console.error(`Error: Run ID ${runId} not found.`);
       process.exit(1);
@@ -118,9 +122,11 @@ replay
   .argument('<run1>', 'First run ID')
   .argument('<run2>', 'Second run ID')
   .option('--json', 'Output in JSON format')
-  .action((run1: string, run2: string, options: { json?: boolean }) => {
-    const d1 = DecisionRepository.findById(run1);
-    const d2 = DecisionRepository.findById(run2);
+  .option('--tenant <tenantId>', 'Tenant ID for tenant-scoped lookup', DEFAULT_TENANT)
+  .action((run1: string, run2: string, options: { json?: boolean; tenant?: string }) => {
+    const tenantId = options.tenant ?? DEFAULT_TENANT;
+    const d1 = DecisionRepository.findById(run1, tenantId);
+    const d2 = DecisionRepository.findById(run2, tenantId);
 
     if (!d1) {
       console.error(`Error: Run ${run1} not found.`);
@@ -212,8 +218,10 @@ replay
   .description('Export run data with provenance metadata')
   .argument('<runId>', 'Run ID to export')
   .option('-f, --format <format>', 'Output format (json, yaml)', 'json')
-  .action((runId: string, _options: { format?: string }) => {
-    const decision = DecisionRepository.findById(runId);
+  .option('--tenant <tenantId>', 'Tenant ID for tenant-scoped lookup', DEFAULT_TENANT)
+  .action((runId: string, _options: { format?: string; tenant?: string }) => {
+    const tenantId = _options.tenant ?? DEFAULT_TENANT;
+    const decision = DecisionRepository.findById(runId, tenantId);
     if (!decision) {
       console.error(`Error: Run ${runId} not found.`);
       process.exit(1);
