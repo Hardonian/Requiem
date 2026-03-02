@@ -351,6 +351,97 @@ export function createBudgetCommand(): Command {
       }
     });
 
+  // budget receipt subcommand
+  const receiptCmd = budgetCmd
+    .command('receipt')
+    .description('Budget receipt operations');
+
+  // receipt show
+  receiptCmd
+    .command('show <id>')
+    .description('Show receipt details')
+    .action((id: string) => {
+      try {
+        const RECEIPTS_DIR = join(process.cwd(), '.reach', 'budgets', 'receipts');
+        const receiptPath = join(RECEIPTS_DIR, `${id}.json`);
+
+        if (!existsSync(receiptPath)) {
+          handleError(`Receipt not found: ${id}`, budgetCmd.opts().json);
+        }
+
+        const receipt = JSON.parse(readTextFile(receiptPath));
+
+        if (budgetCmd.opts().json) {
+          process.stdout.write(JSON.stringify({ success: true, receipt }, null, 2) + '\n');
+        } else {
+          process.stdout.write(`Receipt: ${receipt.id}\n`);
+          process.stdout.write(`Budget: ${receipt.budgetName}\n`);
+          process.stdout.write(`Window: ${receipt.windowStart} to ${receipt.windowEnd}\n`);
+          process.stdout.write(`Usage: ${receipt.used}/${receipt.limit} (${((receipt.used / receipt.limit) * 100).toFixed(1)}%)\n`);
+          if (receipt.approvals) {
+            process.stdout.write(`Approvals: ${receipt.approvals}\n`);
+          }
+          process.stdout.write(`Created: ${receipt.createdAt}\n`);
+        }
+        process.exit(0);
+      } catch (error) {
+        handleError(error, budgetCmd.opts().json);
+      }
+    });
+
+  // receipt verify
+  receiptCmd
+    .command('verify <id>')
+    .description('Verify receipt integrity')
+    .action((id: string) => {
+      try {
+        const RECEIPTS_DIR = join(process.cwd(), '.reach', 'budgets', 'receipts');
+        const receiptPath = join(RECEIPTS_DIR, `${id}.json`);
+
+        if (!existsSync(receiptPath)) {
+          handleError(`Receipt not found: ${id}`, budgetCmd.opts().json);
+        }
+
+        const receipt = JSON.parse(readTextFile(receiptPath));
+
+        // Verify receipt integrity
+        const { createHash } = await import('crypto');
+        const hash = createHash('blake3');
+        hash.update(JSON.stringify({
+          id: receipt.id,
+          budgetName: receipt.budgetName,
+          windowStart: receipt.windowStart,
+          windowEnd: receipt.windowEnd,
+          used: receipt.used,
+          limit: receipt.limit,
+        }));
+        const computedHash = hash.digest('hex');
+
+        const valid = computedHash === receipt.checksum;
+
+        if (budgetCmd.opts().json) {
+          process.stdout.write(JSON.stringify({
+            success: true,
+            valid,
+            receiptId: id,
+            computedHash: computedHash.substring(0, 16),
+            storedHash: receipt.checksum?.substring(0, 16),
+          }, null, 2) + '\n');
+        } else {
+          if (valid) {
+            process.stdout.write(`✓ Receipt ${id} is VALID\n`);
+          } else {
+            process.stdout.write(`✗ Receipt ${id} is INVALID\n`);
+            process.stdout.write(`  Expected: ${computedHash.substring(0, 16)}\n`);
+            process.stdout.write(`  Stored: ${receipt.checksum?.substring(0, 16)}\n`);
+          }
+        }
+        process.exit(valid ? 0 : 1);
+      } catch (error) {
+        handleError(error, budgetCmd.opts().json);
+      }
+    });
+
   return budgetCmd;
 }
 

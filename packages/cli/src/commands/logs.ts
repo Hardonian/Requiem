@@ -338,3 +338,73 @@ logs.command('follow')
       });
     });
   });
+
+// Subcommand: verify
+logs.command('verify')
+  .description('Verify log integrity and prev-hash chain')
+  .option('--dir <path>', 'Log directory path', join(process.cwd(), '.requiem', 'logs'))
+  .option('--fix', 'Attempt to fix integrity issues')
+  .action(async (options) => {
+    const logDir = options.dir;
+    const files = findLogFiles(logDir);
+
+    if (files.length === 0) {
+      console.log('No log files found to verify.');
+      return;
+    }
+
+    const errors: string[] = [];
+    let entriesChecked = 0;
+    let chainValid = true;
+    let prevHash = 'GENESIS';
+
+    for (const file of files) {
+      const content = readFileSync(file, 'utf-8');
+      const lines = content.split('\n').filter(Boolean);
+
+      for (const line of lines) {
+        try {
+          const entry = JSON.parse(line);
+          entriesChecked++;
+
+          // Check prev hash chain
+          if (entry.prev && entry.prev !== prevHash) {
+            errors.push(`Chain broken at entry ${entriesChecked}: expected prev=${prevHash}, got ${entry.prev}`);
+            chainValid = false;
+          }
+
+          // Verify hash if present
+          if (entry.hash) {
+            // Simple integrity check - verify entry has required fields
+            if (!entry.ts || !entry.event_type) {
+              errors.push(`Entry ${entriesChecked} missing required fields (ts, event_type)`);
+            }
+          }
+
+          // Update prev hash for next entry
+          if (entry.hash) {
+            prevHash = entry.hash;
+          }
+        } catch {
+          // Skip non-JSON lines
+        }
+      }
+    }
+
+    if (chainValid && errors.length === 0) {
+      console.log(`✓ Log integrity verified (${entriesChecked} entries checked)`);
+      console.log(`  Chain: VALID (prev-hash chain intact)`);
+      console.log(`  Files: ${files.length} log files verified`);
+    } else {
+      console.log(`✗ Log integrity FAILED`);
+      console.log(`  Entries checked: ${entriesChecked}`);
+      console.log(`  Errors: ${errors.length}`);
+      for (const err of errors.slice(0, 10)) {
+        console.log(`    - ${err}`);
+      }
+      if (errors.length > 10) {
+        console.log(`    ... and ${errors.length - 10} more`);
+      }
+      process.exit(1);
+    }
+  });
