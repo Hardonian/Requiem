@@ -364,6 +364,7 @@ std::string CasStore::put(const std::string &data,
   {
     std::lock_guard<std::mutex> lk(index_mu_);
     index_[digest] = info;
+    index_loaded_ = true;  // Mark index as loaded after modification
   }
   save_index_entry(info);
 

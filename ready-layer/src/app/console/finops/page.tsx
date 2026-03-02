@@ -1,3 +1,4 @@
+// cspell:ignore NOSONAR
 'use client';
 
 /**
@@ -193,9 +194,9 @@ export default function ConsoleFinOpsPage() {
                     <span>{budget.used.toLocaleString()} / {budget.limit.toLocaleString()}</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
+                    <div // NOSONAR
                       className={`h-2 rounded-full transition-all duration-300 ${getUsageColor(percent)}`}
-                      style={{ width: `${percent}%` }} // NOSONAR
+                      style={{ width: `${percent}%` }}
                     />
                   </div>
                 </div>
