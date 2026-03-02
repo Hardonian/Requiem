@@ -300,7 +300,7 @@ async function main(): Promise<number> {
 
       case 'ui': {
         const { dashboard } = await loadCommand('./commands/dashboard.js') as { dashboard: { parseAsync: (args: string[]) => Promise<void> } };
-        await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
+        await dashboard.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
@@ -328,84 +328,84 @@ async function main(): Promise<number> {
 
       case 'replay': {
         const { replay } = await loadCommand('./commands/replay.js') as { replay: { parseAsync: (args: string[]) => Promise<void> } };
-        await replay.parseAsync([process.argv[0], process.argv[1], 'replay', ...subArgs]);
+        await replay.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'trace': {
         const { trace } = await loadCommand('./commands/trace.js') as { trace: { parseAsync: (args: string[]) => Promise<void> } };
-        await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
+        await trace.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'telemetry': {
         const { telemetry } = await loadCommand('./commands/telemetry.js') as { telemetry: { parseAsync: (args: string[]) => Promise<void> } };
-        await telemetry.parseAsync([process.argv[0], process.argv[1], 'telemetry', ...subArgs]);
+        await telemetry.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'stress': {
         const { stress } = await loadCommand('./commands/stress.js') as { stress: { parseAsync: (args: string[]) => Promise<void> } };
-        await stress.parseAsync([process.argv[0], process.argv[1], 'stress', ...subArgs]);
+        await stress.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'backup': {
         const { backup } = await loadCommand('./commands/backup.js') as { backup: { parseAsync: (args: string[]) => Promise<void> } };
-        await backup.parseAsync([process.argv[0], process.argv[1], 'backup', ...subArgs]);
+        await backup.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'restore': {
         const { restore } = await loadCommand('./commands/restore.js') as { restore: { parseAsync: (args: string[]) => Promise<void> } };
-        await restore.parseAsync([process.argv[0], process.argv[1], 'restore', ...subArgs]);
+        await restore.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'import': {
         const { importCommand } = await loadCommand('./commands/import.js') as { importCommand: { parseAsync: (args: string[]) => Promise<void> } };
-        await importCommand.parseAsync([process.argv[0], process.argv[1], 'import', ...subArgs]);
+        await importCommand.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'replicate': {
         const { replicate } = await loadCommand('./commands/replicate.js') as { replicate: { parseAsync: (args: string[]) => Promise<void> } };
-        await replicate.parseAsync([process.argv[0], process.argv[1], 'replicate', ...subArgs]);
+        await replicate.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'stats': {
         const { stats } = await loadCommand('./commands/stats.js') as { stats: { parseAsync: (args: string[]) => Promise<void> } };
-        await stats.parseAsync([process.argv[0], process.argv[1], 'stats', ...subArgs]);
+        await stats.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'nuke': {
         const { nuke } = await loadCommand('./commands/nuke.js') as { nuke: { parseAsync: (args: string[]) => Promise<void> } };
-        await nuke.parseAsync([process.argv[0], process.argv[1], 'nuke', ...subArgs]);
+        await nuke.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'init': {
         const { init } = await loadCommand('./commands/init.js') as { init: { parseAsync: (args: string[]) => Promise<void> } };
-        await init.parseAsync([process.argv[0], process.argv[1], 'init', ...subArgs]);
+        await init.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'config': {
         const { config } = await loadCommand('./commands/config.js') as { config: { parseAsync: (args: string[]) => Promise<void> } };
-        await config.parseAsync([process.argv[0], process.argv[1], 'config', ...subArgs]);
+        await config.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
@@ -485,28 +485,28 @@ async function main(): Promise<number> {
 
       case 'quickstart': {
         const { quickstart } = await loadCommand('./commands/quickstart.js') as { quickstart: { parseAsync: (args: string[]) => Promise<void> } };
-        await quickstart.parseAsync([process.argv[0], process.argv[1], 'quickstart', ...subArgs]);
+        await quickstart.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'status': {
         const { status } = await loadCommand('./commands/status.js') as { status: { parseAsync: (args: string[]) => Promise<void> } };
-        await status.parseAsync([process.argv[0], process.argv[1], 'status', ...subArgs]);
+        await status.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'selftest': {
         const { selftest } = await loadCommand('./commands/selftest.js') as { selftest: { parseAsync: (args: string[]) => Promise<void> } };
-        await selftest.parseAsync([process.argv[0], process.argv[1], 'selftest', ...subArgs]);
+        await selftest.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'bugreport': {
         const { bugreport } = await loadCommand('./commands/bugreport.js') as { bugreport: { parseAsync: (args: string[]) => Promise<void> } };
-        await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
+        await bugreport.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
@@ -550,14 +550,14 @@ async function main(): Promise<number> {
 
       case 'entitlement': {
         const { entitlement } = await loadCommand('./commands/entitlement.js') as { entitlement: { parseAsync: (args: string[]) => Promise<void> } };
-        await entitlement.parseAsync([process.argv[0], process.argv[1], 'entitlement', ...subArgs]);
+        await entitlement.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
 
       case 'provenance': {
         const { provenance } = await loadCommand('./commands/provenance.js') as { provenance: { parseAsync: (args: string[]) => Promise<void> } };
-        await provenance.parseAsync([process.argv[0], process.argv[1], 'provenance', ...subArgs]);
+        await provenance.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
