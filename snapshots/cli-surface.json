@@ -1,0 +1,82 @@
+{
+  "version": "0.2.0",
+  "generatedAt": "2026-03-02T01:50:20.108Z",
+  "commands": {
+    "count": 41,
+    "list": [
+      "agent",
+      "ai",
+      "backup",
+      "bench",
+      "bugreport",
+      "chaos",
+      "config",
+      "decide",
+      "diff",
+      "doctor",
+      "drift",
+      "economics",
+      "explain",
+      "fast-start",
+      "fingerprint",
+      "import",
+      "init",
+      "junctions",
+      "learn",
+      "lineage",
+      "nuke",
+      "pivot",
+      "quickstart",
+      "realign",
+      "replay",
+      "restore",
+      "rollback",
+      "run",
+      "share",
+      "simulate",
+      "stats",
+      "status",
+      "stress",
+      "symmetry",
+      "telemetry",
+      "tenant-check",
+      "tool",
+      "trace",
+      "ui",
+      "usage",
+      "verify"
+    ]
+  },
+  "flags": {
+    "global": [
+      "--json",
+      "--help",
+      "-h",
+      "--version",
+      "-v",
+      "--minimal"
+    ],
+    "all": [
+      "--help",
+      "--json",
+      "--minimal",
+      "--version"
+    ]
+  },
+  "exitCodes": {
+    "REQUIEM_DEBUG": 1
+  },
+  "helpText": {
+    "structure": "standard",
+    "sections": [
+      "CORE COMMANDS",
+      "GOVERNANCE COMMANDS",
+      "INSPECTION COMMANDS",
+      "MICROFRACTURE SUITE",
+      "ENTERPRISE COMMANDS",
+      "ADMIN COMMANDS",
+      "OPTIONS",
+      "EXAMPLES"
+    ]
+  }
+}
