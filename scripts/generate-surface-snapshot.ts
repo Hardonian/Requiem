@@ -394,11 +394,13 @@ function parseExports(filePath: string, includeReExports: boolean = false): Expo
   let match: RegExpExecArray | null;
 
   while ((match = namedExportPattern.exec(content)) !== null) {
-    const exportList = match[1];
-    const isTypeOnly = match[0].includes('type {');
+    const isTypeOnly = Boolean(match[1]); // match[1] is 'type ' if present
+    const exportList = match[2]; // the content inside braces
+    const fromClause = match[3]; // the from path if present
 
-    // Parse individual exports
-    const items = exportList.split(',').map(s => s.trim());
+    // Parse individual exports - clean up comments first
+    const cleanList = exportList.replace(/\/\/.*$/gm, ''); // Remove line comments
+    const items = cleanList.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
     for (const item of items) {
       // Handle "X as Y" syntax
@@ -408,18 +410,40 @@ function parseExports(filePath: string, includeReExports: boolean = false): Expo
 
       // Determine kind based on naming conventions
       let kind: ExportedItem['kind'] = 'const';
-      if (name.startsWith('type ') || isTypeOnly) {
+      if (isTypeOnly) {
         kind = 'type';
       } else if (/^[A-Z]/.test(name)) {
-        kind = name.endsWith('s') ? 'const' : 'interface';
+        // Likely a class, interface, or constant
+        kind = /^(?:ErrorCode|ErrorSeverity|LogLevel|LogEntry|LogFields|LogSink|ExitCodeValue|StructuredError|AppError|AppErrorDetails)$/.test(name) ? 'type' : 'const';
+      } else if (/^[a-z]/.test(name)) {
+        // Lowercase is likely a function
+        kind = 'function';
       }
 
       exports.push({
         name: name.replace(/^type\s+/, ''),
-        kind: isTypeOnly ? 'type' : kind,
+        kind,
         isTypeOnly,
-        source: sourceName,
+        source: fromClause ? `via ${fromClause}` : sourceName,
       });
+    }
+
+    // Handle re-export sources if includeReExports is enabled
+    if (includeReExports && fromClause) {
+      try {
+        const sourceFile = fromClause.replace('.js', '.ts');
+        const fullPath = join(baseDir, sourceFile);
+        if (existsSync(fullPath)) {
+          const reExports = parseExports(fullPath, false);
+          for (const reExp of reExports) {
+            if (reExp.kind !== 'export-all' && !exports.find(e => e.name === reExp.name)) {
+              exports.push({ ...reExp, source: `via ${fromClause}` });
+            }
+          }
+        }
+      } catch {
+        // Ignore re-export parsing errors
+      }
     }
   }
 

@@ -50,7 +50,7 @@ export interface UpdateDecisionInput {
 }
 
 export class DecisionRepository {
-  private static stmtCache = new Map<string, any>();
+  private static stmtCache = new Map<string, any>(); // Generic 'any' for better-sqlite3 Statement
 
   private static getStmt(query: string) {
     if (!this.stmtCache.has(query)) {
@@ -63,7 +63,6 @@ export class DecisionRepository {
    * Creates a new decision report
    */
   static create(input: CreateDecisionInput): DecisionReport {
-    const db = getDB();
     const now = new Date().toISOString();
     const id = newId('decision');
 
@@ -144,9 +143,7 @@ export class DecisionRepository {
     const setClause = Object.keys(updateData)
       .map(key => `${key} = @${key}`)
       .join(', ');
-    const query = `UPDATE decisions SET ${setClause} WHERE id = @id`;
-
-    db.prepare(query).run({ ...updateData, id });
+    this.getStmt(query).run({ ...updateData, id });
     return this.findById(id);
   }
 
@@ -208,7 +205,7 @@ export class DecisionRepository {
       params.push(options.offset);
     }
 
-    return db.prepare(query).all(...params) as unknown as DecisionReport[];
+    return getDB().prepare(query).all(...params) as unknown as DecisionReport[];
   }
 
   /**
@@ -281,8 +278,7 @@ export class CalibrationRepository {
    * This represents the drift between predicted success and actual outcome.
    */
   static getAverageDelta(tenantId: string, sourceType: string): number {
-    const db = getDB();
-    const result = db.prepare(`
+    const result = getDB().prepare(`
       SELECT AVG(calibration_delta) as avg_delta
       FROM decisions
       WHERE tenant_id = ? AND source_type = ? AND calibration_delta IS NOT NULL
