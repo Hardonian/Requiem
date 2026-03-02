@@ -50,6 +50,7 @@ reach state list --label demo=true --minimal
 ```
 
 **What This Proves:**
+
 - State IDs are deterministic (same descriptor → same ID)
 - State IDs are content-derived (different descriptor → different ID)
 - IDs are stable across time and systems
@@ -68,6 +69,7 @@ reach state diff $STATE_A $STATE_B
 ```
 
 **Expected Output:**
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │ SEMANTIC DIFF                                              │
@@ -88,6 +90,7 @@ reach state diff $STATE_A $STATE_B
 ```
 
 **What This Proves:**
+
 - Automated drift classification (not just text diff)
 - Semantic significance levels (critical/major/minor/cosmetic)
 - Structured change vectors
@@ -102,6 +105,7 @@ reach state show $STATE_B --minimal
 ```
 
 **What This Proves:**
+
 - Computed integrity scores from verifiable signals
 - Score breakdown (parity, policy, context, eval, replay, signing)
 - Deterministic computation
@@ -122,6 +126,7 @@ reach state graph
 ```
 
 **Expected Output (DOT format):**
+
 ```dot
 digraph SemanticStateMachine {
   rankdir=TB;
@@ -133,6 +138,7 @@ digraph SemanticStateMachine {
 ```
 
 **What This Proves:**
+
 - Semantic lineage (intent-based, not just structural)
 - Transition history with reasons
 - Exportable graph format
@@ -150,6 +156,7 @@ reach state simulate upgrade \
 ```
 
 **Expected Output:**
+
 ```json
 {
   "needsReEval": 1,
@@ -160,6 +167,7 @@ reach state simulate upgrade \
 ```
 
 **What This Proves:**
+
 - Offline impact prediction
 - Risk categorization
 - Selective re-evaluation planning
@@ -181,6 +189,7 @@ cat /tmp/semantic-ledger.json | jq '{
 ```
 
 **Expected Output:**
+
 ```json
 {
   "version": "1.0.0",
@@ -190,6 +199,7 @@ cat /tmp/semantic-ledger.json | jq '{
 ```
 
 **What This Proves:**
+
 - Portable semantic ledger
 - Versioned bundle format
 - Complete lineage preservation
@@ -205,12 +215,14 @@ http://localhost:3000/app/semantic-ledger
 ```
 
 **What You'll See:**
+
 - Summary cards showing state counts and average integrity
 - State cards with integrity badges and drift tags
 - Detail panel with descriptor and transitions
 - Filter controls for model and integrity score
 
 **What This Proves:**
+
 - Purpose-built UI for semantic state exploration
 - Real-time visualization of drift taxonomy
 - Integrity score visualization
@@ -224,6 +236,7 @@ http://localhost:3000/app/semantic-ledger
 **What It Is:** Strict IO schema enforcement for tools — binds JSON Schema snapshots to semantic states.
 
 **Proof:**
+
 ```bash
 # Lock a tool schema to current state
 reach tool-schema lock system.echo --state $STATE_A
@@ -237,6 +250,7 @@ reach tool-schema drift system.echo
 ```
 
 **What This Proves:**
+
 - Tool IO contracts are versioned alongside semantic states
 - Schema drift is detectable and preventable
 - No generic CI system provides tool-level schema governance
@@ -250,6 +264,7 @@ reach tool-schema drift system.echo
 **What It Is:** Semantic diff budgets that control which drift categories are allowed without re-approval.
 
 **Proof:**
+
 ```bash
 # Define a production budget (strict)
 reach budget define --name production \
@@ -273,6 +288,7 @@ reach budget check $STATE_A $STATE_B --budget development
 ```
 
 **What This Proves:**
+
 - Drift governance with configurable thresholds
 - Different budgets for different environments
 - Fails closed (no budget = no approval)
@@ -286,6 +302,7 @@ reach budget check $STATE_A $STATE_B --budget development
 **What It Is:** Deterministic, policy-grade audit narratives from SSM signals — no LLM involvement.
 
 **Proof:**
+
 ```bash
 # Generate audit report for a state
 reach audit report $STATE_A
@@ -298,6 +315,7 @@ reach audit transition $STATE_A $STATE_B
 ```
 
 **Expected Output (excerpt):**
+
 ```markdown
 # Audit Narrative: Semantic State
 
@@ -328,6 +346,7 @@ Component Breakdown:
 ```
 
 **What This Proves:**
+
 - Compliance-ready audit trails without human editing
 - Deterministic output (same inputs → same narrative)
 - Suitable for governance tickets
@@ -341,6 +360,7 @@ Component Breakdown:
 **What It Is:** Portable, verifiable run "capsule" containing semantic state, policy refs, context refs, and lineage — verifiable offline.
 
 **Proof:**
+
 ```bash
 # Export capsule for a state
 reach capsule export $STATE_A --output /tmp/capsule.json
@@ -357,6 +377,7 @@ reach capsule info /tmp/capsule.json
 ```
 
 **Expected Output:**
+
 ```json
 {
   "valid": true,
@@ -374,6 +395,7 @@ reach capsule info /tmp/capsule.json
 ```
 
 **What This Proves:**
+
 - Self-contained verifiable proof of execution state
 - Cryptographic binding via checksums
 - No network required for verification
@@ -404,12 +426,14 @@ reach capsule info /tmp/capsule.json
 GitHub Actions + OPA is designed for **CI/CD pipelines** — building, testing, and deploying code.
 
 The Semantic State Machine is designed for **AI execution governance**:
+
 - Tracking semantic configuration changes
 - Verifying lineage and integrity
 - Simulating model migrations
 - Providing verifiable state identities
 
 You *could* build something like SSM on top of GHA + OPA, but you would need to:
+
 1. Implement content-derived fingerprinting
 2. Build a drift taxonomy classifier
 3. Create an integrity score computation

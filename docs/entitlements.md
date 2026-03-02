@@ -21,11 +21,13 @@ tier = "oss"
 ```
 
 Features:
+
 - Basic execution and verification
 - Local SQLite storage
 - Single-region
 
 Limits:
+
 - 1,000 runs/month
 - 10,000 decisions/month
 - 100MB storage
@@ -39,6 +41,7 @@ tier = "pro"
 ```
 
 Features:
+
 - Replication enabled
 - Auto arbitration mode
 - Required signing
@@ -46,6 +49,7 @@ Features:
 - Advanced analytics
 
 Limits:
+
 - 10,000 runs/month
 - 100,000 decisions/month
 - 1GB storage
@@ -59,11 +63,13 @@ tier = "enterprise"
 ```
 
 Features:
+
 - All Pro features
 - Priority support
 - Custom retention policies
 
 Limits:
+
 - 1,000,000 runs/month
 - 10,000,000 decisions/month
 - 100GB storage
@@ -99,6 +105,7 @@ reach entitlement show
 ```
 
 Output:
+
 ```
 ╔══════════════════════════════════════════════════════════╗
 ║              ENTITLEMENTS                                ║

@@ -9,6 +9,7 @@
 ## Scope
 
 This threat model covers:
+
 - Requiem native execution engine (C++)
 - CLI package (`@requiem/cli`)
 - UI package (`@requiem/ui`)
@@ -17,6 +18,7 @@ This threat model covers:
 - AI/MCP subsystem (`@requiem/ai`)
 
 **Out of scope:**
+
 - Physical infrastructure security (handled by cloud provider)
 - Employee devices and access (covered by corporate security)
 - Third-party SaaS integrations (separate assessments)
@@ -89,6 +91,7 @@ This threat model covers:
 ### 1. API Endpoints (`ready-layer/src/app/api/`)
 
 **Surface:**
+
 - `/api/health` — Health checks
 - `/api/audit/logs` — Audit log retrieval
 - `/api/cas/integrity` — CAS integrity verification
@@ -99,6 +102,7 @@ This threat model covers:
 - `/api/mcp/*` — MCP tool operations
 
 **Threats:**
+
 | ID | Threat | Severity | Mitigation |
 |----|--------|----------|------------|
 | API-1 | SQL Injection via query params | High | Parameterized queries, RLS |
@@ -112,12 +116,14 @@ This threat model covers:
 ### 2. CLI Package (`@requiem/cli`)
 
 **Surface:**
+
 - npm package distribution
 - CLI commands (decide, junctions)
 - Database connection handling
 - Migration runner
 
 **Threats:**
+
 | ID | Threat | Severity | Mitigation |
 |----|--------|----------|------------|
 | CLI-1 | Supply chain attack via dependencies | High | Locked versions, audit |
@@ -129,12 +135,14 @@ This threat model covers:
 ### 3. Native Engine (`src/`)
 
 **Surface:**
+
 - Binary execution
 - File system access (CAS, workspace)
 - Process spawning
 - Seccomp-BPF
 
 **Threats:**
+
 | ID | Threat | Severity | Mitigation |
 |----|--------|----------|------------|
 | ENG-1 | Sandbox escape | Critical | Seccomp-BPF, namespaces |
@@ -147,6 +155,7 @@ This threat model covers:
 ### 4. AI/MCP Subsystem (`packages/ai/`)
 
 **Surface:**
+
 - MCP tool registration
 - Policy enforcement
 - Budget tracking
@@ -154,6 +163,7 @@ This threat model covers:
 - Audit logging
 
 **Threats:**
+
 | ID | Threat | Severity | Mitigation |
 |----|--------|----------|------------|
 | AI-1 | Tool output DoS | High | Output limits enforced |
@@ -165,12 +175,14 @@ This threat model covers:
 ### 5. Database
 
 **Surface:**
+
 - Supabase PostgreSQL
 - Prisma ORM queries
 - RLS policies
 - Migration runner
 
 **Threats:**
+
 | ID | Threat | Severity | Mitigation |
 |----|--------|----------|------------|
 | DB-1 | Tenant isolation bypass | Critical | RLS policies, query validation |
@@ -182,11 +194,13 @@ This threat model covers:
 ### 6. CAS Storage
 
 **Surface:**
+
 - File system objects
 - Metadata files
 - Digest-based addressing
 
 **Threats:**
+
 | ID | Threat | Severity | Mitigation |
 |----|--------|----------|------------|
 | CAS-1 | Object tampering | Critical | Hash-on-read, immutability |
@@ -228,17 +242,17 @@ This threat model covers:
 
 ### High Risks
 
-5. **IDOR** — Direct object reference without authorization
+1. **IDOR** — Direct object reference without authorization
    - Impact: High
    - Likelihood: Medium
    - Treatment: Authorization checks on all endpoints
 
-6. **CREDENTIAL-EXPOSURE** — Secrets in logs/errors
+2. **CREDENTIAL-EXPOSURE** — Secrets in logs/errors
    - Impact: High
    - Likelihood: Medium
    - Treatment: Secret redaction, automated scanning
 
-7. **BUDGET-BYPASS** — Cost/quota enforcement bypass
+3. **BUDGET-BYPASS** — Cost/quota enforcement bypass
    - Impact: High
    - Likelihood: Low
    - Treatment: DB-backed budgets with persistence
@@ -281,12 +295,14 @@ This threat model covers:
 ## Completed Mitigations (Phase 1-4)
 
 ### Phase 1A: JWT Validation & MCP Security
+
 - ✅ JWT token validation at MCP transport layer
 - ✅ Token expiry and claims verification
 - ✅ Correlation ID generation for cross-request tracing
 - ✅ Request attribution and audit trail
 
 ### Phase 1B: Seccomp, Signed Bundles & Audit
+
 - ✅ Seccomp-BPF syscall filtering
 - ✅ Signed provenance bundles with Merkle roots
 - ✅ Audit persistence with Merkle chain
@@ -294,24 +310,28 @@ This threat model covers:
 - ✅ Windows restricted tokens
 
 ### Phase 2A: DB-Backed Budgets & Cost Control
+
 - ✅ Persistent budget tracking per tenant
 - ✅ Cross-instance budget coordination
 - ✅ Cost anomaly detection with statistical modeling
 - ✅ Budget enforcement at policy gate
 
 ### Phase 2B: Tool Registry Security
+
 - ✅ Tool output limits enforced at registry
 - ✅ Flag-based capability controls
 - ✅ Replay cache for determinism
 - ✅ Tool execution sandboxing
 
 ### Phase 3A: MCP Policy Enforcement
+
 - ✅ Policy enforcement at MCP entry point
 - ✅ Prompt injection filter with pattern detection
 - ✅ Correlation ID propagation
 - ✅ Input sanitization and validation
 
 ### Phase 4: Infrastructure Security
+
 - ✅ Circuit breaker persistence to database
 - ✅ Database migration runner with verification
 - ✅ Automated credential rotation workflow
@@ -327,16 +347,19 @@ This threat model covers:
 **Goal:** Access other tenants' execution data  
 
 **Attack Path:**
+
 1. Intercept API request to `/api/engine/status`
 2. Modify `tenant_id` parameter in request body
 3. Observe if data from other tenant is returned
 
 **Defenses:**
+
 - Server-side tenant resolution (ignores client `tenant_id`)
 - RLS policies enforce `WHERE tenant_id = current_setting('app.current_tenant')`
 - All queries filtered by authenticated tenant context
 
 **Verification:**
+
 ```bash
 ./scripts/verify_tenant_isolation.sh
 ```
@@ -347,17 +370,20 @@ This threat model covers:
 **Goal:** Corrupt execution results undetectably  
 
 **Attack Path:**
+
 1. Modify engine to use wall clock time
 2. Submit execution request
 3. Result appears valid but won't replay correctly
 
 **Defenses:**
+
 - Clock abstraction prevents direct time access
 - Replay verification recomputes and compares
 - Golden corpus tests detect changes
 - Merkle audit chain detects tampering
 
 **Verification:**
+
 ```bash
 ./scripts/verify_determinism.sh
 ./scripts/verify_provenance.sh
@@ -369,16 +395,19 @@ This threat model covers:
 **Goal:** Modify stored execution artifacts  
 
 **Attack Path:**
+
 1. Gain access to CAS storage (e.g., via cloud credential leak)
 2. Modify object at `.cas/v2/objects/AB/CD/ABCDEF...`
 3. Wait for retrieval
 
 **Defenses:**
+
 - Hash-on-read verification
 - Content-addressed (modification changes digest)
 - Immutability enforcement at filesystem level
 
 **Verification:**
+
 ```bash
 ./scripts/verify_cas.sh
 ```
@@ -389,17 +418,20 @@ This threat model covers:
 **Goal:** Execute unauthorized commands via tool input  
 
 **Attack Path:**
+
 1. Craft input with injection patterns
 2. Submit via MCP tool execution
 3. Attempt to bypass input validation
 
 **Defenses:**
+
 - Prompt injection filter with pattern detection
 - Input sanitization at MCP entry
 - Correlation IDs for request attribution
 - Audit logging of all inputs
 
 **Verification:**
+
 ```bash
 pnpm run verify:ai-safety
 ```

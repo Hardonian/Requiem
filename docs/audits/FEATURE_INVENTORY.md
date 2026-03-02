@@ -8,6 +8,7 @@
 ## CLI Commands (@requiem/cli v0.2.0)
 
 ### Control Commands (Deterministic Execution)
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `run <name> [input]` | Execute tool with determinism proof | ✅ Implemented | docs/cli.md |
@@ -17,6 +18,7 @@
 | `fingerprint <hash>` | Generate shareable execution proof | ✅ Implemented | — |
 
 ### Observability Commands
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `trace <id>` | Visualize decision trace | ✅ Implemented | — |
@@ -25,6 +27,7 @@
 | `telemetry` | Real-time usage stats | ✅ Implemented | — |
 
 ### Proof Surface Commands (Microfracture)
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `diff <runA> <runB>` | Deterministic diff | ✅ Implemented | — |
@@ -36,6 +39,7 @@
 | `chaos` | Chaos verification checks | ✅ Implemented | — |
 
 ### Governance Commands
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `learn` | Learning signals and diagnoses | ✅ Implemented | docs/AI_EDGE_CASES.md |
@@ -47,6 +51,7 @@
 | `tenant-check` | Tenant isolation verify | ✅ Implemented | — |
 
 ### Enterprise Commands
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `decide evaluate` | Evaluate junction decision | ✅ Implemented | docs/decisions/ |
@@ -58,12 +63,14 @@
 | `ai skills run` | Run AI skill | ✅ Implemented | docs/SKILLS.md |
 
 ### Tool Management
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `tool list` | List registered tools | ✅ Implemented | — |
 | `tool exec` | Execute specific tool | ✅ Implemented | — |
 
 ### Dashboard & Setup
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `ui` | Launch web dashboard | ✅ Implemented | — |
@@ -71,6 +78,7 @@
 | `init` | Initialize configuration | ✅ Implemented | — |
 
 ### Admin Commands
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `backup` | Dump database to JSON | ✅ Implemented | — |
@@ -84,6 +92,7 @@
 | `fast-start` | Cached skip checks | ✅ Implemented | — |
 
 ### Additional Commands
+
 | Command | Purpose | Status | Docs |
 |---------|---------|--------|------|
 | `logs` | Log tailing/viewing | ✅ Implemented | docs/logging.md |
@@ -102,6 +111,7 @@
 ## Console Routes (ReadyLayer Web App)
 
 ### Dashboard Routes (/app/*)
+
 | Route | Purpose | Loading | Error | Empty |
 |-------|---------|---------|-------|-------|
 | `/app/executions` | Execution history | ✅ Skeleton | ✅ Global | ✅ Illustrated |
@@ -114,6 +124,7 @@
 | `/app/tenants` | Tenant isolation | ✅ Inline | ✅ Global | ✅ Message |
 
 ### Marketing Routes
+
 | Route | Purpose | Loading | Error | Empty |
 |-------|---------|---------|-------|-------|
 | `/` | Landing page | N/A (static) | ✅ Global | N/A |
@@ -125,6 +136,7 @@
 | `/enterprise` | Enterprise info | N/A (static) | ✅ Global | N/A |
 
 ### Support Routes
+
 | Route | Purpose | Loading | Error | Empty |
 |-------|---------|---------|-------|-------|
 | `/support` | Support hub | N/A (static) | ✅ Global | N/A |
@@ -132,6 +144,7 @@
 | `/support/status` | System status | N/A (static) | ✅ Global | N/A |
 
 ### Dynamic Routes
+
 | Route | Purpose | Loading | Error | Empty |
 |-------|---------|---------|-------|-------|
 | `/runs/[runId]` | Run details | N/A | ✅ Global | ✅ Illustrated |
@@ -142,6 +155,7 @@
 ## Documentation Coverage
 
 ### CLI Reference
+
 | Doc | Coverage | Status |
 |-----|----------|--------|
 | docs/cli.md | Core CLI usage | ✅ Complete |
@@ -152,6 +166,7 @@
 | docs/entitlements.md | Entitlements | ✅ Complete |
 
 ### Architecture
+
 | Doc | Coverage | Status |
 |-----|----------|--------|
 | docs/ARCHITECTURE.md | System architecture | ✅ Complete |
@@ -161,6 +176,7 @@
 | docs/CAS.md | Content-addressable storage | ✅ Complete |
 
 ### Operations
+
 | Doc | Coverage | Status |
 |-----|----------|--------|
 | docs/OPERATIONS.md | Runbook | ✅ Complete |
@@ -169,6 +185,7 @@
 | docs/BENCH.md | Benchmarking | ✅ Complete |
 
 ### Missing Docs (Identified Gaps)
+
 | Gap | Priority | Action |
 |-----|----------|--------|
 | CLI command index (reference/cli.md) | High | Create during Phase 3 |
@@ -180,22 +197,26 @@
 ## Current Known Gaps
 
 ### Build/Lint
+
 - ✅ FIXED: CLI type errors (list.ts, show.ts, completion.ts, logs.ts)
 - ✅ FIXED: Pricing page unclosed JSX
 - ✅ All builds now passing
 
 ### Route Hygiene
+
 - ✅ All routes have Suspense + skeleton
 - ✅ Global error.tsx exists
 - ✅ Global not-found.tsx exists
 - ⚠️ Missing: app-specific error.tsx (using global fallback)
 
 ### CLI Consistency
+
 - ✅ Help text consistent
 - ✅ Exit codes implemented
 - ⚠️ JSON output: Partial (--json flag on some commands)
 
 ### OSS/Enterprise Boundaries
+
 - ✅ Boundary verification script exists
 - ✅ All checks passing
 - ✅ No cross-imports detected

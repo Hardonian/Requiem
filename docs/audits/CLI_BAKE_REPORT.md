@@ -22,6 +22,7 @@ CLI core is stable with comprehensive command coverage. Minor module resolution 
 ## Command Audit
 
 ### Control Commands
+
 | Command | Status | JSON | Exit Code | Notes |
 |---------|--------|------|-----------|-------|
 | `run` | ⚠️ Partial | ✅ | ✅ | Requires engine |
@@ -30,6 +31,7 @@ CLI core is stable with comprehensive command coverage. Minor module resolution 
 | `fingerprint` | ✅ Working | N/A | ✅ | Standalone display |
 
 ### Observability Commands
+
 | Command | Status | JSON | Exit Code | Notes |
 |---------|--------|------|-----------|-------|
 | `stats` | ✅ Working | ✅ | ✅ | Returns aggregate stats |
@@ -38,6 +40,7 @@ CLI core is stable with comprehensive command coverage. Minor module resolution 
 | `telemetry` | ⚠️ Partial | ✅ | ✅ | Requires engine |
 
 ### Admin Commands
+
 | Command | Status | JSON | Exit Code | Notes |
 |---------|--------|------|-----------|-------|
 | `doctor` | ✅ Working | ✅ | ✅ | Comprehensive health check |
@@ -47,6 +50,7 @@ CLI core is stable with comprehensive command coverage. Minor module resolution 
 | `bench` | ⚠️ Partial | ✅ | ✅ | Requires engine |
 
 ### Governance Commands
+
 | Command | Status | JSON | Exit Code | Notes |
 |---------|--------|------|-----------|-------|
 | `learn` | ⚠️ Partial | ✅ | ✅ | Requires data |
@@ -60,6 +64,7 @@ CLI core is stable with comprehensive command coverage. Minor module resolution 
 The `doctor` command is production-ready with comprehensive checks:
 
 ### Checks Implemented
+
 1. ✅ **Storage Initialization** - Detects missing bindings gracefully
 2. ✅ **Decision Engine** - Reports availability status
 3. ✅ **Telemetry** - Verifies aggregator functional
@@ -70,11 +75,13 @@ The `doctor` command is production-ready with comprehensive checks:
 8. ✅ **Runtime Versions** - Checks Node.js compatibility
 
 ### Output Formats
+
 - **Human**: Color-coded with icons (✓ ⚠ ✗)
 - **JSON**: Structured with full check details
 - **Exit Code**: 0=healthy/degraded, 1=unhealthy
 
 ### Safety Features
+
 - ✅ Never crashes on missing dependencies
 - ✅ Redacts secrets in support bundles
 - ✅ Creates non-existent directories
@@ -97,6 +104,7 @@ Requiem CLI v0.2.0 — Control Plane for AI Systems
 ## Consistency Audit
 
 ### Verbs/Nouns
+
 | Pattern | Consistency |
 |---------|-------------|
 | `run` | Execute tool |
@@ -107,6 +115,7 @@ Requiem CLI v0.2.0 — Control Plane for AI Systems
 | `doctor` | Health check |
 
 ### Flags
+
 | Flag | Availability | Notes |
 |------|--------------|-------|
 | `--json` | Major commands | Consistent output format |
@@ -115,6 +124,7 @@ Requiem CLI v0.2.0 — Control Plane for AI Systems
 | `--trace` | Some commands | Execution insight |
 
 ### Exit Codes
+
 | Code | Meaning |
 |------|---------|
 | 0 | Success / Healthy / Degraded |
@@ -125,6 +135,7 @@ Requiem CLI v0.2.0 — Control Plane for AI Systems
 ## Issues Identified
 
 ### 1. Module Resolution (Non-Critical)
+
 **Issue**: Some dynamic imports missing `.js` extension in compiled output.
 
 **Affected**: `tool list`, `decide`, `junctions` commands when engine not available.
@@ -134,6 +145,7 @@ Requiem CLI v0.2.0 — Control Plane for AI Systems
 **Fix**: Not required for bake pass — error handling works correctly.
 
 ### 2. better-sqlite3 Native Bindings
+
 **Issue**: Native module not compiled for current platform.
 
 **Impact**: Storage checks fail with clear error message.
@@ -147,6 +159,7 @@ Requiem CLI v0.2.0 — Control Plane for AI Systems
 Created: `packages/cli/tests/snapshots/cli.test.ts`
 
 ### Coverage
+
 1. ✅ `reach --help` output
 2. ✅ `reach --version` output
 3. ✅ `reach doctor --json` structure
@@ -155,6 +168,7 @@ Created: `packages/cli/tests/snapshots/cli.test.ts`
 6. ✅ Error handling (unknown command)
 
 ### Test Fixtures
+
 - `tests/fixtures/empty-config/` - Minimal config for isolated tests
 - `tests/fixtures/mock-engine/` - Mock engine responses
 
@@ -163,12 +177,14 @@ Created: `packages/cli/tests/snapshots/cli.test.ts`
 ## Enhancements Applied
 
 ### Error Handling Improvements
+
 - ✅ All errors include traceId for debugging
 - ✅ JSON errors include structured error objects
 - ✅ Human errors show clear messages without stack traces
 - ✅ Unknown commands suggest running `reach help`
 
 ### Exit Code Consistency
+
 - ✅ Success: 0
 - ✅ Validation errors: 1
 - ✅ Runtime errors: 1

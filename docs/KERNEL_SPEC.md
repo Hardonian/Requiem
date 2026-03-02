@@ -17,6 +17,7 @@ The **kernel** is the minimal, deterministic, replay-provable core of Requiem. E
 4. **Cost-bounded** — every operation is metered with hard denial on budget exceeded.
 
 The kernel explicitly EXCLUDES:
+
 - UI rendering
 - Web framework routing
 - AI model inference (model runners are external processes invoked by plan steps)
@@ -61,6 +62,7 @@ All kernel data structures are encoded as **canonical JSON** using the existing 
 ### 1.2 Why Not CBOR
 
 The existing codebase uses canonical JSON throughout (canonicalize_request, canonicalize_result, audit log, CAS index). Switching to CBOR would:
+
 - Break all existing stored digests
 - Require dual-format support during migration
 - Add a dependency for no measurable benefit at current scale
@@ -243,6 +245,7 @@ prev = H("evt:", canonical_json(previous_record))
 The genesis record uses `prev = "0" * 64` (64 zero hex chars).
 
 **Verification**: Walk the chain from genesis. For each record N:
+
 1. Compute `expected_prev = H("evt:", canonical_json(record[N-1]))`
 2. Assert `record[N].prev == expected_prev`
 3. If mismatch → chain is tampered, verification fails
@@ -281,6 +284,7 @@ Result: 64-char lowercase hex string. Used as the unique identifier for any stor
 ### 5.2 Operations
 
 #### `put(data, compression?) → ObjectRef`
+
 1. Compute `digest = H("cas:", data)`
 2. If object exists at `objects/AB/CD/<digest>` → return `digest` (dedup)
 3. Write to temp file, then atomic rename into `objects/AB/CD/<digest>`
@@ -288,6 +292,7 @@ Result: 64-char lowercase hex string. Used as the unique identifier for any stor
 5. Return `digest`
 
 #### `get(ObjectRef) → data | error`
+
 1. Validate digest format (64 hex chars)
 2. Read from `objects/AB/CD/<digest>`
 3. If compressed, decompress
@@ -296,9 +301,11 @@ Result: 64-char lowercase hex string. Used as the unique identifier for any stor
 6. Return `decompressed_data`
 
 #### `has(ObjectRef) → bool`
+
 Check existence at `objects/AB/CD/<digest>` without reading content.
 
 #### `verify(ObjectRef) → VerifyResult`
+
 Full integrity check: read + decompress + re-hash + compare.
 
 ```json
@@ -365,6 +372,7 @@ A capability token grants specific permissions. Tokens are ed25519-signed JSON s
 ### 6.2 Operations
 
 #### `mint(permissions, subject, signing_key) → CapabilityToken`
+
 1. Construct payload (all fields except `signature` and `fingerprint`)
 2. Compute `fingerprint = H("cap:", canonical_json(payload))`
 3. Sign `canonical_json(payload_with_fingerprint)` with ed25519
@@ -372,6 +380,7 @@ A capability token grants specific permissions. Tokens are ed25519-signed JSON s
 5. Return complete token
 
 #### `verify(token, action) → bool`
+
 1. Check `cap_version == 1`
 2. Verify ed25519 signature against issuer's public key
 3. Check `action` is in `permissions`
@@ -380,6 +389,7 @@ A capability token grants specific permissions. Tokens are ed25519-signed JSON s
 6. Return true/false
 
 #### `revoke(fingerprint, signing_key)`
+
 1. Add fingerprint to revocation set
 2. Log `cap.revoke` event in event log
 3. Revocation is permanent and anchored in the chain
@@ -403,6 +413,7 @@ eval(policy_rules, context) → PolicyDecision
 ```
 
 Where:
+
 - `policy_rules`: JSON array of rules (stored in CAS)
 - `context`: JSON object with execution request data
 - `PolicyDecision`: deterministic result including proof hash
@@ -489,6 +500,7 @@ Each tenant has a budget:
 ### 8.3 Denial Semantics
 
 When `remaining == 0` for a required unit:
+
 1. Operation is NOT performed
 2. Return `ErrorCode::quota_exceeded` in typed error envelope
 3. Log `meter.deny` event in event log
@@ -607,6 +619,7 @@ A plan is a directed acyclic graph (DAG) of steps:
 **Deterministic tie-breaking**: When multiple steps have all dependencies satisfied, execute in lexicographic order of `step_id`.
 
 **Algorithm**:
+
 ```
 ready = { s | s.depends_on == [] }
 while ready is not empty:
@@ -660,6 +673,7 @@ After every plan run (or individual exec), generate a receipt:
 ### 11.2 Verification
 
 Given a receipt:
+
 1. Re-compute `receipt_hash` from the receipt fields (excluding `receipt_hash` itself)
 2. Verify `receipt_hash` matches
 3. Look up `event_log_seq` in the event log

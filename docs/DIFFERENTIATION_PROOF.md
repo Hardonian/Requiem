@@ -4,6 +4,7 @@ This document contains runnable proofs of the 4 "uncopyable" differentiators tha
 AI-native and hard to replicate with generic CI/CD (GitHub Actions + OPA + Postgres).
 
 **Quick Start**: Run the full proof suite with:
+
 ```bash
 reach proof
 ```
@@ -358,24 +359,28 @@ reach capsule --help
 ## Files Added/Modified
 
 ### New Core Modules
+
 - [`packages/cli/src/lib/audit-narrative.ts`](../../packages/cli/src/lib/audit-narrative.ts) — Deterministic audit narrative generation
 - [`packages/cli/src/lib/change-budget.ts`](../../packages/cli/src/lib/change-budget.ts) — Change budget governance
 - [`packages/cli/src/lib/tool-schema-lock.ts`](../../packages/cli/src/lib/tool-schema-lock.ts) — Tool IO schema locking
 - [`packages/cli/src/lib/replay-capsule.ts`](../../packages/cli/src/lib/replay-capsule.ts) — Replay attestation capsules
 
 ### New CLI Commands
+
 - [`packages/cli/src/commands/audit.ts`](../../packages/cli/src/commands/audit.ts) — `reach audit` command
 - [`packages/cli/src/commands/budget.ts`](../../packages/cli/src/commands/budget.ts) — `reach budget` command
 - [`packages/cli/src/commands/tool-schema.ts`](../../packages/cli/src/commands/tool-schema.ts) — `reach tool-schema` command
 - [`packages/cli/src/commands/capsule.ts`](../../packages/cli/src/commands/capsule.ts) — `reach capsule` command
 
 ### Tests
+
 - [`packages/cli/src/lib/__tests__/audit-narrative.test.ts`](../../packages/cli/src/lib/__tests__/audit-narrative.test.ts)
 - [`packages/cli/src/lib/__tests__/change-budget.test.ts`](../../packages/cli/src/lib/__tests__/change-budget.test.ts)
 - [`packages/cli/src/lib/__tests__/tool-schema-lock.test.ts`](../../packages/cli/src/lib/__tests__/tool-schema-lock.test.ts)
 - [`packages/cli/src/lib/__tests__/replay-capsule.test.ts`](../../packages/cli/src/lib/__tests__/replay-capsule.test.ts)
 
 ### Documentation
+
 - [`docs/audits/DIFF_SELECTION.md`](./DIFF_SELECTION.md) — Differentiator selection rationale
 - [`docs/DIFFERENTIATION_PROOF.md`](./DIFFERENTIATION_PROOF.md) — This file
 
@@ -384,6 +389,7 @@ reach capsule --help
 ## End State: GREEN ✅
 
 All differentiators:
+
 - ✅ Implemented with minimal surface area
 - ✅ Exposed via CLI commands
 - ✅ Have unit tests

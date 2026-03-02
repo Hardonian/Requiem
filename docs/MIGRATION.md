@@ -105,6 +105,7 @@ requiem dual-run \
 ```
 
 Output:
+
 ```json
 {
   "dual_run": {
@@ -242,18 +243,21 @@ pnpm cli db:verify
 **Before Production Migration:**
 
 1. **Test on Staging:**
+
    ```bash
    # Staging environment
    NODE_ENV=staging pnpm cli db:migrate
    ```
 
 2. **Backup Database:**
+
    ```bash
    # Create backup
    pg_dump $DATABASE_URL > backup_$(date +%Y%m%d_%H%M%S).sql
    ```
 
 3. **Review Migration Plan:**
+
    ```bash
    # Dry run
    pnpm cli db:migrate --dry-run
@@ -266,16 +270,19 @@ pnpm cli db:verify
 ### Migration Types
 
 **Schema Migrations:**
+
 - CREATE TABLE, ALTER TABLE
 - CREATE INDEX
 - Add constraints
 
 **Data Migrations:**
+
 - Backfill new columns
 - Migrate data formats
 - Update references
 
 **Destructive Migrations:**
+
 - DROP COLUMN (requires backup)
 - DROP TABLE (requires backup)
 - ALTER COLUMN with data loss

@@ -66,6 +66,7 @@ Full definitions in `INVARIANTS.md`. Summary:
 4. Update `docs/CONTRACT.md` and/or `docs/MIGRATION.md`.
 5. Add a regression test in `tests/requiem_tests.cpp`.
 6. PR footer **must** include:
+
    ```
    Determinism-Contract: bumped <field> <old_version> -> <new_version>
    Prompt-Lock-SHA256: <sha256 of prompts/system.lock.md if prompts changed>

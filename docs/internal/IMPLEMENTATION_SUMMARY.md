@@ -75,12 +75,14 @@ This implementation delivers v1.1 (Production Ops), v1.2 (Hard Sandbox + Proof O
 ### v1.1 Production Ops
 
 #### Service Hardening
+
 - Automatic `request_id` generation (deterministic fallback)
 - Lifecycle timestamps (`start_timestamp`, `end_timestamp`)
 - `duration_ms` for latency tracking
 - Timestamps EXCLUDED from digest (non-deterministic)
 
 #### Crash-Only Safety
+
 ```cpp
 // Atomic write pattern
 temp_path = root / "temp" / (digest + ".tmp")
@@ -89,6 +91,7 @@ fs::rename(temp_path, final_path)  // Atomic on POSIX
 ```
 
 #### Observability
+
 ```bash
 # JSON format
 requiem metrics --format json
@@ -98,16 +101,19 @@ requiem metrics --format prom
 ```
 
 Output includes:
+
 - Execution counters (total, fail, timeouts, queue_full)
 - Latency histogram buckets
 - CAS metrics (bytes, objects, hit_rate)
 
 #### Config Validation
+
 ```bash
 requiem config validate --file config.json
 ```
 
 Validates:
+
 - `config_version` field presence
 - Unknown field warnings
 - Schema compatibility
@@ -117,11 +123,13 @@ Validates:
 #### Capability-Honest Security
 
 Sandbox capabilities now truthfully report:
+
 - `enforced()`: Fully enforced capabilities
 - `unsupported()`: Not available on platform
 - `partial()`: Partially enforced (NEW in v1.2)
 
 Example output:
+
 ```json
 {
   "sandbox_applied": {
@@ -135,6 +143,7 @@ Example output:
 #### Proof Bundles
 
 Generate verifiable proof of execution:
+
 ```bash
 requiem proof generate \
   --request req.json \
@@ -143,6 +152,7 @@ requiem proof generate \
 ```
 
 Proof bundle structure:
+
 ```json
 {
   "merkle_root": "abc123...",
@@ -159,6 +169,7 @@ Proof bundle structure:
 #### Determinism Confidence
 
 Honest reporting of determinism guarantees:
+
 ```json
 {
   "determinism_confidence": {
@@ -173,6 +184,7 @@ Honest reporting of determinism guarantees:
 ```
 
 Levels:
+
 - `high`: No stochastic components, full sandbox
 - `medium`: Some non-deterministic factors controlled
 - `best_effort`: Stochastic components present (LLM, partial sandbox)
@@ -190,6 +202,7 @@ requiem exec run --request req.json --out out.json --engine dual
 ```
 
 Engine modes:
+
 - `requiem`: Use Requiem engine only
 - `rust`: Use Rust engine (if available)
 - `dual`: Run both, emit diff report
@@ -204,35 +217,41 @@ requiem bench gate \
 ```
 
 Returns:
+
 - Exit 0: No regression
 - Exit 2: Regression detected (>10% p50 or p95)
 
 ## Non-Negotiables Verification
 
 ### No Breaking Contract Changes ✅
+
 - All changes are additive
 - Existing JSON fields preserved
 - New fields have sensible defaults
 - `config_version` allows evolution
 
 ### Determinism Preserved ✅
+
 - Digest path unchanged
 - Timestamps excluded from canonicalization
 - New fields excluded or versioned
 - Version bump enables new features
 
 ### No Secret Leakage ✅
+
 - Environment values never logged
 - Request IDs generated deterministically
 - Log redaction for sensitive fields
 
 ### Lean Dependencies ✅
+
 - No new heavy frameworks
 - Crypto stays vendored BLAKE3
 - Optional: external signer plugin for signatures
 - third_party/ remains minimal
 
 ### Cross-Platform ✅
+
 - Linux: seccomp, namespaces, rlimits
 - Windows: Job Objects, process mitigations, restricted tokens
 - Feature parity where possible
@@ -240,6 +259,7 @@ Returns:
 ## CLI Reference
 
 ### Core Commands
+
 ```bash
 # Execute with engine selection
 requiem exec run --request <json> --out <json> [--engine requiem|rust|dual]
@@ -249,6 +269,7 @@ requiem exec replay --request <json> --result <json> --cas <dir>
 ```
 
 ### CAS Commands
+
 ```bash
 # Store with atomic writes
 requiem cas put --in <file> --cas <dir> [--compress zstd]
@@ -264,6 +285,7 @@ requiem cas gc --cas <dir> --execute
 ```
 
 ### Health & Diagnostics
+
 ```bash
 # Health with capabilities
 requiem health
@@ -282,6 +304,7 @@ requiem validate-replacement
 ```
 
 ### Proof Commands
+
 ```bash
 # Generate proof bundle
 requiem proof generate --request <file> --result <file> --out <file>
@@ -291,6 +314,7 @@ requiem proof verify --bundle <file>
 ```
 
 ### Benchmarking
+
 ```bash
 # Run benchmark
 requiem bench run --spec <json> --out <json>
@@ -336,6 +360,7 @@ ctest --test-dir build --output-on-failure
 **Default: `requiem`**
 
 Rationale:
+
 - v1.3 Requiem engine is feature-complete for production
 - BLAKE3 vendored and verified
 - Sandbox capabilities truthfully reported
@@ -369,6 +394,7 @@ requiem exec run --engine dual --request req.json --out out.json
 **None for v1.1-v1.3**
 
 All planned features implemented:
+
 - ✅ Service hardening
 - ✅ Observability
 - ✅ Crash-safe CAS
@@ -413,18 +439,21 @@ All planned features implemented:
 ## Testing Strategy
 
 ### Unit Tests
+
 - Hash vector verification
 - CAS atomic write recovery
 - Config validation
 - Proof bundle integrity
 
 ### Integration Tests
+
 - End-to-end execution
 - Crash recovery
 - Metrics collection
 - Dual-run comparison
 
 ### Contract Tests
+
 - JSON schema validation
 - Digest stability
 - Timestamp exclusion
@@ -433,16 +462,19 @@ All planned features implemented:
 ## Security Considerations
 
 ### Secrets
+
 - Environment values never logged
 - Request IDs derived from command + nonce (not random)
 - Proof bundles contain only digests (not content)
 
 ### Sandboxing
+
 - Truthful capability reporting (no lying)
 - Partial enforcement tracked and reported
 - Network isolation requested but not falsely claimed
 
 ### Cryptography
+
 - BLAKE3 remains only hash primitive
 - No new crypto dependencies
 - External signer plugin for signatures (optional)

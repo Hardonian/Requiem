@@ -11,6 +11,7 @@
 These invariants are **hard constraints** for the Semantic State Machine primitive. No PR may weaken or remove them without an explicit Architecture Decision Record (ADR).
 
 Each invariant has corresponding:
+
 - Runtime assertions (developer mode)
 - CI tests that verify invariant preservation
 - Schema validation via Zod
@@ -27,6 +28,7 @@ Each invariant has corresponding:
 **Derivation:** `BLAKE3(canonicalJSON(descriptor))`
 
 **Runtime Assertion:**
+
 ```typescript
 assertValidStateId(id: string): asserts id is SemanticStateId {
   if (!/^[a-f0-9]{64}$/.test(id)) {
@@ -40,6 +42,7 @@ assertValidStateId(id: string): asserts id is SemanticStateId {
 ```
 
 **Violation Triggers:**
+
 - Attempting to parse state ID as timestamp or sequence
 - Assuming state ID contains embedded metadata
 - Truncating state ID for display without preserving full ID
@@ -54,6 +57,7 @@ assertValidStateId(id: string): asserts id is SemanticStateId {
 **Strict Mode:** `z.object({...}).strict()` (rejects unknown keys)
 
 **Required Fields:**
+
 - `modelId`: string, min 1 char
 - `promptTemplateId`: string, min 1 char
 - `promptTemplateVersion`: string, min 1 char
@@ -62,17 +66,20 @@ assertValidStateId(id: string): asserts id is SemanticStateId {
 - `runtimeId`: string, min 1 char
 
 **Optional Fields:**
+
 - `modelVersion`: string
 - `evalSnapshotId`: string
 - `metadata`: Record<string, unknown>
 
 **Runtime Assertion:**
+
 ```typescript
 // Enforced by Zod .parse()
 const validated = SemanticStateDescriptorSchema.parse(input);
 ```
 
 **Violation Triggers:**
+
 - Adding unknown fields to descriptor
 - Removing required fields
 - Changing field types
@@ -84,11 +91,13 @@ const validated = SemanticStateDescriptorSchema.parse(input);
 > Transitions must reference existing states, except for genesis transitions which have no fromId.
 
 **Rule:**
+
 - `fromId`: optional (undefined for genesis)
 - `toId`: required, must exist in store
 - Both must be valid state IDs if present
 
 **Runtime Assertion:**
+
 ```typescript
 assertValidTransition(store: SSMStore, transition: SemanticTransition): void {
   if (transition.fromId !== undefined) {
@@ -120,11 +129,13 @@ assertValidTransition(store: SSMStore, transition: SemanticTransition): void {
 
 **Function:** `classifyDrift(from, to)`  
 **Properties:**
+
 - Pure function (no side effects)
 - Deterministic (same input → same output)
 - Total (defined for all valid inputs)
 
 **Drift Categories (ordered by significance):**
+
 1. `model_drift` - Critical
 2. `prompt_drift` - Critical (if ID change) / Major (if version change)
 3. `policy_drift` - Major
@@ -134,6 +145,7 @@ assertValidTransition(store: SSMStore, transition: SemanticTransition): void {
 7. `unknown_drift` - Cosmetic
 
 **Runtime Assertion:**
+
 ```typescript
 // In CI/tests - verify determinism
 const result1 = classifyDrift(from, to);
@@ -142,6 +154,7 @@ assert.deepEqual(result1, result2);
 ```
 
 **Violation Triggers:**
+
 - Using Date.now() in classifier
 - Random tie-breaking
 - Non-deterministic iteration order
@@ -153,6 +166,7 @@ assert.deepEqual(result1, result2);
 > Integrity scores must only use verifiable signals. No heuristics or subjective measures.
 
 **Signals (6 components, ~16.67 points each):**
+
 | Signal | Verification Method |
 |--------|---------------------|
 | `parityVerified` | Output parity check passed |
@@ -167,6 +181,7 @@ assert.deepEqual(result1, result2);
 **Invariant:** Score is always integer 0-100, computed deterministically.
 
 **Runtime Assertion:**
+
 ```typescript
 assertValidIntegrityScore(score: number): void {
   if (!Number.isInteger(score) || score < 0 || score > 100) {
@@ -180,6 +195,7 @@ assertValidIntegrityScore(score: number): void {
 ```
 
 **Violation Triggers:**
+
 - Using subjective quality metrics
 - Adding time-decay factors
 - Non-deterministic scoring
@@ -192,11 +208,13 @@ assertValidIntegrityScore(score: number): void {
 
 **Bundle Schema Version:** `1.0.0`  
 **Required Properties:**
+
 - JSON keys in alphabetical order
 - ISO 8601 timestamps
 - Deterministic array ordering
 
 **Runtime Assertion:**
+
 ```typescript
 assertStableBundle(bundle: SemanticLedgerBundle): void {
   // Verify version
@@ -232,6 +250,7 @@ assertStableBundle(bundle: SemanticLedgerBundle): void {
 > States and transitions are append-only. Once written, they are never modified.
 
 **Storage Operations:**
+
 - `putState(state)`: Idempotent (same ID overwrites with same content)
 - `appendTransition(transition)`: Pure append
 - `importBundle(bundle)`: Merge (newer wins for states, dedupe for transitions)
@@ -239,6 +258,7 @@ assertStableBundle(bundle: SemanticLedgerBundle): void {
 **Invariant:** No operation modifies historical state.
 
 **Runtime Assertion:**
+
 ```typescript
 // In LocalSSMStore.putState
 const existing = this.states.get(state.id);
@@ -261,11 +281,13 @@ if (existing) {
 > Local store operations must work offline. No network calls in core storage.
 
 **Enforcement:**
+
 - LocalSSMStore uses only fs operations
 - No HTTP requests in store implementation
 - No cloud dependencies in core primitive
 
 **Verification:**
+
 ```bash
 # Disconnect network and verify
 reach state list

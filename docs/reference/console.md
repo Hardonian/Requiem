@@ -7,9 +7,11 @@
 ## Dashboard Routes (/app/*)
 
 ### /app/executions
+
 **Purpose:** Execution history with determinism proofs
 
 **Features:**
+
 - View recent tool executions
 - Verify determinism status
 - Check replay verification
@@ -20,9 +22,11 @@
 ---
 
 ### /app/replay
+
 **Purpose:** Replay verification dashboard
 
 **Features:**
+
 - View replay verified rate
 - Monitor divergence count
 - Verify immutable records
@@ -33,9 +37,11 @@
 ---
 
 ### /app/cas
+
 **Purpose:** Content-Addressable Storage metrics
 
 **Features:**
+
 - Hit rate monitoring
 - Deduplication ratio
 - Write latency tracking
@@ -44,15 +50,18 @@
 ---
 
 ### /app/policy
+
 **Purpose:** Policy enforcement dashboard
 
 **Features:**
+
 - Active protection layers
 - Enforcement mode status
 - Violation tracking
 - Enterprise controls
 
 **Protection Layers:**
+
 - Budget Enforcement
 - RBAC Capabilities
 - Content Guardrails
@@ -63,24 +72,29 @@
 ---
 
 ### /app/audit
+
 **Purpose:** Immutable audit ledger
 
 **Features:**
+
 - Append-only audit log
 - Merkle chain integrity
 - Compliance export (JSON/CSV)
 - Tenant-scoped view
 
 **Export Endpoints:**
+
 - `/api/audit/logs?format=json&limit=1000`
 - `/api/audit/logs?format=csv&limit=1000`
 
 ---
 
 ### /app/metrics
+
 **Purpose:** Observability metrics
 
 **Metrics Shown:**
+
 - Determinism Rate (%)
 - Replay Verified (%)
 - Divergence Count
@@ -92,15 +106,18 @@
 ---
 
 ### /app/diagnostics
+
 **Purpose:** Engine health and diagnostics
 
 **Features:**
+
 - System health checks
 - Build metadata
 - Engine reachability
 - CAS backend status
 
 **Build Metadata:**
+
 - Engine version
 - ABI version
 - Hash algorithm
@@ -110,9 +127,11 @@
 ---
 
 ### /app/tenants
+
 **Purpose:** Tenant isolation management
 
 **Features:**
+
 - Active tenant list
 - CAS isolation status
 - Execution counts
@@ -123,9 +142,11 @@
 ## Marketing Routes
 
 ### / (Landing)
+
 Category definition and value proposition.
 
 **Sections:**
+
 - Hero with CTA
 - Control plane definition
 - Four layers overview
@@ -134,14 +155,17 @@ Category definition and value proposition.
 ---
 
 ### /pricing
+
 Pricing tiers and feature comparison.
 
 **Tiers:**
+
 - **OSS** - Free forever
 - **Pro** - $99/month
 - **Enterprise** - Custom
 
 **Usage Primitives:**
+
 - Execution Credits
 - Replay Storage
 - Policy Events
@@ -149,26 +173,31 @@ Pricing tiers and feature comparison.
 ---
 
 ### /security
+
 Security features and certifications.
 
 ---
 
 ### /transparency
+
 Transparency report and compliance info.
 
 ---
 
 ### /library
+
 Template library for common patterns.
 
 ---
 
 ### /templates
+
 Quick-start templates.
 
 ---
 
 ### /enterprise
+
 Enterprise features and contact.
 
 ---
@@ -176,12 +205,15 @@ Enterprise features and contact.
 ## Support Routes
 
 ### /support
+
 Support hub with documentation links.
 
 ### /support/contact
+
 Contact form for sales/support.
 
 ### /support/status
+
 System status page.
 
 ---
@@ -189,15 +221,18 @@ System status page.
 ## Dynamic Routes
 
 ### /runs/[runId]
+
 Individual run details page.
 
 **Displays:**
+
 - Execution fingerprint
 - Input/output
 - Policy results
 - Replay status
 
 ### /proof/diff/[token]
+
 Shareable diff proof page.
 
 ---

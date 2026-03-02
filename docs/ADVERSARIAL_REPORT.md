@@ -24,19 +24,24 @@ This report documents the adversarial testing performed on the Requiem determini
 ## 1. Capability Bypass Attack
 
 ### Attack Description
+
 Attempt to bypass capability checks by directly invoking tools without going through the policy pipeline.
 
 ### Attack Vector
+
 ```cpp
 // Attempt to call tool directly without capability check
 auto result = sandbox.execute("system.echo", input, /*skip_policy=*/true);
 ```
 
 ### Result
+
 **BLOCKED** ✅
 
 ### Analysis
+
 The policy pipeline is the primary execution path - every execution MUST flow through:
+
 ```
 Request → Gate → Capabilities → Guardrails → Budget → Execution
 ```
@@ -44,6 +49,7 @@ Request → Gate → Capabilities → Guardrails → Budget → Execution
 No bypass mechanism exists. The sandbox only accepts requests that have already passed policy evaluation.
 
 ### Fix Applied
+
 None required - invariant already enforced.
 
 ---
@@ -51,25 +57,32 @@ None required - invariant already enforced.
 ## 2. Replay Mismatch Attack
 
 ### Attack Description
+
 Attempt to replay an execution with a different engine version, producing a different result but claiming it's the same execution.
 
 ### Attack Vector
+
 1. Execute request with engine v1.0
 2. Modify engine version (e.g., ABI version)
 3. Replay with same inputs
 4. Compare receipts
 
 ### Result
+
 **BLOCKED** ✅ (NEW DEFENSE ADDED)
 
 ### Analysis
+
 Previously, receipts did not bind to engine state. An attacker could:
+
 - Execute on one version
 - Replay on a different version
 - Claim the different result is valid
 
 ### Fix Applied
+
 Engine fingerprinting added to receipts:
+
 ```cpp
 // In receipt.hpp
 struct Receipt {
@@ -79,6 +92,7 @@ struct Receipt {
 ```
 
 Receipt verification now checks:
+
 ```cpp
 std::string current_fingerprint = compute_engine_fingerprint();
 if (receipt.engine_fingerprint != current_fingerprint) {
@@ -91,23 +105,29 @@ if (receipt.engine_fingerprint != current_fingerprint) {
 ## 3. CAS Object Tampering Attack
 
 ### Attack Description
+
 Attempt to tamper with CAS-stored objects and read them back with modified content.
 
 ### Attack Vector
+
 1. Store object in CAS
 2. Modify the on-disk file
 3. Read object back
 
 ### Result
+
 **BLOCKED** ✅
 
 ### Analysis
+
 CAS v2 implements dual-hash verification:
+
 - BLAKE3 (fast) + SHA-256 (interoperable)
 - Every read verifies stored_blob_hash
 - Fail-closed: corruption → empty result, never corrupted data
 
 ### Fix Applied
+
 None required - invariant already enforced.
 
 ---
@@ -115,18 +135,23 @@ None required - invariant already enforced.
 ## 4. DAG Execution Reordering Attack
 
 ### Attack Description
+
 Attempt to reorder DAG execution to produce different results.
 
 ### Attack Vector
+
 1. Create plan with steps A, B, C where A depends on B and C
 2. Execute plan multiple times
 3. Check if step execution order varies
 
 ### Result
+
 **BLOCKED** ✅
 
 ### Analysis
+
 Plan execution uses deterministic topological ordering with lexicographic tie-breaking:
+
 ```cpp
 // From plan.hpp
 std::vector<std::string> plan_topological_order(const Plan& plan);
@@ -134,6 +159,7 @@ std::vector<std::string> plan_topological_order(const Plan& plan);
 ```
 
 ### Fix Applied
+
 None required - invariant already enforced.
 
 ---
@@ -141,18 +167,23 @@ None required - invariant already enforced.
 ## 5. Logical Time Manipulation Attack
 
 ### Attack Description
+
 Attempt to manipulate logical time to affect event sequencing or replay.
 
 ### Attack Vector
+
 1. Execute several events
 2. Attempt to set logical_time backward or to a specific value
 3. Check if sequence numbers can be manipulated
 
 ### Result
+
 **BLOCKED** ✅
 
 ### Analysis
+
 Logical time is an internal monotonic counter:
+
 ```cpp
 // From event_log.cpp
 record.seq = ++seq_;           // Atomic increment
@@ -162,6 +193,7 @@ record.ts_logical = ++logical_time_;  // Atomic increment
 No external input can affect logical time. Wall-clock is stored separately as metadata and NOT used in chain hashing.
 
 ### Fix Applied
+
 None required - invariant already enforced.
 
 ---
@@ -169,18 +201,23 @@ None required - invariant already enforced.
 ## 6. Budget Double-Spend Attack
 
 ### Attack Description
+
 Attempt to consume budget twice for the same execution by retrying with the same request.
 
 ### Attack Vector
+
 1. Execute request, get request_digest = D
 2. Retry same request (same inputs, same request_digest)
 3. Check if budget is deducted twice
 
 ### Result
+
 **BLOCKED** ✅
 
 ### Analysis
+
 Metering uses idempotency via request_digest:
+
 ```cpp
 // From metering.hpp
 struct MeterEvent {
@@ -189,6 +226,7 @@ struct MeterEvent {
 ```
 
 Duplicate detection in verify_parity():
+
 ```cpp
 for (const auto& [digest, count] : seen) {
   if (count > 1) return "FAIL duplicate_billing: first_dup=" + digest;
@@ -196,6 +234,7 @@ for (const auto& [digest, count] : seen) {
 ```
 
 ### Fix Applied
+
 None required - invariant already enforced.
 
 ---
@@ -219,6 +258,7 @@ None required - invariant already enforced.
 **Result:** BLOCKED ✅ (NEW DEFENSE ADDED)
 
 **Analysis:** Cost ledger now uses hash-linked receipts:
+
 ```cpp
 // From economics.hpp
 struct CostReceipt {

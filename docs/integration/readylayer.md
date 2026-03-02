@@ -9,6 +9,7 @@
 ## 1. Discovery Summary
 
 ### 1.1 Repository Context
+
 ```
 PWD: /workspace/55c1d8fa-41c6-4fdb-8965-3f34f401d157/sessions/agent_b0285571-6beb-46bf-8cf2-c7f78956d705
 Git Branch: session/agent_b0285571-6beb-46bf-8cf2-c7f78956d705
@@ -75,6 +76,7 @@ ReadyLayer serves as the **canonical web interface** for Requiem:
 ## 3. Monorepo Wiring
 
 ### 3.1 Current State
+
 - **Already configured**: `pnpm-workspace.yaml` includes `ready-layer`
 - **Workspace packages**: `packages/*` + `ready-layer`
 - **Lock file**: `pnpm-lock.yaml` exists at root
@@ -89,6 +91,7 @@ packages:
 ```
 
 ### 3.3 Dependency Flow
+
 ```
 root (requiem)
 ├── packages/ai ───────┐
@@ -111,12 +114,14 @@ root (requiem)
 | `/api/*` | API | Dynamic (serverless functions) |
 
 ### 4.2 Build Configuration
+
 - **Output**: `next build` produces static + serverless
 - **Static pages**: Marketing/landing (to be added)
 - **Dynamic pages**: Console requires auth/session
 - **API routes**: Serverless functions for data
 
 ### 4.3 Required Additions
+
 1. `generateStaticParams()` for dynamic routes
 2. `dynamic = 'force-static'` for marketing pages
 3. `fetch` caching rules for API data
@@ -127,6 +132,7 @@ root (requiem)
 ## 5. Console/Playground/Enterprise Experience
 
 ### 5.1 Current Pages
+
 - ✅ `/app/executions` - Execution history
 - ✅ `/app/cas` - CAS browser
 - ✅ `/app/diagnostics` - System diagnostics
@@ -135,11 +141,13 @@ root (requiem)
 - ✅ `/app/tenants` - Tenant management
 
 ### 5.2 Required Additions
+
 - 🔄 `/playground` - Interactive workflow builder (no backend)
 - 🔄 `/enterprise` - Feature matrix, pricing, docs
 - 🔄 `/docs` - Static documentation pages
 
 ### 5.3 Backend Abstraction
+
 - **Kernel APIs exist**: Connect via typed client
 - **Fallback**: Mock provider for demo mode
 - **No broken UX**: All pages work without backend (demo data)
@@ -149,6 +157,7 @@ root (requiem)
 ## 6. CLI Integration Points
 
 ### 6.1 Existing CLI Commands
+
 ```bash
 requiem web          # Start web app (from root: npm run start:mcp)
 requiem web:build    # Build web app
@@ -156,11 +165,13 @@ requiem web:routes   # Verify routes (scripts/verify_routes.sh)
 ```
 
 ### 6.2 CLI Package Location
+
 - **Package**: `packages/cli/`
 - **Binary**: `@requiem/cli`
 - **Commands**: `decide`, `junctions` (existing)
 
 ### 6.3 Required Additions
+
 - Add `web`, `web:build`, `web:routes` commands to CLI
 - Cross-platform support (Windows/Linux/macOS)
 
@@ -169,16 +180,19 @@ requiem web:routes   # Verify routes (scripts/verify_routes.sh)
 ## 7. Security & Boundaries
 
 ### 7.1 Tenant Isolation
+
 - Middleware enforces auth boundaries
 - No cross-tenant data leakage
 - Feature flags for enterprise-only routes
 
 ### 7.2 Secret Management
+
 - Server-side env vars only in API routes
 - Client-safe `NEXT_PUBLIC_*` vars only
 - No engine binary calls from frontend
 
 ### 7.3 Failure Modes
+
 - No hard 500 pages
 - Error boundaries on all routes
 - Graceful degradation when APIs unavailable
@@ -188,6 +202,7 @@ requiem web:routes   # Verify routes (scripts/verify_routes.sh)
 ## 8. Verification Checklist
 
 ### 8.1 Scripts to Add/Update
+
 | Script | Purpose | Location |
 |--------|---------|----------|
 | `verify:full` | Lint + typecheck + build + test + routes | Root package.json |
@@ -196,6 +211,7 @@ requiem web:routes   # Verify routes (scripts/verify_routes.sh)
 | `web:build` | Build ReadyLayer for production | Root package.json |
 
 ### 8.2 CI Requirements
+
 - Run `verify:full` on PR/push
 - Route verification must pass
 - Build must produce all static pages
@@ -206,39 +222,46 @@ requiem web:routes   # Verify routes (scripts/verify_routes.sh)
 ## 9. Implementation Phases
 
 ### Phase 2: Discovery ✅
+
 - [x] Map repository structure
 - [x] Identify ReadyLayer location
 - [x] Document integration plan
 
 ### Phase 3: Monorepo Wiring
+
 - [ ] Verify pnpm workspace integrity
 - [ ] Install dependencies from root
 - [ ] Standardize tsconfig paths
 
 ### Phase 4: Static Generation
+
 - [ ] Audit Next.js config
 - [ ] Create route manifest verifier
 - [ ] Add generateStaticParams
 - [ ] Configure static/dynamic boundaries
 
 ### Phase 5: Console/Playground/Enterprise
+
 - [ ] Add playground route
 - [ ] Add enterprise section
 - [ ] Implement mock provider
 - [ ] Add Playwright smoke tests
 
 ### Phase 6: CLI Integration
+
 - [ ] Add web commands to CLI
 - [ ] Cross-platform wrapper
 - [ ] Update documentation
 
 ### Phase 7: Hardening
+
 - [ ] Multi-tenant hygiene review
 - [ ] Typed env validation
 - [ ] Error boundaries
 - [ ] Bundle analysis
 
 ### Phase 8: Final Green
+
 - [ ] Create verify:full script
 - [ ] Update CI workflow
 - [ ] Finalize README

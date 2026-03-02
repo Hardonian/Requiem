@@ -19,6 +19,7 @@ The CLI has been hardened with consistent error handling, exit codes, and output
 | 1 | Error (invalid arguments, state not found, etc.) |
 
 All commands follow this pattern:
+
 ```typescript
 try {
   // ... command logic
@@ -33,6 +34,7 @@ try {
 ## Output Formats
 
 All commands support:
+
 - `--json` - Machine-readable JSON output
 - `--minimal` - Compact human-readable output
 - Default - Pretty-printed table/box format
@@ -40,6 +42,7 @@ All commands support:
 ### JSON Output Structure
 
 Success:
+
 ```json
 {
   "success": true,
@@ -48,6 +51,7 @@ Success:
 ```
 
 Error:
+
 ```json
 {
   "success": false,
@@ -61,6 +65,7 @@ Error:
 ## Error Handling
 
 All errors go through `handleError()`:
+
 - No stack traces leaked to user
 - Consistent error format
 - Secrets redaction (inherited from RequiemError)
@@ -111,6 +116,7 @@ All errors go through `handleError()`:
 ## Doctor Integration
 
 The `reach doctor` command should check:
+
 - State directory permissions
 - Schema validity of stored states
 - Basic integrity posture

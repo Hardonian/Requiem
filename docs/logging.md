@@ -45,12 +45,14 @@ Use `category.action` format:
 ## Field Guidelines
 
 **DO:**
+
 - Use camelCase for field names
 - Include durationMs for operations
 - Include IDs for correlation
 - Use structured objects, not strings
 
 **DON'T:**
+
 - Log passwords, tokens, secrets
 - Log large objects (>1KB)
 - Use dynamic field names
@@ -167,6 +169,7 @@ logger.info('api.request', 'Request made', {
 ```
 
 Patterns that trigger redaction:
+
 - `password`, `token`, `secret`, `key`
 - `apikey`, `api_key`, `private_key`
 - `authorization`, `bearer`

@@ -71,6 +71,7 @@
 | `reach state simulate upgrade` | `simulateModelMigration()` | 0 (success) |
 
 ### CLI Invariants (Documented in state.ts lines 12-14)
+
 - All commands support `--json` for machine use
 - Consistent exit codes (0 = success, 1 = error)
 - No hard failures; all errors handled gracefully
@@ -84,18 +85,22 @@
 | `ready-layer/src/app/app/semantic-ledger/page.tsx` | `/app/semantic-ledger` | Implemented with stub data |
 
 ### UI States (lines 57-116)
+
 - `LoadingState` - Skeleton placeholders
 - `ErrorState` - Red alert with retry button
 - `EmptyState` - CLI command example
 
 ### UI Components
+
 - `IntegrityBadge` - Color-coded score display (lines 118-130)
 - `DriftTag` - Category tags with colors (lines 132-150)
 - `StateCard` - State summary card (lines 152-196)
 - `StateDetail` - Full state detail panel (lines 198-327)
 
 ### Coherence Issue: UI Not Connected to Backend
+
 The UI currently uses hardcoded empty arrays (line 350-351):
+
 ```typescript
 // In a real implementation, this would call /api/semantic-ledger
 setStates([]);
@@ -114,6 +119,7 @@ setTransitions([]);
 | `SemanticStateDescriptor.policySnapshotId` | Hash of active policy at state creation |
 
 ### Integration Points
+
 1. Policy snapshot hash stored in descriptor (line 60 of semantic-state-machine.ts)
 2. Used in drift classification (lines 197-205)
 3. Used in migration simulation (lines 631-634)
@@ -146,6 +152,7 @@ setTransitions([]);
 | `artifactSigned` | ~16.7 | Artifact signature valid |
 
 ### Coherence Issue: Integrity Score Uses Empty String Check
+
 The integrity score checks `policySnapshotId !== ''` and `contextSnapshotId !== ''` but the schema doesn't enforce non-empty strings beyond `.min(1)`.
 
 ---
@@ -157,6 +164,7 @@ The integrity score checks `policySnapshotId !== ''` and `contextSnapshotId !== 
 **Location:** `packages/cli/src/lib/semantic-state-machine.ts` lines 353-571
 
 **Storage Layout:**
+
 ```
 .reach/state/
 ├── states.json       # Array of SemanticState
@@ -164,18 +172,21 @@ The integrity score checks `policySnapshotId !== ''` and `contextSnapshotId !== 
 ```
 
 **Operations:**
+
 - `save()` (lines 412-424): Atomic write of both files
 - `load()` (lines 385-410): Load and validate on init
 - `putState()` (lines 466-471): Validate + store
 - `appendTransition()` (lines 481-486): Validate + append
 
 **Coherence Issues:**
+
 1. No atomicity guarantee between states.json and transitions.json
 2. No file locking for concurrent access
 3. No backup/rollback on corruption
 4. No size limits or rotation policy
 
 ### Environment Override
+
 - `REQUIEM_STATE_DIR` env var overrides default path (documented in cli-semantic-state.md)
 - Not actually implemented in LocalSSMStore constructor
 
@@ -207,9 +218,11 @@ The integrity score checks `policySnapshotId !== ''` and `contextSnapshotId !== 
 | Simulate | ✓ | ✗ | ✗ |
 
 ### C. Drift Categories Not in UI
+
 The UI has `DriftTag` component but no actual drift data is fetched or displayed.
 
 ### D. Integrity Score Breakdown
+
 CLI shows total score only. Docs describe 6 components. UI shows progress bar but no breakdown.
 
 ---
@@ -217,22 +230,26 @@ CLI shows total score only. Docs describe 6 components. UI shows progress bar bu
 ## 8. Prioritized Coherence Breaks
 
 ### P0 (Must Fix)
+
 1. **Test expectations were wrong** - FIXED (computeIntegrityScore test expected 17, actual 33)
 2. **Migration simulation precedence** - FIXED (model change always wins over policy_risk)
 
 ### P1 (Should Fix)
+
 3. **Missing API endpoint** - `/api/semantic-ledger` needed for UI
-4. **No env var support** - `REQUIEM_STATE_DIR` documented but not implemented
-5. **Storage atomicity** - Two-file write is not atomic
+2. **No env var support** - `REQUIEM_STATE_DIR` documented but not implemented
+3. **Storage atomicity** - Two-file write is not atomic
 
 ### P2 (Nice to Have)
+
 6. **Integrity breakdown in CLI** - Show component scores
-7. **Drift visualization in UI** - Show change vectors
-8. **Export button in UI** - Direct download of ledger
+2. **Drift visualization in UI** - Show change vectors
+3. **Export button in UI** - Direct download of ledger
 
 ### P3 (Documentation)
+
 9. **Consistency between code comments and docs**
-10. **Add invariant documentation**
+2. **Add invariant documentation**
 
 ---
 
@@ -279,6 +296,7 @@ ready-layer/src/app/app/
 ## Summary
 
 The SSM primitive is **well-implemented in the CLI** with:
+
 - Comprehensive test coverage (49 tests, all passing)
 - Zod schema validation
 - Deterministic ID computation
@@ -287,12 +305,14 @@ The SSM primitive is **well-implemented in the CLI** with:
 - Local file-based storage
 
 **Gaps identified:**
+
 1. UI is not connected to backend (stub data)
 2. Missing `/api/semantic-ledger` endpoint
 3. Storage could be more robust (atomic writes, corruption handling)
 4. Some documented features not implemented (REQUIEM_STATE_DIR)
 
 **Hardening priorities:**
+
 1. Fix existing test failures ✓ DONE
 2. Add invariant documentation
 3. Harden storage (atomic writes, corruption handling)

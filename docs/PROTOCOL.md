@@ -22,6 +22,7 @@ requiem health
 ```
 
 Expected response:
+
 ```json
 {
   "hash_primitive": "blake3",
@@ -39,6 +40,7 @@ Expected response:
 See `docs/CONTRACT.md` for the complete JSON schema.
 
 Key fields:
+
 - `command`: executable path (required)
 - `argv`: argument array
 - `workspace_root`: confinement root (default: `.`)
@@ -48,6 +50,7 @@ Key fields:
 ## Result Format
 
 Key fields:
+
 - `ok`: boolean success
 - `exit_code`: process exit code
 - `request_digest`: BLAKE3 hex digest of canonical request

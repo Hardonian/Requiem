@@ -23,9 +23,11 @@ Successfully created `@requiem/ui` - a production-grade UI kit consolidated from
 ## Repositories Touched
 
 ### 1. Requiem (Primary Target)
+
 **Changes:** Added TypeScript UI package to C++ repo as mixed-language monorepo
 
 **Files Added:**
+
 ```
 package.json                          # Root workspace config
 packages/ui/package.json              # Package manifest
@@ -68,9 +70,11 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 ```
 
 ### 2. Reach (Source Only - No Changes)
+
 **Status:** Unmodified - components harvested via analysis only
 
 **Harvested From:**
+
 - `apps/arcade/src/components/EmptyState.tsx`
 - `apps/arcade/src/components/StatusIndicator.tsx`
 - `apps/arcade/src/components/ExecutionDetails.tsx`
@@ -78,9 +82,11 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 - Pattern: Determinism confidence indicators
 
 ### 3. ReadyLayer (Source Only - No Changes)
+
 **Status:** Unmodified - components harvested via analysis only
 
 **Harvested From:**
+
 - `components/ui/button.tsx` → Button primitive
 - `components/ui/card.tsx` → Card compound component
 - `components/ui/badge.tsx` → Badge + StatusPill
@@ -153,6 +159,7 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 ```
 
 ### Themes
+
 1. **Light** (default) - Professional IDE-grade palette
 2. **Dark** (.dark) - Separately tuned dark mode
 3. **High Contrast** (.hc) - Maximum accessibility
@@ -162,6 +169,7 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 ## Dependencies
 
 ### Peer Dependencies (Required)
+
 ```json
 {
   "react": "^18.0.0 || ^19.0.0",
@@ -171,6 +179,7 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 ```
 
 ### Core Dependencies
+
 ```json
 {
   "@radix-ui/react-slot": "^1.0.2",
@@ -182,6 +191,7 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 ```
 
 ### Optional (For full features)
+
 - `framer-motion` - Animation support
 - `lucide-react` - Icon support
 - `recharts` - Chart support
@@ -191,6 +201,7 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 ## Commands Run
 
 ### Directory Structure Creation
+
 ```powershell
 New-Item -ItemType Directory -Path "packages/ui/src/components/primitives" -Force
 New-Item -ItemType Directory -Path "packages/ui/src/components/layout" -Force
@@ -201,6 +212,7 @@ New-Item -ItemType Directory -Path "packages/ui/src/lib" -Force
 ```
 
 ### File Creation
+
 ```
 ✅ 22 TypeScript/TSX files created
 ✅ 2 CSS files created
@@ -230,6 +242,7 @@ New-Item -ItemType Directory -Path "packages/ui/src/lib" -Force
 ## OSS vs Enterprise Gating
 
 ### ✅ OSS Safe (Default Export)
+
 - All primitive components
 - All layout components
 - All data display components
@@ -237,12 +250,14 @@ New-Item -ItemType Directory -Path "packages/ui/src/lib" -Force
 - Design tokens
 
 ### 🔒 Enterprise Only (/enterprise subpath)
+
 - TenantSwitcher
 - RoleBadge
 - AuditLogViewer
 - BillingMeter
 
 ### Boundary Enforcement
+
 ```bash
 npm run verify:boundaries  # Checks for enterprise leakage
 ```
@@ -292,6 +307,7 @@ Script location: `scripts/verify-ui-boundaries.mjs`
 ## Build Status
 
 ### Requiem (Mixed C++/TypeScript)
+
 ```bash
 # C++ build (unchanged)
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -304,12 +320,14 @@ npm run verify  # typecheck + lint + build
 ```
 
 ### Reach
+
 ```bash
 # No changes - remains buildable
 npm run verify:fast
 ```
 
 ### ReadyLayer
+
 ```bash
 # No changes - remains buildable
 npm run build
@@ -320,6 +338,7 @@ npm run build
 ## Migration Path for Consumers
 
 ### For Reach
+
 ```bash
 # Install the UI kit
 npm install @requiem/ui
@@ -332,6 +351,7 @@ import { Button } from '@requiem/ui'  // was: '@/components/ui/button'
 ```
 
 ### For ReadyLayer
+
 ```bash
 # Install the UI kit
 npm install @requiem/ui

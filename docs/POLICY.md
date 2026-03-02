@@ -33,17 +33,20 @@ Budget enforcement prevents tenants from exceeding their allocated resource limi
 **Location:** [`packages/ai/src/policy/budgets.ts:53-223`](packages/ai/src/policy/budgets.ts:53)
 
 **Behavior:**
+
 - Enforces budget limits based on tenant tier (free vs enterprise)
 - Default: DENY if no configuration exists (fail-safe)
 - Free tier: $10/month limit (1000 cents)
 - Enterprise: Unlimited (configurable)
 
 **Configuration:**
+
 ```typescript
 DefaultBudgetChecker.configureTenant(tenantId, 'free' | 'enterprise', customLimits?)
 ```
 
 **Key Methods:**
+
 - `check(tenantId, estimatedCostCents)` - Returns `{ allowed, reason, remaining }`
 - `record(tenantId, actualCostCents, tokens?)` - Reconciles actual vs estimated
 
@@ -52,6 +55,7 @@ DefaultBudgetChecker.configureTenant(tenantId, 'free' | 'enterprise', customLimi
 **Location:** [`packages/ai/src/policy/budgets.ts:237-372`](packages/ai/src/policy/budgets.ts:237)
 
 **Behavior:**
+
 - Atomic compare-and-swap to prevent race conditions
 - Per-tenant mutex locking
 - Window-based limits with automatic reset
@@ -61,6 +65,7 @@ DefaultBudgetChecker.configureTenant(tenantId, 'free' | 'enterprise', customLimi
 **Location:** [`packages/cli/src/lib/tools.ts:14-180`](packages/cli/src/lib/tools.ts:14)
 
 **Functions:**
+
 - `checkBudget(tenantId, estimatedCostCents)` - Atomic budget check
 - `recordBudgetUsage(tenantId, actualCostCents)` - Record actual usage
 - `setCLIBudgetTier(tenantId, tier)` - Configure tenant tier

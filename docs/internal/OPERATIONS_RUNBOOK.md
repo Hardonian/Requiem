@@ -82,6 +82,7 @@ curl /api/health            # API layer
 ### Startup Troubleshooting
 
 **Database Connection Failed:**
+
 ```bash
 # Check connection string
 echo $DATABASE_URL
@@ -94,6 +95,7 @@ pnpm cli db:pool:status
 ```
 
 **CAS Storage Unavailable:**
+
 ```bash
 # Check mount point
 df -h /data/cas
@@ -106,6 +108,7 @@ requiem cas verify --all
 ```
 
 **Native Engine Won't Start:**
+
 ```bash
 # Check binary integrity
 ./build/requiem version
@@ -212,18 +215,21 @@ pnpm cli circuit-breaker:export > /backup/cb_$(date +%Y%m%d).json
 ### Critical Alerts
 
 **P0 Alerts (Page immediately):**
+
 - Determinism violation detected
 - CAS integrity failure
 - Database connectivity loss
 - All regions down
 
 **P1 Alerts (Respond within 30 min):**
+
 - Error rate >1%
 - P99 latency >1s
 - Circuit breaker open
 - Single region down
 
 **P2 Alerts (Respond within 2 hours):**
+
 - Error rate >0.1%
 - P99 latency >500ms
 - Elevated cost anomaly score
@@ -255,6 +261,7 @@ P2:
 ### Custom Metrics Queries
 
 **Prometheus:**
+
 ```promql
 # Request rate
 rate(requiem_requests_total[5m])
@@ -273,6 +280,7 @@ sum by (tenant_id) (requiem_cost_total)
 ```
 
 **Datadog:**
+
 ```
 # Engine OOM rate
 sum:requiem.engine.oom{*}.as_rate()
@@ -301,6 +309,7 @@ avg:requiem.cas.read_latency{*}
 **Detection:** Alert fires for determinism violation
 
 **Response:**
+
 ```bash
 # 1. IMMEDIATE: Stop executions
 curl -X POST /api/admin/flags/execution_pause -d '{"value": true}'
@@ -330,6 +339,7 @@ curl -X POST /api/admin/flags/execution_pause -d '{"value": false}'
 ```
 
 **Communication:**
+
 - Immediate: Post to #incidents-p0
 - Within 15 min: Update status page
 - Within 1 hour: Customer notification if affected
@@ -339,6 +349,7 @@ curl -X POST /api/admin/flags/execution_pause -d '{"value": false}'
 **Detection:** CAS integrity check fails
 
 **Response:**
+
 ```bash
 # 1. Stop CAS writes
 kubectl scale deployment requiem --replicas=0
@@ -366,6 +377,7 @@ kubectl scale deployment requiem --replicas=3
 **Detection:** Health check fails for database
 
 **Response:**
+
 ```bash
 # 1. Check connection pool
 pnpm cli db:pool:status
@@ -391,6 +403,7 @@ curl /api/health
 **Detection:** Multiple circuit breakers open
 
 **Response:**
+
 ```bash
 # 1. Identify affected services
 pnpm cli circuit-breaker:list
@@ -413,6 +426,7 @@ watch 'pnpm cli circuit-breaker:list'
 **Detection:** Cost anomaly score >0.7
 
 **Response:**
+
 ```bash
 # 1. Identify anomalous tenant
 pnpm cli cost:anomalies --window 1h
@@ -497,6 +511,7 @@ What can we do better next time?
 ### Manual Rotation Procedure
 
 **API Keys:**
+
 ```bash
 # 1. Generate new key
 NEW_KEY=$(pnpm cli api-key:generate --name "rotation-$(date +%Y%m%d)")
@@ -515,6 +530,7 @@ pnpm cli api-key:revoke --id <old_key_id>
 ```
 
 **Database Credentials:**
+
 ```bash
 # 1. Create new user in PostgreSQL
 psql $DATABASE_URL -c "CREATE USER requiem_new WITH PASSWORD '...'"
@@ -533,6 +549,7 @@ psql $DATABASE_URL -c "DROP USER requiem_old"
 ```
 
 **JWT Signing Keys:**
+
 ```bash
 # 1. Generate new key pair
 pnpm cli jwt:key:generate --alg RS256
@@ -618,6 +635,7 @@ pg_restore backup_file.sql
 ### Migration Troubleshooting
 
 **Migration Stuck:**
+
 ```bash
 # Check for locks
 pnpm cli db:locks
@@ -633,6 +651,7 @@ pnpm cli db:unlock --force
 ```
 
 **Migration Failed:**
+
 ```bash
 # Check migration log
 pnpm cli db:log --last 10
@@ -684,6 +703,7 @@ curl -X POST /api/admin/flags/maintenance -d '{"value": false}'
 #### Critical: Data Breach Suspected
 
 **Immediate (0-15 min):**
+
 ```bash
 # 1. Assemble security team
 # Page: security-oncall, CTO, legal
@@ -704,6 +724,7 @@ curl -X POST /api/admin/flags/maintenance -d '{"value": false}'
 ```
 
 **Containment (15-60 min):**
+
 ```bash
 # 1. Identify attack vector
 # - Review logs for entry point
@@ -722,6 +743,7 @@ curl -X POST /api/admin/flags/maintenance -d '{"value": false}'
 ```
 
 **Investigation (1-24 hours):**
+
 ```bash
 # 1. Scope the breach
 # - What data was accessed?
@@ -740,6 +762,7 @@ curl -X POST /api/admin/flags/maintenance -d '{"value": false}'
 ```
 
 **Recovery (1-7 days):**
+
 ```bash
 # 1. Clean systems
 # - Rebuild from known-good
@@ -758,6 +781,7 @@ curl -X POST /api/admin/flags/maintenance -d '{"value": false}'
 ```
 
 **Post-Incident:**
+
 ```bash
 # 1. Customer notification (if required)
 # - Within 72 hours for GDPR
@@ -775,6 +799,7 @@ curl -X POST /api/admin/flags/maintenance -d '{"value": false}'
 #### High: Unauthorized Access Detected
 
 **Response:**
+
 ```bash
 # 1. Identify source
 # - IP address
@@ -803,6 +828,7 @@ pnpm cli user:force-password-reset --id <user_id>
 #### Medium: Misconfiguration Discovered
 
 **Response:**
+
 ```bash
 # 1. Assess risk
 # - What data is exposed?
@@ -842,10 +868,10 @@ cat evidence_* | requiem digest --stdin > evidence_hashes.txt
 
 | Role | Contact | Escalation |
 |------|---------|------------|
-| Security On-Call | security@readylayer.com | +1-XXX-XXX-XXXX |
-| CTO | cto@readylayer.com | +1-XXX-XXX-XXXX |
-| Legal | legal@readylayer.com | +1-XXX-XXX-XXXX |
-| CEO | ceo@readylayer.com | +1-XXX-XXX-XXXX |
+| Security On-Call | <security@readylayer.com> | +1-XXX-XXX-XXXX |
+| CTO | <cto@readylayer.com> | +1-XXX-XXX-XXXX |
+| Legal | <legal@readylayer.com> | +1-XXX-XXX-XXXX |
+| CEO | <ceo@readylayer.com> | +1-XXX-XXX-XXXX |
 
 ---
 

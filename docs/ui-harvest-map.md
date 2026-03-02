@@ -9,6 +9,7 @@
 ## Source Inventory
 
 ### ReadyLayer (Primary Source)
+
 - **Framework:** Next.js 16 + React 19
 - **Styling:** Tailwind CSS 3.4 + CSS Variables
 - **Primitives:** Radix UI + class-variance-authority
@@ -16,6 +17,7 @@
 - **Charts:** Recharts
 
 ### Reach/apps/arcade (Secondary Source)
+
 - **Framework:** Next.js + React
 - **Domain:** Operational dashboards, execution timelines, governance UI
 - **Value:** Complex data visualization patterns, admin interfaces
@@ -71,6 +73,7 @@
 | Radius | --radius-sm/md/lg/xl | /packages/ui/src/styles/tokens.css | Consistent rounding |
 
 ### Themes Supported
+
 1. **Light Mode** (default) - Professional IDE-grade palette
 2. **Dark Mode** - Separately tuned, not inverted
 3. **High Contrast** (.hc class) - Maximum accessibility
@@ -96,6 +99,7 @@
 ## Dependencies Map
 
 ### Required Peer Dependencies
+
 ```json
 {
   "react": "^18.0.0 || ^19.0.0",
@@ -105,6 +109,7 @@
 ```
 
 ### Core Dependencies
+
 ```json
 {
   "@radix-ui/react-slot": "^1.0.2",
@@ -116,6 +121,7 @@
 ```
 
 ### Optional Dependencies
+
 ```json
 {
   "framer-motion": "^11.0.0",    // For animation variants
@@ -129,18 +135,21 @@
 ## Enterprise Gating
 
 ### OSS Safe (Default Export)
+
 - All primitive components
 - All layout components
 - All data display components
 - Utility functions
 
 ### Enterprise Only (/enterprise subpath)
+
 - TenantSwitcher
 - RoleBadge
 - AuditLogViewer
 - BillingMeter
 
 ### Boundary Enforcement
+
 ```bash
 # Verify no enterprise leakage
 npm run verify:boundaries
@@ -200,12 +209,14 @@ These components have **extension hooks** in place - future agents can harvest t
 ## Migration Path
 
 ### For Reach
+
 1. Install: `npm install @requiem/ui`
 2. Replace: `import { Button } from '@/components/ui/button'`
 3. With: `import { Button } from '@requiem/ui'`
 4. Tokens: Import `@requiem/ui/styles` in layout
 
 ### For ReadyLayer
+
 1. Install: `npm install @requiem/ui`
 2. Gradual migration of shared components
 3. Keep app-specific components local

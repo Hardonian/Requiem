@@ -61,13 +61,17 @@ Route (app)                                 Size  First Load JS
 ## Quick Wins Applied
 
 ### 1. Error Boundary Addition
+
 Added `ready-layer/src/app/app/error.tsx` for dashboard-specific error recovery.
 
 ### 2. Dead Code
+
 No dead imports/assets detected in scanned files.
 
 ### 3. Lazy Loading
+
 CLI already implements lazy loading:
+
 - Heavy modules loaded on-demand
 - Help/version have zero heavy imports
 - Logger loaded only on error paths
@@ -97,6 +101,7 @@ CLI already implements lazy loading:
 ## No Regressions Detected
 
 Compared to baseline:
+
 - ✅ No large bundle additions
 - ✅ No duplicated dependencies
 - ✅ No new client components
@@ -109,6 +114,7 @@ Compared to baseline:
 Performance Status: **EXCELLENT**
 
 No action required. System is optimized with:
+
 - Minimal bundle sizes
 - Proper Suspense boundaries
 - Lazy loaded CLI modules

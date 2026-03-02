@@ -14,17 +14,20 @@ The Semantic Ledger UI has proper loading, empty, and error states. However, it 
 ## UI States
 
 ### Loading State
+
 - Skeleton placeholders for summary cards
 - Pulsing blocks for state list
 - No layout shift on load
 
 ### Empty State
+
 - Icon illustration
 - "No Semantic States" heading
 - Description text
 - CLI command example for creating first state
 
 ### Error State
+
 - Red alert icon
 - Error message display
 - Retry button

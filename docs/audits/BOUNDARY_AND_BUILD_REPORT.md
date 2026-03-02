@@ -27,6 +27,7 @@ All boundary checks pass. No OSS/Enterprise leaks detected. Build is optimized w
 **Function:** Checks that UI package imports don't escape package boundaries
 
 **Results:**
+
 ```
 ✓ All checks passed!
 - 23 TypeScript files scanned
@@ -58,6 +59,7 @@ Both routes show UI with "Pro" badge; no functional code loaded in OSS build.
 ### Dependencies Audit
 
 **Total Dependencies:**
+
 - Root: 5 dev dependencies
 - CLI: 4 runtime, 6 dev
 - ready-layer: 27 runtime, 22 dev

@@ -25,26 +25,31 @@
 ## 2. Five Structural Weaknesses
 
 ### W1: No Merkleized Event Log Segments
+
 - **Current:** Event log uses linear prev-hash chain; verifying a suffix requires O(n) reads
 - **Impact:** Slow partial verification for large logs; no segment-level proof
 - **Exploitability:** Attacker could truncate log and forge a valid tail if they control segment boundaries
 
 ### W2: No Receipt Transparency Tree
+
 - **Current:** Receipts are individual hash-linked objects; no aggregate root
 - **Impact:** Cannot prove to third parties that a specific receipt exists in the tenant's audit trail
 - **Exploitability:** Tenant could claim receipt doesn't exist; no external verifiability
 
 ### W3: No Deterministic Build Verification
+
 - **Current:** Build artifacts may vary across clean builds
 - **Impact:** Reproducibility claims lack cryptographic enforcement
 - **Exploitability:** Compromised build environment could inject non-determinism
 
 ### W4: No Engine Fingerprinting in Receipts
+
 - **Current:** Receipt contains version info but not cryptographic binding to engine state
 - **Impact:** Replays could use different engine versions and produce different results
 - **Exploitability:** Version drift between original execution and replay
 
 ### W5: No Cryptographic Cost Ledger
+
 - **Current:** Economic metering uses in-memory counters; no cryptographic proof of billing lineage
 - **Impact:** Tenants cannot verify billing accuracy; disputes require manual audit
 - **Exploitability:** Metering data could be tampered with; no auditability
@@ -54,26 +59,31 @@
 ## 3. Five Structural Advantages
 
 ### A1: BLAKE3 Domain-Separated Hashing
+
 - Every content type uses domain prefix: `"evt:"`, `"cas:"`, `"rcpt:"`, `"plan:"`
 - Prevents collision across content types
 - 32-byte digests (64 hex chars) for compact storage
 
 ### A2: Prev-Hash Chain Event Log
+
 - Every event references previous event's hash
 - Tamper-evident: any modification breaks chain
 - Logical time tracking independent of wall-clock
 
 ### A3: Policy Pipeline as Primary Execution Path
+
 - Every execution MUST pass through gate → capabilities → guardrails → budget
 - Cannot bypass policy by reaching tools directly
 - Adversarial test suite with 20+ attack vectors
 
 ### A4: Version Manifest with ABI Enforcement
+
 - Engine ABI, hash algorithm, CAS format, protocol framing all tracked
 - Runtime compatibility check fails fast on mismatch
 - Prevents silent format drift
 
 ### A5: Dual-Hash CAS with Integrity Verification
+
 - BLAKE3 (fast) + SHA-256 (interoperable) both stored
 - Every read verifies stored blob hash
 - Fail-closed: corruption → empty result, never corrupted data
@@ -83,7 +93,9 @@
 ## 4. Five Concrete Upgrades to Widen Moat
 
 ### Upgrade 1: Merkleized Event Log Segments
+
 **Implementation:**
+
 - Segment event log into blocks of N events (e.g., 1024)
 - Compute Merkle root per segment from event hashes
 - Store segment roots in segment header; chain segment roots linearly
@@ -95,7 +107,9 @@
 ---
 
 ### Upgrade 2: Receipt Transparency Tree
+
 **Implementation:**
+
 - Aggregate all receipts for a tenant into a Merkle tree
 - Anchor root in event log at configurable intervals (e.g., every 1000 receipts)
 - Expose root via `receipt_tree_root` field in tenant metadata
@@ -107,7 +121,9 @@
 ---
 
 ### Upgrade 3: Deterministic Build Artifact Hashing
+
 **Implementation:**
+
 - Add CMake flag `REQUIEM_REPRODUCIBLE_BUILD=ON` using SOURCE_DATE_EPOCH
 - Compute build artifact hash (excluding timestamps)
 - Add test: clean build → identical hash → PASS
@@ -119,7 +135,9 @@
 ---
 
 ### Upgrade 4: Engine Fingerprinting in Receipts
+
 **Implementation:**
+
 - Embed `engine_fingerprint = H(kernel_version || schema_version || hash_algo_version)` in receipt
 - Verify fingerprint matches on replay
 - Fail replay if fingerprint mismatch detected
@@ -131,7 +149,9 @@
 ---
 
 ### Upgrade 5: Cryptographic Cost Ledger
+
 **Implementation:**
+
 - Store cost records in CAS (not in-memory)
 - Each cost receipt references previous cost receipt hash (hash-linked per tenant)
 - Compute tenant-level cost root: `cost_root = H(previous_cost_root || new_cost_record)`

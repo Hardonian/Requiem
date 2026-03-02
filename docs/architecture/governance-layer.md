@@ -115,17 +115,20 @@ drift_analysis_unit: 1
 ### Symmetry Metrics
 
 #### Technical Symmetry
+
 - **failure_recurrence_rate**: Signals per category / total signals
 - **drift_severity_score**: Average severity_score from drift events
 - **replay_mismatch_rate**: mismatches / total replays
 - **time_to_green**: Average cycles to pass verification
 
 #### Strategic Symmetry
+
 - **rollback_frequency**: Rollbacks per period
 - **skill_coverage_ratio**: Skills with coverage / total signals
 - **instruction_coverage_score**: Verified instructions / total instructions
 
 #### Economic Symmetry
+
 - **burn_rate**: Total cost_units per period
 - **cost_per_verified_run**: Total cost / successful runs
 - **replay_efficiency_ratio**: Successful replays / total replays
@@ -140,6 +143,7 @@ reach learn --window=7d --format=table|json
 ```
 
 Outputs:
+
 - Top signals
 - Diagnoses with confidence scores
 - Proposed patches
@@ -153,12 +157,14 @@ reach realign <patch-id>
 ```
 
 Behavior:
+
 - Creates branch `realign/<patch-id>`
 - Applies patch diff
 - Runs full verify suite
 - Marks patch status = applied
 
 Fails if:
+
 - CI fails
 - Determinism mismatch
 - Replay mismatch
@@ -170,6 +176,7 @@ reach pivot plan <name>
 ```
 
 Creates:
+
 - Branch strategy document
 - Deprecated modules list
 - Migration steps
@@ -182,6 +189,7 @@ reach rollback <sha|release>
 ```
 
 Creates:
+
 - Rollback branch
 - Reset to target
 - Verification report
@@ -234,6 +242,7 @@ JSON schemas for validation with version tracking.
 ## CI Enforcement
 
 Required CI checks:
+
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm build`
@@ -245,6 +254,7 @@ Required CI checks:
 - `pnpm verify:economics`
 
 Fails on:
+
 - Non-deterministic scoring
 - Missing rollback instructions
 - Invalid registry entries
@@ -253,16 +263,19 @@ Fails on:
 ## Verification
 
 Run full suite:
+
 ```bash
 pnpm verify:ci
 ```
 
 Verify determinism:
+
 ```bash
 pnpm verify:determinism
 ```
 
 Verify tenant isolation:
+
 ```bash
 pnpm verify:tenant-isolation
 ```

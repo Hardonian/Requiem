@@ -35,6 +35,7 @@ This document validates that claim with technical specificity.
 **CI Equivalent:** Run ID is sequential integer or UUID - time-based, not content-based.
 
 **Replication Cost:** Would need to:
+
 - Hash workflow inputs
 - Store hash as primary key
 - Verify hash on every read
@@ -48,6 +49,7 @@ This document validates that claim with technical specificity.
 **CI Equivalent:** Text diff in logs. No semantic classification.
 
 **Replication Cost:** Would need to:
+
 - Parse structured changes
 - Implement classification rules
 - Store classification metadata
@@ -61,6 +63,7 @@ This document validates that claim with technical specificity.
 **CI Equivalent:** Test pass/fail boolean.
 
 **Replication Cost:** Would need to:
+
 - Track 6+ verification dimensions
 - Compute weighted score
 - Store score history
@@ -74,6 +77,7 @@ This document validates that claim with technical specificity.
 **CI Equivalent:** Job dependencies (structural, not semantic).
 
 **Replication Cost:** Would need to:
+
 - Track semantic relationships
 - Store transition reasons
 - Build graph query capabilities
@@ -87,6 +91,7 @@ This document validates that claim with technical specificity.
 **CI Equivalent:** Run full test suite (no simulation).
 
 **Replication Cost:** Would need to:
+
 - Build impact analysis engine
 - Categorize risks
 - Predict without execution
@@ -115,6 +120,7 @@ By the time you've built these, you've reimplemented the core of SSM.
 See: `docs/audits/DIFFERENTIATION_PROOF.md`
 
 Steps:
+
 1. Create descriptors with controlled changes
 2. Run `reach state genesis` for both
 3. Run `reach state diff` to see drift taxonomy

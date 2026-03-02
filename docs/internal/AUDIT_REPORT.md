@@ -44,6 +44,7 @@ This audit identified **CRITICAL** tenant isolation vulnerabilities in the Requi
 **Lines:** 68-90
 
 **Evidence:**
+
 ```typescript
 // Line 68-75: Dev mode accepts any tenant from header
 if (!process.env.REQUIEM_AUTH_SECRET) {
@@ -69,6 +70,7 @@ return {
 **Attack Vector:** An authenticated attacker can send any `X-Tenant-ID` header value to access data from other tenants.
 
 **Recommended Fix:**
+
 ```typescript
 // Derive tenant_id from validated JWT claims, not headers
 const payload = await verifyJWT(token, process.env.JWT_SECRET!);
@@ -84,6 +86,7 @@ const tenant_id = payload.tenant_id; // From token claims
 **Lines:** 359-398, 401-439
 
 **Evidence:**
+
 ```sql
 -- Line 359-365: RPC function accepts tenant_id as parameter
 CREATE OR REPLACE FUNCTION vector_search(
@@ -98,6 +101,7 @@ CREATE OR REPLACE FUNCTION vector_search(
 **Issue:** The RPC functions `vector_search`, `search_documents_text`, and `log_vector_query` all accept `tenant_id` as a parameter without validating that the calling user belongs to that tenant.
 
 **Recommended Fix:**
+
 ```sql
 -- Add auth.uid() validation to RPC functions
 CREATE OR REPLACE FUNCTION vector_search(
@@ -139,6 +143,7 @@ $$;
 **Issue:** While RLS policies exist on the tables, RPC functions bypass RLS when called directly. The migration creates functions that run with SECURITY DEFINER privilege (implied), which bypasses RLS.
 
 **Recommended Fix:**
+
 ```sql
 -- Add SECURITY DEFINER and explicit tenant validation
 CREATE OR REPLACE FUNCTION vector_search(...)
@@ -165,6 +170,7 @@ BEGIN
 **Lines:** 68-75
 
 **Evidence:**
+
 ```typescript
 if (!process.env.REQUIEM_AUTH_SECRET) {
   // Dev mode: accept any token, derive tenant from header
@@ -179,6 +185,7 @@ if (!process.env.REQUIEM_AUTH_SECRET) {
 **Issue:** In development mode, any token is accepted and any tenant can be accessed. This is a security risk if accidentally deployed to production.
 
 **Recommended Fix:**
+
 ```typescript
 // Add explicit dev mode flag check
 if (process.env.NODE_ENV === 'development' && !process.env.REQUIEM_AUTH_SECRET) {
@@ -200,6 +207,7 @@ if (process.env.NODE_ENV === 'development' && !process.env.REQUIEM_AUTH_SECRET) 
 **Lines:** 219-268
 
 **Evidence:**
+
 ```typescript
 // No tenant_id column in any table
 dbInstance.exec(`
@@ -232,6 +240,7 @@ dbInstance.exec(`
 **Lines:** 25-29
 
 **Evidence:**
+
 ```typescript
 {
   name: 'tenant_auth_configured',

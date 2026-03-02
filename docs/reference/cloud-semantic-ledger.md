@@ -56,6 +56,7 @@ Clicking a state opens the detail panel with:
 #### Descriptor Section
 
 Structured display of:
+
 - Model ID and version
 - Prompt template ID and version
 - Policy snapshot ID (truncated)
@@ -66,6 +67,7 @@ Structured display of:
 #### Transitions Section
 
 List of transitions to/from the state showing:
+
 - Timestamp
 - Integrity delta (with +/- indicator)
 - Reason for transition
@@ -91,6 +93,7 @@ If data loading fails:
 ### Loading State
 
 Skeleton placeholders while loading:
+
 - Pulsing rectangles for summary cards
 - Pulsing blocks for state list
 
@@ -119,6 +122,7 @@ Drift categories are displayed as color-coded tags:
 ### Loading/Empty/Error States
 
 Every UI state is handled:
+
 - **Loading**: Skeleton placeholders
 - **Empty**: Helpful CLI command example
 - **Error**: Clear message with retry action
@@ -126,6 +130,7 @@ Every UI state is handled:
 ### Theme Support
 
 The UI uses:
+
 - Slate color palette (neutral grays)
 - White cards on light background
 - Purple accents for SSM branding

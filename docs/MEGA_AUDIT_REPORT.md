@@ -22,6 +22,7 @@
 **Issue**: RBAC uses `system_clock::now()` for capability expiration verification. If time is used in the critical path for capability verification, it can lead to non-deterministic behavior.
 
 **Reproduction**:
+
 ```bash
 cd c:/Users/scott/GitHub/Requiem/build/Release
 requiem_tests.exe
@@ -46,6 +47,7 @@ requiem_tests.exe
 **Issue**: Mock API responses use non-deterministic IDs. This breaks determinism guarantees.
 
 **Reproduction**:
+
 ```bash
 # Run the same API call twice and compare response hashes
 curl http://localhost:3000/api/policies | sha256
@@ -69,6 +71,7 @@ curl http://localhost:3000/api/policies | sha256
 **Root Cause**: The `compact()` function at line 487-488 calls `load_index()` if `index_loaded_` is false. This may reload from disk, which still has all 3 entries (remove only updates memory, not disk).
 
 **Reproduction**:
+
 ```bash
 cd c:/Users/scott/GitHub/Requiem/build/Release
 requiem_tests.exe
@@ -92,6 +95,7 @@ requiem_tests.exe
 | All CLI commands fail | `ERR_MODULE_NOT_FOUND: Cannot find module 'packages/cli/dist/commands/decide'` |
 
 **Reproduction**:
+
 ```bash
 cd c:/Users/scott/GitHub/Requiem
 pnpm run verify:contracts
@@ -120,6 +124,7 @@ pnpm run verify:contracts
 **Root Cause**: CTest is looking in the wrong path - executables are in `build/Release/` but CTest expects them in `build/`
 
 **Reproduction**:
+
 ```bash
 cd c:/Users/scott/GitHub/Requiem
 pnpm run test
@@ -139,6 +144,7 @@ pnpm run test
 | `verify_determinism.ts` | File not found |
 
 **Reproduction**:
+
 ```bash
 cd c:/Users/scott/GitHub/Requiem
 pnpm run verify:determinism
@@ -172,12 +178,14 @@ pnpm run verify:determinism
 
 **Finding**: Extensive use of `console.log/error/warn` in production code
 
-**Evidence**: 
+**Evidence**:
+
 - `verify-no-console.ts` script exists to detect this violation
 - `codemod-console-to-logger.ts` exists to fix it
 - But many violations remain
 
 **Reproduction**:
+
 ```bash
 cd c:/Users/scott/GitHub/Requiem
 npx tsx scripts/verify-no-console.ts
@@ -193,6 +201,7 @@ npx tsx scripts/verify-no-console.ts
 ### 4.1 Secret Leakage (LOW)
 
 **Finding**: No obvious secret leakage detected in code review. The codebase has:
+
 - Environment validation in `ready-layer/src/lib/env.ts`
 - Proper error handling that doesn't leak stack traces in AI errors
 - Auth middleware with proper 401/403 responses

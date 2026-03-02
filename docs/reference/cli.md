@@ -13,6 +13,7 @@ pnpm add -g @requiem/cli
 ```
 
 The CLI provides two binary aliases:
+
 - `reach` - Short form (recommended)
 - `requiem` - Full name
 
@@ -36,6 +37,7 @@ The CLI provides two binary aliases:
 ### Control Commands
 
 #### `reach run <name> [input]`
+
 Execute a tool with determinism proof.
 
 ```bash
@@ -44,12 +46,14 @@ reach run system.echo "hello" --json
 ```
 
 **Options:**
+
 - `--tenant <id>` - Run as specific tenant
 - `--dry-run` - Validate without executing
 
 ---
 
 #### `reach verify <hash>`
+
 Verify execution determinism against stored proof.
 
 ```bash
@@ -60,6 +64,7 @@ reach verify sha256:abc123... --json
 ---
 
 #### `reach replay run <id>`
+
 Replay an execution with verification.
 
 ```bash
@@ -70,6 +75,7 @@ reach replay run exec_123abc --verify
 ---
 
 #### `reach replay diff <run1> <run2>`
+
 Compare two executions for determinism drift.
 
 ```bash
@@ -82,6 +88,7 @@ reach replay diff exec_abc exec_def --format json
 ### Observability Commands
 
 #### `reach stats`
+
 View determinism rate, policy events, replay state.
 
 ```bash
@@ -91,6 +98,7 @@ reach stats --minimal
 ```
 
 **Output:**
+
 ```json
 {
   "total_decisions": 1523,
@@ -103,6 +111,7 @@ reach stats --minimal
 ---
 
 #### `reach status`
+
 System health and enforcement state.
 
 ```bash
@@ -111,6 +120,7 @@ reach status --json
 ```
 
 **Output:**
+
 ```json
 {
   "healthy": true,
@@ -124,6 +134,7 @@ reach status --json
 ---
 
 #### `reach trace <id>`
+
 Visualize decision trace.
 
 ```bash
@@ -136,6 +147,7 @@ reach trace exec_123abc --format dot
 ### Proof Surface Commands
 
 #### `reach diff <runA> <runB>`
+
 Deterministic diff between runs.
 
 ```bash
@@ -146,6 +158,7 @@ reach diff run_abc run_def --format json
 ---
 
 #### `reach lineage <runId>`
+
 Show run ancestry graph.
 
 ```bash
@@ -156,6 +169,7 @@ reach lineage run_abc --depth=5
 ---
 
 #### `reach drift`
+
 Analyze behavior drift over time.
 
 ```bash
@@ -166,6 +180,7 @@ reach drift --since=run_abc --window=24h
 ---
 
 #### `reach explain <runId>`
+
 Generate deterministic explanation.
 
 ```bash
@@ -178,6 +193,7 @@ reach explain run_abc --format md
 ### Governance Commands
 
 #### `reach learn`
+
 Show learning signals and diagnoses.
 
 ```bash
@@ -188,6 +204,7 @@ reach learn --window=7d --format json
 ---
 
 #### `reach symmetry`
+
 Show symmetry metrics.
 
 ```bash
@@ -198,6 +215,7 @@ reach symmetry --economics --json
 ---
 
 #### `reach economics`
+
 Show economic metrics.
 
 ```bash
@@ -211,6 +229,7 @@ reach economics --forecast
 ### Admin Commands
 
 #### `reach doctor`
+
 Validate environment setup.
 
 ```bash
@@ -220,6 +239,7 @@ reach doctor --fix  # Run repairs
 ```
 
 **Checks:**
+
 - Database integrity
 - CAS consistency
 - Engine availability
@@ -229,6 +249,7 @@ reach doctor --fix  # Run repairs
 ---
 
 #### `reach init`
+
 Initialize configuration.
 
 ```bash
@@ -240,6 +261,7 @@ reach init --force
 ---
 
 #### `reach backup`
+
 Dump database to JSON.
 
 ```bash
@@ -250,6 +272,7 @@ reach backup --compress
 ---
 
 #### `reach nuke`
+
 Clear database state (destructive).
 
 ```bash
@@ -262,6 +285,7 @@ reach nuke --force  # Skip confirmation
 ### Enterprise Commands
 
 #### `reach decide evaluate --junction <id>`
+
 Evaluate a decision for a junction.
 
 ```bash
@@ -271,6 +295,7 @@ reach decide evaluate --junction=authz_check --context='{"user":"alice"}'
 ---
 
 #### `reach junctions scan`
+
 Scan for junctions.
 
 ```bash
@@ -281,6 +306,7 @@ reach junctions scan --since=24h --format json
 ---
 
 #### `reach agent serve --tenant <id>`
+
 Start MCP stdio server.
 
 ```bash

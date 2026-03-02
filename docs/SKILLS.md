@@ -4,16 +4,17 @@ The Requiem Skills system provides a framework for creating versioned, auditable
 
 ## Key Concepts
 
--   **Skill Definition**: A structured object that defines a skill's name, version, description, required tools, and the steps to execute.
--   **Skill Step**: A single action within a skill. It can be a call to a tool, a prompt to an LLM, or an assertion.
--   **Skill Registry**: A central place to register and retrieve skills.
--   **Skill Runner**: The engine that executes the steps of a skill in sequence, handling inputs, outputs, and errors.
+- **Skill Definition**: A structured object that defines a skill's name, version, description, required tools, and the steps to execute.
+- **Skill Step**: A single action within a skill. It can be a call to a tool, a prompt to an LLM, or an assertion.
+- **Skill Registry**: A central place to register and retrieve skills.
+- **Skill Runner**: The engine that executes the steps of a skill in sequence, handling inputs, outputs, and errors.
 
 ## Defining a Skill
 
 Skills are defined using the `SkillDefinition` interface and registered with the `registerSkill` function.
 
 **Example Skill Definition:**
+
 ```typescript
 import { registerSkill } from './registry';
 
@@ -53,6 +54,6 @@ Skills are executed by the `runSkill` function, which takes an `InvocationContex
 
 The following skills are available out-of-the-box:
 
--   `trace_summary`: Summarizes a canonical log trace.
--   `root_cause_investigation`: Investigates a junction to identify the root cause.
--   `policy_decision_explain`: Explains a policy decision.
+- `trace_summary`: Summarizes a canonical log trace.
+- `root_cause_investigation`: Investigates a junction to identify the root cause.
+- `policy_decision_explain`: Explains a policy decision.

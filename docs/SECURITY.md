@@ -87,6 +87,7 @@ audit:<entry>         -> Audit log entry digest
 ```
 
 This prevents:
+
 - Request/result collision attacks
 - CAS content spoofing
 - Cross-context confusion
@@ -95,16 +96,19 @@ This prevents:
 ### Fail-Closed Behavior
 
 **Default:** If BLAKE3 is unavailable:
+
 1. Return `hash_unavailable_blake3` error
 2. Do not execute command
 3. Do not use fallback hash
 
 **Opt-in Fallback:**
+
 ```bash
 requiem --allow-hash-fallback exec run --request req.json --out out.json
 ```
 
 When fallback is enabled:
+
 - `compat_warning` is set to true
 - `validate-replacement` will fail
 - Hash primitive reported as actual used
@@ -114,6 +118,7 @@ When fallback is enabled:
 ### Linux
 
 **Current:**
+
 - Process groups for signal management
 - Path-based workspace confinement
 - rlimits (CPU, memory, FDs) via setrlimit
@@ -121,6 +126,7 @@ When fallback is enabled:
 - Network namespace isolation hooks
 
 **Capabilities:**
+
 ```json
 {
   "sandbox_applied": {
@@ -134,6 +140,7 @@ When fallback is enabled:
 ### Windows
 
 **Current:**
+
 - Job Objects with kill-on-close
 - Timeout enforcement
 - Path-based workspace confinement
@@ -165,6 +172,7 @@ When fallback is enabled:
 ### Prompt Injection Protection
 
 **Phase 3A Implementation:**
+
 - Input sanitization filter
 - Pattern detection for injection attempts
 - Rate limiting on suspicious inputs
@@ -192,6 +200,7 @@ When fallback is enabled:
 ### Circuit Breakers
 
 **Phase 4 Implementation:**
+
 - Persistent circuit breaker state
 - Automatic recovery with exponential backoff
 - Per-tenant circuit isolation
@@ -202,6 +211,7 @@ When fallback is enabled:
 ### Execution Logs
 
 JSONL format with:
+
 - Request/result digests
 - Timestamp (wall clock for audit)
 - Policy applied
@@ -211,6 +221,7 @@ JSONL format with:
 ### Merkle Audit Chain
 
 **Phase 1B Implementation:**
+
 ```json
 {
   "merkle_root": "abc123...",
@@ -222,6 +233,7 @@ JSONL format with:
 ```
 
 Properties:
+
 - Tamper-evident: Each entry includes hash of previous
 - Verifiable: `requiem audit verify --chain audit.log`
 - Immutable: Append-only log structure
@@ -236,6 +248,7 @@ Properties:
 ### Signed Results
 
 **Phase 1B Implementation:**
+
 ```json
 {
   "result_digest": "abc...",
@@ -292,32 +305,38 @@ Properties:
 ## Phase 1-4 Security Features
 
 ### Phase 1A: JWT Validation
+
 - MCP transport JWT validation
 - Token expiry enforcement
 - Claims verification
 
 ### Phase 1B: Signed Bundles & Seccomp
+
 - Merkle root computation
 - Seccomp-BPF syscall filtering
 - Signed provenance bundles
 - Audit persistence with Merkle chain
 
 ### Phase 2A: DB-Backed Budgets
+
 - Persistent budget tracking
 - Cross-instance budget coordination
 - Cost anomaly detection with statistical monitoring
 
 ### Phase 2B: Tool Output Limits
+
 - Enforced at tool registry level
 - Configurable per-tool limits
 - Prevention of output-based DoS
 
 ### Phase 3A: MCP Policy Enforcement
+
 - Policy enforcement at MCP entry point
 - Correlation ID generation for tracing
 - Prompt injection filter with pattern detection
 
 ### Phase 4: Infrastructure Security
+
 - Circuit breaker persistence
 - Database migration runner with verification
 - Automated credential rotation workflow
@@ -326,7 +345,7 @@ Properties:
 
 Report security issues to the maintainers. Do not open public issues for security vulnerabilities.
 
-Email: security@readylayer.com
+Email: <security@readylayer.com>
 
 ## References
 

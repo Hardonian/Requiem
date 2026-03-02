@@ -13,6 +13,7 @@ The Model Context Protocol (MCP) for Requiem provides a standardized interface f
 Returns the operational status of the MCP server.
 
 **Response (200 OK):**
+
 ```json
 {
   "status": "ok",
@@ -25,6 +26,7 @@ Returns the operational status of the MCP server.
 Lists all available tools in the registry. Requires authentication.
 
 **Response (200 OK):**
+
 ```json
 {
   "tools": [
@@ -43,6 +45,7 @@ Lists all available tools in the registry. Requires authentication.
 Invokes a tool with the given input, subject to policy gating. Requires authentication.
 
 **Request Body:**
+
 ```json
 {
   "toolName": "datastore_decision_findById",
@@ -53,6 +56,7 @@ Invokes a tool with the given input, subject to policy gating. Requires authenti
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "result": {
@@ -63,6 +67,7 @@ Invokes a tool with the given input, subject to policy gating. Requires authenti
 ```
 
 **Error Responses:**
+
 - **400 Bad Request:** Input fails schema validation.
 - **401 Unauthorized:** Invalid or missing authentication.
 - **403 Forbidden:** Policy gate denied the invocation.
@@ -140,6 +145,7 @@ const result = await invokeTool(ctx, 'my_tool', { param: 'value' });
 ## Policy Gating
 
 All tool invocations are gated by the policy system which enforces:
+
 - **Tenant Isolation**: Tools scoped to tenants cannot be accessed across tenant boundaries
 - **RBAC**: Required capabilities are checked against actor's capabilities
 - **Schema Validation**: Input and output are validated against tool schemas

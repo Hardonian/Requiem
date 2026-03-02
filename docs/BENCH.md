@@ -65,6 +65,7 @@ cat bench_result.json
 Drift occurs when the same input produces different digests across runs. This indicates non-deterministic behavior.
 
 Common causes:
+
 - Unseeded random numbers
 - Timestamps in output
 - PID-dependent behavior
@@ -135,10 +136,12 @@ requiem bench compare --baseline baseline.json --current current.json --out comp
 ### Regression Thresholds
 
 Default thresholds:
+
 - p50 regression: > 10%
 - p95 regression: > 10%
 
 CI integration:
+
 ```bash
 requiem bench compare --baseline baseline.json --current current.json || exit 1
 ```
@@ -173,6 +176,7 @@ requiem bench run --spec spec.json --out warm.json
 ```
 
 CAS hit rate affects:
+
 - Input validation speed
 - Output retrieval speed
 - Overall throughput
@@ -199,6 +203,7 @@ requiem bench run --spec stress_spec.json --out stress.json
 ### Watchdog Integration
 
 Stress tests include:
+
 - Deadlock detection
 - Memory sampling
 - CPU utilization monitoring
@@ -218,6 +223,7 @@ For deterministic, reproducible benchmarks:
 ```
 
 Characteristics:
+
 - Single-threaded execution
 - Strict FIFO ordering
 - Minimal context switching
@@ -236,6 +242,7 @@ For performance measurement:
 ```
 
 Characteristics:
+
 - Worker pool execution
 - Concurrent where safe
 - Higher throughput
@@ -269,6 +276,7 @@ Minimum runs for reliable results:
 ### 3. Isolation
 
 Run benchmarks on dedicated hardware:
+
 - Disable CPU frequency scaling
 - Pin to specific cores
 - Disable SMT if possible
@@ -294,12 +302,14 @@ fi
 ### High Variance
 
 Causes:
+
 - Background processes
 - CPU frequency scaling
 - Network activity
 - Disk I/O contention
 
 Solutions:
+
 - Increase runs
 - Isolate benchmark environment
 - Use `taskset` for CPU pinning
@@ -307,6 +317,7 @@ Solutions:
 ### Drift in Deterministic Workload
 
 Check:
+
 1. Environment variables (use `policy.env_denylist`)
 2. Time-based operations
 3. Random number generation
@@ -316,6 +327,7 @@ Check:
 ### CAS Misses
 
 If CAS hit rate is low:
+
 - Check CAS directory is shared between runs
 - Verify CAS integrity with `requiem cas verify`
 - Ensure consistent workspace paths

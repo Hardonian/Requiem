@@ -124,12 +124,14 @@ pnpm cli db:rollback --to <migration_id>
 ```
 
 **Migration Runner Features:**
+
 - Transactional migrations (all-or-nothing)
 - Automatic rollback on failure
 - Migration verification with checksums
 - History tracking in `_migrations` table
 
 **Pre-deployment Checklist:**
+
 - [x] Migration tested on staging  
   *Validated: 2026-03-01 — All migrations tested*
 - [x] Rollback script prepared  
@@ -142,6 +144,7 @@ pnpm cli db:rollback --to <migration_id>
 ### CAS Format Migrations
 
 **Process:**
+
 1. Bump `CAS_FORMAT_VERSION` in `include/requiem/version.hpp`
 2. Implement dual-read (old + new format)
 3. Deploy with write-new, read-both
@@ -150,6 +153,7 @@ pnpm cli db:rollback --to <migration_id>
 6. Remove old format code
 
 **Verification:**
+
 ```bash
 ./scripts/verify_cas.sh
 ./scripts/verify_drift.sh
@@ -238,6 +242,7 @@ pnpm run verify:full
 ### Logs
 
 **Structure:**
+
 ```json
 {
   "timestamp": "2026-03-01T01:00:00.000Z",
@@ -257,6 +262,7 @@ pnpm run verify:full
 ```
 
 **Search Examples:**
+
 ```bash
 # Find errors by tenant
 {component="api"} |= "tenantId" | json | tenantId="tenant_uuid"
@@ -292,12 +298,14 @@ pnpm run verify:full
 #### P0: Determinism Violation Detected
 
 1. **Immediate:** Stop all new executions
+
    ```bash
    # Set feature flag
    curl -X POST /api/admin/flags/execution_pause -d '{"value": true}'
    ```
 
 2. **Investigate:** Check recent deployments
+
    ```bash
    git log --since="24 hours ago" --oneline
    ```
@@ -308,12 +316,14 @@ pnpm run verify:full
    - Check clock/time usage
 
 4. **Mitigate:** Rollback if needed
+
    ```bash
    git revert <commit>
    git push origin main
    ```
 
 5. **Verify:** Run determinism suite
+
    ```bash
    ./scripts/verify_determinism.sh
    ```
@@ -341,6 +351,7 @@ pnpm run verify:full
 2. Review recent error patterns
 3. Verify resource limits not exceeded
 4. Manual reset if needed:
+
    ```bash
    pnpm cli circuit-breaker reset --service <name>
    ```
@@ -364,6 +375,7 @@ pnpm run verify:full
 - **RTO:** 4 hours
 
 **Recovery:**
+
 ```bash
 # Restore from backup
 aws s3 sync s3://backups/requiem-cas/$(date +%Y%m%d) /data/cas/
@@ -386,18 +398,21 @@ aws s3 sync s3://backups/requiem-cas/$(date +%Y%m%d) /data/cas/
 ### Secret Rotation
 
 **Schedule:**
+
 - API keys: 90 days
 - Database credentials: 30 days
 - TLS certificates: 365 days
 - JWT signing keys: 180 days
 
 **Process:**
+
 1. Generate new secret
 2. Update secret store (Vault/AWS Secrets Manager)
 3. Deploy with new secret reference
 4. Revoke old secret after verification
 
 **Automated Rotation (Phase 4):**
+
 ```bash
 # Check rotation status
 pnpm cli secrets:status
@@ -412,11 +427,13 @@ pnpm cli secrets:verify
 ### Access Review
 
 **Monthly:**
+
 - Review database access
 - Review admin panel users
 - Review SSH/key access to production
 
 **Quarterly:**
+
 - Full access audit
 - Offboarding verification
 
@@ -427,12 +444,14 @@ pnpm cli secrets:verify
 ### Persistent Circuit Breaker State
 
 **Features:**
+
 - Circuit breaker state persisted to database
 - Cluster-wide coordination
 - Automatic state recovery on restart
 - Metrics and alerting integration
 
 **Configuration:**
+
 ```json
 {
   "circuit_breaker": {
@@ -445,6 +464,7 @@ pnpm cli secrets:verify
 ```
 
 **Operations:**
+
 ```bash
 # View circuit breaker status
 pnpm cli circuit-breaker:status
@@ -459,12 +479,14 @@ pnpm cli circuit-breaker:history --service <name>
 ### Production Cost Sink
 
 **Features:**
+
 - Real-time cost tracking per tenant
 - Cost anomaly detection with statistical modeling
 - Budget enforcement with hard/soft limits
 - Alerting on budget thresholds
 
 **Configuration:**
+
 ```json
 {
   "cost_sink": {
@@ -477,6 +499,7 @@ pnpm cli circuit-breaker:history --service <name>
 ```
 
 **Monitoring:**
+
 ```bash
 # View cost metrics
 pnpm cli cost:metrics --tenant <id>
@@ -488,12 +511,14 @@ pnpm cli cost:anomalies --window 1h
 ### Database Migrations
 
 **Migration Runner:**
+
 - Located in `packages/ai/src/migrations/`
 - Transactional with automatic rollback
 - Version-controlled migration files
 - Checksum verification
 
 **Commands:**
+
 ```bash
 # Run pending migrations
 pnpm cli db:migrate
@@ -509,6 +534,7 @@ pnpm cli db:rollback --to <version>
 ```
 
 **Best Practices:**
+
 1. Always test migrations on staging first
 2. Keep migrations backward compatible when possible
 3. Include rollback scripts for destructive changes
@@ -517,6 +543,7 @@ pnpm cli db:rollback --to <version>
 ### Credential Rotation
 
 **Automated Workflow:**
+
 1. Detection: System monitors credential age
 2. Notification: Alerts 7 days before expiry
 3. Generation: New credentials created automatically
@@ -525,6 +552,7 @@ pnpm cli db:rollback --to <version>
 6. Revocation: Old credentials revoked after grace period
 
 **Rotation Policies:**
+
 ```json
 {
   "credential_rotation": {

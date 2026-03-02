@@ -43,6 +43,7 @@ PUBLIC_KEY="25263ce03758f12cbf70c922f2805e7f24a3832f0630220baa07c524b8b7424f"
 ```
 
 **Verification:**
+
 - Fingerprint is deterministic: same inputs → same fingerprint
 - Token is signed with ed25519
 
@@ -65,6 +66,7 @@ EOF
 ```
 
 **Verification:**
+
 - Policy hash is deterministic
 - Policy is stored in CAS with content-addressing
 
@@ -87,6 +89,7 @@ EOF
 ```
 
 **Verification:**
+
 - Plan hash is deterministic
 - DAG validation passes
 
@@ -104,6 +107,7 @@ Execute the plan and obtain a receipt:
 ```
 
 **Verification:**
+
 - Run produces a receipt hash
 - Step results are recorded
 - Receipt is anchored to event log (when configured)
@@ -125,6 +129,7 @@ export REQUIEM_EVENT_LOG=".requiem/event_log.ndjson"
 ```
 
 **Verification:**
+
 - Every event has correct prev-hash
 - Chain is unbroken
 - Logical time increments correctly
@@ -146,12 +151,15 @@ Replay would reproduce identical receipt hash:
 ## Determinism Proofs
 
 ### Canonical Encoding
+
 - All kernel structures use `jsonlite::to_json()` with sorted keys
 - No whitespace in canonical form
 - Numbers encoded as integers, never floats
 
 ### Domain Separation
+
 Each context has unique hash prefix:
+
 - `"req:"` - Request canonicalization
 - `"res:"` - Result canonicalization  
 - `"cas:"` - CAS object content
@@ -162,6 +170,7 @@ Each context has unique hash prefix:
 - `"plan:"` - Plan graphs
 
 ### Logical Time
+
 - Monotonic uint64, incremented per event
 - No wall clock in kernel decisions
 - `timestamp_unix_ms` is metadata only
@@ -216,6 +225,7 @@ Each context has unique hash prefix:
 ```
 
 **Known Issues:**
+
 - EventLog tests hang on Windows (Issue #352-hang) — EventLog constructor/file handling needs investigation
 - Core EventLog functionality works via CLI (`log verify`)
 - All other kernel tests pass

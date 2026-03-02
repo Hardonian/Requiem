@@ -18,6 +18,7 @@ reach state list --model gpt-4 --min-score 80 --label env=prod
 ```
 
 **Options:**
+
 - `--model <model>` — Filter by model ID
 - `--policy <policy>` — Filter by policy snapshot ID
 - `--min-score <score>` — Filter by minimum integrity score (0-100)
@@ -26,6 +27,7 @@ reach state list --model gpt-4 --min-score 80 --label env=prod
 - `--minimal` — Minimal output format
 
 **Output:**
+
 ```
 ┌────────────────────────┬─────────────────┬────────────┬────────────────────────┐
 │ State ID               │ Model           │ Integrity  │ Created                │
@@ -46,10 +48,12 @@ reach state show abc123  # Prefix matching works
 ```
 
 **Options:**
+
 - `--json` — Output in JSON format
 - `--minimal` — Minimal output format
 
 **Output:**
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │ SEMANTIC STATE                                             │
@@ -77,10 +81,12 @@ reach state diff abc123 def456
 ```
 
 **Options:**
+
 - `--json` — Output in JSON format
 - `--minimal` — Minimal output format
 
 **Output:**
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │ SEMANTIC DIFF                                              │
@@ -117,10 +123,12 @@ reach state graph | dot -Tpng > lineage.png
 ```
 
 **Options:**
+
 - `--json` — Output as JSON with DOT embedded
 - `--minimal` — Output raw DOT only
 
 **Output:**
+
 ```dot
 digraph SemanticStateMachine {
   rankdir=TB;
@@ -142,10 +150,12 @@ reach state export --since 2024-01-01T00:00:00Z
 ```
 
 **Options:**
+
 - `--output <file>` — Write to file instead of stdout
 - `--since <date>` — Export only states created since date (ISO 8601)
 
 **Output:**
+
 ```json
 {
   "version": "1.0.0",
@@ -164,6 +174,7 @@ reach state import ledger.json
 ```
 
 **Output:**
+
 ```
 Imported 5 new states
 Total states in store: 12
@@ -179,11 +190,13 @@ reach state genesis --descriptor descriptor.json --actor user-123 --label env=pr
 ```
 
 **Options:**
+
 - `--descriptor <file>` — Path to descriptor JSON file (required)
 - `--actor <actor>` — Entity creating the state (default: "cli")
 - `--label <key=value>` — Labels to attach (can be used multiple times)
 
 **Descriptor JSON format:**
+
 ```json
 {
   "modelId": "gpt-4",
@@ -207,6 +220,7 @@ reach state transition --to def456 --reason "Genesis"  # Genesis transition
 ```
 
 **Options:**
+
 - `--from <id>` — Source state ID (omit for genesis)
 - `--to <id>` — Target state ID (required)
 - `--reason <reason>` — Reason for transition (required)
@@ -221,12 +235,14 @@ reach state simulate upgrade --from gpt-4 --to claude-3 --policy policy-v2
 ```
 
 **Options:**
+
 - `--from <model>` — Source model ID (required)
 - `--to <model>` — Target model ID (required)
 - `--policy <ref>` — Policy snapshot reference
 - `--eval <ref>` — Evaluation snapshot reference
 
 **Output:**
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │ MODEL MIGRATION SIMULATION                                 │

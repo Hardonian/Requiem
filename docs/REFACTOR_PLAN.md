@@ -14,6 +14,7 @@
 **Rationale**: This is a correctness bug in core functionality. The compact() function incorrectly reloads the index from disk.
 
 **Files to Change**:
+
 - `src/cas.cpp` lines 486-513
 
 **Change**: Remove the `load_index()` call at line 487-488. The compact function should use the in-memory index directly since `remove()` already updated it.
@@ -52,6 +53,7 @@ void CasStore::compact() {
 **Files to Change**: None - just run the build command.
 
 **Change**:
+
 ```bash
 cd c:/Users/scott/GitHub/Requiem
 pnpm --filter @requiem/cli build

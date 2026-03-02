@@ -143,6 +143,7 @@ const result = simulateModelMigration(
 ```
 
 Risk categories:
+
 - `needs_re_eval`: Model change requires re-evaluation
 - `policy_risk`: State uses incompatible policy
 - `replay_break`: State has replay failure history

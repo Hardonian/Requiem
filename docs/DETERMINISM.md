@@ -9,6 +9,7 @@ Each has a corresponding CI enforcement mechanism.
 
 > For any two executions of the same canonical request (request_id excluded),
 > `result_digest` MUST be byte-for-byte identical regardless of:
+>
 > - Time of execution (wall clock)
 > - Order of execution (sequential or concurrent)
 > - Which worker/node runs the request
@@ -19,6 +20,7 @@ Each has a corresponding CI enforcement mechanism.
 **CI gate:** `scripts/verify_determinism.sh` — 200x sequential + 3-worker concurrent
 
 **Violation triggers:**
+
 - Using `time(NULL)`, `std::chrono::system_clock::now()`, `rand()`, or any
   non-seeded PRNG in the execution hot path
 - Reading environment variables not in `env_allowlist` or `required_env`
@@ -37,6 +39,7 @@ Each has a corresponding CI enforcement mechanism.
 **CI gate:** `scripts/verify_cas.sh`
 
 **Violation triggers:**
+
 - Overwriting an existing CAS entry with different content
 - Compressing/recompressing with different parameters after initial write
 - Changing `CAS_FORMAT_VERSION` without a migration path
@@ -63,6 +66,7 @@ Each has a corresponding CI enforcement mechanism.
 **CI gate:** `scripts/verify_version_contracts.sh`
 
 **Constants covered:**
+
 | Constant | Current | Field in `version` output |
 |---|---|---|
 | `ENGINE_ABI_VERSION` | 2 | `engine_abi_version` |
@@ -84,6 +88,7 @@ Each has a corresponding CI enforcement mechanism.
 **CI gate:** `scripts/verify_oss_boundaries.sh`
 
 **Prohibited in OSS source:**
+
 - `#include "enterprise/..."` or `#include "ready_layer/..."`
 - Hardcoded URLs matching `ready-layer.com`, `readylayer.com`, `api.ready-layer`
 - Any `REQUIEM_ENTERPRISE`-gated observability path (observability must be OSS-visible)
@@ -99,6 +104,7 @@ Each has a corresponding CI enforcement mechanism.
 **CI gate:** `scripts/verify_enterprise_boundaries.sh`
 
 **Prohibited in `ready-layer/`:**
+
 - Direct BLAKE3 computation (`blake3`, `createHash('sha256')` in hot paths)
 - `child_process.spawn` / `child_process.exec` for engine commands
 - Any duplicate execution logic
@@ -114,6 +120,7 @@ Each has a corresponding CI enforcement mechanism.
 **CI gate:** `scripts/verify_routes.sh`
 
 **Enforcement:**
+
 - All route handlers wrap async calls in `try/catch`
 - All error responses use `NextResponse.json({ ok: false, error: ... }, { status: 4xx/5xx })`
 - `export const dynamic = 'force-dynamic'` required on all API routes
@@ -133,6 +140,7 @@ Each has a corresponding CI enforcement mechanism.
 ## INV-9: Migration Gating
 
 > Any change to CAS format, protocol framing version, or DB schema must include:
+>
 > 1. A version bump (INV-4)
 > 2. A forward-compatibility test
 > 3. An entry in `docs/MIGRATION.md`

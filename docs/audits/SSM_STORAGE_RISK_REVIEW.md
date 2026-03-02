@@ -35,6 +35,7 @@ private saveAtomic(data: unknown, path: string): void {
 ```
 
 **Note:** Windows does not guarantee atomic rename. For full atomicity, would need:
+
 - Write-ahead logging
 - Checksum verification
 - Automatic recovery on startup
@@ -42,6 +43,7 @@ private saveAtomic(data: unknown, path: string): void {
 ### Risk 2: Corruption Handling (ADDRESSED)
 
 **Implementation:**
+
 - Backup created before each write
 - Automatic restore from backup on read failure
 - Corruption logged but doesn't crash
@@ -49,6 +51,7 @@ private saveAtomic(data: unknown, path: string): void {
 ### Risk 3: Path Traversal (ADDRESSED)
 
 **Implementation:**
+
 - Path resolved with `path.resolve()`
 - Checked against basePath to prevent escape
 - Relative paths rejected
@@ -58,6 +61,7 @@ private saveAtomic(data: unknown, path: string): void {
 **Current:** No limits on states.json or transitions.json size.
 
 **Rationale:** SSM is designed for configuration state, not high-volume data. Expected max:
+
 - ~1000 states per project
 - ~10000 transitions per project
 - File size: < 10MB
@@ -69,6 +73,7 @@ private saveAtomic(data: unknown, path: string): void {
 **Current:** No file locking for concurrent access.
 
 **Rationale:** CLI is primarily single-user. Concurrent access would require:
+
 - File locking (platform-specific)
 - Database backend (SQLite)
 
@@ -91,6 +96,7 @@ ${REQUIEM_STATE_DIR:-.reach/state/}
 ## Serialization Format
 
 ### States (JSON)
+
 ```json
 [
   {
@@ -105,6 +111,7 @@ ${REQUIEM_STATE_DIR:-.reach/state/}
 ```
 
 ### Transitions (JSON)
+
 ```json
 [
   {
@@ -120,6 +127,7 @@ ${REQUIEM_STATE_DIR:-.reach/state/}
 ```
 
 ### Bundle Export
+
 ```json
 {
   "version": "1.0.0",
@@ -153,12 +161,14 @@ reach state import /tmp/ledger.json
 ## Recommendations
 
 ### Implemented
+
 1. ✅ Invariant assertions for runtime validation
 2. ✅ Schema version enforcement
 3. ✅ Environment variable support
 4. ✅ Atomic write pattern
 
 ### Future Enhancements (if needed)
+
 1. SQLite backend for concurrent access
 2. Compression for large datasets
 3. Automatic compaction/rotation

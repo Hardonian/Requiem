@@ -4,9 +4,9 @@ Audit of MCP (Model Context Protocol) implementation boundaries and security enf
 
 ## 1. Boundary Verification
 
-*   **Schema Enforcement**: REQUIRED. All incoming `params` must be validated against the `inputSchema` defined in `ToolDefinition` before reaching the `handler`.
-*   **Stack Leak Prevention**: All tool errors must be caught and transformed into standard JSON-RPC error codes. Internal C++ or Node.js stack traces must be stripped in production.
-*   **Auth Consistency**: MCP stdio transport assumes local trust. However, for multi-tenant deployments, `tenantId` must be cryptographically bound to the session.
+* **Schema Enforcement**: REQUIRED. All incoming `params` must be validated against the `inputSchema` defined in `ToolDefinition` before reaching the `handler`.
+* **Stack Leak Prevention**: All tool errors must be caught and transformed into standard JSON-RPC error codes. Internal C++ or Node.js stack traces must be stripped in production.
+* **Auth Consistency**: MCP stdio transport assumes local trust. However, for multi-tenant deployments, `tenantId` must be cryptographically bound to the session.
 
 ## 2. Vulnerability Assessment
 
@@ -20,12 +20,15 @@ Audit of MCP (Model Context Protocol) implementation boundaries and security enf
 ## 3. Hardening Recommendations
 
 ### Mandatory Output Caps
+
 Limit the total byte size of `result` blocks returned by tools to 2MB. If exceeded, return a `CAS_REFERENCE` instead of the raw data.
 
 ### Request-Level Policy
+
 Apply the `default.policy.json` (from root `/policy`) at the MCP entry point for every tool call, not just the final execution layer.
 
 ### Deterministic Digests
+
 Compute a BLAKE3 digest of the *entire* tool result. Verify this digest matches during replay to prevent "Silent Tool Drift."
 
 ---

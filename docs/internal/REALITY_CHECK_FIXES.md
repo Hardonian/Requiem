@@ -5,12 +5,15 @@ This document lists all fixes made during the post-implementation reality check.
 ## Critical Fixes
 
 ### 1. JSON Parser - Double/Number Support (CRITICAL)
+
 **Issue**: The JSON parser only supported unsigned 64-bit integers. It failed on:
+
 - Negative numbers
 - Floating point numbers
 - Scientific notation
 
 **Fix**: Rewrote `src/jsonlite.cpp` to:
+
 - Parse negative integers as double
 - Parse floating point numbers with fractional parts
 - Parse scientific notation (e.g., `1.5e10`)
@@ -18,14 +21,17 @@ This document lists all fixes made during the post-implementation reality check.
 - Add proper escape sequence handling (`\t`, `\r`, `\b`, `\f`)
 
 **Added**:
+
 - `get_double()` function in header and implementation
 - Double type in Value variant
 - Format helper for consistent double serialization
 
 ### 2. Sandbox Applied Reporting (CRITICAL)
+
 **Issue**: `sandbox_applied` field in ExecutionResult was never populated. The runtime claimed sandbox enforcement but didn't report what was actually enforced.
 
-**Fix**: 
+**Fix**:
+
 - Updated `ProcessResult` struct to include sandbox capability fields
 - Modified `sandbox_posix.cpp` and `sandbox_win.cpp` to report actual capabilities
 - Added `detect_platform_sandbox_capabilities()` function for each platform
@@ -33,18 +39,22 @@ This document lists all fixes made during the post-implementation reality check.
 - Added enforced/unsupported lists to sandbox_applied
 
 ### 3. Policy Parsing (CRITICAL)
+
 **Issue**: Nested policy objects in JSON requests were not being parsed. The TODO comment showed this was incomplete.
 
 **Fix**:
+
 - Updated `parse_request_json()` to properly parse nested `policy` object
 - Parse nested `llm` object
 - Extract fields: `mode`, `scheduler_mode`, `time_mode`, `deterministic`, `allow_outside_workspace`
 - Fall back to top-level fields for backward compatibility
 
 ### 4. JSON Value Type Exposure (CRITICAL)
+
 **Issue**: The `Value` struct was in an anonymous namespace in jsonlite.cpp, making it impossible to use `std::get<Object>()` in runtime.cpp for nested object access.
 
 **Fix**:
+
 - Moved `Value` struct definition to `include/requiem/jsonlite.hpp`
 - Exposed `Object` and `Array` type aliases in header
 - Removed duplicate definitions from cpp file
@@ -52,19 +62,25 @@ This document lists all fixes made during the post-implementation reality check.
 ## Test Additions
 
 ### 5. Determinism Repeat Test
+
 **Added**: `test_determinism_repeat()` in `tests/requiem_tests.cpp`
+
 - Runs same request N=20 times
 - Verifies identical `result_digest` across all runs
 - Verifies identical `stdout_digest` across all runs
 
 ### 6. CAS Corruption Detection Test
+
 **Added**: `test_cas_corruption_detection()` in `tests/requiem_tests.cpp`
+
 - Stores data in CAS
 - Corrupts stored file by flipping bits
 - Verifies `cas.get()` returns `nullopt` (detects corruption)
 
 ### 7. JSON Double Parsing Test
+
 **Added**: `test_json_double_parsing()` in `tests/requiem_tests.cpp`
+
 - Tests double value extraction
 - Tests negative number handling
 - Tests scientific notation
@@ -73,6 +89,7 @@ This document lists all fixes made during the post-implementation reality check.
 ## Documentation Updates
 
 ### 8. CONTRACT.md Updates
+
 - Added `sandbox_applied` schema to ExecutionResult
 - Added `sandbox_applied` example to result JSON
 - Updated canonicalization documentation to reflect:
@@ -85,12 +102,16 @@ This document lists all fixes made during the post-implementation reality check.
 ## Script Updates
 
 ### 9. Bench Spec Format Fix
+
 **Fixed**: `docs/examples/bench_spec.json`
+
 - Removed nested "request" object (CLI expects flat structure)
 - Moved request fields to top level alongside "runs"
 
 ### 10. Secrets Verification Script
+
 **Added**: `scripts/verify_secrets.sh` and `scripts/verify_secrets.ps1`
+
 - Scans for patterns like `password=`, `secret=`, `token=`, `api_key=`
 - Checks for Authorization headers
 - Checks for AWS credential patterns
@@ -162,6 +183,7 @@ ctest --test-dir build --output-on-failure
 ## Determinism Guarantee
 
 After these fixes:
+
 - Identical request + identical artifacts + identical policy → identical result_digest ✅
 - Cross-platform digest parity depends on command behavior (PATH, cwd handling)
 - JSON canonicalization is deterministic for all supported types

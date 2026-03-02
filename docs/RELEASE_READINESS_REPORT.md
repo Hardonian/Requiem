@@ -64,11 +64,13 @@ present and working on this branch.
 ### Route Inventory (22 pages)
 
 **Static pages (12):**
+
 - `/`, `/_not-found`
 - `/app/cas`, `/app/diagnostics`, `/app/executions`, `/app/metrics`, `/app/replay`, `/app/tenants`
 - `/enterprise`, `/library`, `/security`, `/support`, `/support/contact`, `/support/status`, `/templates`, `/transparency`
 
 **Dynamic API routes (10):**
+
 - `/api/health`, `/api/audit/logs`, `/api/cas/integrity`
 - `/api/cluster/drift`, `/api/cluster/status`, `/api/cluster/workers`
 - `/api/engine/analyze`, `/api/engine/autotune`, `/api/engine/diagnostics`, `/api/engine/metrics`, `/api/engine/status`
@@ -121,6 +123,7 @@ bash scripts/verify-secrets.sh
 See `docs/LAUNCH_GATE_CHECKLIST.md` for the full pre-release gate.
 
 Quick summary:
+
 - [x] Lint passes (0 errors)
 - [x] TypeScript compiles (no errors)
 - [x] Import boundaries enforced (no cross-layer violations)

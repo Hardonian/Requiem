@@ -34,6 +34,7 @@ The following is **production-ready** (deterministic, tested, documented):
 | **Metering full implementation** | `src/metering.cpp` | Medium | Per-instruction counting, budget exhaustion |
 
 **Dependencies:**
+
 - Worker → Scheduler → Memory Pool → Sandbox
 
 ---
@@ -115,9 +116,11 @@ The following is **production-ready** (deterministic, tested, documented):
 ## Testing Strategy
 
 ### Unit Tests (Existing)
+
 - All kernel modules: ✅ PASS (29/29)
 
 ### Integration Tests (Next)
+
 1. **End-to-end plan execution**
    - Create plan → Submit → Execute → Verify receipt
 2. **Replay determinism**
@@ -128,6 +131,7 @@ The following is **production-ready** (deterministic, tested, documented):
    - Split plan → Execute on 3 workers → Merge receipts
 
 ### Property Tests (To Implement)
+
 - `∀ plan: hash(plan) == hash(plan)` (idempotent)
 - `∀ receipt: verify(receipt) == true` (valid)
 - `∀ event_log: verify_chain(event_log) == true` (consistent)

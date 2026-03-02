@@ -2,7 +2,7 @@
 
 Requiem Enterprise adds enforced governance, multi-tenant isolation, and compliance controls on top of the open-source deterministic execution engine.
 
-## Not a Wrapper. Not a Router. A Control Plane.
+## Not a Wrapper. Not a Router. A Control Plane
 
 This is infrastructure for operators who need provable AI systems. Not a toy. Not a convenience layer. Governance is foundational.
 
@@ -21,6 +21,7 @@ A control plane enforces invariants that other systems leave to chance:
 ### Why Determinism Matters
 
 Non-deterministic AI execution is the root cause of:
+
 - "It worked yesterday" bugs
 - Audit gaps
 - Failed compliance reviews
@@ -29,6 +30,7 @@ Non-deterministic AI execution is the root cause of:
 ### Why Governance is Foundational
 
 Policy is not an afterthought. In Requiem:
+
 - Every execution passes through the policy gate
 - No bypasses are possible
 - Policy violations are caught before they complete
@@ -132,4 +134,4 @@ Three primitives:
 
 ## Contact
 
-For enterprise inquiries: sales@readylayer.com
+For enterprise inquiries: <sales@readylayer.com>

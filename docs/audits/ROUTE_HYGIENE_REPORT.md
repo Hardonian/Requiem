@@ -22,6 +22,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 ## Dashboard Routes (/app/*)
 
 ### /app/executions
+
 - **Loading**: ✅ `ExecutionsSkeleton` with 4-column grid pulse
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Illustrated empty state with CLI command
@@ -29,6 +30,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 - **Status**: Production-ready
 
 ### /app/replay
+
 - **Loading**: ✅ `ReplaySkeleton` with list pulse
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Illustrated empty state with replay command
@@ -36,6 +38,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 - **Status**: Production-ready
 
 ### /app/cas
+
 - **Loading**: ✅ Inline pulse fallback
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Message with API link
@@ -43,6 +46,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 - **Status**: Production-ready
 
 ### /app/policy
+
 - **Loading**: ✅ `PolicySkeleton` with cards pulse
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Shows active protection layers (always has content)
@@ -50,6 +54,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 - **Status**: Production-ready
 
 ### /app/audit
+
 - **Loading**: ✅ `AuditSkeleton` with table pulse
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Illustrated with config message
@@ -57,6 +62,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 - **Status**: Production-ready
 
 ### /app/metrics
+
 - **Loading**: ✅ `MetricsSkeleton` with grid pulse
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Message with config hint
@@ -64,6 +70,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 - **Status**: Production-ready
 
 ### /app/diagnostics
+
 - **Loading**: ✅ `DiagnosticsSkeleton` with cards pulse
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Shows build metadata (always has content)
@@ -71,6 +78,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 - **Status**: Production-ready
 
 ### /app/tenants
+
 - **Loading**: ✅ Inline pulse fallback
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Message with config hint
@@ -82,42 +90,49 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 ## Marketing Routes
 
 ### /
+
 - **Type**: Static landing page
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: N/A (entry point)
 - **Status**: Production-ready
 
 ### /pricing
+
 - **Type**: Static pricing page
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ Linked from landing CTA
 - **Status**: Production-ready
 
 ### /security
+
 - **Type**: Static security page
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ Footer/header links
 - **Status**: Production-ready
 
 ### /transparency
+
 - **Type**: Static transparency report
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ Footer links
 - **Status**: Production-ready
 
 ### /library
+
 - **Type**: Static template library
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ Nav links
 - **Status**: Production-ready
 
 ### /templates
+
 - **Type**: Static quick-start templates
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ Nav links
 - **Status**: Production-ready
 
 ### /enterprise
+
 - **Type**: Static enterprise info
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ Nav links
@@ -128,18 +143,21 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 ## Support Routes
 
 ### /support
+
 - **Type**: Static support hub
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ Footer links
 - **Status**: Production-ready
 
 ### /support/contact
+
 - **Type**: Static contact form
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ From /support
 - **Status**: Production-ready
 
 ### /support/status
+
 - **Type**: Static status page
 - **Error**: ✅ Global error.tsx fallback
 - **Navigation**: ✅ From /support
@@ -150,12 +168,14 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 ## Dynamic Routes
 
 ### /runs/[runId]
+
 - **Loading**: ✅ Suspense with skeleton
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Illustrated empty state
 - **Status**: Production-ready
 
 ### /proof/diff/[token]
+
 - **Loading**: ✅ Suspense with skeleton
 - **Error**: ✅ Global error.tsx fallback
 - **Empty**: ✅ Illustrated empty state
@@ -166,6 +186,7 @@ All 20 routes validated. No hard-500 routes identified. All dashboard routes hav
 ## Navigation Integrity
 
 ### Sidebar (app/layout.tsx)
+
 ```typescript
 NAV_SECTIONS = [
   Execution: [executions, replay, cas]
@@ -179,6 +200,7 @@ NAV_SECTIONS = [
 - ✅ No dead links
 
 ### Disabled Routes (Enterprise Gated)
+
 | Route | Sidebar | Plan |
 |-------|---------|------|
 | /app/signatures | Listed, disabled | Pro |
@@ -191,7 +213,9 @@ These routes intentionally show as disabled in the UI.
 ## Enhancements Applied
 
 ### Added: /app/error.tsx
+
 Created app-specific error boundary with dashboard recovery:
+
 - Recommends returning to dashboard
 - Provides diagnostic info in dev mode
 - Logs to console in production
@@ -209,6 +233,7 @@ Created app-specific error boundary with dashboard recovery:
 ## Conclusion
 
 Route hygiene: **EXCELLENT**
+
 - Zero hard-500 routes
 - All async components wrapped in Suspense
 - Empty states provide actionable guidance

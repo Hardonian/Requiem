@@ -69,16 +69,19 @@ All invariants from [`KERNEL_SPEC.md`](KERNEL_SPEC.md) have been verified:
 ### 2.1 Merkleized Event Log ✅ IMPLEMENTED
 
 **New Files:**
+
 - [`include/requiem/merkle.hpp`](include/requiem/merkle.hpp) — Merkle tree utilities
 - [`src/merkle.cpp`](src/merkle.cpp) — Implementation
 
 **Features:**
+
 - Binary Merkle tree construction from event hashes
 - Segment-level Merkle root computation (1024 events per segment)
 - O(log n) partial verification support
 - Proof generation and verification
 
 **Verification Command:**
+
 ```bash
 # Not yet wired - requires CLI integration
 ```
@@ -86,12 +89,14 @@ All invariants from [`KERNEL_SPEC.md`](KERNEL_SPEC.md) have been verified:
 ### 2.2 Receipt Transparency Tree ✅ IMPLEMENTED
 
 **Features:**
+
 - Aggregate receipts into Merkle tree per tenant
 - Root anchored in event log
 - Third-party receipt existence verification
 - `TransparencyTree` structure with JSON serialization
 
 **Verification Command:**
+
 ```bash
 # Not yet wired - requires CLI integration
 ```
@@ -99,6 +104,7 @@ All invariants from [`KERNEL_SPEC.md`](KERNEL_SPEC.md) have been verified:
 ### 2.3 Deterministic Build Reproducibility ✅ IMPLEMENTED
 
 **Changes to [`CMakeLists.txt`](CMakeLists.txt):**
+
 ```cmake
 option(REQUIEM_REPRODUCIBLE "Enable reproducible builds" ON)
 
@@ -111,6 +117,7 @@ endif()
 ```
 
 **Verification Command:**
+
 ```bash
 # Clean build twice and compare binary hashes
 cmake -B build1 -DCMAKE_BUILD_TYPE=Release
@@ -130,6 +137,7 @@ struct Receipt {
 ```
 
 **Verification:**
+
 - Receipt verification checks fingerprint matches current engine state
 - Replay on different engine version will fail
 
@@ -138,12 +146,14 @@ struct Receipt {
 **Location:** [`include/requiem/economics.hpp`](include/requiem/economics.hpp:219-301)
 
 **Features:**
+
 - Cost receipts stored in CAS (not in-memory)
 - Hash-linked cost records per tenant
 - Tenant-level cost root hash
 - Verification command: `requiem cost verify --tenant <tenant_id>`
 
 **Verification Command:**
+
 ```bash
 requiem cost verify --tenant <tenant_id>
 ```
@@ -174,6 +184,7 @@ All attack vectors documented in [`ADVERSARIAL_REPORT.md`](ADVERSARIAL_REPORT.md
 **Framework:** [`include/requiem/microbench.hpp`](include/requiem/microbench.hpp)
 
 **Implemented Benchmarks:**
+
 | Benchmark | Status | Location |
 |-----------|--------|----------|
 | Event append | ✅ IMPLEMENTED | [`src/microbench.cpp`](src/microbench.cpp:192) |
@@ -183,11 +194,13 @@ All attack vectors documented in [`ADVERSARIAL_REPORT.md`](ADVERSARIAL_REPORT.md
 | Plan scheduling | ⚠️ PLACEHOLDER | [`src/microbench.cpp`](src/microbench.cpp:262) |
 
 **Output Metrics:**
+
 - p50, p95, p99, p999 latency
 - Throughput (ops/sec)
 - Regression detection (>10% slowdown = failure)
 
 **Run Command:**
+
 ```bash
 requiem bench --output results.json
 ```
@@ -197,11 +210,13 @@ requiem bench --output results.json
 ## Stage 5: Category Differentiation
 
 ### Where Requiem Is Orchestration (Like Competitors)
+
 - Task scheduling and execution
 - Workflow DAG definition
 - Basic observability (logs, metrics)
 
 ### Where Requiem Is a New Primitive
+
 - **Deterministic Replay**: 200x verification gate, byte-for-byte identical results
 - **Cryptographic Proof Chains**: Receipt + EventLog prev-hash linking
 - **Policy-as-Code Governance**: Gate pipeline with capability enforcement
@@ -210,6 +225,7 @@ requiem bench --output results.json
 - **Cost Ledger**: Cryptographic billing lineage per tenant
 
 ### Structural Moat Elements
+
 1. **BLAKE3 Domain-Separated Hashing**: `"evt:"`, `"cas:"`, `"rcpt:"`, `"plan:"`, `"mkl:"` prefixes
 2. **Prev-Hash Chain Event Log**: Tamper-evident with O(n) verification
 3. **Policy Pipeline as Primary Path**: Cannot bypass policy
@@ -217,12 +233,14 @@ requiem bench --output results.json
 5. **Dual-Hash CAS**: Fail-closed integrity verification
 
 ### Enterprise Trust Arguments
+
 - Deterministic execution enables audit reproducibility
 - Cryptographic proof chains enable third-party verification
 - Cost ledger provides auditable billing
 - Engine fingerprint prevents version drift attacks
 
 ### Weak Points Still Exposed
+
 - Merkleized event log not fully wired to CLI
 - Receipt transparency tree not fully wired to CLI
 - Policy evaluation benchmark is placeholder

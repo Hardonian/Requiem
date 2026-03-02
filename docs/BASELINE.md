@@ -35,19 +35,23 @@ Requiem/
 ## 2. Hashing / Serialization
 
 ### Hash Primitive
+
 - **Algorithm**: BLAKE3-256, vendored C implementation (`third_party/blake3/`)
 - **Output**: 32 bytes raw → 64 hex chars
 - **No fallback**: `set_hash_fallback_allowed()` is a permanent no-op
 - **Version**: `HashEnvelope.hash_version = 1`, `HASH_ALGORITHM_VERSION = 1`
 
 ### Domain Separation
+
 Implemented in `src/hash.cpp`:
+
 - `"req:"` prefix → `canonical_json_hash()` — request canonicalization
 - `"res:"` prefix → `result_json_hash()` — result canonicalization
 - `"cas:"` prefix → `cas_content_hash()` — CAS object content
 - `deterministic_digest()` → raw `blake3_hex()` (no domain prefix)
 
 ### Canonical Encoding
+
 - Requests: `canonicalize_request()` → `jsonlite::to_json()` using `std::map` (sorted keys)
 - Results: `canonicalize_result()` → same jsonlite path
 - JSON library: custom `jsonlite` (in-tree), no third-party JSON dependency
@@ -55,6 +59,7 @@ Implemented in `src/hash.cpp`:
 - Nonce: stored as `uint64_t`, serialized as integer (not float)
 
 ### HashEnvelope
+
 ```cpp
 struct HashEnvelope {
     uint32_t hash_version{1};
@@ -63,11 +68,13 @@ struct HashEnvelope {
     uint8_t  payload_hash[32]{};
 };
 ```
+
 Fixed-size, C ABI safe. Round-trip via `hash_envelope_from_hex()`/`hash_envelope_to_hex()`.
 
 ## 3. Persistence
 
 ### Content-Addressable Storage (CAS)
+
 - **Class**: `CasStore` with `ICASBackend` interface
 - **Default root**: `.requiem/cas/v2`
 - **Sharding**: `AB/CD/<64-char-digest>` directory layout
@@ -80,6 +87,7 @@ Fixed-size, C ABI safe. Round-trip via `hash_envelope_from_hex()`/`hash_envelope
 - **Atomic writes**: temp file + rename pattern
 
 ### Audit Log
+
 - **Class**: `ImmutableAuditLog`
 - **Format**: NDJSON, one `ProvenanceRecord` per line
 - **Chaining**: each record contains `previous_digest` (BLAKE3 of previous entry JSON)
@@ -98,9 +106,11 @@ Fixed-size, C ABI safe. Round-trip via `hash_envelope_from_hex()`/`hash_envelope
 ## 5. CLI Command Registry
 
 ### C++ Native CLI (`requiem_cli` → `requiem` binary)
+
 Located in `src/cli.cpp` (1534 lines). Entry point: `main()` with string-match dispatch.
 
 **Registered commands (C++ native)**:
+
 | Command | Description |
 |---|---|
 | `help` / `--help` | Usage text |
@@ -134,11 +144,13 @@ Located in `src/cli.cpp` (1534 lines). Entry point: `main()` with string-match d
 | Harnesses | `stress`, `shadow`, `billing`, `security`, `recovery`, `memory`, `protocol`, `chaos` |
 
 ### TypeScript CLI (`packages/cli/src/cli.ts` → "reach")
+
 Available via `pnpm reach`. Contains 46 command files in `packages/cli/src/commands/`.
 
 ## 6. Web APIs
 
 ### ReadyLayer (`ready-layer/`)
+
 - **Framework**: Next.js 16 (App Router)
 - **Structure**: `ready-layer/src/app/` with route handlers
 - **Key routes**: TBD (documented in `routes.manifest.json`)
@@ -160,22 +172,27 @@ Engine semver: `1.3.0` (from CMakeLists.txt `project(requiem VERSION 1.3.0)`)
 ## 8. Build & Test Baseline
 
 ### Engine Build
+
 ```bash
 # CMake configure + build
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
 ```
+
 **Requirements**: CMake 3.20+, C++20 compiler, OpenSSL, zstd, vendored BLAKE3
 **Status**: No build artifacts found in `build/` directory. Build requires Visual Studio Build Tools + vcpkg (per conversation history).
 
 ### Tests
+
 ```bash
 # C++ tests
 ctest --test-dir build --output-on-failure
 ```
+
 **Test file**: `tests/requiem_tests.cpp` (2624 lines)
 **Test coverage**: hash vectors, canonicalization, domain separation, CAS put/get/integrity, replay validation, metering, concurrency, multi-tenant isolation, HashEnvelope, observability
 
 ### CLI Smoke
+
 ```bash
 # Native CLI (after build)
 ./build/requiem doctor
@@ -187,9 +204,11 @@ pnpm reach
 ```
 
 ### Web Build
+
 ```bash
 pnpm build:web
 ```
+
 **Status**: ReadyLayer is present. Build requires `pnpm install` first.
 
 ## 9. Existing Primitives Assessment
@@ -211,6 +230,7 @@ pnpm build:web
 ## 10. Gap Analysis for Kernel Spec
 
 **Must build**:
+
 1. **Capability tokens** — ed25519 mint/verify/revoke with fingerprint storage
 2. **Policy VM** — deterministic eval with proof hash, input/output in CAS
 3. **Plan Graph** — DAG schema + deterministic scheduler
@@ -219,6 +239,7 @@ pnpm build:web
 6. **Log verification** — CLI command to verify full audit chain
 
 **Must extend**:
+
 1. **Versioned envelope** — wrap all CLI + API responses in typed envelope
 2. **Metering** — add budget model with receipt schema
 3. **ProofBundle** — add signing, anchor in event log

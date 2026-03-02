@@ -9,6 +9,7 @@ Common issues and solutions for the Requiem ecosystem.
 ### 1. `reach doctor` reports "unhealthy" status
 
 **Symptoms:**
+
 ```
 Status: UNHEALTHY
 ✗ Storage Initialization    Failed to initialize storage
@@ -16,6 +17,7 @@ Status: UNHEALTHY
 ```
 
 **Solutions:**
+
 1. Build the native engine: `pnpm run build:cpp`
 2. Or use TypeScript fallback: `export FORCE_RUST=1`
 3. Check Node version: `node -v` (requires 20+)
@@ -27,6 +29,7 @@ Status: UNHEALTHY
 **Symptoms:** Yellow warning banner on all `/app/*` routes
 
 **Solutions:**
+
 ```bash
 # Create .env.local in ready-layer/
 REQUIEM_API_URL=http://localhost:8080
@@ -40,11 +43,13 @@ Restart the dev server after adding env vars.
 ### 3. better-sqlite3 bindings not found
 
 **Symptoms:**
+
 ```
 Error: Could not locate the bindings file
 ```
 
 **Solutions:**
+
 ```bash
 # Rebuild native modules
 pnpm rebuild better-sqlite3
@@ -58,11 +63,13 @@ export REQUIEM_SQLITE_MEMORY=1
 ### 4. CLI commands return "Unknown command"
 
 **Symptoms:**
+
 ```
 Error: Unknown command: <command>. Run "reach help" for usage.
 ```
 
 **Solutions:**
+
 1. Check CLI is built: `cd packages/cli && npm run build`
 2. Verify installation: `reach --version`
 3. Use `--json` flag for structured error output
@@ -72,11 +79,13 @@ Error: Unknown command: <command>. Run "reach help" for usage.
 ### 5. TypeScript build errors in CLI
 
 **Symptoms:**
+
 ```
 src/commands/show.ts(23,13): error TS1110: Type expected.
 ```
 
 **Solutions:**
+
 ```bash
 # Run type check
 cd packages/cli && npm run typecheck
@@ -91,11 +100,13 @@ cd packages/cli && npm run typecheck
 ### 6. Next.js build fails with lint errors
 
 **Symptoms:**
+
 ```
 Parsing error: '}' expected
 ```
 
 **Solutions:**
+
 ```bash
 # Check specific file
 cd ready-layer && npx eslint src/app/page.tsx
@@ -111,6 +122,7 @@ cd ready-layer && npx eslint . --fix
 **Symptoms:** Deployed app shows 404 for known routes
 
 **Solutions:**
+
 1. Check build output: `pnpm run build:web`
 2. Verify routes in output: Look for `Route (app)` section
 3. Check `vercel.json` configuration
@@ -123,6 +135,7 @@ cd ready-layer && npx eslint . --fix
 **Symptoms:** Tools execute without policy checks
 
 **Solutions:**
+
 ```bash
 # Check policy mode
 reach status --json | jq '.policy'
@@ -139,11 +152,13 @@ reach init --tenant=default
 ### 9. Replay verification fails
 
 **Symptoms:**
+
 ```
 Divergence detected between original and replay
 ```
 
 **Solutions:**
+
 1. Check for non-deterministic code in tools
 2. Verify CAS storage is accessible
 3. Ensure identical environment (Node version, env vars)
@@ -156,6 +171,7 @@ Divergence detected between original and replay
 **Symptoms:** Commands take >5 seconds to respond
 
 **Solutions:**
+
 ```bash
 # Run benchmark
 reach bench
@@ -260,6 +276,6 @@ npx requiem help
 
 ## Getting Help
 
-- File an issue: https://github.com/reachhq/requiem/issues
-- Email support: support@readylayer.com
+- File an issue: <https://github.com/reachhq/requiem/issues>
+- Email support: <support@readylayer.com>
 - Run diagnostics: `reach bugreport`

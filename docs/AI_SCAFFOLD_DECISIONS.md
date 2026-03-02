@@ -29,6 +29,7 @@ Required by TypeScript's NodeNext/ESM module resolution.
 
 For memory and cost telemetry, the default implementation writes to `.data/ai-*/`.
 This is explicitly "dev only" — production replaces sinks via:
+
 - `setMemoryStore(dbStore)`
 - `setCostSink(dbSink)`
 - `setAuditSink(dbSink)`
@@ -64,6 +65,7 @@ The harness also accepts flat arrays for compatibility.
 
 DB migrations for AI layer (if needed) go in `ready-layer/migrations/`.
 Two migrations already exist:
+
 - `20260228000000_vector_search_initial.sql`
 - `20260228010000_ai_cost_records.sql`
 

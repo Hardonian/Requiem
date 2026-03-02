@@ -333,21 +333,25 @@ All changes are **additive only**:
 ## Security Considerations
 
 ### Secrets Protection ✅
+
 - Environment values never logged
 - Request IDs derived from command + nonce (deterministic, not random)
 - Proof bundles contain only digests (not content)
 
 ### Sandbox Truth ✅
+
 - Partial enforcement tracked and reported
 - Network isolation requested but not falsely claimed
 - Capability failures recorded in determinism confidence
 
 ### Cryptography ✅
+
 - BLAKE3 remains only hash primitive
 - No new crypto dependencies in core
 - External signer plugin for signatures (optional)
 
 ### Audit Integrity ✅
+
 - Merkle chain for tamper evidence
 - Database-backed persistence
 - Correlation IDs for full tracing
@@ -368,6 +372,7 @@ All changes are **additive only**:
 ## Support
 
 For issues or questions:
+
 - Contract violations: Check `docs/CONTRACT.md`
 - Security concerns: Review `docs/SECURITY.md`
 - Implementation details: See `docs/internal/IMPLEMENTATION_SUMMARY.md`

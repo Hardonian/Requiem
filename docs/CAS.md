@@ -31,6 +31,7 @@ Sharding: 2-level directory structure using first 2 and next 2 hex characters of
 ## Integrity Model
 
 ### Write Path
+
 1. Compute `digest = BLAKE3(content)`.
 2. If object already exists (both blob and meta present), return `digest` (dedup).
 3. Optionally compress with zstd → `stored`.
@@ -40,6 +41,7 @@ Sharding: 2-level directory structure using first 2 and next 2 hex characters of
 7. On meta write failure, remove the blob (rollback).
 
 ### Read Path
+
 1. Validate digest format (64 lowercase hex chars).
 2. Read stored blob bytes.
 3. Read metadata.
@@ -52,6 +54,7 @@ This dual verification detects both storage corruption and compression/decompres
 ## Digest Validation
 
 All digest strings are validated before use:
+
 - Must be exactly 64 characters
 - Must be lowercase hex (`[0-9a-f]`)
 - Invalid digests are rejected immediately (no filesystem access)

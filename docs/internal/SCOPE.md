@@ -14,6 +14,7 @@ working in a single layer.
 **External deps:** vendored BLAKE3, optional zstd (system or disabled)
 
 ### In Scope
+
 - Execution runtime: sandbox, worker pool, scheduler
 - Content-addressed storage (CAS): insert, get, gc
 - Deterministic hashing: BLAKE3 canonicalization
@@ -23,6 +24,7 @@ working in a single layer.
 - C API (`include/requiem/c_api.h`): pure C, ABI-stable
 
 ### Out of Scope (in this layer)
+
 - HTTP servers or web frameworks
 - Database drivers
 - Authentication / JWT handling
@@ -30,6 +32,7 @@ working in a single layer.
 - Telemetry that requires network calls (metrics are local only)
 
 ### Boundary Enforcement
+
 - CI: `scripts/verify_oss_boundaries.sh`
 - Invariant: INV-5
 
@@ -43,6 +46,7 @@ working in a single layer.
 **Constraint:** NEVER copies engine logic; always proxies via `REQUIEM_API_URL`
 
 ### In Scope
+
 - Dashboard pages: executions, CAS, replay, metrics, diagnostics, tenants
 - API routes: `/api/health`, `/api/engine/*`, `/api/cas/*`, `/api/replay/*`, `/api/audit/*`
 - Auth: tenant JWT validation (`src/lib/auth.ts`)
@@ -50,12 +54,14 @@ working in a single layer.
 - Type definitions: `src/types/engine.ts`
 
 ### Out of Scope (in this layer)
+
 - Any BLAKE3 or hash computation
 - Spawning child processes
 - Implementing replay logic (consume replay API only)
 - Modifying `src/` or `include/` C++ files
 
 ### Boundary Enforcement
+
 - CI: `scripts/verify_enterprise_boundaries.sh`
 - Invariant: INV-6
 
@@ -66,6 +72,7 @@ working in a single layer.
 **Directories:** `scripts/`, `.github/`, `contracts/`, `testdata/`, `prompts/`
 
 ### In Scope
+
 - Verify scripts (all `scripts/verify_*.sh`)
 - GitHub Actions workflows (`.github/workflows/`)
 - Determinism contract (`contracts/determinism.contract.json`)
@@ -76,11 +83,13 @@ working in a single layer.
 - Route manifest (`routes.manifest.json`)
 
 ### Out of Scope (in this layer)
+
 - Engine business logic
 - UI components
 - Database schema changes
 
 ### Boundary Enforcement
+
 - Any CI change that disables or weakens an existing check requires two reviewers.
 
 ---
@@ -88,6 +97,7 @@ working in a single layer.
 ## Cross-Layer Changes
 
 A PR touching files in ≥2 layers must:
+
 1. Include `[cross-layer]` in the PR title.
 2. Pass ALL CI checks (not just the affected layer's checks).
 3. Have the determinism contract updated if INV-1 could be affected.

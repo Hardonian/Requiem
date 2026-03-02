@@ -3,11 +3,13 @@
 ## Phase 0: Repo Truth + Baseline
 
 ### Environment
+
 - **Node.js**: v24.12.0
 - **pnpm**: 8.15.0
 - **Git Branch**: main (up to date with origin/main)
 
 ### Repo Structure
+
 - **C++ Core**: `src/*.cpp`, `include/requiem/*.hpp` — deterministic execution engine
 - **TypeScript CLI**: `packages/cli/` — orchestration layer
 - **TypeScript UI**: `packages/ui/` — design system components  
@@ -31,14 +33,17 @@
 ### Phase 1: Layering + Boundaries ✅
 
 **Files Created:**
+
 - `packages/cli/eslint.config.mjs` — ESLint config with boundary enforcement rules
 - `packages/ui/eslint.config.mjs` — ESLint config with UI-specific rules
 
 **Files Modified:**
+
 - `packages/cli/package.json` — Added `typescript-eslint` and `globals` dev dependencies
 - `packages/ui/package.json` — Added `typescript-eslint`, `eslint-plugin-react`, `globals` dev dependencies
 
 **Boundary Rules Enforced:**
+
 1. CLI cannot import ready-layer
 2. UI cannot import CLI (`@requiem/cli`)
 3. Core (lib) cannot import CLI or ready-layer
@@ -49,6 +54,7 @@
 ### Phase 2: Structured Error Envelope ✅
 
 **Files Created:**
+
 - `packages/cli/src/lib/errors.ts` — Unified error model with:
   - `ErrorCode` enum (stable identifiers for all error types)
   - `ErrorSeverity` levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -58,6 +64,7 @@
   - Automatic secret redaction in metadata
 
 **Key Features:**
+
 - All errors have stable codes for programmatic handling
 - Safe serialization (no secrets in JSON)
 - Cause chain preservation
@@ -68,6 +75,7 @@
 ### Phase 3: Tenant Resolution (Server-Only) ✅
 
 **Files Created:**
+
 - `packages/cli/src/lib/tenant.ts` — Single source of truth for tenant resolution:
   - `TenantRole` enum (VIEWER, MEMBER, ADMIN, OWNER)
   - `DefaultTenantResolver` — production implementation
@@ -78,6 +86,7 @@
   - Membership expiration handling
 
 **Key Invariants:**
+
 - Tenant derivation ALWAYS server-side
 - Client input NEVER trusted for tenant ID
 - All tenant-scoped operations validate membership
@@ -87,6 +96,7 @@
 ### Phase 4: State Machine (Prevent Impossible States) ✅
 
 **Files Created:**
+
 - `packages/cli/src/lib/state-machine.ts` — Explicit state machines:
   - `StateMachine<T>` class with validated transitions
   - `createExecutionStateMachine()` — execution lifecycle
@@ -96,6 +106,7 @@
   - PostgreSQL trigger generator for DB enforcement
 
 **Execution States:**
+
 ```
 PENDING → QUEUED → RUNNING → SUCCEEDED
                       ↓
@@ -109,6 +120,7 @@ PENDING → QUEUED → RUNNING → SUCCEEDED
 ### Phase 5: Deterministic Clock + Config Snapshots ✅
 
 **Files Created:**
+
 - `packages/cli/src/lib/clock.ts` — Clock abstraction:
   - `SystemClock` — production wall time
   - `SeededClock` — deterministic timestamps for replay
@@ -118,6 +130,7 @@ PENDING → QUEUED → RUNNING → SUCCEEDED
   - `withTimeout()` — clock-aware timeouts
 
 **Key Features:**
+
 - Core logic uses Clock interface, not direct Date
 - Seeded clocks enable deterministic replay
 - Config snapshots for execution provenance
@@ -127,9 +140,11 @@ PENDING → QUEUED → RUNNING → SUCCEEDED
 ### Phase 6: DB Contract + Migration Hardening ✅
 
 **Files Created:**
+
 - `scripts/verify-db-contract.sh` — Schema drift detection
 
 **Features:**
+
 - Prisma schema validation
 - Migration count tracking
 - Supabase table reference scanning
@@ -141,10 +156,12 @@ PENDING → QUEUED → RUNNING → SUCCEEDED
 ### Phase 7: Security + Supply-Chain + Secrets ✅
 
 **Files Created:**
+
 - `scripts/verify-secrets.sh` — Secret pattern scanner
 - `scripts/verify-supply-chain.sh` — Lockfile/packager validation
 
 **verify:secrets checks:**
+
 - Committed .env files
 - API key patterns
 - Password patterns
@@ -152,6 +169,7 @@ PENDING → QUEUED → RUNNING → SUCCEEDED
 - GitHub/OpenAI token patterns
 
 **verify:supply-chain checks:**
+
 - Single package manager enforcement
 - Lockfile presence
 - packageManager field consistency
@@ -169,9 +187,11 @@ No changes required (existing infrastructure sufficient).
 ### Phase 9: No Hard-500 Guarantee ✅
 
 **Files Created:**
+
 - `scripts/verify-no-hard-500.sh` — Route error handling validation
 
 **Checks:**
+
 - API routes have try/catch
 - Dynamic exports present
 - Error boundary exists
@@ -201,6 +221,7 @@ All verify scripts created:
 **File Modified:** `packages/cli/src/index.ts`
 
 Added exports for all new modules:
+
 - Errors (ErrorCode, RequiemError, etc.)
 - Tenant (TenantRole, DefaultTenantResolver, etc.)
 - State Machine (StateMachine, ExecutionStates, etc.)
@@ -291,6 +312,7 @@ cd packages/ui && npm run typecheck
 ## Files Changed Summary
 
 **New Files (19):**
+
 ```
 packages/cli/eslint.config.mjs
 packages/ui/eslint.config.mjs
@@ -314,6 +336,7 @@ docs/THREAT_MODEL.md
 ```
 
 **Modified Files (3):**
+
 ```
 packages/cli/package.json
 packages/ui/package.json

@@ -25,6 +25,7 @@ ctest --test-dir build --output-on-failure
 ```
 
 If zstd-dev is not available:
+
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DREQUIEM_WITH_ZSTD=OFF
 ```
