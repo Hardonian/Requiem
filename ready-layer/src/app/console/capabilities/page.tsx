@@ -93,7 +93,7 @@ export default function ConsoleCapabilitiesPage() {
       ) : capabilities.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
           <p className="text-gray-500 dark:text-gray-400">No capabilities found</p>
-          <p className="text-sm text-gray-400 mt-2">Use `reach caps mint <name>` to create capabilities</p>
+          <p className="text-sm text-gray-400 mt-2">Use `reach caps mint` to create capabilities</p>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">

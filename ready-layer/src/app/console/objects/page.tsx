@@ -95,7 +95,7 @@ export default function ConsoleObjectsPage() {
       ) : objects.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
           <p className="text-gray-500 dark:text-gray-400">No objects in CAS</p>
-          <p className="text-sm text-gray-400 mt-2">Use `reach cas put <file>` to add objects</p>
+          <p className="text-sm text-gray-400 mt-2">Use CLI to add objects</p>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">

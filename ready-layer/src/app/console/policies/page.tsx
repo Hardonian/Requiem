@@ -67,7 +67,7 @@ export default function ConsolePoliciesPage() {
       ) : policies.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
           <p className="text-gray-500 dark:text-gray-400">No policies found</p>
-          <p className="text-sm text-gray-400 mt-2">Use `reach policy add <file>` to create policies</p>
+          <p className="text-sm text-gray-400 mt-2">Use CLI to add policies</p>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">

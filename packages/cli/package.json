@@ -37,7 +37,13 @@
     "verify": "npm run typecheck && npm run lint && npm run build",
     "verify:no-console": "tsx ../../scripts/verify-no-console.ts src",
     "verify:perf-maint": "tsx ../../scripts/verify-perf-maintainability.ts",
-    "verify:full": "npm run verify && npm run verify:no-console && npm run verify:perf-maint"
+    "verify:full": "npm run verify && npm run verify:no-console && npm run verify:perf-maint",
+    "verify:boundaries": "tsx src/verify-boundaries.ts",
+    "verify:integrity": "tsx src/verify-integrity.ts",
+    "verify:policy": "tsx src/verify-policy.ts",
+    "verify:replay": "tsx src/verify-replay.ts",
+    "verify:web": "tsx src/verify-web.ts",
+    "verify:all": "tsx src/verify-all.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
