@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Crawl-delay for politeness
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://requiem.hardonian.com/sitemap.xml
+
+# Disallow API routes
+Disallow: /api/
+Disallow: /internal/
+Disallow: /_next/
+
+# Allow public assets
+Allow: /static/
+
+# Host
+Host: https://requiem.hardonidian.com
