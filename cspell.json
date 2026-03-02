@@ -81,6 +81,8 @@
     "bugreport",
     "exfiltration",
     "nightlies",
+    "nosniff",
+    "selftest",
     "zstd"
   ],
   "ignorePaths": [

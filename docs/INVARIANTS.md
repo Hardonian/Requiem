@@ -2,7 +2,9 @@
 
 These invariants are **hard constraints**. No PR may weaken or remove them without an explicit Architecture Decision Record (ADR).
 
-Each invariant has corresponding CI enforcement mechanisms.
+Each invariant has corresponding CI enforcement mechanisms, runtime assertions, and/or compile-time type constraints.
+
+Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/system-guarantees.json)
 
 ---
 
@@ -20,6 +22,10 @@ Each invariant has corresponding CI enforcement mechanisms.
 **CI Gates:**
 - `scripts/verify_determinism.sh` — 200x sequential + 3-worker concurrent
 - `scripts/verify_provenance.sh` — Clock abstraction checks
+
+**Runtime Assertion:** `assertFingerprintMatch(computed, stored, runId)`
+
+**Type Constraint:** `Fingerprint` branded type (`packages/cli/src/lib/branded-types.ts`)
 
 **Violation Triggers:**
 - Using `Date.now()`, `time(NULL)`, `std::chrono::system_clock::now()` in core logic
@@ -42,6 +48,10 @@ Each invariant has corresponding CI enforcement mechanisms.
 **Contract:** `contracts/determinism.contract.json` §cas
 
 **CI Gate:** `scripts/verify_cas.sh`
+
+**Runtime Assertion:** `assertCASBlobExists(exists, digest)`
+
+**Type Constraint:** `CASDigest` branded type
 
 **Violation Triggers:**
 - Overwriting an existing CAS entry with different content
@@ -85,6 +95,8 @@ Each invariant has corresponding CI enforcement mechanisms.
 
 **CI Gate:** `scripts/verify_tenant_isolation.sh`
 
+**Type Constraint:** `TenantId` branded type
+
 **Required Flow:**
 1. Extract auth token from Authorization header
 2. Validate token (JWT/API key)
@@ -109,7 +121,11 @@ Each invariant has corresponding CI enforcement mechanisms.
 
 > All entities with lifecycle states MUST use explicit `StateMachine` definitions. Invalid state transitions MUST fail deterministically.
 
-**CI Gate:** Unit tests for state machines
+**CI Gate:** `tests/invariants/run-lifecycle.test.ts`
+
+**Runtime Assertion:** `assertNoStateRegression(currentIndex, previousIndex, stateName)`
+
+**Type Constraint:** `RunLifecycleState` union type, `ExecutionState`, `JunctionState`
 
 **Required:**
 - State definition with `allowedTransitions`
@@ -124,9 +140,9 @@ Each invariant has corresponding CI enforcement mechanisms.
 
 **Enforcement:**
 - `StateMachine` class in `packages/cli/src/lib/state-machine.ts`
+- `RunLifecycleTracker` in `packages/cli/src/lib/run-lifecycle.ts`
 - `transitionEntity()` helper for atomic updates
 - SQL CHECK constraints (generated)
-- PostgreSQL transition triggers (optional)
 
 ---
 
@@ -275,6 +291,78 @@ Each invariant has corresponding CI enforcement mechanisms.
 
 ---
 
+## INV-14: Policy Before Execution
+
+> No provider call can happen without a policy snapshot hash and decision fingerprint. Policy is the single choke point for all execution.
+
+**CI Gate:** `tests/invariants/run-lifecycle.test.ts`
+
+**Runtime Assertion:** `assertPolicyBeforeExecution(policyEnforced, runId)`
+
+**Type Constraint:** `PolicySnapshotHash` branded type
+
+**Enforcement:**
+- `capturePolicySnapshotHash()` in `packages/cli/src/lib/policy-snapshot.ts`
+- `RunLifecycleTracker` enforces POLICY_CHECKED before ARBITRATED
+
+---
+
+## INV-15: Arbitration Before Execution
+
+> Arbitration decision must be stored before any provider call. The decision exists in the ledger before the side effect occurs.
+
+**CI Gate:** `tests/invariants/run-lifecycle.test.ts`
+
+**Runtime Assertion:** `assertArbitrationBeforeExecution(arbitrated, runId)`
+
+**Type Constraint:** `ArbitrationDecision` discriminated union
+
+**Enforcement:**
+- `RunLifecycleTracker` enforces ARBITRATED before EXECUTED
+
+---
+
+## INV-16: Cost Before Commit
+
+> Cost must be calculated and recorded before ledger commit. No free execution.
+
+**Runtime Assertion:** `assertCostRecorded(costUnits, runId)`
+
+**Enforcement:**
+- `RunLifecycleTracker` enforces MANIFEST_BUILT → SIGNED → LEDGER_COMMITTED
+- `recordExecutionCost()` in `packages/cli/src/lib/policy-snapshot.ts`
+
+---
+
+## INV-17: Ledger-Execution Parity
+
+> Ledger entries correspond 1:1 with execution events. No orphan entries, no missing entries.
+
+**Runtime Assertion:** `assertLedgerCount(actual, expected, runId)`
+
+**Type Constraint:** `LedgerId` branded type
+
+---
+
+## INV-18: Run Lifecycle Monotonicity
+
+> Run lifecycle state machine enforces sequential forward-only progression:
+> INIT → POLICY_CHECKED → ARBITRATED → EXECUTED → MANIFEST_BUILT → SIGNED → LEDGER_COMMITTED → COMPLETE
+>
+> DIVERGENT is a terminal sink reachable from any non-terminal state.
+
+**CI Gate:** `tests/invariants/run-lifecycle.test.ts`
+
+**Runtime Assertion:** `RunLifecycleTracker.advance()` validates monotonicity
+
+**Type Constraint:** `RunLifecycleState` union type
+
+**Enforcement:**
+- `RunLifecycleTracker` in `packages/cli/src/lib/run-lifecycle.ts`
+- State machine prevents skip, regression, and terminal escape
+
+---
+
 ## Invariant Change Process
 
 ### To Strengthen an Invariant
@@ -294,18 +382,23 @@ Each invariant has corresponding CI enforcement mechanisms.
 
 ## Verification Matrix
 
-| Invariant | Unit Test | Integration | CI Script | Formal |
-|-----------|-----------|-------------|-----------|--------|
-| INV-1 (Determinism) | ✅ | ✅ | verify_determinism | ✅ |
-| INV-2 (CAS) | ✅ | ✅ | verify_cas | - |
-| INV-3 (Errors) | ✅ | - | verify_boundaries | - |
-| INV-4 (Tenant) | ✅ | ✅ | verify_tenant_isolation | - |
-| INV-5 (State) | ✅ | - | - | ✅ |
-| INV-6 (Audit) | - | ✅ | verify_enterprise | - |
-| INV-7 (No 500) | - | ✅ | verify_no_hard_500 | - |
-| INV-8 (Boundaries) | - | - | verify_boundaries | - |
-| INV-9 (Clock) | ✅ | - | verify_provenance | - |
-| INV-10 (Secrets) | - | - | verify_secrets | - |
-| INV-11 (Deps) | - | - | verify_deps | - |
-| INV-12 (Migrations) | - | - | verify_migrations | - |
-| INV-13 (OSS) | - | - | verify_oss_boundaries | - |
+| Invariant | Unit Test | Runtime Assert | CI Script | Formal | Branded Type |
+|-----------|-----------|---------------|-----------|--------|--------------|
+| INV-1 (Determinism) | ✅ | ✅ | verify_determinism | ✅ | Fingerprint |
+| INV-2 (CAS) | ✅ | ✅ | verify_cas | - | CASDigest |
+| INV-3 (Errors) | ✅ | - | verify_boundaries | - | ErrorCode |
+| INV-4 (Tenant) | ✅ | - | verify_tenant_isolation | - | TenantId |
+| INV-5 (State) | ✅ | ✅ | invariant tests | ✅ | RunLifecycleState |
+| INV-6 (Audit) | - | - | verify_enterprise | - | - |
+| INV-7 (No 500) | - | - | verify_no_hard_500 | - | - |
+| INV-8 (Boundaries) | - | - | verify_boundaries | - | - |
+| INV-9 (Clock) | ✅ | - | verify_provenance | - | Clock |
+| INV-10 (Secrets) | - | - | verify_secrets | - | - |
+| INV-11 (Deps) | - | - | verify_deps | - | - |
+| INV-12 (Migrations) | - | - | verify_migrations | - | - |
+| INV-13 (OSS) | - | - | verify_oss_boundaries | - | - |
+| INV-14 (Policy) | ✅ | ✅ | invariant tests | - | PolicySnapshotHash |
+| INV-15 (Arbitration) | ✅ | ✅ | invariant tests | - | ArbitrationDecision |
+| INV-16 (Cost) | ✅ | ✅ | invariant tests | - | - |
+| INV-17 (Ledger) | ✅ | ✅ | invariant tests | - | LedgerId |
+| INV-18 (Lifecycle) | ✅ | ✅ | invariant tests | - | RunLifecycleState |

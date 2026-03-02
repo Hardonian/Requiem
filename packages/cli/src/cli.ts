@@ -555,6 +555,13 @@ async function main(): Promise<number> {
         break;
       }
 
+      case 'provenance': {
+        const { provenance } = await loadCommand('./commands/provenance.js') as { provenance: { parseAsync: (args: string[]) => Promise<void> } };
+        await provenance.parseAsync([process.argv[0], process.argv[1], 'provenance', ...subArgs]);
+        result = 0;
+        break;
+      }
+
       // Note: help/version are handled at top of main() for fast path
 
       default:
