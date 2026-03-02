@@ -374,6 +374,13 @@ async function main(): Promise<number> {
         break;
       }
 
+      case 'replicate': {
+        const { replicate } = await loadCommand('./commands/replicate.js') as { replicate: { parseAsync: (args: string[]) => Promise<void> } };
+        await replicate.parseAsync([process.argv[0], process.argv[1], 'replicate', ...subArgs]);
+        result = 0;
+        break;
+      }
+
       case 'stats': {
         const { stats } = await loadCommand('./commands/stats.js') as { stats: { parseAsync: (args: string[]) => Promise<void> } };
         await stats.parseAsync([process.argv[0], process.argv[1], 'stats', ...subArgs]);

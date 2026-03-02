@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "manifest_id": "requiem.system-guarantees.v1",
+  "manifest_version": "1.0.0",
+  "generated_at": "2026-03-01T00:00:00Z",
+  "description": "Machine-readable manifest of all Requiem system guarantees. Externally auditable.",
+
+  "invariants": [
+    {
+      "id": "INV-1",
+      "name": "Digest Parity (Determinism)",
+      "description": "For identical inputs (request_id excluded), result_digest MUST be byte-for-byte identical across any number of sequential or concurrent re-executions on the same platform.",
+      "enforcement": "enforced",
+      "contract": "contracts/determinism.contract.json",
+      "ci_gate": "scripts/verify_determinism.ts",
+      "runtime_assertion": "assertFingerprintMatch",
+      "type_constraint": "Fingerprint branded type"
+    },
+    {
+      "id": "INV-2",
+      "name": "CAS Immutability",
+      "description": "Once a CAS object is stored under a digest key, its content is immutable. A digest key MUST always return the same bytes or a cas_integrity_failed error.",
+      "enforcement": "enforced",
+      "contract": "contracts/determinism.contract.json §cas",
+      "ci_gate": "scripts/verify_cas.sh",
+      "runtime_assertion": "assertCASBlobExists",
+      "type_constraint": "CASDigest branded type"
+    },
+    {
+      "id": "INV-3",
+      "name": "Structured Error Envelope",
+      "description": "All errors thrown across the codebase MUST use RequiemError or its subclasses.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "scripts/verify_boundaries.sh",
+      "runtime_assertion": null,
+      "type_constraint": "ErrorCode enum + RequiemError class"
+    },
+    {
+      "id": "INV-4",
+      "name": "Server-Side Tenant Resolution",
+      "description": "Tenant derivation is ALWAYS server-side. Client input is NEVER trusted for tenant identification.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "scripts/verify-tenant-isolation.ts",
+      "runtime_assertion": null,
+      "type_constraint": "TenantId branded type"
+    },
+    {
+      "id": "INV-5",
+      "name": "State Machine Validity",
+      "description": "All entities with lifecycle states MUST use explicit StateMachine definitions. Invalid transitions fail deterministically.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "tests/invariants/state-machine.test.ts",
+      "runtime_assertion": "assertNoStateRegression",
+      "type_constraint": "RunLifecycleState discriminated union"
+    },
+    {
+      "id": "INV-6",
+      "name": "Audit Log Append-Only",
+      "description": "Audit log entries are never deleted, overwritten, or reordered.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "scripts/verify_enterprise_boundaries.sh",
+      "runtime_assertion": null,
+      "type_constraint": null
+    },
+    {
+      "id": "INV-7",
+      "name": "No Hard-500 Routes",
+      "description": "Every API route must handle errors and return a structured JSON error body.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "scripts/verify_no_hard_500.sh",
+      "runtime_assertion": null,
+      "type_constraint": null
+    },
+    {
+      "id": "INV-8",
+      "name": "Layer Boundary Enforcement",
+      "description": "Import rules between layers are strictly enforced.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "scripts/verify_boundaries.sh",
+      "runtime_assertion": null,
+      "type_constraint": null
+    },
+    {
+      "id": "INV-9",
+      "name": "Clock Abstraction",
+      "description": "Core logic MUST use the Clock interface, not direct Date or time functions.",
+      "enforcement": "enforced",
+      "contract": "contracts/determinism.contract.json §ai_layer.clock_abstraction",
+      "ci_gate": "scripts/verify_provenance.sh",
+      "runtime_assertion": null,
+      "type_constraint": "Clock interface"
+    },
+    {
+      "id": "INV-10",
+      "name": "Secret Redaction",
+      "description": "Secrets MUST NOT appear in error messages, logs, or API responses.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "scripts/verify_secrets.sh",
+      "runtime_assertion": null,
+      "type_constraint": null
+    },
+    {
+      "id": "INV-11",
+      "name": "Dependency Allowlist",
+      "description": "All runtime and build-time dependencies must be on the approved allowlist.",
+      "enforcement": "enforced",
+      "contract": "contracts/deps.allowlist.json",
+      "ci_gate": "scripts/verify_deps.sh",
+      "runtime_assertion": null,
+      "type_constraint": null
+    },
+    {
+      "id": "INV-12",
+      "name": "Migration Gating",
+      "description": "Any change to CAS format, protocol framing, or DB schema must include version bump, compatibility test, and migration docs.",
+      "enforcement": "enforced",
+      "contract": "contracts/migration.policy.json",
+      "ci_gate": "scripts/verify_migrations.sh",
+      "runtime_assertion": null,
+      "type_constraint": null
+    },
+    {
+      "id": "INV-13",
+      "name": "OSS ≠ Enterprise Isolation",
+      "description": "OSS engine source must have zero compile-time or link-time dependency on enterprise code paths.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "scripts/verify_oss_boundaries.sh",
+      "runtime_assertion": null,
+      "type_constraint": null
+    },
+    {
+      "id": "INV-14",
+      "name": "Policy Before Execution",
+      "description": "No provider call can happen without a policy snapshot hash and decision fingerprint. Policy is the single choke point.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "tests/invariants/policy-enforcement.test.ts",
+      "runtime_assertion": "assertPolicyBeforeExecution",
+      "type_constraint": "PolicySnapshotHash branded type"
+    },
+    {
+      "id": "INV-15",
+      "name": "Arbitration Before Execution",
+      "description": "Arbitration decision must be stored before any provider call.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "tests/invariants/run-lifecycle.test.ts",
+      "runtime_assertion": "assertArbitrationBeforeExecution",
+      "type_constraint": "ArbitrationDecision discriminated union"
+    },
+    {
+      "id": "INV-16",
+      "name": "Cost Before Commit",
+      "description": "Cost must be calculated and recorded before ledger commit.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "tests/invariants/run-lifecycle.test.ts",
+      "runtime_assertion": "assertCostRecorded",
+      "type_constraint": null
+    },
+    {
+      "id": "INV-17",
+      "name": "Ledger-Execution Parity",
+      "description": "Ledger entries correspond 1:1 with execution events. No orphan entries.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "tests/invariants/ledger-parity.test.ts",
+      "runtime_assertion": "assertLedgerCount",
+      "type_constraint": "LedgerId branded type"
+    },
+    {
+      "id": "INV-18",
+      "name": "Run Lifecycle Monotonicity",
+      "description": "Run lifecycle state machine enforces sequential forward-only progression. No skips, no regressions.",
+      "enforcement": "enforced",
+      "contract": null,
+      "ci_gate": "tests/invariants/run-lifecycle.test.ts",
+      "runtime_assertion": "RunLifecycleTracker.advance()",
+      "type_constraint": "RunLifecycleState union type"
+    }
+  ],
+
+  "signing_requirements": {
+    "signed_entity": "manifest_only",
+    "signature_storage": "alongside_signer_fingerprint",
+    "verification_required_on": ["replay", "export", "provenance_export"],
+    "negative_tests": ["tamper_manifest", "swap_artifact_hash", "alter_metadata"]
+  },
+
+  "replay_determinism": {
+    "statement": "Replay never mutates the original record. Replay re-executes decision logic with identical inputs and verifies output digest matches the stored result.",
+    "hash_algorithm": "BLAKE3-v1",
+    "cas_version": "v2",
+    "time_mode": "deterministic (SeededClock)"
+  },
+
+  "ci_checks": {
+    "typecheck": "npx tsc --noEmit",
+    "lint": "pnpm run lint",
+    "build": "pnpm run build:web",
+    "invariant_tests": "npx tsx tests/invariants/index.ts",
+    "determinism": "pnpm run verify:determinism",
+    "boundaries": "pnpm run verify:boundaries",
+    "routes": "pnpm run verify:routes",
+    "selftest": "reach selftest"
+  },
+
+  "version": "1.0.0"
+}
