@@ -12,7 +12,7 @@
  */
 
 import { Command } from 'commander';
-// fs imports are used for budget file storage - following existing CLI patterns
+import * as fs from 'fs';
 import { join } from 'path';
 import {
   getDefaultSSMStore,
