@@ -37,6 +37,7 @@
     "measure:baseline": "npx tsx scripts/measure-baseline.ts",
     "verify:cpp": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j && ctest --test-dir build --output-on-failure",
     "verify:boundaries": "node scripts/verify-ui-boundaries.mjs",
+    "verify:dependencies": "npx tsx scripts/verify-dependency-graph.ts",
     "verify:routes": "npx tsx scripts/verify-routes.ts",
     "verify:determinism": "npx tsx scripts/verify_determinism.ts",
     "stress:determinism": "npx tsx scripts/stress_test_determinism.ts",
