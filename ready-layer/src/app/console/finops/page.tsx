@@ -195,7 +195,7 @@ export default function ConsoleFinOpsPage() {
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${getUsageColor(percent)}`}
-                      style={{ width: `${percent}%` }}
+                      style={{ width: `${percent}%` }} // NOSONAR
                     />
                   </div>
                 </div>

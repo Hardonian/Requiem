@@ -1,3 +1,4 @@
+// cspell:ignore microbench
 #include "requiem/microbench.hpp"
 #include "requiem/cas.hpp"
 #include "requiem/event_log.hpp"
