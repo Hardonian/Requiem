@@ -6,7 +6,6 @@
  */
 
 import { run } from 'node:test';
-import { spec } from 'node:test/reporters';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -27,7 +26,7 @@ for (const f of testFiles) {
 console.log('');
 
 const stream = run({ files: testFiles });
-stream.compose(spec).pipe(process.stdout);
+stream.pipe(process.stdout);
 
 stream.on('test:fail', () => {
   process.exitCode = 1;

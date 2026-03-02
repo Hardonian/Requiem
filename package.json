@@ -58,7 +58,10 @@
     "audit": "pnpm audit",
     "audit:fix": "pnpm audit --fix",
     "generate:sbom": "tsx scripts/generate-sbom.ts",
-    "verify:supplychain": "tsx scripts/verify-supplychain.ts"
+    "verify:supplychain": "tsx scripts/verify-supplychain.ts",
+    "verify:invariants": "npx tsx tests/invariants/index.ts",
+    "verify:no-any-core": "npx tsx scripts/verify-no-any-core.ts",
+    "selftest": "npx tsx packages/cli/src/commands/selftest.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
