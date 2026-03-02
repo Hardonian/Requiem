@@ -13,7 +13,9 @@
  */
 
 import { Command } from 'commander';
-import * as fs from 'fs';
+import {
+  readTextFile,
+} from '../lib/io.js';
 import {
   getDefaultSSMStore,
   type SemanticStateId,
@@ -55,7 +57,7 @@ export function createToolSchemaCommand(): Command {
 
         if (options.schema) {
           // Load schema from file
-          const content = fs.readFileSync(options.schema, 'utf-8');
+          const content = readTextFile(options.schema);
           const parsed = JSON.parse(content);
           schema = {
             version: '1.0.0',
@@ -141,10 +143,10 @@ export function createToolSchemaCommand(): Command {
         let output: unknown;
 
         if (options.input) {
-          input = JSON.parse(fs.readFileSync(options.input, 'utf-8'));
+          input = JSON.parse(readTextFile(options.input));
         }
         if (options.output) {
-          output = JSON.parse(fs.readFileSync(options.output, 'utf-8'));
+          output = JSON.parse(readTextFile(options.output));
         }
 
         const result = validateToolIO(toolName, input, output, options.state);
@@ -195,7 +197,7 @@ export function createToolSchemaCommand(): Command {
 
         let currentSchema: ToolSchema;
         if (options.current) {
-          const content = fs.readFileSync(options.current, 'utf-8');
+          const content = readTextFile(options.current);
           const parsed = JSON.parse(content);
           currentSchema = {
             version: '1.0.0',

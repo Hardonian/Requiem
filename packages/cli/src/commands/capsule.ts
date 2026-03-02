@@ -105,7 +105,7 @@ export function createCapsuleCommand(): Command {
         const serialized = serializeCapsule(capsule);
 
         if (options.output) {
-          fs.writeFileSync(options.output, serialized);
+          writeTextFile(options.output, serialized);
 
           if (options.parent?.json) {
             process.stdout.write(JSON.stringify({
@@ -140,12 +140,12 @@ export function createCapsuleCommand(): Command {
     .option('--quick', 'Quick verify (checksum only)')
     .action((file, options) => {
       try {
-        if (!fs.existsSync(file)) {
+        if (!fileExists(file)) {
           handleError(`File not found: ${file}`, options.parent?.json);
           return;
         }
 
-        const content = fs.readFileSync(file, 'utf-8');
+        const content = readTextFile(file);
         let capsule: ReplayAttestationCapsule;
 
         try {
@@ -197,12 +197,12 @@ export function createCapsuleCommand(): Command {
     .argument('<file>', 'Capsule file path')
     .action((file, options) => {
       try {
-        if (!fs.existsSync(file)) {
+        if (!fileExists(file)) {
           handleError(`File not found: ${file}`, options.parent?.json);
           return;
         }
 
-        const content = fs.readFileSync(file, 'utf-8');
+        const content = readTextFile(file);
         const capsule = deserializeCapsule(content);
         const summary = getCapsuleSummary(capsule);
 

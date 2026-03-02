@@ -219,6 +219,11 @@ target_link_libraries(context_paging_test PRIVATE requiem)
 add_test(NAME context_paging_test COMMAND context_paging_test
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+add_executable(kernel_tests tests/kernel_tests.cpp)
+target_link_libraries(kernel_tests PRIVATE requiem)
+add_test(NAME kernel_tests COMMAND kernel_tests
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # ---------------------------------------------------------------------------
 # Production hardening harnesses (Phases 1-7)
 # ---------------------------------------------------------------------------

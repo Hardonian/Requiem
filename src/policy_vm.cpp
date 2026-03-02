@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <regex>
+#include <sstream>
 
 namespace requiem {
 

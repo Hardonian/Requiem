@@ -25,9 +25,7 @@
 #include <cstdio>
 #include <map>
 #include <regex>
-#include <sstream> // retained for DEPRECATED regex-based extractors only
 #include <variant>
-
 
 #include "requiem/hash.hpp"
 
