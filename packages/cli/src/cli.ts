@@ -110,6 +110,9 @@ AUDIT & GOVERNANCE (Differentiators):
   tool-schema verify <tool> [--input] Verify IO against locked schema
   tool-schema drift <tool>            Detect schema drift
   tool-schema list                    List locked tool schemas
+  capsule export <state-id>           Export replay attestation capsule
+  capsule verify <file>               Verify capsule integrity
+  capsule info <file>                 Show capsule summary
 
 GOVERNANCE COMMANDS:
   learn [--window=7d] [--format]      Show learning signals and diagnoses
