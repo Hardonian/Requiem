@@ -7,6 +7,7 @@ import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { DecisionInput, DecisionOutput, evaluateDecisionFallback } from '../lib/fallback';
+import { hash } from '../lib/hash';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -90,10 +91,10 @@ export class RequiemEngine implements DecisionEngine {
 
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
     const engine = getRequiemEngine();
-    
+
     // Convert DecisionInput to canonical ExecRequest
     const request: ExecRequest = {
-      requestId: `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      requestId: `req_${hash(JSON.stringify(input)).substring(0, 16)}`,
       timestamp: new Date().toISOString(),
       params: {
         algorithm: (input.algorithm as any) || 'adaptive',
@@ -112,7 +113,7 @@ export class RequiemEngine implements DecisionEngine {
     };
 
     const result = await engine.execute(request);
-    
+
     if (result.status === 'error') {
       throw new Error(`Requiem Evaluation Failed: ${result.error || 'Unknown Error'}`);
     }
@@ -217,7 +218,7 @@ export function getRequiemEngine(): NativeEngine {
       join(process.cwd(), 'build/requiem'),
       join(process.cwd(), 'build/requiem.exe'),
     ];
-    
+
     // Use first path (simplified)
     nativeEngineInstance = new NativeEngine(possiblePaths[0]);
   }
@@ -227,7 +228,7 @@ export function getRequiemEngine(): NativeEngine {
 /**
  * Decision Engine Factory
  * Returns the appropriate engine based on environment configuration.
- * 
+ *
  * SECURITY: Prioritizes FORCE_RUST for immediate emergency rollback.
  */
 export function createDecisionEngine(): DecisionEngine {
@@ -256,7 +257,7 @@ let activeEngineType: string | undefined;
 
 /**
  * Gets the singleton decision engine instance
- * 
+ *
  * NOTE: Detects environment changes and invalidates the singleton
  * to ensure FORCE_RUST and engine switches are respected immediately.
  */
@@ -305,7 +306,7 @@ export async function checkEngineAvailability(): Promise<{
   error?: string;
 }> {
   const requiemEngine = new RequiemEngine();
-  
+
   if (!requiemEngine.isAvailable()) {
     // Check for fallback option
     if (process.env.FORCE_RUST === 'true' || process.env.REACH_ENGINE_FORCE_RUST === 'true') {
@@ -315,7 +316,7 @@ export async function checkEngineAvailability(): Promise<{
         error: 'Native engine not built, using TypeScript fallback (FORCE_RUST enabled)',
       };
     }
-    
+
     return {
       available: false,
       engineType: 'none',
@@ -323,7 +324,7 @@ export async function checkEngineAvailability(): Promise<{
              `Or set FORCE_RUST=1 to use TypeScript fallback.`,
     };
   }
-  
+
   return {
     available: true,
     engineType: 'requiem',
