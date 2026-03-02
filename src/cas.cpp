@@ -484,8 +484,10 @@ std::size_t CasStore::size() const {
 }
 
 void CasStore::compact() {
-  if (!index_loaded_)
-    load_index();
+  // FIX: Do NOT reload index here - use in-memory state directly.
+  // The in-memory index already reflects all remove() operations.
+  // Previously this called load_index() which would reload stale data from disk
+  // and undo the remove() operations.
 
   std::lock_guard<std::mutex> lk(index_mu_);
 

@@ -144,6 +144,7 @@ export default function ConsoleFinOpsPage() {
         </div>
         <div className="flex gap-2">
           <select
+            aria-label="Tenant selection"
             value={tenant}
             onChange={(e) => setTenant(e.target.value)}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -195,11 +196,6 @@ export default function ConsoleFinOpsPage() {
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${getUsageColor(percent)}`}
                       style={{ width: `${percent}%` }}
-                      role="progressbar"
-                      aria-valuenow={percent}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label={`${budget.name} usage: ${percent.toFixed(1)}%`}
                     />
                   </div>
                 </div>

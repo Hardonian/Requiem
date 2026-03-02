@@ -1,0 +1,445 @@
+{
+  "timestamp": "2026-03-02T22:08:29.014Z",
+  "results": [
+    {
+      "command": "run",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "verify",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "replay",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "fingerprint",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "ui",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "quickstart",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "diff",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "lineage",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "simulate",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "drift",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "explain",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "usage",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "tenant-check",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "chaos",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "share",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "tool",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "trace",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "stats",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "status",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "telemetry",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "learn",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "realign",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "pivot",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "rollback",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "symmetry",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "economics",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "decide",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "junctions",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "agent",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "ai",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "backup",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "restore",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "import",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "nuke",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "init",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "config",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "doctor",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "bugreport",
+      "exists": true,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": false,
+      "issues": [
+        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/esm/resolve:274\r\n    throw new ERR_MODULE_NOT_FOUND(\r\n          ^\r\n\r\nError [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\commands\\decide' imported from C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js\r\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\r\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\r\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\r\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)\r\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)\r\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)\r\n    at #resolve (node:internal/modules/esm/loader:700:17)\r\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)\r\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)\r\n    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {\r\n  code: 'ERR_MODULE_NOT_FOUND',\r\n  url: 'file:///C:/Users/scott/GitHub/Requiem/packages/cli/dist/commands/decide'\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+      ]
+    },
+    {
+      "command": "help",
+      "exists": false,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": true,
+      "issues": [
+        "Command 'help' not found in CLI switch statement"
+      ]
+    },
+    {
+      "command": "version",
+      "exists": false,
+      "hasHelp": false,
+      "jsonOutputWorks": false,
+      "errorStructured": false,
+      "exitCodeCorrect": true,
+      "issues": [
+        "Command 'version' not found in CLI switch statement"
+      ]
+    }
+  ]
+}
