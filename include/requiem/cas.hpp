@@ -41,6 +41,8 @@
 
 namespace requiem {
 
+class ReplicatingBackend; // Forward declaration
+
 struct CasObjectInfo {
   std::string digest;
   std::string encoding{"identity"};
