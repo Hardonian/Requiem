@@ -220,11 +220,11 @@ describe('State ID Computation', () => {
 
   it('should be deterministic across key ordering', () => {
     const descriptor1 = createTestDescriptor();
-    // Manually create descriptor with different key order
+    // Manually create descriptor with different key order but same values
     const descriptor2: SemanticStateDescriptor = {
       runtimeId: 'node-20',
-      contextSnapshotId: 'context789',
-      policySnapshotId: 'abc123def456',
+      contextSnapshotId: 'context7890abcdef1234567890abcdef1234567890abcdef12',
+      policySnapshotId: 'abc123def4567890abcdef1234567890abcdef12',
       promptTemplateVersion: '1.0.0',
       promptTemplateId: 'test-template',
       modelVersion: '2024-01',
