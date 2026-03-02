@@ -46,6 +46,7 @@
     "organisation",
     "pooler",
     "postconditions",
+    "PRNGs",
     "PYTHONHASHSEED",
     "radix",
     "recharts",
