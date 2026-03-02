@@ -21,7 +21,13 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "verify": "npm run type-check && npm run lint",
-    "doctor": "echo 'Run doctor from root: pnpm doctor'"
+    "doctor": "echo 'Run doctor from root: pnpm doctor'",
+    "verify:boundaries": "tsx scripts/verify-boundaries.ts",
+    "verify:integrity": "tsx scripts/verify-integrity.ts",
+    "verify:policy": "tsx scripts/verify-policy.ts",
+    "verify:replay": "tsx scripts/verify-replay.ts",
+    "verify:web": "tsx scripts/verify-web.ts",
+    "verify:all": "npm run verify:web && npm run verify:boundaries && npm run verify:integrity && npm run verify:policy && npm run verify:replay"
   },
   "dependencies": {
     "@babel/parser": "^7.28.6",
