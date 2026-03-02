@@ -10,7 +10,7 @@
  * INVARIANT: No duplicate logic between CLI and programmatic API.
  * INVARIANT: Every execution passes through the policy gate.
  * INVARIANT: No console.* in production paths (use logger).
- * 
+ *
  * COLD START OPTIMIZATION: help/version have zero heavy imports.
  * All heavy modules (logger, db, providers, signing) are lazy loaded.
  */
@@ -115,6 +115,7 @@ ADMIN COMMANDS:
   init                                Initialize configuration
   doctor                              Validate environment setup
   bugreport                           Generate diagnostic report
+  selftest                            Run comprehensive self-diagnostic checks
   fast-start [--minimal]              Cached skip of engine/DB checks
   bench                               Sub-millisecond latency baseline
 
@@ -190,7 +191,7 @@ async function handleError(error: unknown, ctx: CommandContext): Promise<number>
 
   // Unknown error - wrap it
   const message = error instanceof Error ? error.message : String(error);
-  
+
   // Lazy load logger only on error paths
   try {
     const logger = await getLogger();
@@ -492,6 +493,13 @@ async function main(): Promise<number> {
       case 'status': {
         const { status } = await loadCommand('./commands/status.js') as { status: { parseAsync: (args: string[]) => Promise<void> } };
         await status.parseAsync([process.argv[0], process.argv[1], 'status', ...subArgs]);
+        result = 0;
+        break;
+      }
+
+      case 'selftest': {
+        const { selftest } = await loadCommand('./commands/selftest.js') as { selftest: { parseAsync: (args: string[]) => Promise<void> } };
+        await selftest.parseAsync([process.argv[0], process.argv[1], 'selftest', ...subArgs]);
         result = 0;
         break;
       }
