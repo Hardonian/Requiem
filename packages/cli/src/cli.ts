@@ -88,6 +88,17 @@ PROOF SURFACE COMMANDS (Microfracture):
   share <runId> [--ttl] [--scope]     Create shareable proof link
   chaos --quick [--format]            Run chaos verification checks
 
+SEMANTIC STATE MACHINE (New Primitive):
+  state list [filters]                List semantic states
+  state show <id>                     Show state details
+  state diff <idA> <idB>              Compare two states
+  state graph                         Generate lineage graph (DOT)
+  state export [--since]              Export semantic ledger
+  state import <file>                 Import semantic ledger
+  state genesis --descriptor <file>   Create genesis state
+  state transition --from <id>        Create state transition
+  state simulate upgrade --from --to  Simulate model migration impact
+
 GOVERNANCE COMMANDS:
   learn [--window=7d] [--format]      Show learning signals and diagnoses
   realign <patch-id>                  Apply patch in new branch and verify
@@ -494,6 +505,16 @@ async function main(): Promise<number> {
           runMicrofractureCommand: (cmd: string, args: string[], ctx: CommandContext) => Promise<number>;
         };
         result = await runMicrofractureCommand(command, subArgs, ctx);
+        break;
+      }
+
+      case 'state': {
+        const { createStateCommand } = await loadCommand('./commands/state.js') as {
+          createStateCommand: () => { parseAsync: (args: string[]) => Promise<void> };
+        };
+        const stateCmd = createStateCommand();
+        await stateCmd.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
+        result = 0;
         break;
       }
 
