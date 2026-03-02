@@ -4,12 +4,12 @@ _Version: 0.1.0 | Updated: 2026-02-28_
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Optional | Anthropic Claude API key |
-| `OPENAI_API_KEY` | Optional | OpenAI API key |
-| `REQUIEM_DEV_MODE` | Dev only | Set to `1` to use single-tenant dev stub (loud warning) |
-| `NODE_ENV` | Optional | `development`/`production`/`test` |
+| Variable            | Required | Description                                             |
+| ------------------- | -------- | ------------------------------------------------------- |
+| `ANTHROPIC_API_KEY` | Optional | Anthropic Claude API key                                |
+| `OPENAI_API_KEY`    | Optional | OpenAI API key                                          |
+| `REQUIEM_DEV_MODE`  | Dev only | Set to `1` to use single-tenant dev stub (loud warning) |
+| `NODE_ENV`          | Optional | `development`/`production`/`test`                       |
 
 **SECURITY**: Never commit API keys. Use secret manager in production.
 
@@ -57,10 +57,14 @@ In development mode, data is written to:
 **These are dev-only.** Replace with DB sinks before production:
 
 ```typescript
-import { setAuditSink, setCostSink, setMemoryStore } from '@requiem/ai';
+import { setAuditSink, setCostSink, setMemoryStore } from "@requiem/ai";
 
-setAuditSink(async (record) => { await db.insert(record); });
-setCostSink(async (record) => { await db.insert(record); });
+setAuditSink(async (record) => {
+  await db.insert(record);
+});
+setCostSink(async (record) => {
+  await db.insert(record);
+});
 setMemoryStore(new DatabaseMemoryStore(db));
 ```
 

@@ -2,7 +2,7 @@
 
 **Status**: In Progress  
 **Last Updated**: 2026-02-28  
-**Integration Phase**: 2-8 Execution  
+**Integration Phase**: 2-8 Execution
 
 ---
 
@@ -20,15 +20,15 @@ Node: >=18.0.0
 
 ### 1.2 ReadyLayer Location
 
-| Component | Path | Entry Commands |
-|-----------|------|----------------|
-| ReadyLayer Web App | `ready-layer/` | `npm run dev`, `npm run build` |
-| Package Definition | `ready-layer/package.json` | `name: "ready-layer"` |
-| Next.js Config | `ready-layer/next.config.ts` | App Router, static + dynamic |
-| App Pages | `ready-layer/src/app/` | `/app/*` console routes |
-| API Routes | `ready-layer/src/app/api/` | `/api/*` REST endpoints |
-| Prisma Schema | `ready-layer/prisma/schema.prisma` | Database layer |
-| Middleware | `ready-layer/src/middleware.ts` | Auth/proxy handling |
+| Component          | Path                               | Entry Commands                 |
+| ------------------ | ---------------------------------- | ------------------------------ |
+| ReadyLayer Web App | `ready-layer/`                     | `npm run dev`, `npm run build` |
+| Package Definition | `ready-layer/package.json`         | `name: "ready-layer"`          |
+| Next.js Config     | `ready-layer/next.config.ts`       | App Router, static + dynamic   |
+| App Pages          | `ready-layer/src/app/`             | `/app/*` console routes        |
+| API Routes         | `ready-layer/src/app/api/`         | `/api/*` REST endpoints        |
+| Prisma Schema      | `ready-layer/prisma/schema.prisma` | Database layer                 |
+| Middleware         | `ready-layer/src/middleware.ts`    | Auth/proxy handling            |
 
 ### 1.3 Repository Structure
 
@@ -54,22 +54,22 @@ requiem/
 
 ReadyLayer serves as the **canonical web interface** for Requiem:
 
-| Concept | File Location | Route | Purpose |
-|---------|--------------|-------|---------|
-| Landing/Marketing | `src/app/page.tsx` | `/` | Redirects to console |
-| Console Dashboard | `src/app/app/executions/page.tsx` | `/app/executions` | Main operator view |
-| CAS Explorer | `src/app/app/cas/page.tsx` | `/app/cas` | Content-addressed storage |
-| Diagnostics | `src/app/app/diagnostics/page.tsx` | `/app/diagnostics` | System health |
-| Metrics | `src/app/app/metrics/page.tsx` | `/app/metrics` | Observability |
-| Replay | `src/app/app/replay/page.tsx` | `/app/replay` | Deterministic replay |
-| Tenant Admin | `src/app/app/tenants/page.tsx` | `/app/tenants` | Multi-tenant mgmt |
+| Concept           | File Location                      | Route              | Purpose                   |
+| ----------------- | ---------------------------------- | ------------------ | ------------------------- |
+| Landing/Marketing | `src/app/page.tsx`                 | `/`                | Redirects to console      |
+| Console Dashboard | `src/app/app/executions/page.tsx`  | `/app/executions`  | Main operator view        |
+| CAS Explorer      | `src/app/app/cas/page.tsx`         | `/app/cas`         | Content-addressed storage |
+| Diagnostics       | `src/app/app/diagnostics/page.tsx` | `/app/diagnostics` | System health             |
+| Metrics           | `src/app/app/metrics/page.tsx`     | `/app/metrics`     | Observability             |
+| Replay            | `src/app/app/replay/page.tsx`      | `/app/replay`      | Deterministic replay      |
+| Tenant Admin      | `src/app/app/tenants/page.tsx`     | `/app/tenants`     | Multi-tenant mgmt         |
 
 ### 2.2 Domain Representation
 
-| Domain | Code Representation | Notes |
-|--------|---------------------|-------|
-| `reach-cli.com` (OSS) | Static marketing pages + docs | Open source, no auth required |
-| `ready-layer.com` (Enterprise) | `/app/*` console routes | Auth-gated, full feature set |
+| Domain                         | Code Representation           | Notes                         |
+| ------------------------------ | ----------------------------- | ----------------------------- |
+| `reach-cli.com` (OSS)          | Static marketing pages + docs | Open source, no auth required |
+| `ready-layer.com` (Enterprise) | `/app/*` console routes       | Auth-gated, full feature set  |
 
 ---
 
@@ -107,11 +107,11 @@ root (requiem)
 
 ### 4.1 Route Categories
 
-| Route Pattern | Type | Generation |
-|--------------|------|------------|
-| `/` | Redirect | Dynamic (middleware) |
-| `/app/*` | Console | Static + Client hydration |
-| `/api/*` | API | Dynamic (serverless functions) |
+| Route Pattern | Type     | Generation                     |
+| ------------- | -------- | ------------------------------ |
+| `/`           | Redirect | Dynamic (middleware)           |
+| `/app/*`      | Console  | Static + Client hydration      |
+| `/api/*`      | API      | Dynamic (serverless functions) |
 
 ### 4.2 Build Configuration
 
@@ -203,12 +203,12 @@ requiem web:routes   # Verify routes (scripts/verify_routes.sh)
 
 ### 8.1 Scripts to Add/Update
 
-| Script | Purpose | Location |
-|--------|---------|----------|
-| `verify:full` | Lint + typecheck + build + test + routes | Root package.json |
-| `verify:routes` | Validate route manifest | scripts/verify-routes.ts |
-| `web:dev` | Start ReadyLayer dev server | Root package.json |
-| `web:build` | Build ReadyLayer for production | Root package.json |
+| Script          | Purpose                                  | Location                 |
+| --------------- | ---------------------------------------- | ------------------------ |
+| `verify:full`   | Lint + typecheck + build + test + routes | Root package.json        |
+| `verify:routes` | Validate route manifest                  | scripts/verify-routes.ts |
+| `web:dev`       | Start ReadyLayer dev server              | Root package.json        |
+| `web:build`     | Build ReadyLayer for production          | Root package.json        |
 
 ### 8.2 CI Requirements
 

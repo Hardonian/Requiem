@@ -119,36 +119,36 @@ This document lists all fixes made during the post-implementation reality check.
 
 ## Files Modified
 
-| File | Changes |
-|------|---------|
-| `include/requiem/jsonlite.hpp` | Exposed Value struct, added get_double, added Array alias |
-| `src/jsonlite.cpp` | Complete rewrite of number parsing, added double support, added iomanip include |
-| `include/requiem/sandbox.hpp` | Added sandbox capability fields to ProcessResult, added detect_platform_sandbox_capabilities() |
-| `src/sandbox_posix.cpp` | Populate sandbox fields, added capability detection |
-| `src/sandbox_win.cpp` | Populate sandbox fields, added capability detection |
-| `src/runtime.cpp` | Populate sandbox_applied, fix policy/llm nested parsing, add result JSON fields |
-| `tests/requiem_tests.cpp` | Added 3 new test functions |
-| `docs/CONTRACT.md` | Updated schema, added sandbox_applied, updated canonicalization docs |
-| `docs/examples/bench_spec.json` | Fixed format (removed nested request object) |
-| `.github/workflows/ci.yml` | Added secrets scan step |
-| `scripts/verify_secrets.sh` | New file |
-| `scripts/verify_secrets.ps1` | New file |
+| File                            | Changes                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `include/requiem/jsonlite.hpp`  | Exposed Value struct, added get_double, added Array alias                                      |
+| `src/jsonlite.cpp`              | Complete rewrite of number parsing, added double support, added iomanip include                |
+| `include/requiem/sandbox.hpp`   | Added sandbox capability fields to ProcessResult, added detect_platform_sandbox_capabilities() |
+| `src/sandbox_posix.cpp`         | Populate sandbox fields, added capability detection                                            |
+| `src/sandbox_win.cpp`           | Populate sandbox fields, added capability detection                                            |
+| `src/runtime.cpp`               | Populate sandbox_applied, fix policy/llm nested parsing, add result JSON fields                |
+| `tests/requiem_tests.cpp`       | Added 3 new test functions                                                                     |
+| `docs/CONTRACT.md`              | Updated schema, added sandbox_applied, updated canonicalization docs                           |
+| `docs/examples/bench_spec.json` | Fixed format (removed nested request object)                                                   |
+| `.github/workflows/ci.yml`      | Added secrets scan step                                                                        |
+| `scripts/verify_secrets.sh`     | New file                                                                                       |
+| `scripts/verify_secrets.ps1`    | New file                                                                                       |
 
 ## Verification Status
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| Hash primitive = "blake3" | ✅ | Verified in code |
-| Hash backend = "vendored" | ✅ | Verified in code |
-| Fail-closed default | ✅ | No fallback without explicit flag |
-| validate-replacement gate | ✅ | Fails on fallback/unavailable |
-| JSON canonicalization | ✅ | Fixed double/negative support |
-| Sandbox reporting | ✅ | Now populated correctly |
-| Policy parsing | ✅ | Nested objects now parsed |
-| Determinism test | ✅ | N=20 repeat test added |
-| CAS corruption test | ✅ | Bit-flip detection added |
-| Secrets scan | ✅ | Scripts added |
-| Cross-platform parity | ⚠️ | Code ready, needs CI verification |
+| Check                     | Status | Notes                             |
+| ------------------------- | ------ | --------------------------------- |
+| Hash primitive = "blake3" | ✅     | Verified in code                  |
+| Hash backend = "vendored" | ✅     | Verified in code                  |
+| Fail-closed default       | ✅     | No fallback without explicit flag |
+| validate-replacement gate | ✅     | Fails on fallback/unavailable     |
+| JSON canonicalization     | ✅     | Fixed double/negative support     |
+| Sandbox reporting         | ✅     | Now populated correctly           |
+| Policy parsing            | ✅     | Nested objects now parsed         |
+| Determinism test          | ✅     | N=20 repeat test added            |
+| CAS corruption test       | ✅     | Bit-flip detection added          |
+| Secrets scan              | ✅     | Scripts added                     |
+| Cross-platform parity     | ⚠️     | Code ready, needs CI verification |
 
 ## Remaining Work (Future)
 

@@ -106,13 +106,13 @@ A PR touching files in ≥2 layers must:
 
 ## What Agents Must NOT Do (Scope Creep Prevention)
 
-| Action | Reason |
-|--------|--------|
-| Add new runtime HTTP calls from the engine | Violates OSS isolation |
-| Add database drivers to `src/` | Out of scope for engine layer |
-| Copy BLAKE3 hash logic into `ready-layer/` | Violates INV-6 |
-| Disable or comment out CI checks | Non-negotiable |
-| Add enterprise feature flags to OSS observability | Violates INV-5 |
-| Remove `export const dynamic = 'force-dynamic'` from API routes | Violates INV-7 |
-| Introduce a new dependency without updating `contracts/deps.allowlist.json` | Violates INV-8 |
-| Change CAS shard depth without a version bump | Violates INV-2 + INV-4 |
+| Action                                                                      | Reason                        |
+| --------------------------------------------------------------------------- | ----------------------------- |
+| Add new runtime HTTP calls from the engine                                  | Violates OSS isolation        |
+| Add database drivers to `src/`                                              | Out of scope for engine layer |
+| Copy BLAKE3 hash logic into `ready-layer/`                                  | Violates INV-6                |
+| Disable or comment out CI checks                                            | Non-negotiable                |
+| Add enterprise feature flags to OSS observability                           | Violates INV-5                |
+| Remove `export const dynamic = 'force-dynamic'` from API routes             | Violates INV-7                |
+| Introduce a new dependency without updating `contracts/deps.allowlist.json` | Violates INV-8                |
+| Change CAS shard depth without a version bump                               | Violates INV-2 + INV-4        |

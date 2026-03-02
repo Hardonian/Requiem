@@ -17,13 +17,13 @@ v1.0 introduces breaking changes:
 ### Pre-Migration Checklist
 
 - [x] Backup existing CAS  
-  *Validated: 2026-03-01 — Automated backup verified*
+      _Validated: 2026-03-01 — Automated backup verified_
 - [x] Run `requiem validate-replacement` on current version  
-  *Validated: 2026-03-01 — Replacement validation passes*
+      _Validated: 2026-03-01 — Replacement validation passes_
 - [x] Document current hash primitives in use  
-  *Validated: 2026-03-01 — Hash primitive audit complete*
+      _Validated: 2026-03-01 — Hash primitive audit complete_
 - [x] Test migration in staging environment  
-  *Validated: 2026-03-01 — Staging migration successful*
+      _Validated: 2026-03-01 — Staging migration successful_
 
 ### Migration Steps
 
@@ -162,12 +162,12 @@ The AI package includes a comprehensive migration runner:
 
 ```typescript
 // Located in packages/ai/src/migrations/
-import { MigrationRunner } from '@requiem/ai/migrations';
+import { MigrationRunner } from "@requiem/ai/migrations";
 
 const runner = new MigrationRunner({
   databaseUrl: process.env.DATABASE_URL,
-  migrationsDir: './migrations',
-  validateChecksums: true
+  migrationsDir: "./migrations",
+  validateChecksums: true,
 });
 
 // Run pending migrations
@@ -175,7 +175,7 @@ await runner.migrate();
 
 // Check status
 const status = await runner.status();
-console.log(status.pending);  // [] if all applied
+console.log(status.pending); // [] if all applied
 ```
 
 ### Migration Structure
@@ -345,11 +345,11 @@ New error codes in v1.0:
 
 Stricter defaults in v1.0:
 
-| Variable | v0.x | v1.0 |
-|----------|------|------|
+| Variable         | v0.x     | v1.0                |
+| ---------------- | -------- | ------------------- |
 | `PYTHONHASHSEED` | Optional | Injected if missing |
-| `TZ` | Allowed | Denied by default |
-| `RANDOM` | Allowed | Denied by default |
+| `TZ`             | Allowed  | Denied by default   |
+| `RANDOM`         | Allowed  | Denied by default   |
 
 Update requests that depend on these variables.
 
@@ -357,16 +357,16 @@ Update requests that depend on these variables.
 
 ## Breaking Changes Summary
 
-| Feature | v0.x | v1.0 | Migration |
-|---------|------|------|-----------|
-| Hash | SHA-256/BLAKE2/BLAKE3 | BLAKE3 only | Re-run executions |
-| CAS Key | Algorithm-dependent | BLAKE3 only | `requiem migrate cas` |
-| Fallback | Silent | Explicit flag | Add `--allow-hash-fallback` if needed |
-| Error on no hash | Warning | Error | Ensure BLAKE3 available |
-| Domain prefix | None | req:/res:/cas: | Automatic |
-| Scheduler | Implicit | Explicit | Add `scheduler_mode` |
-| Database | Basic | Migration runner | Run `pnpm cli db:migrate` |
-| Circuit Breaker | Memory only | Persistent | Automatic with migration |
+| Feature          | v0.x                  | v1.0             | Migration                             |
+| ---------------- | --------------------- | ---------------- | ------------------------------------- |
+| Hash             | SHA-256/BLAKE2/BLAKE3 | BLAKE3 only      | Re-run executions                     |
+| CAS Key          | Algorithm-dependent   | BLAKE3 only      | `requiem migrate cas`                 |
+| Fallback         | Silent                | Explicit flag    | Add `--allow-hash-fallback` if needed |
+| Error on no hash | Warning               | Error            | Ensure BLAKE3 available               |
+| Domain prefix    | None                  | req:/res:/cas:   | Automatic                             |
+| Scheduler        | Implicit              | Explicit         | Add `scheduler_mode`                  |
+| Database         | Basic                 | Migration runner | Run `pnpm cli db:migrate`             |
+| Circuit Breaker  | Memory only           | Persistent       | Automatic with migration              |
 
 ## FAQ
 

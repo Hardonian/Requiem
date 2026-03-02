@@ -4,7 +4,7 @@
 
 ---
 
-## Dashboard Routes (/app/*)
+## Dashboard Routes (/app/\*)
 
 ### /app/executions
 
@@ -262,11 +262,11 @@ Sidebar (App Layout)
 
 All dashboard routes implement:
 
-| State | Implementation |
-|-------|---------------|
-| Loading | Suspense + Skeleton UI |
-| Error | Error boundary with recovery |
-| Empty | Illustrated empty states with CLI hints |
+| State   | Implementation                          |
+| ------- | --------------------------------------- |
+| Loading | Suspense + Skeleton UI                  |
+| Error   | Error boundary with recovery            |
+| Empty   | Illustrated empty states with CLI hints |
 
 ---
 
@@ -284,4 +284,4 @@ Without configuration, shows standby mode with setup instructions.
 
 ---
 
-*See also: [CLI Reference](./cli.md), [Architecture](../ARCHITECTURE.md)*
+_See also: [CLI Reference](./cli.md), [Architecture](../ARCHITECTURE.md)_

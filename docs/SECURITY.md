@@ -8,27 +8,27 @@
 
 > **Honest accounting of what is real vs. stub.** See [`docs/THEATRE_AUDIT.md`](THEATRE_AUDIT.md) for full details.
 
-| Feature | Status | Details |
-|---------|--------|---------|
-| BLAKE3 hashing | ✅ Implemented | Domain-separated, vendored |
-| Policy gate | ✅ Implemented | Guardrails wired (Phase 1) |
-| Rate limiting | ✅ Implemented | Token-bucket per tenant (Phase 1) |
-| Workspace confinement | ✅ Implemented | Path-based, fail-closed |
-| Budget enforcement | ✅ Implemented | DB-backed with persistence (Phase 2A) |
-| JWT validation | ✅ Implemented | MCP transport validation (Phase 1A) |
-| Signed bundles | ✅ Implemented | Merkle root proofs, signature stubs (Phase 1B) |
-| Seccomp sandbox | ✅ Implemented | Seccomp-BPF with capability truth (Phase 1B) |
-| Audit persistence | ✅ Implemented | Database-backed with Merkle chain (Phase 1B) |
-| Merkle audit chain | ✅ Implemented | Tamper-evident audit logs (Phase 1B) |
-| Windows restricted tokens | ✅ Implemented | Job Objects + token restriction (Phase 1B) |
-| Tool output limits | ✅ Implemented | Enforced at tool registry (Phase 2B) |
-| Policy enforcement at MCP | ✅ Implemented | Entry point validation (Phase 3A) |
-| Correlation IDs | ✅ Implemented | Cross-request tracing (Phase 3A) |
-| Prompt injection filter | ✅ Implemented | Input sanitization (Phase 3A) |
-| Cost anomaly detection | ✅ Implemented | Statistical monitoring (Phase 2A) |
-| Circuit breaker persistence | ✅ Implemented | State saved to database (Phase 4) |
-| Tenant isolation | ✅ Implemented | RLS policies, server-side derivation |
-| Credential rotation | ✅ Implemented | Automated rotation workflow (Phase 4) |
+| Feature                     | Status         | Details                                        |
+| --------------------------- | -------------- | ---------------------------------------------- |
+| BLAKE3 hashing              | ✅ Implemented | Domain-separated, vendored                     |
+| Policy gate                 | ✅ Implemented | Guardrails wired (Phase 1)                     |
+| Rate limiting               | ✅ Implemented | Token-bucket per tenant (Phase 1)              |
+| Workspace confinement       | ✅ Implemented | Path-based, fail-closed                        |
+| Budget enforcement          | ✅ Implemented | DB-backed with persistence (Phase 2A)          |
+| JWT validation              | ✅ Implemented | MCP transport validation (Phase 1A)            |
+| Signed bundles              | ✅ Implemented | Merkle root proofs, signature stubs (Phase 1B) |
+| Seccomp sandbox             | ✅ Implemented | Seccomp-BPF with capability truth (Phase 1B)   |
+| Audit persistence           | ✅ Implemented | Database-backed with Merkle chain (Phase 1B)   |
+| Merkle audit chain          | ✅ Implemented | Tamper-evident audit logs (Phase 1B)           |
+| Windows restricted tokens   | ✅ Implemented | Job Objects + token restriction (Phase 1B)     |
+| Tool output limits          | ✅ Implemented | Enforced at tool registry (Phase 2B)           |
+| Policy enforcement at MCP   | ✅ Implemented | Entry point validation (Phase 3A)              |
+| Correlation IDs             | ✅ Implemented | Cross-request tracing (Phase 3A)               |
+| Prompt injection filter     | ✅ Implemented | Input sanitization (Phase 3A)                  |
+| Cost anomaly detection      | ✅ Implemented | Statistical monitoring (Phase 2A)              |
+| Circuit breaker persistence | ✅ Implemented | State saved to database (Phase 4)              |
+| Tenant isolation            | ✅ Implemented | RLS policies, server-side derivation           |
+| Credential rotation         | ✅ Implemented | Automated rotation workflow (Phase 4)          |
 
 ## Threat Model
 
@@ -42,16 +42,16 @@
 
 ### Threats
 
-| Threat | Severity | Mitigation |
-|--------|----------|------------|
-| Hash collision | Critical | BLAKE3 with 256-bit output |
-| Silent crypto downgrade | Critical | Fail-closed behavior |
-| Path traversal | High | Workspace confinement |
-| Resource exhaustion | High | Timeouts, limits, circuit breakers |
-| Environment leakage | Medium | Allowlist/denylist |
-| Information disclosure | Medium | Output truncation, secret redaction |
-| Prompt injection | High | Input sanitization filter |
-| JWT replay | Medium | Short expiry, rotation |
+| Threat                  | Severity | Mitigation                          |
+| ----------------------- | -------- | ----------------------------------- |
+| Hash collision          | Critical | BLAKE3 with 256-bit output          |
+| Silent crypto downgrade | Critical | Fail-closed behavior                |
+| Path traversal          | High     | Workspace confinement               |
+| Resource exhaustion     | High     | Timeouts, limits, circuit breakers  |
+| Environment leakage     | Medium   | Allowlist/denylist                  |
+| Information disclosure  | Medium   | Output truncation, secret redaction |
+| Prompt injection        | High     | Input sanitization filter           |
+| JWT replay              | Medium   | Short expiry, rotation              |
 
 ## Cryptographic Design
 
@@ -266,41 +266,41 @@ Properties:
 ### Deployment
 
 - [x] `requiem validate-replacement` passes  
-  *Validated: 2026-03-01 — All replacement checks pass*
+      _Validated: 2026-03-01 — All replacement checks pass_
 - [x] `requiem doctor` reports no blockers  
-  *Validated: 2026-03-01 — Doctor clean, sandbox capabilities verified*
+      _Validated: 2026-03-01 — Doctor clean, sandbox capabilities verified_
 - [x] BLAKE3 test vectors pass  
-  *Validated: 2026-03-01 — Known vectors verified*
+      _Validated: 2026-03-01 — Known vectors verified_
 - [x] Sandbox capabilities verified  
-  *Validated: 2026-03-01 — Capability truth confirmed*
+      _Validated: 2026-03-01 — Capability truth confirmed_
 - [x] Resource limits configured  
-  *Validated: 2026-03-01 — Limits enforced*
+      _Validated: 2026-03-01 — Limits enforced_
 
 ### Development
 
 - [x] No hardcoded secrets  
-  *Validated: 2026-03-01 — Secret scanning passes*
+      _Validated: 2026-03-01 — Secret scanning passes_
 - [x] All paths canonicalized  
-  *Validated: 2026-03-01 — Path handling secure*
+      _Validated: 2026-03-01 — Path handling secure_
 - [x] All inputs validated  
-  *Validated: 2026-03-01 — Zod schemas everywhere*
+      _Validated: 2026-03-01 — Zod schemas everywhere_
 - [x] Error messages don't leak info  
-  *Validated: 2026-03-01 — Structured error envelope*
+      _Validated: 2026-03-01 — Structured error envelope_
 - [x] Audit logging enabled  
-  *Validated: 2026-03-01 — Audit persistence active*
+      _Validated: 2026-03-01 — Audit persistence active_
 
 ### Maintenance
 
 - [x] Regular `cas verify` runs  
-  *Scheduled: Weekly automated verification*
+      _Scheduled: Weekly automated verification_
 - [x] Monitor for drift  
-  *Active: Automated drift detection*
+      _Active: Automated drift detection_
 - [x] Review audit logs  
-  *Scheduled: Weekly security review*
+      _Scheduled: Weekly security review_
 - [x] Update dependencies  
-  *Process: Monthly dependency audit*
+      _Process: Monthly dependency audit_
 - [x] Credential rotation  
-  *Automated: 90-day rotation cycle*
+      _Automated: 90-day rotation cycle_
 
 ## Phase 1-4 Security Features
 

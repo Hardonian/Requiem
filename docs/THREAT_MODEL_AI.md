@@ -4,14 +4,14 @@ _Version: 0.1.0 | Updated: 2026-02-28_
 
 ## Assets
 
-| Asset | Sensitivity | Location |
-|-------|-------------|----------|
-| Tool handlers | HIGH — execute code | packages/ai/src/tools/ |
-| Tenant context | HIGH — identity | InvocationContext.tenant |
-| Cost records | MEDIUM — financial data | .data/ai-cost/ or DB |
-| Memory items | MEDIUM — may contain PII | .data/ai-memory/ or DB |
-| Model API keys | CRITICAL | process.env.ANTHROPIC_API_KEY |
-| Audit logs | HIGH — non-repudiation | .data/ai-audit/ or DB |
+| Asset          | Sensitivity              | Location                      |
+| -------------- | ------------------------ | ----------------------------- |
+| Tool handlers  | HIGH — execute code      | packages/ai/src/tools/        |
+| Tenant context | HIGH — identity          | InvocationContext.tenant      |
+| Cost records   | MEDIUM — financial data  | .data/ai-cost/ or DB          |
+| Memory items   | MEDIUM — may contain PII | .data/ai-memory/ or DB        |
+| Model API keys | CRITICAL                 | process.env.ANTHROPIC_API_KEY |
+| Audit logs     | HIGH — non-repudiation   | .data/ai-audit/ or DB         |
 
 ## Threat Actors
 
@@ -85,15 +85,15 @@ _Version: 0.1.0 | Updated: 2026-02-28_
 
 ## Risk Matrix
 
-| Threat | Likelihood | Impact | Priority |
-|--------|------------|--------|----------|
-| T5 Budget Exhaustion | HIGH (no limits) | HIGH | P0 — Implement before prod |
-| T3 SSRF via Tool | MEDIUM | HIGH | P1 |
-| T6 Prompt Injection | MEDIUM | MEDIUM | P1 |
-| T1 Unauth Invocation | LOW (auth gate) | HIGH | P2 |
-| T2 Cross-Tenant | LOW (isolation enforced) | CRITICAL | P2 |
-| T4 Secret Leak | LOW (safe errors) | HIGH | P2 |
-| T7 API Key Exposure | LOW (env only) | CRITICAL | P2 |
+| Threat               | Likelihood               | Impact   | Priority                   |
+| -------------------- | ------------------------ | -------- | -------------------------- |
+| T5 Budget Exhaustion | HIGH (no limits)         | HIGH     | P0 — Implement before prod |
+| T3 SSRF via Tool     | MEDIUM                   | HIGH     | P1                         |
+| T6 Prompt Injection  | MEDIUM                   | MEDIUM   | P1                         |
+| T1 Unauth Invocation | LOW (auth gate)          | HIGH     | P2                         |
+| T2 Cross-Tenant      | LOW (isolation enforced) | CRITICAL | P2                         |
+| T4 Secret Leak       | LOW (safe errors)        | HIGH     | P2                         |
+| T7 API Key Exposure  | LOW (env only)           | CRITICAL | P2                         |
 
 ## Pre-Production Checklist
 

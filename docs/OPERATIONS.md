@@ -81,13 +81,13 @@ curl https://ready-layer.com/api/health
 
 ### Health Check Criteria
 
-| Component | Healthy | Degraded | Critical |
-|-----------|---------|----------|----------|
-| **Database** | <100ms latency | 100-500ms | >500ms or timeout |
-| **CAS** | Read <50ms | 50-200ms | >200ms |
-| **Engine** | Exec <1s | 1-5s | >5s or OOM |
-| **Circuit Breaker** | Closed | Half-open | Open (failing) |
-| **Audit Log** | Writing | Delayed >1s | Not writing |
+| Component           | Healthy        | Degraded    | Critical          |
+| ------------------- | -------------- | ----------- | ----------------- |
+| **Database**        | <100ms latency | 100-500ms   | >500ms or timeout |
+| **CAS**             | Read <50ms     | 50-200ms    | >200ms            |
+| **Engine**          | Exec <1s       | 1-5s        | >5s or OOM        |
+| **Circuit Breaker** | Closed         | Half-open   | Open (failing)    |
+| **Audit Log**       | Writing        | Delayed >1s | Not writing       |
 
 ---
 
@@ -133,13 +133,13 @@ pnpm cli db:rollback --to <migration_id>
 **Pre-deployment Checklist:**
 
 - [x] Migration tested on staging  
-  *Validated: 2026-03-01 — All migrations tested*
+      _Validated: 2026-03-01 — All migrations tested_
 - [x] Rollback script prepared  
-  *Validated: 2026-03-01 — Rollback procedures documented*
+      _Validated: 2026-03-01 — Rollback procedures documented_
 - [x] No destructive changes without backup  
-  *Validated: 2026-03-01 — Backup procedures verified*
+      _Validated: 2026-03-01 — Backup procedures verified_
 - [x] Migration time < 30 seconds  
-  *Validated: 2026-03-01 — All migrations under threshold*
+      _Validated: 2026-03-01 — All migrations under threshold_
 
 ### CAS Format Migrations
 
@@ -228,16 +228,16 @@ pnpm run verify:full
 
 ### Key Metrics
 
-| Metric | Warning | Critical | Dashboard |
-|--------|---------|----------|-----------|
-| **Request Latency (p99)** | >500ms | >1s | Grafana: Requiem/API |
-| **Error Rate** | >0.1% | >1% | Grafana: Requiem/Errors |
-| **Engine OOM** | >10/hour | >50/hour | Datadog: Infra |
-| **CAS Integrity Failures** | >0 | >0 | PagerDuty: P1 |
-| **Determinism Violations** | >0 | >0 | PagerDuty: P0 |
-| **Circuit Breaker Opens** | >5/hour | >20/hour | Grafana: Requiem/Resilience |
-| **Cost Anomaly Score** | >0.7 | >0.9 | Grafana: Requiem/Cost |
-| **Audit Log Lag** | >1s | >5s | Grafana: Requiem/Audit |
+| Metric                     | Warning  | Critical | Dashboard                   |
+| -------------------------- | -------- | -------- | --------------------------- |
+| **Request Latency (p99)**  | >500ms   | >1s      | Grafana: Requiem/API        |
+| **Error Rate**             | >0.1%    | >1%      | Grafana: Requiem/Errors     |
+| **Engine OOM**             | >10/hour | >50/hour | Datadog: Infra              |
+| **CAS Integrity Failures** | >0       | >0       | PagerDuty: P1               |
+| **Determinism Violations** | >0       | >0       | PagerDuty: P0               |
+| **Circuit Breaker Opens**  | >5/hour  | >20/hour | Grafana: Requiem/Resilience |
+| **Cost Anomaly Score**     | >0.7     | >0.9     | Grafana: Requiem/Cost       |
+| **Audit Log Lag**          | >1s      | >5s      | Grafana: Requiem/Audit      |
 
 ### Logs
 
@@ -286,12 +286,12 @@ pnpm run verify:full
 
 ### Severity Levels
 
-| Level | Definition | Response Time | Examples |
-|-------|------------|---------------|----------|
-| **P0** | Complete outage, data loss | 15 min | All regions down, CAS corruption |
-| **P1** | Major degradation | 30 min | Single region down, high error rate |
-| **P2** | Minor degradation | 2 hours | Elevated latency, partial feature failure |
-| **P3** | Cosmetic issues | 24 hours | UI glitches, doc errors |
+| Level  | Definition                 | Response Time | Examples                                  |
+| ------ | -------------------------- | ------------- | ----------------------------------------- |
+| **P0** | Complete outage, data loss | 15 min        | All regions down, CAS corruption          |
+| **P1** | Major degradation          | 30 min        | Single region down, high error rate       |
+| **P2** | Minor degradation          | 2 hours       | Elevated latency, partial feature failure |
+| **P3** | Cosmetic issues            | 24 hours      | UI glitches, doc errors                   |
 
 ### Runbooks
 

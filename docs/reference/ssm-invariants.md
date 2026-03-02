@@ -167,14 +167,14 @@ assert.deepEqual(result1, result2);
 
 **Signals (6 components, ~16.67 points each):**
 
-| Signal | Verification Method |
-|--------|---------------------|
-| `parityVerified` | Output parity check passed |
-| `policyBound` | `descriptor.policySnapshotId !== ''` |
-| `contextCaptured` | `descriptor.contextSnapshotId !== ''` |
-| `evalAttached` | `descriptor.evalSnapshotId` defined and non-empty |
-| `replayVerified` | Replay verification passed |
-| `artifactSigned` | Artifact signature valid |
+| Signal            | Verification Method                               |
+| ----------------- | ------------------------------------------------- |
+| `parityVerified`  | Output parity check passed                        |
+| `policyBound`     | `descriptor.policySnapshotId !== ''`              |
+| `contextCaptured` | `descriptor.contextSnapshotId !== ''`             |
+| `evalAttached`    | `descriptor.evalSnapshotId` defined and non-empty |
+| `replayVerified`  | Replay verification passed                        |
+| `artifactSigned`  | Artifact signature valid                          |
 
 **Formula:** `Math.round((signalsVerified / 6) * 100)`
 
@@ -225,12 +225,12 @@ assertStableBundle(bundle: SemanticLedgerBundle): void {
       severity: 'error',
     });
   }
-  
+
   // Verify all states have valid IDs
   for (const state of bundle.states) {
     assertValidStateId(state.id);
   }
-  
+
   // Verify timestamps are ISO 8601
   const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
   if (!iso8601Regex.test(bundle.exportedAt)) {
@@ -268,7 +268,7 @@ if (existing) {
     throw new RequiemError({
       code: ErrorCode.SSM_STATE_MUTATION_ATTEMPTED,
       message: `Attempted to mutate existing state: ${state.id}`,
-      severity: 'error',
+      severity: "error",
     });
   }
 }
@@ -299,16 +299,16 @@ reach state export
 
 ## Verification Matrix
 
-| Invariant | Unit Test | Runtime Assert | CI Script | Schema | Branded Type |
-|-----------|-----------|----------------|-----------|--------|--------------|
-| SSM-INV-1 (Opaque ID) | ✅ | ✅ | verify:ssm | ✅ | SemanticStateId |
-| SSM-INV-2 (Schema) | ✅ | ✅ | verify:ssm | ✅ | Zod schemas |
-| SSM-INV-3 (Transition) | ✅ | ✅ | verify:ssm | - | - |
-| SSM-INV-4 (Determinism) | ✅ | - | verify:ssm | - | - |
-| SSM-INV-5 (Integrity) | ✅ | ✅ | verify:ssm | ✅ | - |
-| SSM-INV-6 (Stability) | ✅ | ✅ | verify:ssm | ✅ | - |
-| SSM-INV-7 (Append-Only) | ✅ | ✅ | verify:ssm | - | - |
-| SSM-INV-8 (Offline) | - | - | verify:ssm | - | - |
+| Invariant               | Unit Test | Runtime Assert | CI Script  | Schema | Branded Type    |
+| ----------------------- | --------- | -------------- | ---------- | ------ | --------------- |
+| SSM-INV-1 (Opaque ID)   | ✅        | ✅             | verify:ssm | ✅     | SemanticStateId |
+| SSM-INV-2 (Schema)      | ✅        | ✅             | verify:ssm | ✅     | Zod schemas     |
+| SSM-INV-3 (Transition)  | ✅        | ✅             | verify:ssm | -      | -               |
+| SSM-INV-4 (Determinism) | ✅        | -              | verify:ssm | -      | -               |
+| SSM-INV-5 (Integrity)   | ✅        | ✅             | verify:ssm | ✅     | -               |
+| SSM-INV-6 (Stability)   | ✅        | ✅             | verify:ssm | ✅     | -               |
+| SSM-INV-7 (Append-Only) | ✅        | ✅             | verify:ssm | -      | -               |
+| SSM-INV-8 (Offline)     | -         | -              | verify:ssm | -      | -               |
 
 ---
 

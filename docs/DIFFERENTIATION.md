@@ -8,15 +8,15 @@
 
 ## 1. Competitive Landscape Comparison
 
-| System | Deterministic Replay | Cryptographic Proof | Policy-as-Code | Content-Addressed Storage | Formal Spec |
-|--------|---------------------|---------------------|----------------|---------------------------|-------------|
-| **Requiem** | ✅ 200× gate | ✅ Receipt + EventLog | ✅ Gate pipeline | ✅ CAS v2 (BLAKE3) | ✅ 4 TLA+ specs |
-| GitHub Actions + OPA + Postgres | ❌ Best-effort | ❌ Audit logs only | ✅ OPA policies | ❌ Path-based | ❌ None |
-| Temporal | ❌ Event sourcing | ❌ Event history | ❌ Custom code | ❌ Workflow storage | ❌ None |
-| Airflow | ❌ Idempotent tasks | ❌ Task logs | ❌ Plugins | ❌ Metadata DB | ❌ None |
-| Prefect | ❌ Idempotent flows | ❌ Run logs | ❌ Blocks | ❌ Metadata DB | ❌ None |
-| Dagster | ❌ Solid assertions | ❌ Run logs | ❌ Sensors | ❌ Daemon DB | ❌ None |
-| Durable Functions | ❌ Deterministic | ❌ Trace telemetry | ❌ Custom | ❌ Blob storage | ❌ None |
+| System                          | Deterministic Replay | Cryptographic Proof   | Policy-as-Code   | Content-Addressed Storage | Formal Spec     |
+| ------------------------------- | -------------------- | --------------------- | ---------------- | ------------------------- | --------------- |
+| **Requiem**                     | ✅ 200× gate         | ✅ Receipt + EventLog | ✅ Gate pipeline | ✅ CAS v2 (BLAKE3)        | ✅ 4 TLA+ specs |
+| GitHub Actions + OPA + Postgres | ❌ Best-effort       | ❌ Audit logs only    | ✅ OPA policies  | ❌ Path-based             | ❌ None         |
+| Temporal                        | ❌ Event sourcing    | ❌ Event history      | ❌ Custom code   | ❌ Workflow storage       | ❌ None         |
+| Airflow                         | ❌ Idempotent tasks  | ❌ Task logs          | ❌ Plugins       | ❌ Metadata DB            | ❌ None         |
+| Prefect                         | ❌ Idempotent flows  | ❌ Run logs           | ❌ Blocks        | ❌ Metadata DB            | ❌ None         |
+| Dagster                         | ❌ Solid assertions  | ❌ Run logs           | ❌ Sensors       | ❌ Daemon DB              | ❌ None         |
+| Durable Functions               | ❌ Deterministic     | ❌ Trace telemetry    | ❌ Custom        | ❌ Blob storage           | ❌ None         |
 
 **Key Insight:** Requiem is the **only** system combining all four primitives: deterministic execution, cryptographic proof chains, policy-as-code governance, and content-addressed storage.
 
@@ -166,26 +166,26 @@
 
 All upgrades must pass:
 
-| Gate | Requirement |
-|------|-------------|
-| Vertical slice replay | Exact match on determinism |
-| CLI determinism | No nondeterminism in output |
-| Wall-clock independence | No timestamp-dependent logic |
-| Web build | Next.js build passes |
-| Binary size | <15% increase unless justified |
-| Existing verify scripts | All pass |
+| Gate                    | Requirement                    |
+| ----------------------- | ------------------------------ |
+| Vertical slice replay   | Exact match on determinism     |
+| CLI determinism         | No nondeterminism in output    |
+| Wall-clock independence | No timestamp-dependent logic   |
+| Web build               | Next.js build passes           |
+| Binary size             | <15% increase unless justified |
+| Existing verify scripts | All pass                       |
 
 ---
 
 ## 6. Priority Matrix
 
-| Upgrade | Defensibility | Performance | Differentiation | Enterprise Credibility | Ergonomics | Total |
-|---------|--------------|-------------|-----------------|----------------------|------------|-------|
-| Merkleized segments | +3 | +2 | +2 | +2 | +1 | 10 |
-| Receipt transparency tree | +3 | +1 | +3 | +3 | +1 | 11 |
-| Deterministic build | +2 | +0 | +1 | +2 | +1 | 6 |
-| Engine fingerprinting | +3 | +0 | +1 | +2 | +1 | 7 |
-| **Cost ledger** | **+3** | **+1** | **+3** | **+3** | **+2** | **12** |
+| Upgrade                   | Defensibility | Performance | Differentiation | Enterprise Credibility | Ergonomics | Total  |
+| ------------------------- | ------------- | ----------- | --------------- | ---------------------- | ---------- | ------ |
+| Merkleized segments       | +3            | +2          | +2              | +2                     | +1         | 10     |
+| Receipt transparency tree | +3            | +1          | +3              | +3                     | +1         | 11     |
+| Deterministic build       | +2            | +0          | +1              | +2                     | +1         | 6      |
+| Engine fingerprinting     | +3            | +0          | +1              | +2                     | +1         | 7      |
+| **Cost ledger**           | **+3**        | **+1**      | **+3**          | **+3**                 | **+2**     | **12** |
 
 **Recommended Order:** Cost ledger → Receipt transparency → Merkleized segments → Engine fingerprinting → Deterministic build
 
@@ -193,14 +193,14 @@ All upgrades must pass:
 
 ## 7. Risk Assessment
 
-| Upgrade | Implementation Risk | Test Complexity | Dependency |
-|---------|--------------------|-----------------|------------|
-| Cost ledger | Low | Medium | Requires CAS already present |
-| Receipt transparency | Low | Low | Depends on existing receipt system |
-| Merkleized segments | Medium | Medium | Requires segment boundary logic |
-| Engine fingerprinting | Low | Low | Depends on version.hpp |
-| Deterministic build | Medium | Medium | Requires CMake integration |
+| Upgrade               | Implementation Risk | Test Complexity | Dependency                         |
+| --------------------- | ------------------- | --------------- | ---------------------------------- |
+| Cost ledger           | Low                 | Medium          | Requires CAS already present       |
+| Receipt transparency  | Low                 | Low             | Depends on existing receipt system |
+| Merkleized segments   | Medium              | Medium          | Requires segment boundary logic    |
+| Engine fingerprinting | Low                 | Low             | Depends on version.hpp             |
+| Deterministic build   | Medium              | Medium          | Requires CMake integration         |
 
 ---
 
-*End of Differentiation Analysis*
+_End of Differentiation Analysis_

@@ -12,19 +12,19 @@
 
 - **C++ Core**: `src/*.cpp`, `include/requiem/*.hpp` — deterministic execution engine
 - **TypeScript CLI**: `packages/cli/` — orchestration layer
-- **TypeScript UI**: `packages/ui/` — design system components  
+- **TypeScript UI**: `packages/ui/` — design system components
 - **Next.js App**: `ready-layer/` — enterprise dashboard with API routes
 - **Build System**: CMake (C++), pnpm workspaces (TS)
 
 ### Baseline Verification Results
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| pnpm install | ✅ PASS | Lockfile up to date |
-| CLI typecheck | ✅ PASS | No type errors |
-| CLI lint | ❌ FAIL | ESLint config missing/invalid ("src" pattern) |
-| UI typecheck | ✅ PASS | No type errors |
-| UI lint | ❌ FAIL | ESLint config missing/invalid ("src" pattern) |
+| Component     | Status  | Notes                                         |
+| ------------- | ------- | --------------------------------------------- |
+| pnpm install  | ✅ PASS | Lockfile up to date                           |
+| CLI typecheck | ✅ PASS | No type errors                                |
+| CLI lint      | ❌ FAIL | ESLint config missing/invalid ("src" pattern) |
+| UI typecheck  | ✅ PASS | No type errors                                |
+| UI lint       | ❌ FAIL | ESLint config missing/invalid ("src" pattern) |
 
 ---
 
@@ -202,17 +202,17 @@ No changes required (existing infrastructure sufficient).
 
 All verify scripts created:
 
-| Script | Purpose | Status |
-|--------|---------|--------|
-| `verify:root` | Workspace cleanliness | ✅ Created |
-| `verify:boundaries` | Layer import rules | ✅ Created |
-| `verify:tenant-isolation` | Red-team tenant tests | ✅ Created |
-| `verify:no-hard-500` | Route error handling | ✅ Created |
-| `verify:db-contract` | Code→schema drift | ✅ Created |
-| `verify:secrets` | Secret scanner | ✅ Created |
-| `verify:supply-chain` | Package manager invariants | ✅ Created |
-| `verify:provenance` | Determinism guardrails | ✅ Created |
-| `verify:cold-start` | Clean build smoke | ✅ Created |
+| Script                    | Purpose                    | Status     |
+| ------------------------- | -------------------------- | ---------- |
+| `verify:root`             | Workspace cleanliness      | ✅ Created |
+| `verify:boundaries`       | Layer import rules         | ✅ Created |
+| `verify:tenant-isolation` | Red-team tenant tests      | ✅ Created |
+| `verify:no-hard-500`      | Route error handling       | ✅ Created |
+| `verify:db-contract`      | Code→schema drift          | ✅ Created |
+| `verify:secrets`          | Secret scanner             | ✅ Created |
+| `verify:supply-chain`     | Package manager invariants | ✅ Created |
+| `verify:provenance`       | Determinism guardrails     | ✅ Created |
+| `verify:cold-start`       | Clean build smoke          | ✅ Created |
 
 ---
 
@@ -233,11 +233,11 @@ Added exports for all new modules:
 
 **Files Created:**
 
-| File | Description |
-|------|-------------|
-| `docs/ARCHITECTURE.md` | Layer architecture, data flow, components |
-| `docs/INVARIANTS.md` | 13 hard system invariants with enforcement |
-| `docs/OPERATIONS.md` | Runbooks, health checks, incident response |
+| File                   | Description                                    |
+| ---------------------- | ---------------------------------------------- |
+| `docs/ARCHITECTURE.md` | Layer architecture, data flow, components      |
+| `docs/INVARIANTS.md`   | 13 hard system invariants with enforcement     |
+| `docs/OPERATIONS.md`   | Runbooks, health checks, incident response     |
 | `docs/THREAT_MODEL.md` | Assets, threats, mitigations, attack scenarios |
 
 ---
@@ -254,25 +254,25 @@ ls -la scripts/verify-*.sh
 # TypeScript checks (CLI)
 cd packages/cli && npm run typecheck
 
-# TypeScript checks (UI)  
+# TypeScript checks (UI)
 cd packages/ui && npm run typecheck
 ```
 
 ## Verification Results
 
-| Check | Result |
-|-------|--------|
-| ESLint configs created | ✅ |
-| Error envelope module | ✅ |
-| Tenant resolution module | ✅ |
-| State machine module | ✅ |
-| Clock abstraction module | ✅ |
-| Verify scripts (9) | ✅ |
-| CLI exports updated | ✅ |
-| ARCHITECTURE.md | ✅ |
-| INVARIANTS.md | ✅ |
-| OPERATIONS.md | ✅ |
-| THREAT_MODEL.md | ✅ |
+| Check                    | Result |
+| ------------------------ | ------ |
+| ESLint configs created   | ✅     |
+| Error envelope module    | ✅     |
+| Tenant resolution module | ✅     |
+| State machine module     | ✅     |
+| Clock abstraction module | ✅     |
+| Verify scripts (9)       | ✅     |
+| CLI exports updated      | ✅     |
+| ARCHITECTURE.md          | ✅     |
+| INVARIANTS.md            | ✅     |
+| OPERATIONS.md            | ✅     |
+| THREAT_MODEL.md          | ✅     |
 
 ---
 
@@ -351,14 +351,14 @@ packages/cli/src/index.ts
 
 ### Final Verification Results (2026-02-28)
 
-| Verify Script | Tests | Result |
-|---------------|-------|--------|
-| verify:mcp | 17 | PASS |
-| verify:ai-safety | 9 | PASS |
-| verify:agent-quality | 6 cases | PASS |
-| verify:cost-accounting | 18 | PASS |
-| verify:tenant-isolation | 13 | PASS |
-| packages/ai typecheck | — | PASS |
-| packages/ai build | — | PASS |
+| Verify Script           | Tests   | Result |
+| ----------------------- | ------- | ------ |
+| verify:mcp              | 17      | PASS   |
+| verify:ai-safety        | 9       | PASS   |
+| verify:agent-quality    | 6 cases | PASS   |
+| verify:cost-accounting  | 18      | PASS   |
+| verify:tenant-isolation | 13      | PASS   |
+| packages/ai typecheck   | —       | PASS   |
+| packages/ai build       | —       | PASS   |
 
 Total: 63 verify assertions, 0 failures

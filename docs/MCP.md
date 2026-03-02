@@ -33,7 +33,7 @@ Lists all available tools in the registry. Requires authentication.
     {
       "name": "datastore_decision_findById",
       "version": "1.0.0",
-      "description": "Finds a decision report by its unique ID.",
+      "description": "Finds a decision report by its unique ID."
       // ... other ToolDefinition properties
     }
   ]
@@ -60,7 +60,7 @@ Invokes a tool with the given input, subject to policy gating. Requires authenti
 ```json
 {
   "result": {
-    "id": "decision_123",
+    "id": "decision_123"
     // ... other DecisionReport properties
   }
 }
@@ -79,17 +79,17 @@ Tools are defined via the `ToolDefinition` interface in `@requiem/ai/tools/regis
 
 ```typescript
 interface ToolDefinition<Input = ZodSchema, Output = ZodSchema> {
-  name: string;           // unique identifier (e.g., "decide_evaluate")
-  version: string;         // semver string (e.g., "1.0.0")
-  description: string;    // human-readable description
+  name: string; // unique identifier (e.g., "decide_evaluate")
+  version: string; // semver string (e.g., "1.0.0")
+  description: string; // human-readable description
   inputSchema: ZodSchema; // Zod schema for input validation
-  outputSchema: ZodSchema;// Zod schema for output validation
+  outputSchema: ZodSchema; // Zod schema for output validation
   deterministic: boolean; // can be replayed with same output
-  sideEffect: boolean;    // modifies state outside tool
-  idempotent: boolean;    // calling multiple times = once
-  cost?: ToolCost;       // optional cost estimate
-  requiredCapabilities: string[];  // RBAC capabilities needed
-  tenantScoped: boolean;  // default true
+  sideEffect: boolean; // modifies state outside tool
+  idempotent: boolean; // calling multiple times = once
+  cost?: ToolCost; // optional cost estimate
+  requiredCapabilities: string[]; // RBAC capabilities needed
+  tenantScoped: boolean; // default true
 }
 ```
 
@@ -104,41 +104,41 @@ interface ToolDefinition<Input = ZodSchema, Output = ZodSchema> {
 ### Tool Registration
 
 ```typescript
-import { registerTool, ToolDefinition, z } from '@requiem/ai/tools/registry';
+import { registerTool, ToolDefinition, z } from "@requiem/ai/tools/registry";
 
 const myTool: ToolDefinition = {
-  name: 'my_tool',
-  version: '1.0.0',
-  description: 'Does something useful',
+  name: "my_tool",
+  version: "1.0.0",
+  description: "Does something useful",
   inputSchema: z.object({ param: z.string() }),
   outputSchema: z.object({ result: z.string() }),
   deterministic: false,
   sideEffect: true,
   idempotent: false,
-  requiredCapabilities: ['tool:my_tool'],
+  requiredCapabilities: ["tool:my_tool"],
   tenantScoped: true,
 };
 
 registerTool(myTool, async (ctx, input) => {
   // Tool implementation
-  return { result: 'done' };
+  return { result: "done" };
 });
 ```
 
 ### Tool Invocation
 
 ```typescript
-import { invokeTool, InvocationContext } from '@requiem/ai/tools/registry';
+import { invokeTool, InvocationContext } from "@requiem/ai/tools/registry";
 
 const ctx: InvocationContext = {
-  tenantId: 'tenant_123',
-  actorId: 'agent_456',
-  requestId: 'req_789',
-  capabilities: ['tool:my_tool'],
-  environment: 'production',
+  tenantId: "tenant_123",
+  actorId: "agent_456",
+  requestId: "req_789",
+  capabilities: ["tool:my_tool"],
+  environment: "production",
 };
 
-const result = await invokeTool(ctx, 'my_tool', { param: 'value' });
+const result = await invokeTool(ctx, "my_tool", { param: "value" });
 // Returns: { success: boolean, output?: unknown, error?: ToolError, latencyMs: number }
 ```
 

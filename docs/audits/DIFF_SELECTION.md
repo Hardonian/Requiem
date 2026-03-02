@@ -4,12 +4,12 @@
 
 Based on analysis of the existing SSM implementation and the goal of adding "uncopyable" differentiators with low surface area, we have selected:
 
-| ID | Differentiator | Why Selected | Implementation Complexity |
-|----|----------------|--------------|--------------------------|
-| A | Tool IO Schema Lock | Extends existing tool registry with strict schema enforcement | Low - builds on existing schema.ts |
-| C | Change Budget Governance | Natural extension of drift taxonomy + integrity scores | Low - uses existing DriftCategory |
-| D | Audit Narrative Generator | Leverages existing drift + integrity signals | Low - deterministic template generation |
-| B | Replay Attestation Bundle | Portable verifiable run capsules | Medium - new export format |
+| ID  | Differentiator            | Why Selected                                                  | Implementation Complexity               |
+| --- | ------------------------- | ------------------------------------------------------------- | --------------------------------------- |
+| A   | Tool IO Schema Lock       | Extends existing tool registry with strict schema enforcement | Low - builds on existing schema.ts      |
+| C   | Change Budget Governance  | Natural extension of drift taxonomy + integrity scores        | Low - uses existing DriftCategory       |
+| D   | Audit Narrative Generator | Leverages existing drift + integrity signals                  | Low - deterministic template generation |
+| B   | Replay Attestation Bundle | Portable verifiable run capsules                              | Medium - new export format              |
 
 Not Selected:
 
@@ -147,20 +147,20 @@ reach capsule verify /tmp/capsule.json  # returns exit 0 if valid
 
 ## OSS vs Enterprise Boundaries
 
-| Differentiator | OSS | Enterprise |
-|----------------|-----|------------|
-| Tool Schema Lock | ✓ Full | N/A |
-| Change Budget | ✓ Check only | Policy enforcement UI |
-| Audit Narrative | ✓ Basic | ✓ Advanced (signing) |
-| Capsule | ✓ Verify only | ✓ Full + Cloud storage |
+| Differentiator   | OSS           | Enterprise             |
+| ---------------- | ------------- | ---------------------- |
+| Tool Schema Lock | ✓ Full        | N/A                    |
+| Change Budget    | ✓ Check only  | Policy enforcement UI  |
+| Audit Narrative  | ✓ Basic       | ✓ Advanced (signing)   |
+| Capsule          | ✓ Verify only | ✓ Full + Cloud storage |
 
 ---
 
 ## Risk Assessment
 
-| Risk | Mitigation |
-|------|------------|
-| Schema drift breaks existing states | Add schema versioning, grandfather existing |
-| Budget rules too complex | Start with 4 drift categories only |
-| Audit output format changes | Version the narrative format |
-| Capsule verification fails cross-platform | Use canonical JSON + stable hash |
+| Risk                                      | Mitigation                                  |
+| ----------------------------------------- | ------------------------------------------- |
+| Schema drift breaks existing states       | Add schema versioning, grandfather existing |
+| Budget rules too complex                  | Start with 4 drift categories only          |
+| Audit output format changes               | Version the narrative format                |
+| Capsule verification fails cross-platform | Use canonical JSON + stable hash            |

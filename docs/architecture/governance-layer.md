@@ -47,18 +47,18 @@ This document defines the Self-Correcting Governance Layer for the Requiem runti
 
 ### Signal Categories
 
-| Category | Description | Threshold |
-|----------|-------------|-----------|
-| build_failure | Build step failed | 1 |
-| drift | Behavior drift detected | 1 |
-| policy_violation | Policy enforcement failure | 1 |
-| replay_mismatch | Replay output differs | 1 |
-| test_failure | Test suite failure | 1 |
-| schema_gap | Missing or invalid schema | 1 |
-| skill_gap | No skill handles signal | 1 |
-| rollback_event | Rollback executed | 1 |
-| cost_spike | Cost exceeds threshold | 1 |
-| fairness_violation | Tenant imbalance detected | 1 |
+| Category           | Description                | Threshold |
+| ------------------ | -------------------------- | --------- |
+| build_failure      | Build step failed          | 1         |
+| drift              | Behavior drift detected    | 1         |
+| policy_violation   | Policy enforcement failure | 1         |
+| replay_mismatch    | Replay output differs      | 1         |
+| test_failure       | Test suite failure         | 1         |
+| schema_gap         | Missing or invalid schema  | 1         |
+| skill_gap          | No skill handles signal    | 1         |
+| rollback_event     | Rollback executed          | 1         |
+| cost_spike         | Cost exceeds threshold     | 1         |
+| fairness_violation | Tenant imbalance detected  | 1         |
 
 ### Root Cause Taxonomy
 
@@ -72,16 +72,16 @@ This document defines the Self-Correcting Governance Layer for the Requiem runti
 
 ### Patch Types
 
-| Type | Description | Auto-Apply |
-|------|-------------|------------|
-| skill_update | Create/update skill file | No |
-| prompt_update | Modify prompt template | No |
-| schema_update | JSON schema modification | No |
-| config_update | Environment/verify config | No |
-| branch_plan | New feature branch | No |
-| rollback_plan | Revert to commit | No |
-| cost_model_update | Cost thresholds | No |
-| fairness_policy_update | Fairness thresholds | No |
+| Type                   | Description               | Auto-Apply |
+| ---------------------- | ------------------------- | ---------- |
+| skill_update           | Create/update skill file  | No         |
+| prompt_update          | Modify prompt template    | No         |
+| schema_update          | JSON schema modification  | No         |
+| config_update          | Environment/verify config | No         |
+| branch_plan            | New feature branch        | No         |
+| rollback_plan          | Revert to commit          | No         |
+| cost_model_update      | Cost thresholds           | No         |
+| fairness_policy_update | Fairness thresholds       | No         |
 
 ## Economic Symmetry Layer
 
@@ -96,21 +96,21 @@ drift_analysis_unit: 1
 
 ### Economic Events
 
-| Event Type | Description |
-|------------|-------------|
-| execution | Standard run execution |
-| replay_storage | Storing replay data |
-| policy_eval | Policy evaluation |
-| drift_analysis | Drift detection |
+| Event Type     | Description            |
+| -------------- | ---------------------- |
+| execution      | Standard run execution |
+| replay_storage | Storing replay data    |
+| policy_eval    | Policy evaluation      |
+| drift_analysis | Drift detection        |
 
 ### Economic Alerts
 
-| Alert Type | Severity Threshold |
-|------------|-------------------|
-| burn_spike | cost_units > threshold * 2 |
-| storage_spike | storage_units > threshold * 2 |
-| policy_spike | policy_units > threshold * 2 |
-| fairness_violation | tenant_imbalance > 0.2 |
+| Alert Type         | Severity Threshold             |
+| ------------------ | ------------------------------ |
+| burn_spike         | cost_units > threshold \* 2    |
+| storage_spike      | storage_units > threshold \* 2 |
+| policy_spike       | policy_units > threshold \* 2  |
+| fairness_violation | tenant_imbalance > 0.2         |
 
 ### Symmetry Metrics
 

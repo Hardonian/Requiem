@@ -14,61 +14,61 @@ This implementation delivers v1.1 (Production Ops), v1.2 (Hard Sandbox + Proof O
 
 ### Core Types (`include/requiem/types.hpp`, `src/types.cpp`)
 
-| Feature | Status | Implementation |
-|---------|--------|----------------|
-| Config schema versioning | ✅ | `ConfigSchema` struct with version |
-| Request lifecycle metadata | ✅ | `RequestLifecycle` with timestamps |
-| Determinism confidence | ✅ | `DeterminismConfidence` with level/score/reasons |
-| Proof bundles | ✅ | `ProofBundle` with Merkle root |
-| Execution metrics | ✅ | `ExecutionMetrics` with JSON/Prometheus output |
-| Engine selection policy | ✅ | `EngineSelectionPolicy` struct |
-| Sandbox capability truth | ✅ | `partial()` method for partial enforcement |
+| Feature                    | Status | Implementation                                   |
+| -------------------------- | ------ | ------------------------------------------------ |
+| Config schema versioning   | ✅     | `ConfigSchema` struct with version               |
+| Request lifecycle metadata | ✅     | `RequestLifecycle` with timestamps               |
+| Determinism confidence     | ✅     | `DeterminismConfidence` with level/score/reasons |
+| Proof bundles              | ✅     | `ProofBundle` with Merkle root                   |
+| Execution metrics          | ✅     | `ExecutionMetrics` with JSON/Prometheus output   |
+| Engine selection policy    | ✅     | `EngineSelectionPolicy` struct                   |
+| Sandbox capability truth   | ✅     | `partial()` method for partial enforcement       |
 
 ### CAS (`include/requiem/cas.hpp`, `src/cas.cpp`)
 
-| Feature | Status | Implementation |
-|---------|--------|----------------|
-| Atomic writes | ✅ | `put_atomic()` with temp file + rename |
-| CAS statistics | ✅ | `CasStats` with top N objects |
-| GC candidates | ✅ | `find_gc_candidates()` with ref_count |
-| Verify sampling | ✅ | `verify_sample()` with random selection |
-| Metadata timestamps | ✅ | `created_at`, `last_accessed` fields |
+| Feature             | Status | Implementation                          |
+| ------------------- | ------ | --------------------------------------- |
+| Atomic writes       | ✅     | `put_atomic()` with temp file + rename  |
+| CAS statistics      | ✅     | `CasStats` with top N objects           |
+| GC candidates       | ✅     | `find_gc_candidates()` with ref_count   |
+| Verify sampling     | ✅     | `verify_sample()` with random selection |
+| Metadata timestamps | ✅     | `created_at`, `last_accessed` fields    |
 
 ### Sandbox (`include/requiem/sandbox.hpp`)
 
-| Feature | Status | Implementation |
-|---------|--------|----------------|
-| Seccomp rules | ✅ | `SeccompRule` struct and `install_seccomp_filter()` stub |
-| Process mitigations | ✅ | `apply_windows_mitigations()` for Windows |
-| Restricted tokens | ✅ | `create_restricted_token()` for Windows |
-| Network isolation | ✅ | `setup_network_namespace()` / `enable_windows_network_isolation()` |
-| Extended capabilities | ✅ | `seccomp_bpf`, `network_isolation`, `process_mitigations` flags |
+| Feature               | Status | Implementation                                                     |
+| --------------------- | ------ | ------------------------------------------------------------------ |
+| Seccomp rules         | ✅     | `SeccompRule` struct and `install_seccomp_filter()` stub           |
+| Process mitigations   | ✅     | `apply_windows_mitigations()` for Windows                          |
+| Restricted tokens     | ✅     | `create_restricted_token()` for Windows                            |
+| Network isolation     | ✅     | `setup_network_namespace()` / `enable_windows_network_isolation()` |
+| Extended capabilities | ✅     | `seccomp_bpf`, `network_isolation`, `process_mitigations` flags    |
 
 ### Runtime (`include/requiem/runtime.hpp`, `src/runtime.cpp`)
 
-| Feature | Status | Implementation |
-|---------|--------|----------------|
-| Request timestamps | ✅ | ISO8601 start/end timestamps |
-| Duration tracking | ✅ | `duration_ms` in results |
-| Proof bundle generation | ✅ | `generate_proof_bundle()` function |
-| Config validation | ✅ | `validate_config()` with version checking |
-| Determinism confidence | ✅ | Computed based on LLM mode + sandbox status |
+| Feature                 | Status | Implementation                              |
+| ----------------------- | ------ | ------------------------------------------- |
+| Request timestamps      | ✅     | ISO8601 start/end timestamps                |
+| Duration tracking       | ✅     | `duration_ms` in results                    |
+| Proof bundle generation | ✅     | `generate_proof_bundle()` function          |
+| Config validation       | ✅     | `validate_config()` with version checking   |
+| Determinism confidence  | ✅     | Computed based on LLM mode + sandbox status |
 
 ### CLI (`src/cli.cpp`)
 
-| Command | Status | Description |
-|---------|--------|-------------|
-| `health` | Enhanced | Added sandbox capabilities, engine version |
-| `doctor` | Enhanced | Added CAS integrity check, sandbox warnings |
-| `metrics` | New | `--format json|prom` structured metrics |
-| `config validate` | New | `--file <path>` config validation |
-| `cas stats` | New | `--top N` largest objects |
-| `cas gc --execute` | Enhanced | Reference-counted GC |
-| `cas verify --sample` | Enhanced | Random sampling support |
-| `proof generate` | New | Create proof bundles |
-| `proof verify` | New | Verify proof bundle integrity |
-| `bench gate` | New | CI performance regression gate |
-| `exec run --engine` | New | `rust|requiem|dual` engine selection |
+| Command               | Status   | Description                                 |
+| --------------------- | -------- | ------------------------------------------- | ------------------------ | ---------------------- |
+| `health`              | Enhanced | Added sandbox capabilities, engine version  |
+| `doctor`              | Enhanced | Added CAS integrity check, sandbox warnings |
+| `metrics`             | New      | `--format json                              | prom` structured metrics |
+| `config validate`     | New      | `--file <path>` config validation           |
+| `cas stats`           | New      | `--top N` largest objects                   |
+| `cas gc --execute`    | Enhanced | Reference-counted GC                        |
+| `cas verify --sample` | Enhanced | Random sampling support                     |
+| `proof generate`      | New      | Create proof bundles                        |
+| `proof verify`        | New      | Verify proof bundle integrity               |
+| `bench gate`          | New      | CI performance regression gate              |
+| `exec run --engine`   | New      | `rust                                       | requiem                  | dual` engine selection |
 
 ## Key Features Implemented
 
@@ -175,10 +175,7 @@ Honest reporting of determinism guarantees:
   "determinism_confidence": {
     "level": "medium",
     "score": 0.6,
-    "reasons": [
-      "llm_mode: subprocess",
-      "sandbox_capability_failed: network_isolation"
-    ]
+    "reasons": ["llm_mode: subprocess", "sandbox_capability_failed: network_isolation"]
   }
 }
 ```
@@ -381,13 +378,13 @@ requiem exec run --engine dual --request req.json --out out.json
 
 ### Mismatch Categories to Monitor
 
-| Category | Severity | Action |
-|----------|----------|--------|
-| `digest_mismatch` | Critical | Investigate determinism issue |
-| `exit_code_mismatch` | High | Check error handling |
-| `stdout_mismatch` | High | Verify output encoding |
-| `sandbox_diff` | Medium | Compare sandbox enforcement |
-| `timing_diff` | Low | Expected (not in digest) |
+| Category             | Severity | Action                        |
+| -------------------- | -------- | ----------------------------- |
+| `digest_mismatch`    | Critical | Investigate determinism issue |
+| `exit_code_mismatch` | High     | Check error handling          |
+| `stdout_mismatch`    | High     | Verify output encoding        |
+| `sandbox_diff`       | Medium   | Compare sandbox enforcement   |
+| `timing_diff`        | Low      | Expected (not in digest)      |
 
 ### Remaining Blockers
 
@@ -422,19 +419,19 @@ All planned features implemented:
 
 ## Files Changed Summary
 
-| File | Lines Changed | Purpose |
-|------|---------------|---------|
-| `include/requiem/types.hpp` | +150 | New structs: ProofBundle, ExecutionMetrics, DeterminismConfidence |
-| `src/types.cpp` | +120 | Implementations for new types |
-| `include/requiem/cas.hpp` | +40 | CasStats, GcCandidate, VerifyResult |
-| `src/cas.cpp` | +200 | Atomic writes, stats, sampling |
-| `include/requiem/sandbox.hpp` | +50 | Seccomp rules, mitigations, network isolation |
-| `src/sandbox_posix.cpp` | +150 | Linux rlimits, seccomp stubs, namespaces |
-| `src/sandbox_win.cpp` | +200 | Windows mitigations, restricted tokens |
-| `include/requiem/runtime.hpp` | +20 | Proof bundle, config validation |
-| `src/runtime.cpp` | +300 | Timestamps, confidence, validation |
-| `src/cli.cpp` | +400 | New commands: metrics, proof, gate, validate |
-| `CHANGELOG.md` | +150 | v1.1, v1.2, v1.3 entries |
+| File                          | Lines Changed | Purpose                                                           |
+| ----------------------------- | ------------- | ----------------------------------------------------------------- |
+| `include/requiem/types.hpp`   | +150          | New structs: ProofBundle, ExecutionMetrics, DeterminismConfidence |
+| `src/types.cpp`               | +120          | Implementations for new types                                     |
+| `include/requiem/cas.hpp`     | +40           | CasStats, GcCandidate, VerifyResult                               |
+| `src/cas.cpp`                 | +200          | Atomic writes, stats, sampling                                    |
+| `include/requiem/sandbox.hpp` | +50           | Seccomp rules, mitigations, network isolation                     |
+| `src/sandbox_posix.cpp`       | +150          | Linux rlimits, seccomp stubs, namespaces                          |
+| `src/sandbox_win.cpp`         | +200          | Windows mitigations, restricted tokens                            |
+| `include/requiem/runtime.hpp` | +20           | Proof bundle, config validation                                   |
+| `src/runtime.cpp`             | +300          | Timestamps, confidence, validation                                |
+| `src/cli.cpp`                 | +400          | New commands: metrics, proof, gate, validate                      |
+| `CHANGELOG.md`                | +150          | v1.1, v1.2, v1.3 entries                                          |
 
 ## Testing Strategy
 

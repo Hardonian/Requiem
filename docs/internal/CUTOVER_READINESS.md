@@ -14,58 +14,58 @@ Requiem v1.4 represents the completion of all audit remediation items from Phase
 
 ### Phase 1A: JWT Validation & MCP Security ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| JWT token validation at MCP transport | ✅ | `packages/ai/src/mcp/server.ts` |
-| Token expiry and claims verification | ✅ | `packages/ai/src/mcp/auth.ts` |
-| Correlation ID generation | ✅ | `packages/ai/src/mcp/correlation.ts` |
-| Request attribution | ✅ | Audit logging with correlation IDs |
+| Feature                               | Status | Evidence                             |
+| ------------------------------------- | ------ | ------------------------------------ |
+| JWT token validation at MCP transport | ✅     | `packages/ai/src/mcp/server.ts`      |
+| Token expiry and claims verification  | ✅     | `packages/ai/src/mcp/auth.ts`        |
+| Correlation ID generation             | ✅     | `packages/ai/src/mcp/correlation.ts` |
+| Request attribution                   | ✅     | Audit logging with correlation IDs   |
 
 ### Phase 1B: Seccomp, Signed Bundles & Audit ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Seccomp-BPF syscall filtering | ✅ | `include/requiem/sandbox.hpp` |
-| Signed provenance bundles | ✅ | `include/requiem/provenance_bundle.hpp` |
-| Audit persistence | ✅ | `packages/ai/src/migrations/` + database |
-| Merkle audit chain | ✅ | `packages/ai/src/memory/hashing.ts` |
-| Capability truth reporting | ✅ | Sandbox capability detection |
+| Feature                       | Status | Evidence                                 |
+| ----------------------------- | ------ | ---------------------------------------- |
+| Seccomp-BPF syscall filtering | ✅     | `include/requiem/sandbox.hpp`            |
+| Signed provenance bundles     | ✅     | `include/requiem/provenance_bundle.hpp`  |
+| Audit persistence             | ✅     | `packages/ai/src/migrations/` + database |
+| Merkle audit chain            | ✅     | `packages/ai/src/memory/hashing.ts`      |
+| Capability truth reporting    | ✅     | Sandbox capability detection             |
 
 ### Phase 2A: DB-Backed Budgets & Cost Control ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Persistent budget tracking | ✅ | `packages/ai/src/policy/budgets.ts` |
-| Cross-instance budget coordination | ✅ | Database-backed state |
-| Cost anomaly detection | ✅ | `packages/ai/src/policy/costAnomaly.ts` |
-| Budget enforcement at policy gate | ✅ | `packages/ai/src/policy/gate.ts` |
+| Feature                            | Status | Evidence                                |
+| ---------------------------------- | ------ | --------------------------------------- |
+| Persistent budget tracking         | ✅     | `packages/ai/src/policy/budgets.ts`     |
+| Cross-instance budget coordination | ✅     | Database-backed state                   |
+| Cost anomaly detection             | ✅     | `packages/ai/src/policy/costAnomaly.ts` |
+| Budget enforcement at policy gate  | ✅     | `packages/ai/src/policy/gate.ts`        |
 
 ### Phase 2B: Tool Registry Security ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Tool output limits | ✅ | `packages/ai/src/flags/index.ts` |
-| Flag-based capabilities | ✅ | `flags/flags.registry.json` |
-| Replay cache | ✅ | `packages/ai/src/memory/replayCache.ts` |
-| Tool execution sandboxing | ✅ | `packages/ai/src/mcp/server.ts` |
+| Feature                   | Status | Evidence                                |
+| ------------------------- | ------ | --------------------------------------- |
+| Tool output limits        | ✅     | `packages/ai/src/flags/index.ts`        |
+| Flag-based capabilities   | ✅     | `flags/flags.registry.json`             |
+| Replay cache              | ✅     | `packages/ai/src/memory/replayCache.ts` |
+| Tool execution sandboxing | ✅     | `packages/ai/src/mcp/server.ts`         |
 
 ### Phase 3A: MCP Policy Enforcement ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Policy enforcement at MCP entry | ✅ | `packages/ai/src/mcp/policyEnforcer.ts` |
-| Prompt injection filter | ✅ | `packages/ai/src/policy/guardrails.ts` |
-| Correlation ID propagation | ✅ | `packages/ai/src/mcp/correlation.ts` |
-| Input sanitization | ✅ | Zod schemas + custom validators |
+| Feature                         | Status | Evidence                                |
+| ------------------------------- | ------ | --------------------------------------- |
+| Policy enforcement at MCP entry | ✅     | `packages/ai/src/mcp/policyEnforcer.ts` |
+| Prompt injection filter         | ✅     | `packages/ai/src/policy/guardrails.ts`  |
+| Correlation ID propagation      | ✅     | `packages/ai/src/mcp/correlation.ts`    |
+| Input sanitization              | ✅     | Zod schemas + custom validators         |
 
 ### Phase 4: Infrastructure Security ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Circuit breaker persistence | ✅ | `packages/ai/src/models/circuitBreaker.ts` |
-| Database migration runner | ✅ | `packages/ai/src/migrations/runner.ts` |
-| Automated credential rotation | ✅ | `packages/ai/src/policy/migration.ts` |
-| Production cost sink | ✅ | `packages/ai/src/policy/costAnomaly.ts` |
+| Feature                       | Status | Evidence                                   |
+| ----------------------------- | ------ | ------------------------------------------ |
+| Circuit breaker persistence   | ✅     | `packages/ai/src/models/circuitBreaker.ts` |
+| Database migration runner     | ✅     | `packages/ai/src/migrations/runner.ts`     |
+| Automated credential rotation | ✅     | `packages/ai/src/policy/migration.ts`      |
+| Production cost sink          | ✅     | `packages/ai/src/policy/costAnomaly.ts`    |
 
 ---
 
@@ -73,54 +73,54 @@ Requiem v1.4 represents the completion of all audit remediation items from Phase
 
 ### v1.1 Production Ops ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Request lifecycle | ✅ | `request_id`, `start_timestamp`, `end_timestamp`, `duration_ms` in results |
-| Crash-safe CAS | ✅ | `put_atomic()` with temp file + rename pattern |
-| Metrics export | ✅ | `requiem metrics --format json\|prom` |
-| Config validation | ✅ | `requiem config validate --file <path>` |
-| CAS statistics | ✅ | `requiem cas stats --top N` |
-| CAS verify sampling | ✅ | `requiem cas verify --sample N` |
-| Doctor expansion | ✅ | CAS integrity check, sandbox warnings |
+| Feature             | Status | Evidence                                                                   |
+| ------------------- | ------ | -------------------------------------------------------------------------- |
+| Request lifecycle   | ✅     | `request_id`, `start_timestamp`, `end_timestamp`, `duration_ms` in results |
+| Crash-safe CAS      | ✅     | `put_atomic()` with temp file + rename pattern                             |
+| Metrics export      | ✅     | `requiem metrics --format json\|prom`                                      |
+| Config validation   | ✅     | `requiem config validate --file <path>`                                    |
+| CAS statistics      | ✅     | `requiem cas stats --top N`                                                |
+| CAS verify sampling | ✅     | `requiem cas verify --sample N`                                            |
+| Doctor expansion    | ✅     | CAS integrity check, sandbox warnings                                      |
 
 ### v1.2 Hard Sandbox + Proofs ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Capability truth | ✅ | `enforced()`, `unsupported()`, `partial()` methods |
-| Seccomp infrastructure | ✅ | `SeccompRule` struct, `install_seccomp_filter()` |
-| Windows mitigations | ✅ | `apply_windows_mitigations()`, restricted tokens |
-| Network isolation hooks | ✅ | `setup_network_namespace()`, `enable_windows_network_isolation()` |
-| Proof bundles | ✅ | `requiem proof generate`, `requiem proof verify` |
-| Determinism confidence | ✅ | `high\|medium\|best_effort` levels with reasons |
-| Signature readiness | ✅ | `signature` field, external signer interface |
+| Feature                 | Status | Evidence                                                          |
+| ----------------------- | ------ | ----------------------------------------------------------------- |
+| Capability truth        | ✅     | `enforced()`, `unsupported()`, `partial()` methods                |
+| Seccomp infrastructure  | ✅     | `SeccompRule` struct, `install_seccomp_filter()`                  |
+| Windows mitigations     | ✅     | `apply_windows_mitigations()`, restricted tokens                  |
+| Network isolation hooks | ✅     | `setup_network_namespace()`, `enable_windows_network_isolation()` |
+| Proof bundles           | ✅     | `requiem proof generate`, `requiem proof verify`                  |
+| Determinism confidence  | ✅     | `high\|medium\|best_effort` levels with reasons                   |
+| Signature readiness     | ✅     | `signature` field, external signer interface                      |
 
 ### v1.3 Ecosystem + Cutover ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Engine selection | ✅ | `--engine=rust\|requiem\|dual` flag |
-| Dual-run mode | ✅ | `--engine dual` for A/B comparison |
-| Event export | ✅ | `engine_version`, `contract_version` in health |
-| Remote validation stub | ✅ | Client infrastructure for future use |
-| Cluster verify | ✅ | Enhanced with version metadata |
-| Performance gates | ✅ | `requiem bench gate --threshold N` |
+| Feature                | Status | Evidence                                       |
+| ---------------------- | ------ | ---------------------------------------------- |
+| Engine selection       | ✅     | `--engine=rust\|requiem\|dual` flag            |
+| Dual-run mode          | ✅     | `--engine dual` for A/B comparison             |
+| Event export           | ✅     | `engine_version`, `contract_version` in health |
+| Remote validation stub | ✅     | Client infrastructure for future use           |
+| Cluster verify         | ✅     | Enhanced with version metadata                 |
+| Performance gates      | ✅     | `requiem bench gate --threshold N`             |
 
 ### v1.4 Audit Remediation ✅ COMPLETE
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| JWT validation | ✅ | MCP transport JWT validation |
-| Signed bundles | ✅ | Merkle proofs, signature support |
-| Seccomp sandbox | ✅ | Full syscall filtering |
-| Audit persistence | ✅ | Database-backed with Merkle chain |
-| DB-backed budgets | ✅ | Persistent, cross-instance |
-| Tool output limits | ✅ | Registry-level enforcement |
-| Policy MCP entry | ✅ | PolicyEnforcer middleware |
-| Correlation IDs | ✅ | Full request tracing |
-| Prompt injection filter | ✅ | Input sanitization |
-| Circuit breaker persistence | ✅ | Database state |
-| Credential rotation | ✅ | Automated workflow |
+| Feature                     | Status | Evidence                          |
+| --------------------------- | ------ | --------------------------------- |
+| JWT validation              | ✅     | MCP transport JWT validation      |
+| Signed bundles              | ✅     | Merkle proofs, signature support  |
+| Seccomp sandbox             | ✅     | Full syscall filtering            |
+| Audit persistence           | ✅     | Database-backed with Merkle chain |
+| DB-backed budgets           | ✅     | Persistent, cross-instance        |
+| Tool output limits          | ✅     | Registry-level enforcement        |
+| Policy MCP entry            | ✅     | PolicyEnforcer middleware         |
+| Correlation IDs             | ✅     | Full request tracing              |
+| Prompt injection filter     | ✅     | Input sanitization                |
+| Circuit breaker persistence | ✅     | Database state                    |
+| Credential rotation         | ✅     | Automated workflow                |
 
 ---
 
@@ -153,16 +153,16 @@ pnpm run verify:tenant-isolation # ✅ PASS - 13 tests
 
 ### Test Results Summary
 
-| Suite | Tests | Status |
-|-------|-------|--------|
-| verify:lint | — | ✅ PASS |
-| verify:typecheck | — | ✅ PASS |
-| verify:boundaries | — | ✅ PASS |
-| verify:mcp | 17 | ✅ PASS |
-| verify:ai-safety | 9 | ✅ PASS |
-| verify:agent-quality | 6 | verify:cost-accounting | 18 | ✅ PASS |
- ✅ PASS |
-|| verify:tenant-isolation | 13 | ✅ PASS |
+| Suite                | Tests                   | Status                 |
+| -------------------- | ----------------------- | ---------------------- | ------- | ------- |
+| verify:lint          | —                       | ✅ PASS                |
+| verify:typecheck     | —                       | ✅ PASS                |
+| verify:boundaries    | —                       | ✅ PASS                |
+| verify:mcp           | 17                      | ✅ PASS                |
+| verify:ai-safety     | 9                       | ✅ PASS                |
+| verify:agent-quality | 6                       | verify:cost-accounting | 18      | ✅ PASS |
+| ✅ PASS              |
+|                      | verify:tenant-isolation | 13                     | ✅ PASS |
 
 **Total: 63 verify assertions, 0 failures**
 
@@ -194,12 +194,12 @@ export REQUIEM_ENGINE_DUAL_RATE=0.01
 
 ### Sampling Phases
 
-| Phase | Sampling Rate | Duration | Criteria |
-|-------|---------------|----------|----------|
-| Phase 1 | 1% | Week 1 | Baseline mismatch rate |
-| Phase 2 | 5% | Week 2 | Confidence building |
-| Phase 3 | 10% | Week 3 | Production validation |
-| Phase 4 | 100% | Week 4 | Full cutover |
+| Phase   | Sampling Rate | Duration | Criteria               |
+| ------- | ------------- | -------- | ---------------------- |
+| Phase 1 | 1%            | Week 1   | Baseline mismatch rate |
+| Phase 2 | 5%            | Week 2   | Confidence building    |
+| Phase 3 | 10%           | Week 3   | Production validation  |
+| Phase 4 | 100%          | Week 4   | Full cutover           |
 
 ### Monitoring Mismatch Rate
 
@@ -296,25 +296,25 @@ export REQUIEM_MONITORING=full
 
 ## Files Changed
 
-| File | Purpose |
-|------|---------|
-| `packages/ai/src/mcp/server.ts` | MCP server with policy enforcement |
-| `packages/ai/src/mcp/correlation.ts` | Correlation ID generation |
-| `packages/ai/src/mcp/policyEnforcer.ts` | Policy enforcement middleware |
-| `packages/ai/src/policy/budgets.ts` | DB-backed budget tracking |
-| `packages/ai/src/policy/costAnomaly.ts` | Cost anomaly detection |
-| `packages/ai/src/policy/guardrails.ts` | Prompt injection filter |
-| `packages/ai/src/models/circuitBreaker.ts` | Circuit breaker with persistence |
-| `packages/ai/src/migrations/runner.ts` | Migration runner |
-| `packages/ai/src/memory/replayCache.ts` | Replay cache |
-| `include/requiem/sandbox.hpp` | Seccomp infrastructure |
-| `include/requiem/provenance_bundle.hpp` | Proof bundles |
-| `docs/LAUNCH_GATE_CHECKLIST.md` | Updated launch checklist |
-| `docs/SECURITY.md` | Security status updated |
-| `docs/OPERATIONS.md` | New infrastructure sections |
-| `docs/MIGRATION.md` | DB migrations section |
-| `docs/THREAT_MODEL.md` | Completed mitigations added |
-| `docs/internal/OPERATIONS_RUNBOOK.md` | New runbook created |
+| File                                       | Purpose                            |
+| ------------------------------------------ | ---------------------------------- |
+| `packages/ai/src/mcp/server.ts`            | MCP server with policy enforcement |
+| `packages/ai/src/mcp/correlation.ts`       | Correlation ID generation          |
+| `packages/ai/src/mcp/policyEnforcer.ts`    | Policy enforcement middleware      |
+| `packages/ai/src/policy/budgets.ts`        | DB-backed budget tracking          |
+| `packages/ai/src/policy/costAnomaly.ts`    | Cost anomaly detection             |
+| `packages/ai/src/policy/guardrails.ts`     | Prompt injection filter            |
+| `packages/ai/src/models/circuitBreaker.ts` | Circuit breaker with persistence   |
+| `packages/ai/src/migrations/runner.ts`     | Migration runner                   |
+| `packages/ai/src/memory/replayCache.ts`    | Replay cache                       |
+| `include/requiem/sandbox.hpp`              | Seccomp infrastructure             |
+| `include/requiem/provenance_bundle.hpp`    | Proof bundles                      |
+| `docs/LAUNCH_GATE_CHECKLIST.md`            | Updated launch checklist           |
+| `docs/SECURITY.md`                         | Security status updated            |
+| `docs/OPERATIONS.md`                       | New infrastructure sections        |
+| `docs/MIGRATION.md`                        | DB migrations section              |
+| `docs/THREAT_MODEL.md`                     | Completed mitigations added        |
+| `docs/internal/OPERATIONS_RUNBOOK.md`      | New runbook created                |
 
 ---
 
@@ -360,12 +360,12 @@ All changes are **additive only**:
 
 ## Sign-Off
 
-| Role | Name | Date | Status |
-|------|------|------|--------|
-| Implementation | Requiem Team | 2026-03-01 | ✅ Complete |
-| Security Review | Security Team | 2026-03-01 | ✅ Complete |
-| Production Deploy | DevOps Team | 2026-03-01 | ✅ Ready |
-| Documentation | Docs Specialist | 2026-03-01 | ✅ Complete |
+| Role              | Name            | Date       | Status      |
+| ----------------- | --------------- | ---------- | ----------- |
+| Implementation    | Requiem Team    | 2026-03-01 | ✅ Complete |
+| Security Review   | Security Team   | 2026-03-01 | ✅ Complete |
+| Production Deploy | DevOps Team     | 2026-03-01 | ✅ Ready    |
+| Documentation     | Docs Specialist | 2026-03-01 | ✅ Complete |
 
 ---
 

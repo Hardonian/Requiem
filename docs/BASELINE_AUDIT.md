@@ -55,19 +55,19 @@ Note: npm warnings about deprecated pnpm config (not errors)
 > ctest -C Release --output-on-failure
 ```
 
-| Test | Status | Notes |
-|------|--------|-------|
-| requiem_tests | ❌ FAIL | CAS compact test: "index should have 2 lines after compact" |
-| context_paging_test | ✅ PASS | |
-| kernel_tests | ✅ PASS | 29 tests passed |
-| stress_harness | ❌ NOT RUN | Missing `requiem` executable |
-| shadow_runner | ❌ NOT RUN | Missing `requiem` executable |
-| billing_harness | ❌ NOT RUN | Missing `requiem` executable |
-| security_gauntlet | ❌ NOT RUN | Missing `requiem` executable |
-| recovery_harness | ❌ NOT RUN | Missing `requiem` executable |
-| memory_harness | ❌ NOT RUN | Missing `requiem` executable |
-| protocol_harness | ❌ NOT RUN | Missing `requiem` executable |
-| chaos_harness | ❌ NOT RUN | Missing `requiem` executable |
+| Test                | Status     | Notes                                                       |
+| ------------------- | ---------- | ----------------------------------------------------------- |
+| requiem_tests       | ❌ FAIL    | CAS compact test: "index should have 2 lines after compact" |
+| context_paging_test | ✅ PASS    |                                                             |
+| kernel_tests        | ✅ PASS    | 29 tests passed                                             |
+| stress_harness      | ❌ NOT RUN | Missing `requiem` executable                                |
+| shadow_runner       | ❌ NOT RUN | Missing `requiem` executable                                |
+| billing_harness     | ❌ NOT RUN | Missing `requiem` executable                                |
+| security_gauntlet   | ❌ NOT RUN | Missing `requiem` executable                                |
+| recovery_harness    | ❌ NOT RUN | Missing `requiem` executable                                |
+| memory_harness      | ❌ NOT RUN | Missing `requiem` executable                                |
+| protocol_harness    | ❌ NOT RUN | Missing `requiem` executable                                |
+| chaos_harness       | ❌ NOT RUN | Missing `requiem` executable                                |
 
 ### ❌ FAIL: `pnpm run verify:contracts`
 
@@ -102,42 +102,42 @@ Note: npm warnings about deprecated pnpm config (not errors)
 
 ### 1. C++ TEST FAILURES (BLOCKER)
 
-| Category | Issue | File | Fix Required |
-|----------|-------|------|--------------|
+| Category    | Issue                  | File                            | Fix Required                  |
+| ----------- | ---------------------- | ------------------------------- | ----------------------------- |
 | Correctness | CAS compact test fails | `tests/cas_test.cpp` or similar | Fix compact index count logic |
 
 ### 2. STALE CLI BUILD (BLOCKER)
 
-| Category | Issue | File | Fix Required |
-|----------|-------|------|--------------|
-| Build | CLI dist/ is stale - missing 46 commands | `packages/cli/dist/` | Rebuild CLI: `pnpm --filter @requiem/cli build` |
-| Build | CTest config wrong - looks in wrong path | `build/CTestTestfile.cmake` | Fix test executable path |
+| Category | Issue                                    | File                        | Fix Required                                    |
+| -------- | ---------------------------------------- | --------------------------- | ----------------------------------------------- |
+| Build    | CLI dist/ is stale - missing 46 commands | `packages/cli/dist/`        | Rebuild CLI: `pnpm --filter @requiem/cli build` |
+| Build    | CTest config wrong - looks in wrong path | `build/CTestTestfile.cmake` | Fix test executable path                        |
 
 ### 3. MISSING SCRIPTS (HIGH)
 
-| Category | Issue | File | Fix Required |
-|----------|-------|------|--------------|
+| Category       | Issue                         | File       | Fix Required             |
+| -------------- | ----------------------------- | ---------- | ------------------------ |
 | Dev Ergonomics | verify_determinism.ts missing | `scripts/` | Create or restore script |
 
 ### 4. CTEST CONFIGURATION (MEDIUM)
 
-| Category | Issue | File | Fix Required |
-|----------|-------|------|--------------|
+| Category    | Issue                           | File                        | Fix Required         |
+| ----------- | ------------------------------- | --------------------------- | -------------------- |
 | Test Config | 8 tests need Release executable | `build/CTestTestfile.cmake` | Fix paths or rebuild |
 
 ---
 
 ## SUMMARY
 
-| Metric | Value |
-|--------|-------|
-| Commands Run | 6 |
-| Passed | 3 |
-| Failed | 2 |
-| Partially Passed | 1 |
-| BLOCKER Issues | 2 |
-| HIGH Issues | 1 |
-| MED Issues | 1 |
+| Metric           | Value |
+| ---------------- | ----- |
+| Commands Run     | 6     |
+| Passed           | 3     |
+| Failed           | 2     |
+| Partially Passed | 1     |
+| BLOCKER Issues   | 2     |
+| HIGH Issues      | 1     |
+| MED Issues       | 1     |
 
 ---
 
@@ -149,7 +149,7 @@ Exact commands that were run:
 # Lint
 cd c:/Users/scott/GitHub/Requiem && pnpm run lint
 
-# Typecheck  
+# Typecheck
 cd c:/Users/scott/GitHub/Requiem && pnpm run typecheck
 
 # C++ Tests

@@ -9,11 +9,11 @@
 
 No performance regressions identified. All routes use Suspense for loading states. Bundle sizes are reasonable.
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Largest route | 2.69 kB | ✅ Acceptable |
-| Shared chunks | 102 kB | ✅ Reasonable |
-| Loading states | 100% coverage | ✅ Suspense |
+| Metric         | Value         | Status        |
+| -------------- | ------------- | ------------- |
+| Largest route  | 2.69 kB       | ✅ Acceptable |
+| Shared chunks  | 102 kB        | ✅ Reasonable |
+| Loading states | 100% coverage | ✅ Suspense   |
 
 ---
 
@@ -32,11 +32,11 @@ Route (app)                                 Size  First Load JS
 
 ### Chunk Distribution
 
-| Chunk | Size | Purpose |
-|-------|------|---------|
-| 1063-*.js | 45.9 kB | Framework |
-| baeb86ce-*.js | 54.2 kB | UI Components |
-| Other | 2 kB | Utilities |
+| Chunk          | Size    | Purpose       |
+| -------------- | ------- | ------------- |
+| 1063-\*.js     | 45.9 kB | Framework     |
+| baeb86ce-\*.js | 54.2 kB | UI Components |
+| Other          | 2 kB    | Utilities     |
 
 ---
 
@@ -44,11 +44,11 @@ Route (app)                                 Size  First Load JS
 
 ### Server vs Client Components
 
-| Route | Server | Client | Notes |
-|-------|--------|--------|-------|
-| /app/* | ✅ All pages | Sidebar only | Good separation |
-| / | ✅ Static | None | Fully static |
-| /pricing | ✅ Static | None | Fully static |
+| Route    | Server       | Client       | Notes           |
+| -------- | ------------ | ------------ | --------------- |
+| /app/\*  | ✅ All pages | Sidebar only | Good separation |
+| /        | ✅ Static    | None         | Fully static    |
+| /pricing | ✅ Static    | None         | Fully static    |
 
 ### Findings
 
@@ -82,19 +82,19 @@ CLI already implements lazy loading:
 
 ### CLI Startup
 
-| Operation | Time |
-|-----------|------|
-| Help display | <10ms |
-| Version display | <10ms |
+| Operation            | Time  |
+| -------------------- | ----- |
+| Help display         | <10ms |
+| Version display      | <10ms |
 | Doctor (with checks) | ~50ms |
 
 ### Web Dashboard
 
-| Metric | Value |
-|--------|-------|
-| First Load JS | 102-106 kB |
-| Time to Interactive | ~1.5s (estimated) |
-| Loading states | Immediate skeleton |
+| Metric              | Value              |
+| ------------------- | ------------------ |
+| First Load JS       | 102-106 kB         |
+| Time to Interactive | ~1.5s (estimated)  |
+| Loading states      | Immediate skeleton |
 
 ---
 
@@ -122,4 +122,4 @@ No action required. System is optimized with:
 
 ---
 
-*Report complete — Proceeding to Phase 6 (Final Verify)*
+_Report complete — Proceeding to Phase 6 (Final Verify)_

@@ -15,16 +15,16 @@ Dependabot, and any scripted automation.
 
 These rules are enforced by CI and **block merge** if violated:
 
-| Rule | Enforced By |
-|------|------------|
-| No determinism changes without contract + test update | `scripts/verify_determinism.sh`, `scripts/verify_version_contracts.sh` |
-| No hard-500 routes (unhandled errors in API routes) | `scripts/verify_routes.sh` |
-| OSS (`src/`, `include/requiem/`) must not import enterprise headers | `scripts/verify_oss_boundaries.sh` |
-| Next.js must not compute hashes or spawn processes directly | `scripts/verify_enterprise_boundaries.sh` |
-| All dependency changes require allowlist update | `scripts/verify_deps.sh` |
-| Any CAS/protocol version bump requires compatibility test | `scripts/verify_migrations.sh` |
-| PR description must include scope tag and affected layer | `scripts/verify_pr_metadata.sh` |
-| `prompts/system.lock.md` checksum must be in PR footer if prompts changed | `scripts/verify_prompt_lock.sh` |
+| Rule                                                                      | Enforced By                                                            |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| No determinism changes without contract + test update                     | `scripts/verify_determinism.sh`, `scripts/verify_version_contracts.sh` |
+| No hard-500 routes (unhandled errors in API routes)                       | `scripts/verify_routes.sh`                                             |
+| OSS (`src/`, `include/requiem/`) must not import enterprise headers       | `scripts/verify_oss_boundaries.sh`                                     |
+| Next.js must not compute hashes or spawn processes directly               | `scripts/verify_enterprise_boundaries.sh`                              |
+| All dependency changes require allowlist update                           | `scripts/verify_deps.sh`                                               |
+| Any CAS/protocol version bump requires compatibility test                 | `scripts/verify_migrations.sh`                                         |
+| PR description must include scope tag and affected layer                  | `scripts/verify_pr_metadata.sh`                                        |
+| `prompts/system.lock.md` checksum must be in PR footer if prompts changed | `scripts/verify_prompt_lock.sh`                                        |
 
 ---
 

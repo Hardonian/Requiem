@@ -21,10 +21,10 @@ Budget enforcement prevents tenants from exceeding their allocated resource limi
 
 ### Files
 
-| File | Description |
-|------|-------------|
+| File                                                                     | Description                   |
+| ------------------------------------------------------------------------ | ----------------------------- |
 | [`packages/ai/src/policy/budgets.ts`](packages/ai/src/policy/budgets.ts) | Main budget enforcement logic |
-| [`packages/cli/src/lib/tools.ts`](packages/cli/src/lib/tools.ts) | CLI budget enforcement |
+| [`packages/cli/src/lib/tools.ts`](packages/cli/src/lib/tools.ts)         | CLI budget enforcement        |
 
 ### Key Components
 
@@ -81,10 +81,10 @@ Role-Based Access Control (RBAC) with fine-grained capabilities.
 
 ### Files
 
-| File | Description |
-|------|-------------|
+| File                                                                               | Description                             |
+| ---------------------------------------------------------------------------------- | --------------------------------------- |
 | [`packages/ai/src/policy/capabilities.ts`](packages/ai/src/policy/capabilities.ts) | Capability definitions and role mapping |
-| [`packages/ai/src/types/index.ts`](packages/ai/src/types/index.ts) | TenantRole enum |
+| [`packages/ai/src/types/index.ts`](packages/ai/src/types/index.ts)                 | TenantRole enum                         |
 
 ### Capability Definitions
 
@@ -92,19 +92,19 @@ Role-Based Access Control (RBAC) with fine-grained capabilities.
 
 ```typescript
 const Capabilities = {
-  TOOLS_READ: 'tools:read',
-  TOOLS_WRITE: 'tools:write',
-  TOOLS_ADMIN: 'tools:admin',
-  AI_GENERATE: 'ai:generate',
-  AI_ADMIN: 'ai:admin',
-  MEMORY_READ: 'memory:read',
-  MEMORY_WRITE: 'memory:write',
-  SKILLS_RUN: 'skills:run',
-  SKILLS_ADMIN: 'skills:admin',
-  COST_READ: 'cost:read',
-  COST_ADMIN: 'cost:admin',
-  EVAL_RUN: 'eval:run',
-  EVAL_ADMIN: 'eval:admin',
+  TOOLS_READ: "tools:read",
+  TOOLS_WRITE: "tools:write",
+  TOOLS_ADMIN: "tools:admin",
+  AI_GENERATE: "ai:generate",
+  AI_ADMIN: "ai:admin",
+  MEMORY_READ: "memory:read",
+  MEMORY_WRITE: "memory:write",
+  SKILLS_RUN: "skills:run",
+  SKILLS_ADMIN: "skills:admin",
+  COST_READ: "cost:read",
+  COST_ADMIN: "cost:admin",
+  EVAL_RUN: "eval:run",
+  EVAL_ADMIN: "eval:admin",
 };
 ```
 
@@ -114,10 +114,10 @@ const Capabilities = {
 
 ```typescript
 enum TenantRole {
-  VIEWER = 'viewer',    // Read-only
-  MEMBER = 'member',    // Can execute tools
-  ADMIN = 'admin',      // Full access
-  OWNER = 'owner',      // Administrative
+  VIEWER = "viewer", // Read-only
+  MEMBER = "member", // Can execute tools
+  ADMIN = "admin", // Full access
+  OWNER = "owner", // Administrative
 }
 ```
 
@@ -125,12 +125,12 @@ enum TenantRole {
 
 **Location:** [`packages/ai/src/policy/capabilities.ts:54-101`](packages/ai/src/policy/capabilities.ts:54)
 
-| Role | Capabilities |
-|------|-------------|
-| VIEWER | tools:read, memory:read, cost:read |
+| Role   | Capabilities                                                   |
+| ------ | -------------------------------------------------------------- |
+| VIEWER | tools:read, memory:read, cost:read                             |
 | MEMBER | + tools:write, ai:generate, memory:write, skills:run, eval:run |
-| ADMIN | + tools:admin, ai:admin, skills:admin, cost:admin, eval:admin |
-| OWNER | All capabilities |
+| ADMIN  | + tools:admin, ai:admin, skills:admin, cost:admin, eval:admin  |
+| OWNER  | All capabilities                                               |
 
 ---
 
@@ -142,9 +142,9 @@ Central decision engine that evaluates all tool execution requests.
 
 ### Files
 
-| File | Description |
-|------|-------------|
-| [`packages/ai/src/policy/gate.ts`](packages/ai/src/policy/gate.ts) | Main policy gate implementation |
+| File                                                                     | Description                                |
+| ------------------------------------------------------------------------ | ------------------------------------------ |
+| [`packages/ai/src/policy/gate.ts`](packages/ai/src/policy/gate.ts)       | Main policy gate implementation            |
 | [`packages/ai/src/tools/registry.ts`](packages/ai/src/tools/registry.ts) | Tool registry with policy gate integration |
 
 ### Evaluation Flow
@@ -188,11 +188,11 @@ Immutable audit trail of all policy decisions.
 
 ### Files
 
-| File | Description |
-|------|-------------|
+| File                                                                       | Description              |
+| -------------------------------------------------------------------------- | ------------------------ |
 | [`packages/ai/src/telemetry/audit.ts`](packages/ai/src/telemetry/audit.ts) | AI package audit logging |
-| [`packages/ai/src/tools/types.ts`](packages/ai/src/tools/types.ts) | ToolAuditRecord schema |
-| [`packages/cli/src/lib/tools.ts`](packages/cli/src/lib/tools.ts) | CLI audit logging |
+| [`packages/ai/src/tools/types.ts`](packages/ai/src/tools/types.ts)         | ToolAuditRecord schema   |
+| [`packages/cli/src/lib/tools.ts`](packages/cli/src/lib/tools.ts)           | CLI audit logging        |
 
 ### Audit Record Schema
 
@@ -201,20 +201,20 @@ Immutable audit trail of all policy decisions.
 ```typescript
 interface ToolAuditRecord {
   // Identification
-  timestamp: string;           // ISO 8601
-  actorId: string;              // Principal
-  tenantId: string | null;     // Tenant context
-  traceId: string;             // Distributed trace
+  timestamp: string; // ISO 8601
+  actorId: string; // Principal
+  tenantId: string | null; // Tenant context
+  traceId: string; // Distributed trace
 
   // Action
   toolName: string;
   toolVersion: string;
-  inputHash?: string;          // SHA-256 of input (not full input)
+  inputHash?: string; // SHA-256 of input (not full input)
 
   // Decision
-  decision: 'allow' | 'deny';
+  decision: "allow" | "deny";
   reason: string;
-  policyRuleId?: string;       // Which rule triggered decision
+  policyRuleId?: string; // Which rule triggered decision
 
   // Budget info (if applicable)
   budget?: {
@@ -226,7 +226,7 @@ interface ToolAuditRecord {
 
   // Execution
   latencyMs: number | null;
-  source?: 'api' | 'cli' | 'mcp' | 'internal';
+  source?: "api" | "cli" | "mcp" | "internal";
 }
 ```
 
@@ -251,10 +251,10 @@ CLI commands MUST NOT bypass policy gates. All tool execution goes through budge
 
 ### Files
 
-| File | Description |
-|------|-------------|
-| [`packages/cli/src/lib/tools.ts`](packages/cli/src/lib/tools.ts) | Tool registry with policy enforcement |
-| [`packages/cli/src/lib/agent-runner.ts`](packages/cli/src/lib/agent-runner.ts) | Agent execution loop |
+| File                                                                           | Description                           |
+| ------------------------------------------------------------------------------ | ------------------------------------- |
+| [`packages/cli/src/lib/tools.ts`](packages/cli/src/lib/tools.ts)               | Tool registry with policy enforcement |
+| [`packages/cli/src/lib/agent-runner.ts`](packages/cli/src/lib/agent-runner.ts) | Agent execution loop                  |
 
 ### Enforcement Points
 
@@ -276,15 +276,7 @@ const estimatedCost = tool.cost?.costCents ?? 0;
 const budgetResult = await checkBudget(ctx.tenantId, estimatedCost);
 
 // Log the policy decision
-logCLIAudit(
-  ctx.userId,
-  ctx.tenantId,
-  ctx.requestId,
-  name,
-  tool.version,
-  budgetResult.allowed ? 'allow' : 'deny',
-  budgetResult.reason
-);
+logCLIAudit(ctx.userId, ctx.tenantId, ctx.requestId, name, tool.version, budgetResult.allowed ? "allow" : "deny", budgetResult.reason);
 
 if (!budgetResult.allowed) {
   throw new RequiemError({
@@ -304,23 +296,18 @@ Detects when actual execution outputs differ from cached replay outputs.
 
 ### Files
 
-| File | Description |
-|------|-------------|
+| File                                                                         | Description                     |
+| ---------------------------------------------------------------------------- | ------------------------------- |
 | [`packages/ai/src/tools/divergence.ts`](packages/ai/src/tools/divergence.ts) | TypeScript divergence detection |
-| [`packages/ai/src/tools/replay.ts`](packages/ai/src/tools/replay.ts) | Replay cache system |
-| [`include/requiem/replay.hpp`](include/requiem/replay.hpp) | C++ replay implementation |
+| [`packages/ai/src/tools/replay.ts`](packages/ai/src/tools/replay.ts)         | Replay cache system             |
+| [`include/requiem/replay.hpp`](include/requiem/replay.hpp)                   | C++ replay implementation       |
 
 ### Divergence Detection
 
 **Location:** [`packages/ai/src/tools/divergence.ts:60-120`](packages/ai/src/tools/divergence.ts:60)
 
 ```typescript
-function checkReplayDivergence(
-  expected: unknown,
-  actual: unknown,
-  toolName: string,
-  config: DivergenceConfig = DEFAULT_CONFIG
-): DivergenceCheckResult
+function checkReplayDivergence(expected: unknown, actual: unknown, toolName: string, config: DivergenceConfig = DEFAULT_CONFIG): DivergenceCheckResult;
 ```
 
 ### Key Features
@@ -369,11 +356,11 @@ BUDGET_EXCEEDED = 'REQ_BUDGET_EXCEEDED',
 
 ### HTTP Status Mapping
 
-| Error Code | HTTP Status |
-|------------|-------------|
+| Error Code      | HTTP Status           |
+| --------------- | --------------------- |
 | BUDGET_EXCEEDED | 429 Too Many Requests |
-| FORBIDDEN | 403 Forbidden |
-| UNAUTHORIZED | 401 Unauthorized |
+| FORBIDDEN       | 403 Forbidden         |
+| UNAUTHORIZED    | 401 Unauthorized      |
 
 ---
 
@@ -381,24 +368,24 @@ BUDGET_EXCEEDED = 'REQ_BUDGET_EXCEEDED',
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `REQUIEM_TENANT_ID` | Tenant ID for CLI | Required |
-| `REQUIEM_API_KEY` | API key for authentication | Required |
-| `REQUIEM_BUDGET_TIER` | Budget tier (free/enterprise) | free |
+| Variable              | Description                   | Default  |
+| --------------------- | ----------------------------- | -------- |
+| `REQUIEM_TENANT_ID`   | Tenant ID for CLI             | Required |
+| `REQUIEM_API_KEY`     | API key for authentication    | Required |
+| `REQUIEM_BUDGET_TIER` | Budget tier (free/enterprise) | free     |
 
 ### Programmatic Configuration
 
 ```typescript
 // Configure tenant budget
-DefaultBudgetChecker.configureTenant(tenantId, 'enterprise', {
+DefaultBudgetChecker.configureTenant(tenantId, "enterprise", {
   maxCostCents: 100000,
   maxTokens: 1000000,
   windowSeconds: 2592000,
 });
 
 // Configure CLI budget tier
-setCLIBudgetTier(tenantId, 'enterprise');
+setCLIBudgetTier(tenantId, "enterprise");
 
 // Set custom audit sink (production)
 setAuditSink(async (record) => {
@@ -452,11 +439,11 @@ packages/cli/src/
 
 ## Summary
 
-| Layer | Default Behavior | Override |
-|-------|------------------|----------|
-| Budget | DENY (no config) | Configure via `DefaultBudgetChecker.configureTenant()` |
-| RBAC | DENY (missing caps) | Add capabilities to role |
-| Policy Gate | DENY (no gate) | Set via `setPolicyGate()` |
-| Audit | File sink | Replace via `setAuditSink()` |
+| Layer       | Default Behavior    | Override                                               |
+| ----------- | ------------------- | ------------------------------------------------------ |
+| Budget      | DENY (no config)    | Configure via `DefaultBudgetChecker.configureTenant()` |
+| RBAC        | DENY (missing caps) | Add capabilities to role                               |
+| Policy Gate | DENY (no gate)      | Set via `setPolicyGate()`                              |
+| Audit       | File sink           | Replace via `setAuditSink()`                           |
 
 **Key Invariant**: All tool executions MUST pass through the policy gate. CLI cannot bypass budget enforcement.

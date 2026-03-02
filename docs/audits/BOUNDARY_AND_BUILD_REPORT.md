@@ -9,12 +9,12 @@
 
 All boundary checks pass. No OSS/Enterprise leaks detected. Build is optimized with minimal dependencies.
 
-| Check | Status |
-|-------|--------|
+| Check                 | Status  |
+| --------------------- | ------- |
 | Boundary verification | ✅ PASS |
-| OSS build isolation | ✅ PASS |
-| No cross-imports | ✅ PASS |
-| Security audit | ✅ PASS |
+| OSS build isolation   | ✅ PASS |
+| No cross-imports      | ✅ PASS |
+| Security audit        | ✅ PASS |
 
 ---
 
@@ -37,10 +37,10 @@ All boundary checks pass. No OSS/Enterprise leaks detected. Build is optimized w
 
 ### Enterprise-Gated Features
 
-| Feature | Sidebar | Implementation |
-|---------|---------|----------------|
-| Artifact Signing | Listed, disabled | `/app/signatures` (Pro) |
-| Foundational Models | Listed, disabled | `/app/providers` (Pro) |
+| Feature             | Sidebar          | Implementation          |
+| ------------------- | ---------------- | ----------------------- |
+| Artifact Signing    | Listed, disabled | `/app/signatures` (Pro) |
+| Foundational Models | Listed, disabled | `/app/providers` (Pro)  |
 
 Both routes show UI with "Pro" badge; no functional code loaded in OSS build.
 
@@ -50,11 +50,11 @@ Both routes show UI with "Pro" badge; no functional code loaded in OSS build.
 
 ### Node Engine Constraints
 
-| Package | Engine | Status |
-|---------|--------|--------|
-| Root | >=20.11.0 | ✅ |
-| CLI | >=20.11.0 | ✅ |
-| ready-layer | >=18.0.0 | ✅ |
+| Package     | Engine    | Status |
+| ----------- | --------- | ------ |
+| Root        | >=20.11.0 | ✅     |
+| CLI         | >=20.11.0 | ✅     |
+| ready-layer | >=18.0.0  | ✅     |
 
 ### Dependencies Audit
 
@@ -68,11 +68,11 @@ Both routes show UI with "Pro" badge; no functional code loaded in OSS build.
 
 ### Security Scan
 
-| Check | Status |
-|-------|--------|
-| No secrets in logs | ✅ Verified |
-| No unsafe eval/exec | ✅ Verified |
-| No shell interpolation | ✅ Verified |
+| Check                  | Status            |
+| ---------------------- | ----------------- |
+| No secrets in logs     | ✅ Verified       |
+| No unsafe eval/exec    | ✅ Verified       |
+| No shell interpolation | ✅ Verified       |
 | Strict parsing enabled | ✅ Zod validation |
 
 ---
@@ -96,10 +96,10 @@ pnpm run build:web
 
 ### CLI Binary Verification
 
-| Binary | Path | Status |
-|--------|------|--------|
-| `reach` | `packages/cli/dist/cli/src/cli.js` | ✅ Executable |
-| `requiem` | (alias) | ✅ Working |
+| Binary    | Path                               | Status        |
+| --------- | ---------------------------------- | ------------- |
+| `reach`   | `packages/cli/dist/cli/src/cli.js` | ✅ Executable |
+| `requiem` | (alias)                            | ✅ Working    |
 
 ---
 
@@ -107,20 +107,20 @@ pnpm run build:web
 
 ### Bundle Size (ReadyLayer)
 
-| Route | Size | Status |
-|-------|------|--------|
-| / | 193 B | ✅ Minimal |
-| /app/* | ~208 B each | ✅ Shared chunks |
-| /proof/diff | 2.69 kB | ✅ Largest route |
-| Shared chunks | 102 kB | ✅ Reasonable |
+| Route         | Size        | Status           |
+| ------------- | ----------- | ---------------- |
+| /             | 193 B       | ✅ Minimal       |
+| /app/\*       | ~208 B each | ✅ Shared chunks |
+| /proof/diff   | 2.69 kB     | ✅ Largest route |
+| Shared chunks | 102 kB      | ✅ Reasonable    |
 
 ### CLI Cold Start
 
-| Command | Time | Status |
-|---------|------|--------|
-| `reach --help` | <10ms | ✅ Fast path |
-| `reach --version` | <10ms | ✅ Fast path |
-| `reach doctor` | ~50ms | ✅ Lazy loaded |
+| Command           | Time  | Status         |
+| ----------------- | ----- | -------------- |
+| `reach --help`    | <10ms | ✅ Fast path   |
+| `reach --version` | <10ms | ✅ Fast path   |
+| `reach doctor`    | ~50ms | ✅ Lazy loaded |
 
 ---
 
@@ -143,4 +143,4 @@ Boundary & Build Hygiene: **EXCELLENT**
 
 ---
 
-*Report complete — Proceeding to Phase 5 (Performance)*
+_Report complete — Proceeding to Phase 5 (Performance)_

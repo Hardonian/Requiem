@@ -48,19 +48,19 @@ requiem cas verify --sample 100
 ```
 1. Database (PostgreSQL)
    └── Verify: pnpm cli db:ping
-   
+
 2. CAS Storage
    └── Verify: requiem cas verify --sample 100
-   
+
 3. Native Engine
    └── Verify: ./build/requiem doctor
-   
+
 4. AI/MCP Layer
    └── Verify: pnpm run verify:mcp
-   
+
 5. API Layer (ready-layer)
    └── Verify: curl /api/health
-   
+
 6. CLI Services
    └── Verify: pnpm cli status
 ```
@@ -203,14 +203,14 @@ pnpm cli circuit-breaker:export > /backup/cb_$(date +%Y%m%d).json
 
 **Grafana Dashboards:**
 
-| Dashboard | URL | Purpose |
-|-----------|-----|---------|
-| Requiem/API | `/grafana/d/requiem-api` | Request latency, error rates |
-| Requiem/Engine | `/grafana/d/requiem-engine` | Execution metrics |
-| Requiem/CAS | `/grafana/d/requiem-cas` | Storage metrics |
-| Requiem/Audit | `/grafana/d/requiem-audit` | Audit log health |
-| Requiem/Cost | `/grafana/d/requiem-cost` | Cost and budgets |
-| Requiem/Resilience | `/grafana/d/requiem-resilience` | Circuit breakers |
+| Dashboard          | URL                             | Purpose                      |
+| ------------------ | ------------------------------- | ---------------------------- |
+| Requiem/API        | `/grafana/d/requiem-api`        | Request latency, error rates |
+| Requiem/Engine     | `/grafana/d/requiem-engine`     | Execution metrics            |
+| Requiem/CAS        | `/grafana/d/requiem-cas`        | Storage metrics              |
+| Requiem/Audit      | `/grafana/d/requiem-audit`      | Audit log health             |
+| Requiem/Cost       | `/grafana/d/requiem-cost`       | Cost and budgets             |
+| Requiem/Resilience | `/grafana/d/requiem-resilience` | Circuit breakers             |
 
 ### Critical Alerts
 
@@ -243,11 +243,11 @@ P0:
   - sms
   - phone
   - email
-  
+
 P1:
   - phone
   - email
-  
+
 P2:
   - email
   - slack
@@ -295,12 +295,12 @@ avg:requiem.cas.read_latency{*}
 
 ### Incident Classification
 
-| Severity | Definition | Examples | Response Time |
-|----------|------------|----------|---------------|
-| **P0** | Complete outage, data loss | All regions down, CAS corruption | 15 min |
-| **P1** | Major degradation | Single region down, high error rate | 30 min |
-| **P2** | Minor degradation | Elevated latency, partial feature failure | 2 hours |
-| **P3** | Cosmetic issues | UI glitches, doc errors | 24 hours |
+| Severity | Definition                 | Examples                                  | Response Time |
+| -------- | -------------------------- | ----------------------------------------- | ------------- |
+| **P0**   | Complete outage, data loss | All regions down, CAS corruption          | 15 min        |
+| **P1**   | Major degradation          | Single region down, high error rate       | 30 min        |
+| **P2**   | Minor degradation          | Elevated latency, partial feature failure | 2 hours       |
+| **P3**   | Cosmetic issues            | UI glitches, doc errors                   | 24 hours      |
 
 ### Incident Response Playbooks
 
@@ -467,31 +467,38 @@ Required within 24 hours for P0, 1 week for P1:
 ## Post-Incident Review: [INCIDENT-123]
 
 ### Summary
+
 What happened in 1-2 sentences.
 
 ### Timeline
+
 - [time] - Detection
 - [time] - Response started
 - [time] - Mitigation applied
 - [time] - Resolution
 
 ### Impact
+
 - Customers affected: [count]
 - Data lost: [yes/no, details]
 - Revenue impact: [if any]
 
 ### Root Cause
+
 Technical explanation of why this happened.
 
 ### Contributing Factors
+
 - Factor 1
 - Factor 2
 
 ### Action Items
+
 - [ ] Action 1 (Owner, Due Date)
 - [ ] Action 2 (Owner, Due Date)
 
 ### Lessons Learned
+
 What can we do better next time?
 ```
 
@@ -501,12 +508,12 @@ What can we do better next time?
 
 ### Rotation Schedule
 
-| Credential Type | TTL | Grace Period | Notification |
-|-----------------|-----|--------------|--------------|
-| API Keys | 90 days | 7 days | 7, 3, 1 days before |
-| Database Credentials | 30 days | 3 days | 7, 3, 1 days before |
-| JWT Signing Keys | 180 days | 14 days | 30, 14, 7 days before |
-| TLS Certificates | 365 days | 30 days | 60, 30, 7 days before |
+| Credential Type      | TTL      | Grace Period | Notification          |
+| -------------------- | -------- | ------------ | --------------------- |
+| API Keys             | 90 days  | 7 days       | 7, 3, 1 days before   |
+| Database Credentials | 30 days  | 3 days       | 7, 3, 1 days before   |
+| JWT Signing Keys     | 180 days | 14 days      | 30, 14, 7 days before |
+| TLS Certificates     | 365 days | 30 days      | 60, 30, 7 days before |
 
 ### Manual Rotation Procedure
 
@@ -691,12 +698,12 @@ curl -X POST /api/admin/flags/maintenance -d '{"value": false}'
 
 ### Security Incident Classification
 
-| Level | Description | Examples | Response |
-|-------|-------------|----------|----------|
-| **Critical** | Active exploitation, data breach | RCE, data exfiltration | Immediate |
-| **High** | Potential breach, unauthorized access | Suspicious access patterns | 1 hour |
-| **Medium** | Policy violation, misconfiguration | Unencrypted data | 24 hours |
-| **Low** | Minor finding, documentation | Missing log entry | 1 week |
+| Level        | Description                           | Examples                   | Response  |
+| ------------ | ------------------------------------- | -------------------------- | --------- |
+| **Critical** | Active exploitation, data breach      | RCE, data exfiltration     | Immediate |
+| **High**     | Potential breach, unauthorized access | Suspicious access patterns | 1 hour    |
+| **Medium**   | Policy violation, misconfiguration    | Unencrypted data           | 24 hours  |
+| **Low**      | Minor finding, documentation          | Missing log entry          | 1 week    |
 
 ### Security Incident Response Playbook
 
@@ -866,12 +873,12 @@ cat evidence_* | requiem digest --stdin > evidence_hashes.txt
 
 ### Security Contacts
 
-| Role | Contact | Escalation |
-|------|---------|------------|
+| Role             | Contact                   | Escalation      |
+| ---------------- | ------------------------- | --------------- |
 | Security On-Call | <security@readylayer.com> | +1-XXX-XXX-XXXX |
-| CTO | <cto@readylayer.com> | +1-XXX-XXX-XXXX |
-| Legal | <legal@readylayer.com> | +1-XXX-XXX-XXXX |
-| CEO | <ceo@readylayer.com> | +1-XXX-XXX-XXXX |
+| CTO              | <cto@readylayer.com>      | +1-XXX-XXX-XXXX |
+| Legal            | <legal@readylayer.com>    | +1-XXX-XXX-XXXX |
+| CEO              | <ceo@readylayer.com>      | +1-XXX-XXX-XXXX |
 
 ---
 

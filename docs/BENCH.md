@@ -127,7 +127,7 @@ requiem bench compare --baseline baseline.json --current current.json --out comp
     "regression": false,
     "p50_delta_pct": 2.5,
     "p95_delta_pct": -1.2,
-    "baseline_p50": 2.10,
+    "baseline_p50": 2.1,
     "current_p50": 2.15
   }
 }
@@ -267,11 +267,11 @@ requiem bench run --spec spec.json --out results.json
 Minimum runs for reliable results:
 
 | Metric | Min Runs |
-|--------|----------|
-| p50 | 30 |
-| p95 | 100 |
-| p99 | 200 |
-| stddev | 50 |
+| ------ | -------- |
+| p50    | 30       |
+| p95    | 100      |
+| p99    | 200      |
+| stddev | 50       |
 
 ### 3. Isolation
 
@@ -344,36 +344,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Build
         run: cmake --build build
-      
+
       - name: Download baseline
         uses: actions/download-artifact@v3
         with:
           name: benchmark-baseline
           path: baseline/
         continue-on-error: true
-      
+
       - name: Run benchmark
         run: |
           requiem bench run --spec bench/spec.json --out results.json
           requiem drift analyze --bench results.json --out drift.json
-      
+
       - name: Check for drift
         run: |
           if ! jq -e '.drift.ok' drift.json; then
             echo "Non-deterministic behavior detected!"
             exit 1
           fi
-      
+
       - name: Compare to baseline
         if: hashFiles('baseline/results.json') != ''
         run: |
           requiem bench compare \
             --baseline baseline/results.json \
             --current results.json || exit 1
-      
+
       - name: Upload results
         uses: actions/upload-artifact@v3
         with:

@@ -12,13 +12,13 @@ This report documents the comprehensive hardening of the Requiem deterministic g
 
 ### Key Results
 
-| Metric | Status |
-|--------|--------|
-| Kernel Invariants | ✅ ALL VERIFIED |
-| Structural Moats | ✅ 5/5 IMPLEMENTED |
-| Adversarial Hardening | ✅ ALL ATTACKS BLOCKED |
-| Performance Baseline | ✅ MICROBENCHMARKS RUNNING |
-| Competitive Differentiation | ✅ 6 UNIQUE PRIMITIVES |
+| Metric                      | Status                     |
+| --------------------------- | -------------------------- |
+| Kernel Invariants           | ✅ ALL VERIFIED            |
+| Structural Moats            | ✅ 5/5 IMPLEMENTED         |
+| Adversarial Hardening       | ✅ ALL ATTACKS BLOCKED     |
+| Performance Baseline        | ✅ MICROBENCHMARKS RUNNING |
+| Competitive Differentiation | ✅ 6 UNIQUE PRIMITIVES     |
 
 ---
 
@@ -28,39 +28,39 @@ This report documents the comprehensive hardening of the Requiem deterministic g
 
 All invariants from [`KERNEL_SPEC.md`](KERNEL_SPEC.md) have been verified:
 
-| Invariant | Specification | Status | Evidence |
-|-----------|---------------|--------|----------|
-| **INV-HASH** | BLAKE3-256 exclusive | ✅ IMPLEMENTED | `third_party/blake3/` is the only hash implementation |
-| **INV-CHAIN** | Prev-hash chain | ✅ IMPLEMENTED | Event log maintains hash chain using domain-separated BLAKE3 |
-| **INV-CAS** | Integrity verification | ✅ IMPLEMENTED | `src/cas.cpp` validates on every `get()` |
-| **INV-CAPABILITY** | Token enforcement | ✅ IMPLEMENTED | `src/caps.cpp` with ed25519 signatures |
-| **INV-METER** | Budget enforcement | ✅ IMPLEMENTED | `src/metering.cpp` with hard denial |
-| **INV-REPLAY** | Deterministic replay | ✅ IMPLEMENTED | `src/receipt.cpp` handles replay verification |
-| **INV-ENVELOPE** | Typed envelopes | ✅ IMPLEMENTED | All CLI outputs use typed envelopes |
-| **INV-NO-WALLCLOCK** | Logical time only | ✅ IMPLEMENTED | Event log uses only logical timestamps for chain hashes |
-| **INV-DETERMINISTIC-SCHEDULE** | DAG ordering | ✅ IMPLEMENTED | `src/plan.cpp` enforces topological + lexicographic order |
-| **INV-NO-AMBIENT** | No ambient authority | ✅ IMPLEMENTED | Policy pipeline is the only execution path |
+| Invariant                      | Specification          | Status         | Evidence                                                     |
+| ------------------------------ | ---------------------- | -------------- | ------------------------------------------------------------ |
+| **INV-HASH**                   | BLAKE3-256 exclusive   | ✅ IMPLEMENTED | `third_party/blake3/` is the only hash implementation        |
+| **INV-CHAIN**                  | Prev-hash chain        | ✅ IMPLEMENTED | Event log maintains hash chain using domain-separated BLAKE3 |
+| **INV-CAS**                    | Integrity verification | ✅ IMPLEMENTED | `src/cas.cpp` validates on every `get()`                     |
+| **INV-CAPABILITY**             | Token enforcement      | ✅ IMPLEMENTED | `src/caps.cpp` with ed25519 signatures                       |
+| **INV-METER**                  | Budget enforcement     | ✅ IMPLEMENTED | `src/metering.cpp` with hard denial                          |
+| **INV-REPLAY**                 | Deterministic replay   | ✅ IMPLEMENTED | `src/receipt.cpp` handles replay verification                |
+| **INV-ENVELOPE**               | Typed envelopes        | ✅ IMPLEMENTED | All CLI outputs use typed envelopes                          |
+| **INV-NO-WALLCLOCK**           | Logical time only      | ✅ IMPLEMENTED | Event log uses only logical timestamps for chain hashes      |
+| **INV-DETERMINISTIC-SCHEDULE** | DAG ordering           | ✅ IMPLEMENTED | `src/plan.cpp` enforces topological + lexicographic order    |
+| **INV-NO-AMBIENT**             | No ambient authority   | ✅ IMPLEMENTED | Policy pipeline is the only execution path                   |
 
 ### 1.2 Canonical Path Verification
 
-| Path | Single Implementation | Location |
-|------|---------------------|----------|
-| Canonical Encoding | ✅ | `src/jsonlite.cpp` |
-| Hash Implementation | ✅ | `src/hash.cpp` (BLAKE3 only) |
-| Event Append | ✅ | `src/event_log.cpp` |
-| Capability Enforcement | ✅ | `src/caps.cpp` |
-| Policy Evaluation | ✅ | `src/policy_vm.cpp` |
-| Meter Enforcement | ✅ | `src/metering.cpp` |
+| Path                   | Single Implementation | Location                     |
+| ---------------------- | --------------------- | ---------------------------- |
+| Canonical Encoding     | ✅                    | `src/jsonlite.cpp`           |
+| Hash Implementation    | ✅                    | `src/hash.cpp` (BLAKE3 only) |
+| Event Append           | ✅                    | `src/event_log.cpp`          |
+| Capability Enforcement | ✅                    | `src/caps.cpp`               |
+| Policy Evaluation      | ✅                    | `src/policy_vm.cpp`          |
+| Meter Enforcement      | ✅                    | `src/metering.cpp`           |
 
 ### 1.3 Nondeterminism Check
 
-| Source | Status | Evidence |
-|--------|--------|----------|
-| Wall clock in chain | ✅ NONE | `timestamp_unix_ms` excluded from chain hash |
-| Random seeds | ✅ NONE | No `rand()` or non-seeded PRNGs in core |
-| Unordered maps | ✅ NONE | `std::map` used throughout for deterministic iteration |
-| OS-dependent behavior | ✅ NONE | Platform-specific code isolated to sandbox layer |
-| Locale/encoding drift | ✅ NONE | Canonical JSON with RFC 8259 compliance |
+| Source                | Status  | Evidence                                               |
+| --------------------- | ------- | ------------------------------------------------------ |
+| Wall clock in chain   | ✅ NONE | `timestamp_unix_ms` excluded from chain hash           |
+| Random seeds          | ✅ NONE | No `rand()` or non-seeded PRNGs in core                |
+| Unordered maps        | ✅ NONE | `std::map` used throughout for deterministic iteration |
+| OS-dependent behavior | ✅ NONE | Platform-specific code isolated to sandbox layer       |
+| Locale/encoding drift | ✅ NONE | Canonical JSON with RFC 8259 compliance                |
 
 ---
 
@@ -164,16 +164,16 @@ requiem cost verify --tenant <tenant_id>
 
 All attack vectors documented in [`ADVERSARIAL_REPORT.md`](ADVERSARIAL_REPORT.md) are BLOCKED:
 
-| Attack Vector | Status | Mitigation |
-|---------------|--------|------------|
-| Capability bypass | ✅ BLOCKED | Policy pipeline is the only execution path |
-| Replay mismatch | ✅ BLOCKED | Engine fingerprint verification |
-| CAS object tampering | ✅ BLOCKED | Dual-hash verification on every read |
-| DAG reordering | ✅ BLOCKED | Topological + lexicographic ordering |
-| Logical time manipulation | ✅ BLOCKED | Monotonic counter, no external input |
-| Budget double-spend | ✅ BLOCKED | Idempotency via request_digest |
-| Receipt hash tampering | ✅ BLOCKED | All fields included in hash computation |
-| Cost ledger manipulation | ✅ BLOCKED | Hash-linked receipts per tenant |
+| Attack Vector             | Status     | Mitigation                                 |
+| ------------------------- | ---------- | ------------------------------------------ |
+| Capability bypass         | ✅ BLOCKED | Policy pipeline is the only execution path |
+| Replay mismatch           | ✅ BLOCKED | Engine fingerprint verification            |
+| CAS object tampering      | ✅ BLOCKED | Dual-hash verification on every read       |
+| DAG reordering            | ✅ BLOCKED | Topological + lexicographic ordering       |
+| Logical time manipulation | ✅ BLOCKED | Monotonic counter, no external input       |
+| Budget double-spend       | ✅ BLOCKED | Idempotency via request_digest             |
+| Receipt hash tampering    | ✅ BLOCKED | All fields included in hash computation    |
+| Cost ledger manipulation  | ✅ BLOCKED | Hash-linked receipts per tenant            |
 
 ---
 
@@ -185,13 +185,13 @@ All attack vectors documented in [`ADVERSARIAL_REPORT.md`](ADVERSARIAL_REPORT.md
 
 **Implemented Benchmarks:**
 
-| Benchmark | Status | Location |
-|-----------|--------|----------|
-| Event append | ✅ IMPLEMENTED | [`src/microbench.cpp`](src/microbench.cpp:192) |
-| CAS put | ✅ IMPLEMENTED | [`src/microbench.cpp`](src/microbench.cpp:212) |
-| CAS get | ✅ IMPLEMENTED | [`src/microbench.cpp`](src/microbench.cpp:226) |
+| Benchmark         | Status         | Location                                       |
+| ----------------- | -------------- | ---------------------------------------------- |
+| Event append      | ✅ IMPLEMENTED | [`src/microbench.cpp`](src/microbench.cpp:192) |
+| CAS put           | ✅ IMPLEMENTED | [`src/microbench.cpp`](src/microbench.cpp:212) |
+| CAS get           | ✅ IMPLEMENTED | [`src/microbench.cpp`](src/microbench.cpp:226) |
 | Policy evaluation | ⚠️ PLACEHOLDER | [`src/microbench.cpp`](src/microbench.cpp:245) |
-| Plan scheduling | ⚠️ PLACEHOLDER | [`src/microbench.cpp`](src/microbench.cpp:262) |
+| Plan scheduling   | ⚠️ PLACEHOLDER | [`src/microbench.cpp`](src/microbench.cpp:262) |
 
 **Output Metrics:**
 
@@ -250,14 +250,14 @@ requiem bench --output results.json
 
 ## Gates Verification
 
-| Gate | Status | Command |
-|------|--------|---------|
-| Replay exactness | ✅ PASS | `requiem replay verify` |
-| Event chain verification | ✅ PASS | `requiem log verify` |
-| Doctor checks | ✅ PASS | `requiem doctor` |
-| Build | ⚠️ NEEDS VERIFICATION | `cmake --build` |
-| Binary size increase | ⚠️ NEEDS VERIFICATION | Compare before/after |
-| No nondeterminism | ✅ VERIFIED | Code inspection |
+| Gate                     | Status                | Command                 |
+| ------------------------ | --------------------- | ----------------------- |
+| Replay exactness         | ✅ PASS               | `requiem replay verify` |
+| Event chain verification | ✅ PASS               | `requiem log verify`    |
+| Doctor checks            | ✅ PASS               | `requiem doctor`        |
+| Build                    | ⚠️ NEEDS VERIFICATION | `cmake --build`         |
+| Binary size increase     | ⚠️ NEEDS VERIFICATION | Compare before/after    |
+| No nondeterminism        | ✅ VERIFIED           | Code inspection         |
 
 ---
 
@@ -278,4 +278,4 @@ The Requiem kernel has been comprehensively hardened:
 
 ---
 
-*End of Nuclear Strength Report*
+_End of Nuclear Strength Report_

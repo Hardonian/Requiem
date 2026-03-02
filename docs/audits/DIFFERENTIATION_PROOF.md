@@ -332,12 +332,12 @@ Semantic state abc123... is within normal parameters. Integrity score: 83/100. 2
 Overall Score: 83/100
 
 Component Breakdown:
-  [✗] Parity Verified
-  [✓] Policy Bound
-  [✓] Context Captured
-  [✗] Eval Attached
-  [✗] Replay Verified
-  [✗] Artifact Signed
+[✗] Parity Verified
+[✓] Policy Bound
+[✓] Context Captured
+[✗] Eval Attached
+[✗] Replay Verified
+[✗] Artifact Signed
 
 ## Recommendations
 
@@ -406,20 +406,20 @@ reach capsule info /tmp/capsule.json
 
 ## Summary: The Differentiation
 
-| Capability | GitHub Actions + OPA | Requiem SSM |
-|------------|---------------------|-------------|
-| **State Identity** | Time-based run ID | Content-derived fingerprint |
-| **State Lineage** | Job dependencies (structural) | Semantic transitions (intent) |
-| **Drift Detection** | Manual diff | Automated taxonomy |
-| **Drift Classification** | None | 7 categories with significance |
-| **Integrity Score** | None | 0-100 from verifiable signals |
-| **Model Migration** | Full re-test | Simulation + selective re-eval |
-| **Export Format** | Logs (unstructured) | Semantic ledger bundle |
-| **Purpose-Built UI** | Generic dashboard | Semantic ledger explorer |
-| **Tool IO Schema Lock** | None | Schema snapshots bound to states |
-| **Change Budget Governance** | Custom OPA policies | Built-in drift budgets |
-| **Audit Narrative Generator** | Manual/log parsing | Deterministic templates |
-| **Replay Attestation Capsule** | None | Portable verifiable bundles |
+| Capability                     | GitHub Actions + OPA          | Requiem SSM                      |
+| ------------------------------ | ----------------------------- | -------------------------------- |
+| **State Identity**             | Time-based run ID             | Content-derived fingerprint      |
+| **State Lineage**              | Job dependencies (structural) | Semantic transitions (intent)    |
+| **Drift Detection**            | Manual diff                   | Automated taxonomy               |
+| **Drift Classification**       | None                          | 7 categories with significance   |
+| **Integrity Score**            | None                          | 0-100 from verifiable signals    |
+| **Model Migration**            | Full re-test                  | Simulation + selective re-eval   |
+| **Export Format**              | Logs (unstructured)           | Semantic ledger bundle           |
+| **Purpose-Built UI**           | Generic dashboard             | Semantic ledger explorer         |
+| **Tool IO Schema Lock**        | None                          | Schema snapshots bound to states |
+| **Change Budget Governance**   | Custom OPA policies           | Built-in drift budgets           |
+| **Audit Narrative Generator**  | Manual/log parsing            | Deterministic templates          |
+| **Replay Attestation Capsule** | None                          | Portable verifiable bundles      |
 
 ## Why This Matters
 
@@ -432,7 +432,7 @@ The Semantic State Machine is designed for **AI execution governance**:
 - Simulating model migrations
 - Providing verifiable state identities
 
-You *could* build something like SSM on top of GHA + OPA, but you would need to:
+You _could_ build something like SSM on top of GHA + OPA, but you would need to:
 
 1. Implement content-derived fingerprinting
 2. Build a drift taxonomy classifier

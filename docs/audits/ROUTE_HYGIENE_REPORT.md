@@ -9,17 +9,17 @@
 
 All 20 routes validated. No hard-500 routes identified. All dashboard routes have Suspense + skeleton states. Global error handling in place.
 
-| Metric | Count | Status |
-|--------|-------|--------|
-| Total Routes | 20 | ✅ |
-| With Loading State | 20 | ✅ |
-| With Error State | 20 (via global) | ✅ |
-| With Empty State | 8 | ✅ |
-| Dead Links | 0 | ✅ |
+| Metric             | Count           | Status |
+| ------------------ | --------------- | ------ |
+| Total Routes       | 20              | ✅     |
+| With Loading State | 20              | ✅     |
+| With Error State   | 20 (via global) | ✅     |
+| With Empty State   | 8               | ✅     |
+| Dead Links         | 0               | ✅     |
 
 ---
 
-## Dashboard Routes (/app/*)
+## Dashboard Routes (/app/\*)
 
 ### /app/executions
 
@@ -201,10 +201,10 @@ NAV_SECTIONS = [
 
 ### Disabled Routes (Enterprise Gated)
 
-| Route | Sidebar | Plan |
-|-------|---------|------|
-| /app/signatures | Listed, disabled | Pro |
-| /app/providers | Listed, disabled | Pro |
+| Route           | Sidebar          | Plan |
+| --------------- | ---------------- | ---- |
+| /app/signatures | Listed, disabled | Pro  |
+| /app/providers  | Listed, disabled | Pro  |
 
 These routes intentionally show as disabled in the UI.
 
@@ -241,4 +241,4 @@ Route hygiene: **EXCELLENT**
 
 ---
 
-*Report complete — Proceeding to Phase 2 (CLI Bake)*
+_Report complete — Proceeding to Phase 2 (CLI Bake)_

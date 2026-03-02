@@ -108,34 +108,34 @@ scripts/verify-ui-boundaries.mjs      # OSS/Enterprise gate
 
 ### Tier 1: Foundational Primitives (7 components)
 
-| Component | Variants | Props Interface |
-|-----------|----------|-----------------|
-| Button | 6 variants, 4 sizes | variant, size, asChild |
-| Card | 3 elevations | elevation, padding options |
-| Badge | 7 variants | variant |
-| Alert | 5 severity levels | variant |
-| Input | - | Standard input props |
-| Textarea | - | Standard textarea props |
-| Tabs | - | Radix Tabs API |
+| Component | Variants            | Props Interface            |
+| --------- | ------------------- | -------------------------- |
+| Button    | 6 variants, 4 sizes | variant, size, asChild     |
+| Card      | 3 elevations        | elevation, padding options |
+| Badge     | 7 variants          | variant                    |
+| Alert     | 5 severity levels   | variant                    |
+| Input     | -                   | Standard input props       |
+| Textarea  | -                   | Standard textarea props    |
+| Tabs      | -                   | Radix Tabs API             |
 
 ### Tier 2: Layout Components (6 components)
 
-| Component | Purpose |
-|-----------|---------|
-| AppShell | Page structure with header/sidebar/footer slots |
-| PageHeader | Title + description + actions pattern |
-| EmptyState | Zero-state placeholders |
-| ErrorBoundary | Error catching (prevents hard-500) |
-| LoadingSpinner | Size variants (sm/md/lg) |
-| Skeleton | Card/line variants for loading states |
+| Component      | Purpose                                         |
+| -------------- | ----------------------------------------------- |
+| AppShell       | Page structure with header/sidebar/footer slots |
+| PageHeader     | Title + description + actions pattern           |
+| EmptyState     | Zero-state placeholders                         |
+| ErrorBoundary  | Error catching (prevents hard-500)              |
+| LoadingSpinner | Size variants (sm/md/lg)                        |
+| Skeleton       | Card/line variants for loading states           |
 
 ### Tier 3: Data Components (3 components)
 
-| Component | Features |
-|-----------|----------|
-| MetricCard | Number formatting, trends, loading state |
-| StatusPill | 10 status types, icons, animations |
-| DeterminismPill | High/med/low confidence indicators |
+| Component       | Features                                 |
+| --------------- | ---------------------------------------- |
+| MetricCard      | Number formatting, trends, loading state |
+| StatusPill      | 10 status types, icons, animations       |
+| DeterminismPill | High/med/low confidence indicators       |
 
 ---
 
@@ -225,17 +225,17 @@ New-Item -ItemType Directory -Path "packages/ui/src/lib" -Force
 
 ## Components NOT Harvested (And Why)
 
-| Component | Reason | Future Path |
-|-----------|--------|-------------|
-| ExecutionTimeline | Domain-specific to execution engine | Keep in Reach |
-| PackCard | Tightly coupled to Pack domain | Keep in Reach |
-| AgentTable | Requires Agent domain types | Keep in Reach |
-| TraceTimeline | Requires Trace/Execution domain | Keep in Reach |
-| Command Palette | Complex state management | Add later if needed |
-| Modal/Dialog | Requires Radix Dialog + providers | Add via PR |
-| Toast/Notifications | Requires Radix Toast + providers | Add via PR |
-| Dropdown Menu | Requires Radix Dropdown | Add via PR |
-| Chart Wrappers | Keep Recharts optional | Add to /charts subpath |
+| Component           | Reason                              | Future Path            |
+| ------------------- | ----------------------------------- | ---------------------- |
+| ExecutionTimeline   | Domain-specific to execution engine | Keep in Reach          |
+| PackCard            | Tightly coupled to Pack domain      | Keep in Reach          |
+| AgentTable          | Requires Agent domain types         | Keep in Reach          |
+| TraceTimeline       | Requires Trace/Execution domain     | Keep in Reach          |
+| Command Palette     | Complex state management            | Add later if needed    |
+| Modal/Dialog        | Requires Radix Dialog + providers   | Add via PR             |
+| Toast/Notifications | Requires Radix Toast + providers    | Add via PR             |
+| Dropdown Menu       | Requires Radix Dropdown             | Add via PR             |
+| Chart Wrappers      | Keep Recharts optional              | Add to /charts subpath |
 
 ---
 
@@ -289,7 +289,7 @@ Script location: `scripts/verify-ui-boundaries.mjs`
 
 1. **Accessibility Audit**
    - Run axe-core on all components
-   - Add missing aria-* attributes
+   - Add missing aria-\* attributes
    - Test keyboard navigation
 
 2. **Animation Refinement**
@@ -397,4 +397,4 @@ The kit is ready for use by Reach, ReadyLayer, and any future applications while
 
 ---
 
-*End of Report*
+_End of Report_

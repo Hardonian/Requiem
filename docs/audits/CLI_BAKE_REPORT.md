@@ -9,13 +9,13 @@
 
 CLI core is stable with comprehensive command coverage. Minor module resolution issues identified in edge commands. All critical paths (doctor, version, help, stats, status) working correctly.
 
-| Metric | Status |
-|--------|--------|
-| Commands Implemented | 42 |
-| Commands Tested | 8 (smoke) |
-| Critical Paths | ✅ All pass |
-| JSON Output | ✅ Supported on major commands |
-| Exit Codes | ✅ Proper (0=success, 1=error) |
+| Metric               | Status                         |
+| -------------------- | ------------------------------ |
+| Commands Implemented | 42                             |
+| Commands Tested      | 8 (smoke)                      |
+| Critical Paths       | ✅ All pass                    |
+| JSON Output          | ✅ Supported on major commands |
+| Exit Codes           | ✅ Proper (0=success, 1=error) |
 
 ---
 
@@ -23,39 +23,39 @@ CLI core is stable with comprehensive command coverage. Minor module resolution 
 
 ### Control Commands
 
-| Command | Status | JSON | Exit Code | Notes |
-|---------|--------|------|-----------|-------|
-| `run` | ⚠️ Partial | ✅ | ✅ | Requires engine |
-| `verify` | ⚠️ Partial | ✅ | ✅ | Requires engine |
-| `replay` | ⚠️ Partial | ✅ | ✅ | Requires engine |
-| `fingerprint` | ✅ Working | N/A | ✅ | Standalone display |
+| Command       | Status     | JSON | Exit Code | Notes              |
+| ------------- | ---------- | ---- | --------- | ------------------ |
+| `run`         | ⚠️ Partial | ✅   | ✅        | Requires engine    |
+| `verify`      | ⚠️ Partial | ✅   | ✅        | Requires engine    |
+| `replay`      | ⚠️ Partial | ✅   | ✅        | Requires engine    |
+| `fingerprint` | ✅ Working | N/A  | ✅        | Standalone display |
 
 ### Observability Commands
 
-| Command | Status | JSON | Exit Code | Notes |
-|---------|--------|------|-----------|-------|
-| `stats` | ✅ Working | ✅ | ✅ | Returns aggregate stats |
-| `status` | ✅ Working | ✅ | ✅ | Full system health |
-| `trace` | ⚠️ Partial | ✅ | ✅ | Requires engine |
-| `telemetry` | ⚠️ Partial | ✅ | ✅ | Requires engine |
+| Command     | Status     | JSON | Exit Code | Notes                   |
+| ----------- | ---------- | ---- | --------- | ----------------------- |
+| `stats`     | ✅ Working | ✅   | ✅        | Returns aggregate stats |
+| `status`    | ✅ Working | ✅   | ✅        | Full system health      |
+| `trace`     | ⚠️ Partial | ✅   | ✅        | Requires engine         |
+| `telemetry` | ⚠️ Partial | ✅   | ✅        | Requires engine         |
 
 ### Admin Commands
 
-| Command | Status | JSON | Exit Code | Notes |
-|---------|--------|------|-----------|-------|
-| `doctor` | ✅ Working | ✅ | ✅ | Comprehensive health check |
-| `init` | ✅ Working | N/A | ✅ | Config initialization |
-| `version` | ✅ Working | N/A | ✅ | Fast path (no imports) |
-| `help` | ✅ Working | N/A | ✅ | Fast path (no imports) |
-| `bench` | ⚠️ Partial | ✅ | ✅ | Requires engine |
+| Command   | Status     | JSON | Exit Code | Notes                      |
+| --------- | ---------- | ---- | --------- | -------------------------- |
+| `doctor`  | ✅ Working | ✅   | ✅        | Comprehensive health check |
+| `init`    | ✅ Working | N/A  | ✅        | Config initialization      |
+| `version` | ✅ Working | N/A  | ✅        | Fast path (no imports)     |
+| `help`    | ✅ Working | N/A  | ✅        | Fast path (no imports)     |
+| `bench`   | ⚠️ Partial | ✅   | ✅        | Requires engine            |
 
 ### Governance Commands
 
-| Command | Status | JSON | Exit Code | Notes |
-|---------|--------|------|-----------|-------|
-| `learn` | ⚠️ Partial | ✅ | ✅ | Requires data |
-| `symmetry` | ⚠️ Partial | ✅ | ✅ | Requires engine |
-| `economics` | ⚠️ Partial | ✅ | ✅ | Requires engine |
+| Command     | Status     | JSON | Exit Code | Notes           |
+| ----------- | ---------- | ---- | --------- | --------------- |
+| `learn`     | ⚠️ Partial | ✅   | ✅        | Requires data   |
+| `symmetry`  | ⚠️ Partial | ✅   | ✅        | Requires engine |
+| `economics` | ⚠️ Partial | ✅   | ✅        | Requires engine |
 
 ---
 
@@ -105,30 +105,30 @@ Requiem CLI v0.2.0 — Control Plane for AI Systems
 
 ### Verbs/Nouns
 
-| Pattern | Consistency |
-|---------|-------------|
-| `run` | Execute tool |
+| Pattern  | Consistency       |
+| -------- | ----------------- |
+| `run`    | Execute tool      |
 | `verify` | Check determinism |
-| `replay` | Re-execute |
-| `show` | Display details |
-| `list` | Enumerate |
-| `doctor` | Health check |
+| `replay` | Re-execute        |
+| `show`   | Display details   |
+| `list`   | Enumerate         |
+| `doctor` | Health check      |
 
 ### Flags
 
-| Flag | Availability | Notes |
-|------|--------------|-------|
-| `--json` | Major commands | Consistent output format |
-| `--minimal` | Some commands | Quiet output |
-| `--explain` | Some commands | Verbose reasoning |
-| `--trace` | Some commands | Execution insight |
+| Flag        | Availability   | Notes                    |
+| ----------- | -------------- | ------------------------ |
+| `--json`    | Major commands | Consistent output format |
+| `--minimal` | Some commands  | Quiet output             |
+| `--explain` | Some commands  | Verbose reasoning        |
+| `--trace`   | Some commands  | Execution insight        |
 
 ### Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success / Healthy / Degraded |
-| 1 | Error / Unhealthy / Failed |
+| Code | Meaning                      |
+| ---- | ---------------------------- |
+| 0    | Success / Healthy / Degraded |
+| 1    | Error / Unhealthy / Failed   |
 
 ---
 
@@ -195,14 +195,14 @@ Created: `packages/cli/tests/snapshots/cli.test.ts`
 
 ## Security Considerations
 
-| Check | Status |
-|-------|--------|
-| No secrets in logs | ✅ Verified |
-| No stack traces in production | ✅ Verified |
-| Safe file operations | ✅ Verified (io lib) |
-| No shell interpolation | ✅ Verified |
-| Config secrets redacted | ✅ Doctor redacts keys/tokens |
-| Support bundle sanitization | ✅ Env/config redacted |
+| Check                         | Status                        |
+| ----------------------------- | ----------------------------- |
+| No secrets in logs            | ✅ Verified                   |
+| No stack traces in production | ✅ Verified                   |
+| Safe file operations          | ✅ Verified (io lib)          |
+| No shell interpolation        | ✅ Verified                   |
+| Config secrets redacted       | ✅ Doctor redacts keys/tokens |
+| Support bundle sanitization   | ✅ Env/config redacted        |
 
 ---
 
@@ -227,4 +227,4 @@ CLI Bake Status: **PRODUCTION-READY**
 
 ---
 
-*Report complete — Proceeding to Phase 3 (Docs Bake)*
+_Report complete — Proceeding to Phase 3 (Docs Bake)_

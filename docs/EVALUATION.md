@@ -6,9 +6,9 @@ This document outlines the evaluation harness for AI agents and skills in Requie
 
 The evaluation suite is designed to verify stability across:
 
-* **Determinism**: Ensuring same-input consistency.
-* **Safety**: Testing policy-gate enforcement.
-* **Quality**: Measuring decision accuracy via goldens.
+- **Determinism**: Ensuring same-input consistency.
+- **Safety**: Testing policy-gate enforcement.
+- **Quality**: Measuring decision accuracy via goldens.
 
 ## Test categories
 
@@ -25,4 +25,5 @@ Evaluate agent response quality using `llm_judge` or `exact_match`.
 Verify safety boundaries using adversarial datasets.
 
 ---
+
 **Status**: ARCHITECTURE CLARIFIED.

@@ -7,13 +7,13 @@
 
 ## 1. Where SSM Lives (Core)
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| **Core Implementation** | `packages/cli/src/lib/semantic-state-machine.ts` | State machine primitive, drift taxonomy, integrity scoring |
-| **CLI Commands** | `packages/cli/src/commands/state.ts` | User-facing CLI for state operations |
-| **Tests** | `packages/cli/src/lib/__tests__/semantic-state-machine.test.ts` | Unit tests for SSM primitive |
-| **Documentation** | `docs/reference/semantic-state-machine.md` | Core primitive documentation |
-| **CLI Reference** | `docs/reference/cli-semantic-state.md` | CLI command reference |
+| Component               | Location                                                        | Purpose                                                    |
+| ----------------------- | --------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Core Implementation** | `packages/cli/src/lib/semantic-state-machine.ts`                | State machine primitive, drift taxonomy, integrity scoring |
+| **CLI Commands**        | `packages/cli/src/commands/state.ts`                            | User-facing CLI for state operations                       |
+| **Tests**               | `packages/cli/src/lib/__tests__/semantic-state-machine.test.ts` | Unit tests for SSM primitive                               |
+| **Documentation**       | `docs/reference/semantic-state-machine.md`                      | Core primitive documentation                               |
+| **CLI Reference**       | `docs/reference/cli-semantic-state.md`                          | CLI command reference                                      |
 
 ### Core Types (packages/cli/src/lib/semantic-state-machine.ts)
 
@@ -58,17 +58,17 @@
 
 ## 2. How CLI Consumes SSM
 
-| Command | Function | Exit Codes |
-|---------|----------|------------|
-| `reach state list` | `listStates()` with filtering | 0 (success), 1 (error) |
-| `reach state show <id>` | `getState()` with prefix matching | 0 (success), 1 (not found) |
-| `reach state diff <a> <b>` | `classifyDrift()` between states | 0 (success), 1 (not found) |
-| `reach state graph` | `LocalSSMStore.toDotGraph()` | 0 (success) |
-| `reach state export` | `exportBundle()` with date filtering | 0 (success) |
-| `reach state import` | `importBundle()` with validation | 0 (success), 1 (not found/invalid) |
-| `reach state genesis` | `createSemanticState()` + `createSemanticTransition()` | 0 (success), 1 (invalid descriptor) |
-| `reach state transition` | `createSemanticTransition()` | 0 (success), 1 (state not found) |
-| `reach state simulate upgrade` | `simulateModelMigration()` | 0 (success) |
+| Command                        | Function                                               | Exit Codes                          |
+| ------------------------------ | ------------------------------------------------------ | ----------------------------------- |
+| `reach state list`             | `listStates()` with filtering                          | 0 (success), 1 (error)              |
+| `reach state show <id>`        | `getState()` with prefix matching                      | 0 (success), 1 (not found)          |
+| `reach state diff <a> <b>`     | `classifyDrift()` between states                       | 0 (success), 1 (not found)          |
+| `reach state graph`            | `LocalSSMStore.toDotGraph()`                           | 0 (success)                         |
+| `reach state export`           | `exportBundle()` with date filtering                   | 0 (success)                         |
+| `reach state import`           | `importBundle()` with validation                       | 0 (success), 1 (not found/invalid)  |
+| `reach state genesis`          | `createSemanticState()` + `createSemanticTransition()` | 0 (success), 1 (invalid descriptor) |
+| `reach state transition`       | `createSemanticTransition()`                           | 0 (success), 1 (state not found)    |
+| `reach state simulate upgrade` | `simulateModelMigration()`                             | 0 (success)                         |
 
 ### CLI Invariants (Documented in state.ts lines 12-14)
 
@@ -80,8 +80,8 @@
 
 ## 3. How Cloud UI Consumes SSM
 
-| Location | Route | Status |
-|----------|-------|--------|
+| Location                                           | Route                  | Status                     |
+| -------------------------------------------------- | ---------------------- | -------------------------- |
 | `ready-layer/src/app/app/semantic-ledger/page.tsx` | `/app/semantic-ledger` | Implemented with stub data |
 
 ### UI States (lines 57-116)
@@ -113,9 +113,9 @@ setTransitions([]);
 
 ## 4. Policy Snapshots Binding to State
 
-| Location | Function |
-|----------|----------|
-| `packages/cli/src/lib/policy-snapshot.ts` | `capturePolicySnapshotHash()` |
+| Location                                   | Function                                |
+| ------------------------------------------ | --------------------------------------- |
+| `packages/cli/src/lib/policy-snapshot.ts`  | `capturePolicySnapshotHash()`           |
 | `SemanticStateDescriptor.policySnapshotId` | Hash of active policy at state creation |
 
 ### Integration Points
@@ -130,26 +130,26 @@ setTransitions([]);
 
 ### Drift Classification (lines 164-252)
 
-| Category | Trigger | Significance |
-|----------|---------|--------------|
-| `model_drift` | modelId or modelVersion changed | critical |
-| `prompt_drift` | promptTemplate changed | critical (if ID) / major (if version) |
-| `policy_drift` | policySnapshotId changed | major |
-| `context_drift` | contextSnapshotId changed | minor |
-| `eval_drift` | evalSnapshotId changed | minor |
-| `runtime_drift` | runtimeId changed | minor |
-| `unknown_drift` | Other metadata changes | cosmetic |
+| Category        | Trigger                         | Significance                          |
+| --------------- | ------------------------------- | ------------------------------------- |
+| `model_drift`   | modelId or modelVersion changed | critical                              |
+| `prompt_drift`  | promptTemplate changed          | critical (if ID) / major (if version) |
+| `policy_drift`  | policySnapshotId changed        | major                                 |
+| `context_drift` | contextSnapshotId changed       | minor                                 |
+| `eval_drift`    | evalSnapshotId changed          | minor                                 |
+| `runtime_drift` | runtimeId changed               | minor                                 |
+| `unknown_drift` | Other metadata changes          | cosmetic                              |
 
 ### Integrity Score (lines 275-307)
 
-| Signal | Points | Verification |
-|--------|--------|--------------|
-| `parityVerified` | ~16.7 | Output parity check passed |
-| `policyBound` | ~16.7 | Policy snapshot present (descriptor.policySnapshotId !== '') |
-| `contextCaptured` | ~16.7 | Context snapshot present (descriptor.contextSnapshotId !== '') |
-| `evalAttached` | ~16.7 | Eval snapshot present |
-| `replayVerified` | ~16.7 | Replay verification passed |
-| `artifactSigned` | ~16.7 | Artifact signature valid |
+| Signal            | Points | Verification                                                   |
+| ----------------- | ------ | -------------------------------------------------------------- |
+| `parityVerified`  | ~16.7  | Output parity check passed                                     |
+| `policyBound`     | ~16.7  | Policy snapshot present (descriptor.policySnapshotId !== '')   |
+| `contextCaptured` | ~16.7  | Context snapshot present (descriptor.contextSnapshotId !== '') |
+| `evalAttached`    | ~16.7  | Eval snapshot present                                          |
+| `replayVerified`  | ~16.7  | Replay verification passed                                     |
+| `artifactSigned`  | ~16.7  | Artifact signature valid                                       |
 
 ### Coherence Issue: Integrity Score Uses Empty String Check
 
@@ -196,26 +196,26 @@ The integrity score checks `policySnapshotId !== ''` and `contextSnapshotId !== 
 
 ### A. Terminology Mismatches
 
-| Concept | Code | Docs | UI |
-|---------|------|------|-----|
-| Drift categories | `DriftCategory.ModelDrift` etc. | `model_drift` | `model_drift` (consistent) |
-| State ID type | `SemanticStateId` branded | "content-derived BLAKE3 hash" | "truncated ID" |
-| Integrity signals | 6 components | Documented | "verifiable signals" (vague) |
-| Migration risk | `needs_re_eval`, `policy_risk` etc. | Documented | Not shown in UI |
+| Concept           | Code                                | Docs                          | UI                           |
+| ----------------- | ----------------------------------- | ----------------------------- | ---------------------------- |
+| Drift categories  | `DriftCategory.ModelDrift` etc.     | `model_drift`                 | `model_drift` (consistent)   |
+| State ID type     | `SemanticStateId` branded           | "content-derived BLAKE3 hash" | "truncated ID"               |
+| Integrity signals | 6 components                        | Documented                    | "verifiable signals" (vague) |
+| Migration risk    | `needs_re_eval`, `policy_risk` etc. | Documented                    | Not shown in UI              |
 
 ### B. Missing Integration
 
-| Feature | CLI | UI | API |
-|---------|-----|-----|-----|
-| List states | ✓ | ✓ (stub) | ✗ |
-| Show state | ✓ | ✓ (stub) | ✗ |
-| Diff states | ✓ | ✗ | ✗ |
-| Graph export | ✓ | ✗ | ✗ |
-| Export bundle | ✓ | ✗ | ✗ |
-| Import bundle | ✓ | ✗ | ✗ |
-| Genesis | ✓ | ✗ | ✗ |
-| Transition | ✓ | ✗ | ✗ |
-| Simulate | ✓ | ✗ | ✗ |
+| Feature       | CLI | UI       | API |
+| ------------- | --- | -------- | --- |
+| List states   | ✓   | ✓ (stub) | ✗   |
+| Show state    | ✓   | ✓ (stub) | ✗   |
+| Diff states   | ✓   | ✗        | ✗   |
+| Graph export  | ✓   | ✗        | ✗   |
+| Export bundle | ✓   | ✗        | ✗   |
+| Import bundle | ✓   | ✗        | ✗   |
+| Genesis       | ✓   | ✗        | ✗   |
+| Transition    | ✓   | ✗        | ✗   |
+| Simulate      | ✓   | ✗        | ✗   |
 
 ### C. Drift Categories Not in UI
 
@@ -237,19 +237,19 @@ CLI shows total score only. Docs describe 6 components. UI shows progress bar bu
 ### P1 (Should Fix)
 
 3. **Missing API endpoint** - `/api/semantic-ledger` needed for UI
-2. **No env var support** - `REQUIEM_STATE_DIR` documented but not implemented
-3. **Storage atomicity** - Two-file write is not atomic
+4. **No env var support** - `REQUIEM_STATE_DIR` documented but not implemented
+5. **Storage atomicity** - Two-file write is not atomic
 
 ### P2 (Nice to Have)
 
 6. **Integrity breakdown in CLI** - Show component scores
-2. **Drift visualization in UI** - Show change vectors
-3. **Export button in UI** - Direct download of ledger
+7. **Drift visualization in UI** - Show change vectors
+8. **Export button in UI** - Direct download of ledger
 
 ### P3 (Documentation)
 
 9. **Consistency between code comments and docs**
-2. **Add invariant documentation**
+10. **Add invariant documentation**
 
 ---
 

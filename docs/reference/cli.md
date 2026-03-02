@@ -21,14 +21,14 @@ The CLI provides two binary aliases:
 
 ## Global Options
 
-| Option | Description |
-|--------|-------------|
-| `--json` | Output in JSON format |
-| `--minimal` | Quiet, deterministic output |
-| `--explain` | Verbose structural reasoning |
-| `--trace` | Include execution trace |
-| `-h, --help` | Show help |
-| `-v, --version` | Show version |
+| Option          | Description                  |
+| --------------- | ---------------------------- |
+| `--json`        | Output in JSON format        |
+| `--minimal`     | Quiet, deterministic output  |
+| `--explain`     | Verbose structural reasoning |
+| `--trace`       | Include execution trace      |
+| `-h, --help`    | Show help                    |
+| `-v, --version` | Show version                 |
 
 ---
 
@@ -317,33 +317,33 @@ reach agent serve --tenant=myorg
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success / Healthy / Degraded |
-| 1 | Error / Unhealthy / Failed |
+| Code | Meaning                      |
+| ---- | ---------------------------- |
+| 0    | Success / Healthy / Degraded |
+| 1    | Error / Unhealthy / Failed   |
 
 ---
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `REQUIEM_API_URL` | API endpoint for remote engine |
-| `REQUIEM_DATA_DIR` | Data directory path |
-| `REQUIEM_CONFIG_PATH` | Config file path |
-| `REQUIEM_TENANT_ID` | Default tenant ID |
-| `REQUIEM_DEBUG` | Enable debug logging |
-| `FORCE_RUST` | Use Rust engine (if available) |
+| Variable              | Description                    |
+| --------------------- | ------------------------------ |
+| `REQUIEM_API_URL`     | API endpoint for remote engine |
+| `REQUIEM_DATA_DIR`    | Data directory path            |
+| `REQUIEM_CONFIG_PATH` | Config file path               |
+| `REQUIEM_TENANT_ID`   | Default tenant ID              |
+| `REQUIEM_DEBUG`       | Enable debug logging           |
+| `FORCE_RUST`          | Use Rust engine (if available) |
 
 ---
 
 ## Files
 
-| Path | Description |
-|------|-------------|
-| `~/.requiem/config.json` | User configuration |
-| `~/.requiem/data/` | Database and CAS storage |
-| `~/.requiem/logs/` | Execution logs |
+| Path                     | Description              |
+| ------------------------ | ------------------------ |
+| `~/.requiem/config.json` | User configuration       |
+| `~/.requiem/data/`       | Database and CAS storage |
+| `~/.requiem/logs/`       | Execution logs           |
 
 ---
 
@@ -373,4 +373,4 @@ reach doctor --fix              # Repair issues
 
 ---
 
-*See also: [Console Reference](./console.md), [Troubleshooting](../troubleshooting.md)*
+_See also: [Console Reference](./console.md), [Troubleshooting](../troubleshooting.md)_

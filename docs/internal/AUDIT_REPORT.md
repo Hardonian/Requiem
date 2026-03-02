@@ -2,7 +2,7 @@
 
 **Audit Date:** 2026-02-28  
 **Phase:** 1 - End-to-End Audit  
-**Classification:** Internal Security Assessment  
+**Classification:** Internal Security Assessment
 
 ---
 
@@ -16,22 +16,22 @@ This audit identified **CRITICAL** tenant isolation vulnerabilities in the Requi
 
 ### 1.1 Database Schema (ready-layer/migrations/20260228000000_vector_search_initial.sql)
 
-| Table | Purpose | tenant_id Column |
-|-------|---------|------------------|
-| `tenants` | Tenant registry | `id` (UUID, primary key) |
-| `tenant_members` | User membership | `tenant_id` (UUID, FK to tenants) |
-| `vector_documents` | Document storage | `tenant_id` (UUID) |
-| `vector_embeddings` | Embeddings index | `tenant_id` (UUID) |
-| `vector_queries_log` | Query audit log | `tenant_id` (UUID) |
+| Table                | Purpose          | tenant_id Column                  |
+| -------------------- | ---------------- | --------------------------------- |
+| `tenants`            | Tenant registry  | `id` (UUID, primary key)          |
+| `tenant_members`     | User membership  | `tenant_id` (UUID, FK to tenants) |
+| `vector_documents`   | Document storage | `tenant_id` (UUID)                |
+| `vector_embeddings`  | Embeddings index | `tenant_id` (UUID)                |
+| `vector_queries_log` | Query audit log  | `tenant_id` (UUID)                |
 
 ### 1.2 Tenant ID Source Analysis
 
 **Finding:** Tenant ID is **client-supplied** via HTTP header, not derived from JWT claims.
 
-| File | Line | Issue |
-|------|------|-------|
-| `ready-layer/src/lib/auth.ts` | 70, 82 | `X-Tenant-ID` header is trusted |
-| `ready-layer/src/lib/engine-client.ts` | 65 | Tenant ID passed to backend via header |
+| File                                   | Line   | Issue                                  |
+| -------------------------------------- | ------ | -------------------------------------- |
+| `ready-layer/src/lib/auth.ts`          | 70, 82 | `X-Tenant-ID` header is trusted        |
+| `ready-layer/src/lib/engine-client.ts` | 65     | Tenant ID passed to backend via header |
 
 ---
 
@@ -49,7 +49,7 @@ This audit identified **CRITICAL** tenant isolation vulnerabilities in the Requi
 // Line 68-75: Dev mode accepts any tenant from header
 if (!process.env.REQUIEM_AUTH_SECRET) {
   // Dev mode: accept any token, derive tenant from header
-  const tenantHeader = req.headers.get('X-Tenant-ID') ?? 'dev-tenant';
+  const tenantHeader = req.headers.get("X-Tenant-ID") ?? "dev-tenant";
   return {
     ok: true,
     tenant: { tenant_id: tenantHeader, auth_token: token },
@@ -57,9 +57,9 @@ if (!process.env.REQUIEM_AUTH_SECRET) {
 }
 
 // Line 82-90: Production also trusts client-supplied tenant
-const tenantHeader = req.headers.get('X-Tenant-ID');
+const tenantHeader = req.headers.get("X-Tenant-ID");
 if (!tenantHeader) {
-  return { ok: false, error: 'missing_tenant_id', status: 400 };
+  return { ok: false, error: "missing_tenant_id", status: 400 };
 }
 return {
   ok: true,
@@ -119,12 +119,12 @@ DECLARE
 BEGIN
     -- Derive tenant from auth context, not parameter
     v_tenant_id := (
-        SELECT tenant_id 
-        FROM tenant_members 
+        SELECT tenant_id
+        FROM tenant_members
         WHERE user_id = auth.uid()
         LIMIT 1
     );
-    
+
     -- Use derived tenant_id in query
     RETURN QUERY
     SELECT ... WHERE ve.tenant_id = v_tenant_id;
@@ -174,7 +174,7 @@ BEGIN
 ```typescript
 if (!process.env.REQUIEM_AUTH_SECRET) {
   // Dev mode: accept any token, derive tenant from header
-  const tenantHeader = req.headers.get('X-Tenant-ID') ?? 'dev-tenant';
+  const tenantHeader = req.headers.get("X-Tenant-ID") ?? "dev-tenant";
   return {
     ok: true,
     tenant: { tenant_id: tenantHeader, auth_token: token },
@@ -259,13 +259,13 @@ dbInstance.exec(`
 
 ## 3. DATA ACCESS TOUCHPOINTS SUMMARY
 
-| Component | Tenant Isolation Status |
-|-----------|------------------------|
-| API Routes (`/api/vector/search`) | Uses client-supplied X-Tenant-ID header |
-| RPC Functions | Accept tenant_id parameter without validation |
-| Supabase Client | Uses anon key (good), but tenant_id from header |
-| CLI Database | No tenant isolation |
-| Engine Client | Passes tenant via header to backend |
+| Component                         | Tenant Isolation Status                         |
+| --------------------------------- | ----------------------------------------------- |
+| API Routes (`/api/vector/search`) | Uses client-supplied X-Tenant-ID header         |
+| RPC Functions                     | Accept tenant_id parameter without validation   |
+| Supabase Client                   | Uses anon key (good), but tenant_id from header |
+| CLI Database                      | No tenant isolation                             |
+| Engine Client                     | Passes tenant via header to backend             |
 
 ---
 
@@ -290,14 +290,14 @@ dbInstance.exec(`
 
 ## 6. AFFECTED FILES
 
-| File | Severity |
-|------|----------|
-| `ready-layer/src/lib/auth.ts` | BLOCKER |
-| `ready-layer/migrations/20260228000000_vector_search_initial.sql` | BLOCKER |
-| `ready-layer/src/lib/vector-search.ts` | BLOCKER |
-| `packages/cli/src/db/connection.ts` | MEDIUM |
-| `ready-layer/src/app/api/health/route.ts` | LOW |
+| File                                                              | Severity |
+| ----------------------------------------------------------------- | -------- |
+| `ready-layer/src/lib/auth.ts`                                     | BLOCKER  |
+| `ready-layer/migrations/20260228000000_vector_search_initial.sql` | BLOCKER  |
+| `ready-layer/src/lib/vector-search.ts`                            | BLOCKER  |
+| `packages/cli/src/db/connection.ts`                               | MEDIUM   |
+| `ready-layer/src/app/api/health/route.ts`                         | LOW      |
 
 ---
 
-*End of Report*
+_End of Report_

@@ -111,37 +111,37 @@ Located in `src/cli.cpp` (1534 lines). Entry point: `main()` with string-match d
 
 **Registered commands (C++ native)**:
 
-| Command | Description |
-|---|---|
-| `help` / `--help` | Usage text |
-| `version` | Engine + protocol versions |
-| `health` | Hash primitive + CAS + compression capabilities |
-| `doctor` | Platform capability checks, sandbox, cluster drift |
-| `doctor --analyze` | AI-assisted root cause diagnostics |
-| `validate-replacement` | Hash certification gates |
-| `exec run` | Execute request deterministically |
-| `exec stream` | NDJSON streaming execution |
-| `exec replay` | Verify execution against stored result |
-| `cas put` | Store content in CAS |
-| `cas info` | Query CAS object metadata |
-| `cas gc` | Dry-run garbage collection scan |
-| `cas verify` | Verify all CAS object integrity |
-| `digest verify` | Verify a result digest |
-| `digest file` | Compute BLAKE3 of a file |
-| `policy check` | Check request against policy |
-| `policy explain` | Explain active policy settings |
-| `llm explain` | Explain LLM integration modes |
-| `lint` | Policy linter |
-| `bench run` | Run benchmark suite |
-| `bench compare` | Compare benchmark results |
-| `drift analyze` | Analyze digest drift |
-| `drift pretty` | Pretty-print drift results |
-| `cluster status` | Show cluster health |
-| `cluster workers` | List registered workers |
-| `cluster shard` | Shard lookup for tenant |
-| `cluster join` | Register local worker |
-| `cluster verify` | Verify cluster consistency |
-| Harnesses | `stress`, `shadow`, `billing`, `security`, `recovery`, `memory`, `protocol`, `chaos` |
+| Command                | Description                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `help` / `--help`      | Usage text                                                                           |
+| `version`              | Engine + protocol versions                                                           |
+| `health`               | Hash primitive + CAS + compression capabilities                                      |
+| `doctor`               | Platform capability checks, sandbox, cluster drift                                   |
+| `doctor --analyze`     | AI-assisted root cause diagnostics                                                   |
+| `validate-replacement` | Hash certification gates                                                             |
+| `exec run`             | Execute request deterministically                                                    |
+| `exec stream`          | NDJSON streaming execution                                                           |
+| `exec replay`          | Verify execution against stored result                                               |
+| `cas put`              | Store content in CAS                                                                 |
+| `cas info`             | Query CAS object metadata                                                            |
+| `cas gc`               | Dry-run garbage collection scan                                                      |
+| `cas verify`           | Verify all CAS object integrity                                                      |
+| `digest verify`        | Verify a result digest                                                               |
+| `digest file`          | Compute BLAKE3 of a file                                                             |
+| `policy check`         | Check request against policy                                                         |
+| `policy explain`       | Explain active policy settings                                                       |
+| `llm explain`          | Explain LLM integration modes                                                        |
+| `lint`                 | Policy linter                                                                        |
+| `bench run`            | Run benchmark suite                                                                  |
+| `bench compare`        | Compare benchmark results                                                            |
+| `drift analyze`        | Analyze digest drift                                                                 |
+| `drift pretty`         | Pretty-print drift results                                                           |
+| `cluster status`       | Show cluster health                                                                  |
+| `cluster workers`      | List registered workers                                                              |
+| `cluster shard`        | Shard lookup for tenant                                                              |
+| `cluster join`         | Register local worker                                                                |
+| `cluster verify`       | Verify cluster consistency                                                           |
+| Harnesses              | `stress`, `shadow`, `billing`, `security`, `recovery`, `memory`, `protocol`, `chaos` |
 
 ### TypeScript CLI (`packages/cli/src/cli.ts` → "reach")
 
@@ -213,19 +213,19 @@ pnpm build:web
 
 ## 9. Existing Primitives Assessment
 
-| Kernel Primitive | Exists? | Status | Location |
-|---|---|---|---|
-| Canonical encoding | ✅ Yes | jsonlite sorted-key JSON | `src/runtime.cpp` |
-| Hash + domain sep | ✅ Yes | BLAKE3 + req:/res:/cas: | `src/hash.cpp` |
-| Versioned envelope | ✅ Partial | HashEnvelope exists, no full envelope wrapping all messages | `include/requiem/types.hpp` |
-| Event log (append-only) | ✅ Yes | ImmutableAuditLog with Merkle chaining | `src/audit.cpp` |
-| CAS (put/get/verify) | ✅ Yes | Full LocalFS backend | `src/cas.cpp` |
-| Capabilities (mint/verify/revoke) | ❌ No | Not implemented | — |
-| Policy VM (deterministic eval) | ❌ No | Policy linter exists, no eval VM | `src/policy_linter.cpp` |
-| Metering (charge/deny) | ✅ Partial | MeterLog exists, no hard budget denial | `src/metering.cpp` |
-| Plan Graph (DAG scheduling) | ❌ No | Not implemented | — |
-| Receipts (signed proofs) | ✅ Partial | ProofBundle exists, no signing | `include/requiem/types.hpp` |
-| Replay verification | ✅ Yes | validate_replay + validate_replay_with_cas | `src/replay.cpp` |
+| Kernel Primitive                  | Exists?    | Status                                                      | Location                    |
+| --------------------------------- | ---------- | ----------------------------------------------------------- | --------------------------- |
+| Canonical encoding                | ✅ Yes     | jsonlite sorted-key JSON                                    | `src/runtime.cpp`           |
+| Hash + domain sep                 | ✅ Yes     | BLAKE3 + req:/res:/cas:                                     | `src/hash.cpp`              |
+| Versioned envelope                | ✅ Partial | HashEnvelope exists, no full envelope wrapping all messages | `include/requiem/types.hpp` |
+| Event log (append-only)           | ✅ Yes     | ImmutableAuditLog with Merkle chaining                      | `src/audit.cpp`             |
+| CAS (put/get/verify)              | ✅ Yes     | Full LocalFS backend                                        | `src/cas.cpp`               |
+| Capabilities (mint/verify/revoke) | ❌ No      | Not implemented                                             | —                           |
+| Policy VM (deterministic eval)    | ❌ No      | Policy linter exists, no eval VM                            | `src/policy_linter.cpp`     |
+| Metering (charge/deny)            | ✅ Partial | MeterLog exists, no hard budget denial                      | `src/metering.cpp`          |
+| Plan Graph (DAG scheduling)       | ❌ No      | Not implemented                                             | —                           |
+| Receipts (signed proofs)          | ✅ Partial | ProofBundle exists, no signing                              | `include/requiem/types.hpp` |
+| Replay verification               | ✅ Yes     | validate_replay + validate_replay_with_cas                  | `src/replay.cpp`            |
 
 ## 10. Gap Analysis for Kernel Spec
 

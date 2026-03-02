@@ -61,11 +61,11 @@ All digest strings are validated before use:
 
 ## Operations
 
-| Operation | Description |
-|-----------|-------------|
-| `put(data, compression)` | Store content, return digest |
-| `get(digest)` | Retrieve and verify content |
-| `contains(digest)` | Check existence (no verification) |
-| `info(digest)` | Read metadata |
-| `scan_objects()` | List all objects with metadata |
-| `size()` | Count objects |
+| Operation                | Description                       |
+| ------------------------ | --------------------------------- |
+| `put(data, compression)` | Store content, return digest      |
+| `get(digest)`            | Retrieve and verify content       |
+| `contains(digest)`       | Check existence (no verification) |
+| `info(digest)`           | Read metadata                     |
+| `scan_objects()`         | List all objects with metadata    |
+| `size()`                 | Count objects                     |

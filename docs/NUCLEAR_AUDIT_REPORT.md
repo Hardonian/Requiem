@@ -32,4 +32,4 @@ A comprehensive audit of the Requiem C++ kernel and Web repos was prioritized to
 - Zero non-deterministic mutations within consensus algorithms.
 - Unified schema and invariant documentation updated.
 
-*See `CONVERGENCE_INDEX.md` for a full mapping of primitives.*
+_See `CONVERGENCE_INDEX.md` for a full mapping of primitives._

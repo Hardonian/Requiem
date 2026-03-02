@@ -79,21 +79,21 @@ pnpm --filter @requiem/cli build
 
 ### Compatibility Contracts (Must Not Break)
 
-| Contract | Location | Protection |
-|----------|----------|------------|
-| CLI command flags | `packages/cli/src/cli.ts` | Snapshot test exists |
-| API route schemas | `ready-layer/src/app/api/*/route.ts` | Typed responses |
-| C++ API surface | `include/requiem/*.hpp` | Header-only |
-| Exit codes | Various | Test in `verify-cli-contract.ts` |
+| Contract          | Location                             | Protection                       |
+| ----------------- | ------------------------------------ | -------------------------------- |
+| CLI command flags | `packages/cli/src/cli.ts`            | Snapshot test exists             |
+| API route schemas | `ready-layer/src/app/api/*/route.ts` | Typed responses                  |
+| C++ API surface   | `include/requiem/*.hpp`              | Header-only                      |
+| Exit codes        | Various                              | Test in `verify-cli-contract.ts` |
 
 ---
 
 ### Test Strategy
 
-| Before Fix | After Fix |
-|------------|-----------|
-| Run `requiem_tests.exe` - CAS compact fails | Run `requiem_tests.exe` - CAS compact passes |
-| Run `pnpm run verify:contracts` - 40 failures | Run `pnpm run verify:contracts` - all pass |
+| Before Fix                                         | After Fix                                      |
+| -------------------------------------------------- | ---------------------------------------------- |
+| Run `requiem_tests.exe` - CAS compact fails        | Run `requiem_tests.exe` - CAS compact passes   |
+| Run `pnpm run verify:contracts` - 40 failures      | Run `pnpm run verify:contracts` - all pass     |
 | Run `pnpm run verify:determinism` - script missing | Run `pnpm run verify:determinism` - runs tests |
 
 ---

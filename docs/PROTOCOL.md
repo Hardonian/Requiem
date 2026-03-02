@@ -64,11 +64,11 @@ Key fields:
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
+| Code                      | Description                                              |
+| ------------------------- | -------------------------------------------------------- |
 | `hash_unavailable_blake3` | BLAKE3 not available (should never happen with vendored) |
-| `path_escape` | Path escapes workspace root |
-| `timeout` | Execution exceeded timeout |
-| `quota_exceeded` | Request payload too large or too many outputs |
-| `json_parse_error` | Invalid JSON |
-| `json_duplicate_key` | Duplicate keys in JSON |
+| `path_escape`             | Path escapes workspace root                              |
+| `timeout`                 | Execution exceeded timeout                               |
+| `quota_exceeded`          | Request payload too large or too many outputs            |
+| `json_parse_error`        | Invalid JSON                                             |
+| `json_duplicate_key`      | Duplicate keys in JSON                                   |

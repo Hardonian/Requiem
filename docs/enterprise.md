@@ -48,63 +48,63 @@ Every tier — OSS, Pro, Enterprise — enforces the same core guarantees:
 
 All features map to one of these layers:
 
-| Layer | OSS | Pro | Enterprise |
-|-------|-----|-----|------------|
-| **Control** (Determinism, Replay, Provenance) | ✅ | ✅ | ✅ |
-| **Governance** (Policy Gate, RBAC, Budgets) | ✅ | ✅ | ✅ |
-| **Economic** (Metering, Quotas, Chargeback) | — | ✅ | ✅ |
-| **Observability** (Traces, Metrics, Audit) | Basic | Full | Full + Compliance |
-| **Enterprise Extensions** | — | — | ✅ |
+| Layer                                         | OSS   | Pro  | Enterprise        |
+| --------------------------------------------- | ----- | ---- | ----------------- |
+| **Control** (Determinism, Replay, Provenance) | ✅    | ✅   | ✅                |
+| **Governance** (Policy Gate, RBAC, Budgets)   | ✅    | ✅   | ✅                |
+| **Economic** (Metering, Quotas, Chargeback)   | —     | ✅   | ✅                |
+| **Observability** (Traces, Metrics, Audit)    | Basic | Full | Full + Compliance |
+| **Enterprise Extensions**                     | —     | —    | ✅                |
 
 ### Control Layer
 
-| Feature | OSS | Pro | Enterprise |
-|---------|-----|-----|------------|
-| Deterministic execution | ✅ | ✅ | ✅ |
-| CAS (dual-hash verification) | ✅ | ✅ | ✅ |
-| Replay verification | ✅ | ✅ | ✅ |
-| 200× repeat gate in CI | ✅ | ✅ | ✅ |
+| Feature                      | OSS | Pro | Enterprise |
+| ---------------------------- | --- | --- | ---------- |
+| Deterministic execution      | ✅  | ✅  | ✅         |
+| CAS (dual-hash verification) | ✅  | ✅  | ✅         |
+| Replay verification          | ✅  | ✅  | ✅         |
+| 200× repeat gate in CI       | ✅  | ✅  | ✅         |
 
 ### Governance Layer
 
-| Feature | OSS | Pro | Enterprise |
-|---------|-----|-----|------------|
-| Policy gate (deny-by-default) | ✅ | ✅ | ✅ |
-| RBAC capabilities | ✅ | ✅ | ✅ |
-| Budget enforcement | ✅ | ✅ | ✅ |
-| Content guardrails | ✅ | ✅ | ✅ |
-| Audit logging | ✅ | ✅ | ✅ |
+| Feature                       | OSS | Pro | Enterprise |
+| ----------------------------- | --- | --- | ---------- |
+| Policy gate (deny-by-default) | ✅  | ✅  | ✅         |
+| RBAC capabilities             | ✅  | ✅  | ✅         |
+| Budget enforcement            | ✅  | ✅  | ✅         |
+| Content guardrails            | ✅  | ✅  | ✅         |
+| Audit logging                 | ✅  | ✅  | ✅         |
 
 ### Economic Layer
 
-| Feature | OSS | Pro | Enterprise |
-|---------|-----|-----|------------|
-| Execution credits | 1,000/mo | 50,000/mo | Unlimited |
-| Replay storage | 1 GB | 50 GB | Unlimited |
-| Policy events | 10,000/mo | 500,000/mo | Unlimited |
-| Cost accounting | — | ✅ | ✅ |
-| Chargeback reports | — | ✅ | ✅ |
+| Feature            | OSS       | Pro        | Enterprise |
+| ------------------ | --------- | ---------- | ---------- |
+| Execution credits  | 1,000/mo  | 50,000/mo  | Unlimited  |
+| Replay storage     | 1 GB      | 50 GB      | Unlimited  |
+| Policy events      | 10,000/mo | 500,000/mo | Unlimited  |
+| Cost accounting    | —         | ✅         | ✅         |
+| Chargeback reports | —         | ✅         | ✅         |
 
 ### Observability Layer
 
-| Feature | OSS | Pro | Enterprise |
-|---------|-----|-----|------------|
-| CLI + Dashboard | ✅ | ✅ | ✅ |
-| Execution traces | ✅ | ✅ | ✅ |
-| Determinism metrics | ✅ | ✅ | ✅ |
-| Adversarial safety monitoring | — | ✅ | ✅ |
-| Merkle chain audit log | — | ✅ | ✅ |
-| SOC 2 compliance export | — | — | ✅ |
+| Feature                       | OSS | Pro | Enterprise |
+| ----------------------------- | --- | --- | ---------- |
+| CLI + Dashboard               | ✅  | ✅  | ✅         |
+| Execution traces              | ✅  | ✅  | ✅         |
+| Determinism metrics           | ✅  | ✅  | ✅         |
+| Adversarial safety monitoring | —   | ✅  | ✅         |
+| Merkle chain audit log        | —   | ✅  | ✅         |
+| SOC 2 compliance export       | —   | —   | ✅         |
 
 ### Enterprise Extensions
 
-| Feature | OSS | Pro | Enterprise |
-|---------|-----|-----|------------|
-| Multi-tenant isolation | — | ✅ | ✅ |
-| Signed artifact chain | — | — | ✅ |
-| Cluster coordination | — | — | ✅ |
-| Drift detection | — | — | ✅ |
-| SLA-backed support | — | — | ✅ |
+| Feature                | OSS | Pro | Enterprise |
+| ---------------------- | --- | --- | ---------- |
+| Multi-tenant isolation | —   | ✅  | ✅         |
+| Signed artifact chain  | —   | —   | ✅         |
+| Cluster coordination   | —   | —   | ✅         |
+| Drift detection        | —   | —   | ✅         |
+| SLA-backed support     | —   | —   | ✅         |
 
 ## Architecture Boundary
 
@@ -118,11 +118,11 @@ The OSS build never imports enterprise-only modules. This is enforced by CI.
 
 ## Deployment Options
 
-| Mode | Description |
-|------|-------------|
-| Cloud-managed | Hosted at readylayer.com |
-| On-premises | Self-hosted with license key |
-| Hybrid | Cloud control plane, on-prem execution |
+| Mode          | Description                            |
+| ------------- | -------------------------------------- |
+| Cloud-managed | Hosted at readylayer.com               |
+| On-premises   | Self-hosted with license key           |
+| Hybrid        | Cloud control plane, on-prem execution |
 
 ## Usage Metering
 

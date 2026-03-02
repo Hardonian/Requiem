@@ -123,13 +123,13 @@ Example: `lqkc9rg0-42`
 
 ## Event Types
 
-| Type | Description |
-|------|-------------|
-| `RunCreated` | New execution run |
-| `PolicySnapshot` | Policy version snapshot |
-| `ProviderDecision` | Arbitration decision |
-| `ManifestSigned` | Signed execution manifest |
-| `ArtifactRefs` | Artifact references |
+| Type               | Description               |
+| ------------------ | ------------------------- |
+| `RunCreated`       | New execution run         |
+| `PolicySnapshot`   | Policy version snapshot   |
+| `ProviderDecision` | Arbitration decision      |
+| `ManifestSigned`   | Signed execution manifest |
+| `ArtifactRefs`     | Artifact references       |
 
 ## Divergence Handling
 

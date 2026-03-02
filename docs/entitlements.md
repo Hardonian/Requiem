@@ -135,16 +135,16 @@ Checks all policy gates and reports status.
 The entitlements system integrates with the Policy Engine:
 
 ```typescript
-import { policyGate } from '../lib/entitlements.js';
+import { policyGate } from "../lib/entitlements.js";
 
 // In a command handler
-const check = policyGate('replication');
+const check = policyGate("replication");
 if (!check.allowed) {
   throw new Error(`Replication not allowed: ${check.reason}`);
 }
 
 // With parameters
-const exportCheck = policyGate('export', { exportSizeBytes: fileSize });
+const exportCheck = policyGate("export", { exportSizeBytes: fileSize });
 if (!exportCheck.allowed) {
   throw new Error(exportCheck.reason);
 }
@@ -152,22 +152,22 @@ if (!exportCheck.allowed) {
 
 ## Feature Gates
 
-| Feature | OSS | Pro | Enterprise |
-|---------|-----|-----|------------|
-| `replication` | ✗ | ✓ | ✓ |
-| `arbitrationAutoMode` | ✗ | ✓ | ✓ |
-| `signingRequired` | ✗ | ✓ | ✓ |
-| `multiRegion` | ✗ | ✓ | ✓ |
-| `advancedAnalytics` | ✗ | ✓ | ✓ |
-| `prioritySupport` | ✗ | ✗ | ✓ |
+| Feature               | OSS | Pro | Enterprise |
+| --------------------- | --- | --- | ---------- |
+| `replication`         | ✗   | ✓   | ✓          |
+| `arbitrationAutoMode` | ✗   | ✓   | ✓          |
+| `signingRequired`     | ✗   | ✓   | ✓          |
+| `multiRegion`         | ✗   | ✓   | ✓          |
+| `advancedAnalytics`   | ✗   | ✓   | ✓          |
+| `prioritySupport`     | ✗   | ✗   | ✓          |
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
-| `E_FEATURE_NOT_ENABLED` | Feature requires tier upgrade |
-| `E_QUOTA_EXCEEDED` | Monthly quota exceeded |
-| `E_EXPORT_TOO_LARGE` | Export size exceeds tier limit |
+| Code                    | Description                    |
+| ----------------------- | ------------------------------ |
+| `E_FEATURE_NOT_ENABLED` | Feature requires tier upgrade  |
+| `E_QUOTA_EXCEEDED`      | Monthly quota exceeded         |
+| `E_EXPORT_TOO_LARGE`    | Export size exceeds tier limit |
 
 ## Testing
 

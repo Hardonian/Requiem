@@ -15,14 +15,14 @@ This document validates that claim with technical specificity.
 
 ## What CI Systems (GHA + OPA) Provide
 
-| Capability | GHA | OPA | Postgres |
-|------------|-----|-----|----------|
-| **Workflow execution** | ✅ Job runner | - | - |
-| **Step sequencing** | ✅ DAG | - | - |
-| **Artifact storage** | ✅ | - | - |
-| **Policy evaluation** | - | ✅ Rego | - |
-| **Structured storage** | - | - | ✅ Tables |
-| **Audit logging** | ✅ Logs | - | ✅ |
+| Capability             | GHA           | OPA     | Postgres  |
+| ---------------------- | ------------- | ------- | --------- |
+| **Workflow execution** | ✅ Job runner | -       | -         |
+| **Step sequencing**    | ✅ DAG        | -       | -         |
+| **Artifact storage**   | ✅            | -       | -         |
+| **Policy evaluation**  | -             | ✅ Rego | -         |
+| **Structured storage** | -             | -       | ✅ Tables |
+| **Audit logging**      | ✅ Logs       | -       | ✅        |
 
 ---
 
@@ -106,7 +106,7 @@ To replicate SSM with GHA + OPA + Postgres, you would need to build:
 
 1. **Content hashing layer** - Non-idiomatic for CI
 2. **Drift classifier** - Custom implementation
-3. **Integrity scoring** - Custom implementation  
+3. **Integrity scoring** - Custom implementation
 4. **Lineage graph store** - Graph database needed
 5. **Migration simulator** - Custom implementation
 6. **Purpose-built UI** - Custom dashboard
@@ -133,12 +133,12 @@ Steps:
 
 ## Boundary: What CI Does Better
 
-| Task | CI | SSM |
-|------|-----|-----|
-| Build artifacts | ✅ Native | ❌ Out of scope |
-| Test execution | ✅ Native | ❌ Out of scope |
-| Deployment | ✅ Native | ❌ Out of scope |
-| Secrets management | ✅ Native | ❌ Uses CI |
+| Task               | CI        | SSM                |
+| ------------------ | --------- | ------------------ |
+| Build artifacts    | ✅ Native | ❌ Out of scope    |
+| Test execution     | ✅ Native | ❌ Out of scope    |
+| Deployment         | ✅ Native | ❌ Out of scope    |
+| Secrets management | ✅ Native | ❌ Uses CI         |
 | Parallel execution | ✅ Native | ⚠️ Single-threaded |
 
 **SSM is not a CI replacement.** It complements CI with governance capabilities.

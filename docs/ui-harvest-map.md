@@ -28,34 +28,34 @@
 
 ### Tier 1: Foundational Primitives
 
-| Component | Origin | New Location | Dependencies | OSS Safe | Notes |
-|-----------|--------|--------------|--------------|----------|-------|
-| Button | ReadyLayer/components/ui/button.tsx | /packages/ui/src/components/primitives/button.tsx | @radix-ui/react-slot, cva | ✅ | Radix Slot for composition |
-| Card | ReadyLayer/components/ui/card.tsx | /packages/ui/src/components/primitives/card.tsx | cva | ✅ | Elevation variants (flat/raised/overlay) |
-| Badge | ReadyLayer/components/ui/badge.tsx | /packages/ui/src/components/primitives/badge.tsx | cva | ✅ | Status variants included |
-| Alert | ReadyLayer pattern | /packages/ui/src/components/primitives/alert.tsx | cva | ✅ | Severity levels |
-| Input | ReadyLayer/components/ui/input.tsx | /packages/ui/src/components/primitives/input.tsx | - | ✅ | Form primitive |
-| Textarea | ReadyLayer/components/ui/textarea.tsx | /packages/ui/src/components/primitives/textarea.tsx | - | ✅ | Form primitive |
-| Tabs | ReadyLayer/components/ui/tabs.tsx | /packages/ui/src/components/primitives/tabs.tsx | @radix-ui/react-tabs | ✅ | Radix Tabs primitive |
+| Component | Origin                                | New Location                                        | Dependencies              | OSS Safe | Notes                                    |
+| --------- | ------------------------------------- | --------------------------------------------------- | ------------------------- | -------- | ---------------------------------------- |
+| Button    | ReadyLayer/components/ui/button.tsx   | /packages/ui/src/components/primitives/button.tsx   | @radix-ui/react-slot, cva | ✅       | Radix Slot for composition               |
+| Card      | ReadyLayer/components/ui/card.tsx     | /packages/ui/src/components/primitives/card.tsx     | cva                       | ✅       | Elevation variants (flat/raised/overlay) |
+| Badge     | ReadyLayer/components/ui/badge.tsx    | /packages/ui/src/components/primitives/badge.tsx    | cva                       | ✅       | Status variants included                 |
+| Alert     | ReadyLayer pattern                    | /packages/ui/src/components/primitives/alert.tsx    | cva                       | ✅       | Severity levels                          |
+| Input     | ReadyLayer/components/ui/input.tsx    | /packages/ui/src/components/primitives/input.tsx    | -                         | ✅       | Form primitive                           |
+| Textarea  | ReadyLayer/components/ui/textarea.tsx | /packages/ui/src/components/primitives/textarea.tsx | -                         | ✅       | Form primitive                           |
+| Tabs      | ReadyLayer/components/ui/tabs.tsx     | /packages/ui/src/components/primitives/tabs.tsx     | @radix-ui/react-tabs      | ✅       | Radix Tabs primitive                     |
 
 ### Tier 2: Layout & Structure
 
-| Component | Origin | New Location | Dependencies | OSS Safe | Notes |
-|-----------|--------|--------------|--------------|----------|-------|
-| AppShell | ReadyLayer/app-layout + Reach/StudioShell | /packages/ui/src/components/layout/app-shell.tsx | - | ✅ | Header/Sidebar/Footer slots |
-| PageHeader | ReadyLayer pattern | /packages/ui/src/components/layout/app-shell.tsx | - | ✅ | Title/description/actions |
-| EmptyState | Reach/EmptyState + ReadyLayer | /packages/ui/src/components/layout/empty-state.tsx | - | ✅ | Icon + title + desc + action |
-| ErrorBoundary | ReadyLayer/components/error-boundary.tsx | /packages/ui/src/components/layout/error-boundary.tsx | - | ✅ | Prevents hard-500 errors |
-| LoadingSpinner | ReadyLayer pattern | /packages/ui/src/components/layout/loading-state.tsx | - | ✅ | Size variants |
-| Skeleton | ReadyLayer pattern | /packages/ui/src/components/layout/loading-state.tsx | - | ✅ | Card/line variants |
+| Component      | Origin                                    | New Location                                          | Dependencies | OSS Safe | Notes                        |
+| -------------- | ----------------------------------------- | ----------------------------------------------------- | ------------ | -------- | ---------------------------- |
+| AppShell       | ReadyLayer/app-layout + Reach/StudioShell | /packages/ui/src/components/layout/app-shell.tsx      | -            | ✅       | Header/Sidebar/Footer slots  |
+| PageHeader     | ReadyLayer pattern                        | /packages/ui/src/components/layout/app-shell.tsx      | -            | ✅       | Title/description/actions    |
+| EmptyState     | Reach/EmptyState + ReadyLayer             | /packages/ui/src/components/layout/empty-state.tsx    | -            | ✅       | Icon + title + desc + action |
+| ErrorBoundary  | ReadyLayer/components/error-boundary.tsx  | /packages/ui/src/components/layout/error-boundary.tsx | -            | ✅       | Prevents hard-500 errors     |
+| LoadingSpinner | ReadyLayer pattern                        | /packages/ui/src/components/layout/loading-state.tsx  | -            | ✅       | Size variants                |
+| Skeleton       | ReadyLayer pattern                        | /packages/ui/src/components/layout/loading-state.tsx  | -            | ✅       | Card/line variants           |
 
 ### Tier 3: Data & Observability
 
-| Component | Origin | New Location | Dependencies | OSS Safe | Notes |
-|-----------|--------|--------------|--------------|----------|-------|
-| MetricCard | ReadyLayer/metrics-card + Reach | /packages/ui/src/components/data/metric-card.tsx | - | ✅ | Number formatting built-in |
-| StatusPill | ReadyLayer/badge + Reach/StatusIndicator | /packages/ui/src/components/data/status-pill.tsx | cva | ✅ | Operational status states |
-| DeterminismPill | Reach pattern | /packages/ui/src/components/data/status-pill.tsx | - | ✅ | High/med/low confidence |
+| Component       | Origin                                   | New Location                                     | Dependencies | OSS Safe | Notes                      |
+| --------------- | ---------------------------------------- | ------------------------------------------------ | ------------ | -------- | -------------------------- |
+| MetricCard      | ReadyLayer/metrics-card + Reach          | /packages/ui/src/components/data/metric-card.tsx | -            | ✅       | Number formatting built-in |
+| StatusPill      | ReadyLayer/badge + Reach/StatusIndicator | /packages/ui/src/components/data/status-pill.tsx | cva          | ✅       | Operational status states  |
+| DeterminismPill | Reach pattern                            | /packages/ui/src/components/data/status-pill.tsx | -            | ✅       | High/med/low confidence    |
 
 ---
 
@@ -63,14 +63,14 @@
 
 ### Harvested From: ReadyLayer/app/globals.css
 
-| Token Category | Variables | Location | Notes |
-|----------------|-----------|----------|-------|
-| Surfaces | --surface, --surface-*, --surface-code | /packages/ui/src/styles/tokens.css | Layered elevation system |
-| Text | --text, --text-muted, --text-subtle | /packages/ui/src/styles/tokens.css | Clear hierarchy |
-| Borders | --border, --border-strong | /packages/ui/src/styles/tokens.css | Subtle vs emphasis |
-| Accent/Brand | --accent, --accent-hover | /packages/ui/src/styles/tokens.css | Requiem blue |
-| Status | --success, --warning, --danger, --info | /packages/ui/src/styles/tokens.css | WCAG AA compliant |
-| Radius | --radius-sm/md/lg/xl | /packages/ui/src/styles/tokens.css | Consistent rounding |
+| Token Category | Variables                               | Location                           | Notes                    |
+| -------------- | --------------------------------------- | ---------------------------------- | ------------------------ |
+| Surfaces       | --surface, --surface-\*, --surface-code | /packages/ui/src/styles/tokens.css | Layered elevation system |
+| Text           | --text, --text-muted, --text-subtle     | /packages/ui/src/styles/tokens.css | Clear hierarchy          |
+| Borders        | --border, --border-strong               | /packages/ui/src/styles/tokens.css | Subtle vs emphasis       |
+| Accent/Brand   | --accent, --accent-hover                | /packages/ui/src/styles/tokens.css | Requiem blue             |
+| Status         | --success, --warning, --danger, --info  | /packages/ui/src/styles/tokens.css | WCAG AA compliant        |
+| Radius         | --radius-sm/md/lg/xl                    | /packages/ui/src/styles/tokens.css | Consistent rounding      |
 
 ### Themes Supported
 
@@ -82,17 +82,17 @@
 
 ## Utilities
 
-| Utility | Origin | New Location | Notes |
-|---------|--------|--------------|-------|
-| cn() | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | clsx + tailwind-merge |
-| formatNumber() | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | Compact notation |
-| formatDate() | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | Intl.DateTimeFormat |
-| formatRelativeTime() | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | "2 hours ago" style |
-| formatDuration() | ReadyLayer pattern | /packages/ui/src/lib/utils.ts | ms → readable |
-| formatBytes() | ReadyLayer pattern | /packages/ui/src/lib/utils.ts | B/KB/MB/GB/TB |
-| debounce() | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | Generic debounce |
-| hashKey() | New | /packages/ui/src/lib/utils.ts | React key helper |
-| uniqueId() | New | /packages/ui/src/lib/utils.ts | a11y ID generation |
+| Utility              | Origin                  | New Location                  | Notes                 |
+| -------------------- | ----------------------- | ----------------------------- | --------------------- |
+| cn()                 | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | clsx + tailwind-merge |
+| formatNumber()       | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | Compact notation      |
+| formatDate()         | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | Intl.DateTimeFormat   |
+| formatRelativeTime() | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | "2 hours ago" style   |
+| formatDuration()     | ReadyLayer pattern      | /packages/ui/src/lib/utils.ts | ms → readable         |
+| formatBytes()        | ReadyLayer pattern      | /packages/ui/src/lib/utils.ts | B/KB/MB/GB/TB         |
+| debounce()           | ReadyLayer/lib/utils.ts | /packages/ui/src/lib/utils.ts | Generic debounce      |
+| hashKey()            | New                     | /packages/ui/src/lib/utils.ts | React key helper      |
+| uniqueId()           | New                     | /packages/ui/src/lib/utils.ts | a11y ID generation    |
 
 ---
 
@@ -124,9 +124,9 @@
 
 ```json
 {
-  "framer-motion": "^11.0.0",    // For animation variants
-  "lucide-react": "^0.300.0",    // For icon support
-  "recharts": "^2.10.0"          // For chart wrappers
+  "framer-motion": "^11.0.0", // For animation variants
+  "lucide-react": "^0.300.0", // For icon support
+  "recharts": "^2.10.0" // For chart wrappers
 }
 ```
 
@@ -159,16 +159,16 @@ npm run verify:boundaries
 
 ## Components NOT Harvested (And Why)
 
-| Component | Source | Reason |
-|-----------|--------|--------|
-| ExecutionTimeline (full) | Reach | Too domain-specific to execution engine |
-| PackCard (detailed) | Reach | Tightly coupled to Pack domain model |
-| AgentTable | Reach | Requires Agent domain types |
-| TraceTimeline | Reach | Requires Trace/Execution domain |
-| Chart wrappers | ReadyLayer | Recharts dependency kept optional |
-| Modal/Dialog | ReadyLayer | Requires Radix Dialog + complex state |
-| Toast | ReadyLayer | Requires Radix Toast + provider setup |
-| Dropdown Menu | ReadyLayer | Requires Radix Dropdown |
+| Component                | Source     | Reason                                  |
+| ------------------------ | ---------- | --------------------------------------- |
+| ExecutionTimeline (full) | Reach      | Too domain-specific to execution engine |
+| PackCard (detailed)      | Reach      | Tightly coupled to Pack domain model    |
+| AgentTable               | Reach      | Requires Agent domain types             |
+| TraceTimeline            | Reach      | Requires Trace/Execution domain         |
+| Chart wrappers           | ReadyLayer | Recharts dependency kept optional       |
+| Modal/Dialog             | ReadyLayer | Requires Radix Dialog + complex state   |
+| Toast                    | ReadyLayer | Requires Radix Toast + provider setup   |
+| Dropdown Menu            | ReadyLayer | Requires Radix Dropdown                 |
 
 These components have **extension hooks** in place - future agents can harvest them as needed following the established patterns.
 
@@ -202,7 +202,7 @@ These components have **extension hooks** in place - future agents can harvest t
 
 3. **Accessibility Audit**
    - Run axe-core on all components
-   - Add aria-* props where missing
+   - Add aria-\* props where missing
 
 ---
 
@@ -241,4 +241,4 @@ npm run build     # TypeScript compilation + CSS copy
 
 ---
 
-*This document is a living reference. Update it when harvesting new components.*
+_This document is a living reference. Update it when harvesting new components._

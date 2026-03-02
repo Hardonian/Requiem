@@ -32,17 +32,17 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DREQUIEM_WITH_ZSTD=OFF
 
 ## CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `requiem health` | Report hash primitive, backend, version |
-| `requiem doctor` | Full diagnostics: engine version, protocol, sandbox, rollback |
-| `requiem validate-replacement` | Verify engine is suitable as Rust engine replacement |
-| `requiem exec run --request R --out O` | Execute request |
-| `requiem exec replay --request R --result O --cas C` | Replay validation |
-| `requiem digest verify --result O` | Verify result digests |
-| `requiem bench run --spec S --out O` | Run benchmark |
-| `requiem drift analyze --bench B --out O` | Analyze drift |
-| `requiem cas gc --cas C` | Garbage collect CAS |
+| Command                                              | Description                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------- |
+| `requiem health`                                     | Report hash primitive, backend, version                       |
+| `requiem doctor`                                     | Full diagnostics: engine version, protocol, sandbox, rollback |
+| `requiem validate-replacement`                       | Verify engine is suitable as Rust engine replacement          |
+| `requiem exec run --request R --out O`               | Execute request                                               |
+| `requiem exec replay --request R --result O --cas C` | Replay validation                                             |
+| `requiem digest verify --result O`                   | Verify result digests                                         |
+| `requiem bench run --spec S --out O`                 | Run benchmark                                                 |
+| `requiem drift analyze --bench B --out O`            | Analyze drift                                                 |
+| `requiem cas gc --cas C`                             | Garbage collect CAS                                           |
 
 ## Rollback
 

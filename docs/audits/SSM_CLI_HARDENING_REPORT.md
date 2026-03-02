@@ -13,10 +13,10 @@ The CLI has been hardened with consistent error handling, exit codes, and output
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Error (invalid arguments, state not found, etc.) |
+| Code | Meaning                                          |
+| ---- | ------------------------------------------------ |
+| 0    | Success                                          |
+| 1    | Error (invalid arguments, state not found, etc.) |
 
 All commands follow this pattern:
 
@@ -74,17 +74,17 @@ All errors go through `handleError()`:
 
 ## Command Reference
 
-| Command | Exit 0 | Exit 1 | JSON | Minimal |
-|---------|--------|--------|------|---------|
-| `state list` | States listed | Invalid filter | ✅ | ✅ |
-| `state show` | State shown | Not found | ✅ | ✅ |
-| `state diff` | Diff shown | State not found | ✅ | ✅ |
-| `state graph` | DOT output | - | ✅ | ✅ |
-| `state export` | Bundle exported | - | ✅ | ✅ |
-| `state import` | Bundle imported | Invalid file/bundle | ✅ | ✅ |
-| `state genesis` | State created | Invalid descriptor | ✅ | ✅ |
-| `state transition` | Transition created | State not found | ✅ | ✅ |
-| `state simulate upgrade` | Results shown | - | ✅ | ✅ |
+| Command                  | Exit 0             | Exit 1              | JSON | Minimal |
+| ------------------------ | ------------------ | ------------------- | ---- | ------- |
+| `state list`             | States listed      | Invalid filter      | ✅   | ✅      |
+| `state show`             | State shown        | Not found           | ✅   | ✅      |
+| `state diff`             | Diff shown         | State not found     | ✅   | ✅      |
+| `state graph`            | DOT output         | -                   | ✅   | ✅      |
+| `state export`           | Bundle exported    | -                   | ✅   | ✅      |
+| `state import`           | Bundle imported    | Invalid file/bundle | ✅   | ✅      |
+| `state genesis`          | State created      | Invalid descriptor  | ✅   | ✅      |
+| `state transition`       | Transition created | State not found     | ✅   | ✅      |
+| `state simulate upgrade` | Results shown      | -                   | ✅   | ✅      |
 
 ---
 
@@ -107,8 +107,8 @@ All errors go through `handleError()`:
 
 ## Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
+| Variable            | Purpose                               |
+| ------------------- | ------------------------------------- |
 | `REQUIEM_STATE_DIR` | Override default `.reach/state/` path |
 
 ---

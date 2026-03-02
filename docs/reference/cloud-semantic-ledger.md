@@ -20,12 +20,12 @@ Located under **Execution > Semantic Ledger** in the sidebar navigation.
 
 Four metric cards at the top of the page:
 
-| Card | Value | Description |
-|------|-------|-------------|
-| Total States | Count | Number of semantic states in ledger |
-| Avg Integrity | 0-100 | Average integrity score across states |
-| High Integrity | Count | States with score ≥ 80 |
-| Transitions | Count | Recorded state transitions |
+| Card           | Value | Description                           |
+| -------------- | ----- | ------------------------------------- |
+| Total States   | Count | Number of semantic states in ledger   |
+| Avg Integrity  | 0-100 | Average integrity score across states |
+| High Integrity | Count | States with score ≥ 80                |
+| Transitions    | Count | Recorded state transitions            |
 
 ### State List
 
@@ -101,15 +101,15 @@ Skeleton placeholders while loading:
 
 Drift categories are displayed as color-coded tags:
 
-| Category | Color | Significance |
-|----------|-------|--------------|
-| model_drift | Purple | Critical |
-| prompt_drift | Blue | Critical/Major |
-| policy_drift | Orange | Major |
-| context_drift | Slate | Minor |
-| eval_drift | Pink | Minor |
-| runtime_drift | Gray | Minor |
-| unknown_drift | Gray (muted) | Cosmetic |
+| Category      | Color        | Significance   |
+| ------------- | ------------ | -------------- |
+| model_drift   | Purple       | Critical       |
+| prompt_drift  | Blue         | Critical/Major |
+| policy_drift  | Orange       | Major          |
+| context_drift | Slate        | Minor          |
+| eval_drift    | Pink         | Minor          |
+| runtime_drift | Gray         | Minor          |
+| unknown_drift | Gray (muted) | Cosmetic       |
 
 ## UX Principles
 
@@ -141,12 +141,12 @@ The UI uses:
 
 The UI complements the CLI commands:
 
-| UI Action | CLI Equivalent |
-|-----------|----------------|
-| View state details | `reach state show <id>` |
-| Filter by model | `reach state list --model <id>` |
-| Filter by score | `reach state list --min-score <n>` |
-| View transitions | `reach state diff <from> <to>` |
+| UI Action          | CLI Equivalent                     |
+| ------------------ | ---------------------------------- |
+| View state details | `reach state show <id>`            |
+| Filter by model    | `reach state list --model <id>`    |
+| Filter by score    | `reach state list --min-score <n>` |
+| View transitions   | `reach state diff <from> <to>`     |
 
 ## Future Enhancements
 

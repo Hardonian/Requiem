@@ -16,32 +16,32 @@ Skills are defined using the `SkillDefinition` interface and registered with the
 **Example Skill Definition:**
 
 ```typescript
-import { registerSkill } from './registry';
+import { registerSkill } from "./registry";
 
 registerSkill({
-  name: 'root_cause_investigation',
-  version: '1.0.0',
-  description: 'Investigates a junction to identify the root cause.',
-  requiredTools: ['datastore_junction_findById', 'datastore_decision_findById'],
+  name: "root_cause_investigation",
+  version: "1.0.0",
+  description: "Investigates a junction to identify the root cause.",
+  requiredTools: ["datastore_junction_findById", "datastore_decision_findById"],
   steps: [
     {
-      kind: 'tool',
-      toolName: 'datastore_junction_findById',
-      input: { id: '{{initial.junctionId}}' },
+      kind: "tool",
+      toolName: "datastore_junction_findById",
+      input: { id: "{{initial.junctionId}}" },
     },
     {
-      kind: 'tool',
-      toolName: 'datastore_decision_findById',
-      input: { id: '{{datastore_junction_findById.decision_report_id}}' },
+      kind: "tool",
+      toolName: "datastore_decision_findById",
+      input: { id: "{{datastore_junction_findById.decision_report_id}}" },
     },
     {
-        kind: 'llm',
-        prompt: `
+      kind: "llm",
+      prompt: `
         Investigate the root cause of the following junction and decision.
         Junction: {{datastore_junction_findById}}
         Decision: {{datastore_decision_findById}}
         `,
-    }
+    },
   ],
 });
 ```

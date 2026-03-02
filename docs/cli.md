@@ -25,14 +25,14 @@ pnpm run build
 
 ## Global Flags
 
-| Flag | Description |
-|------|-------------|
-| `--json` | Output in JSON format |
-| `--minimal` | Quiet deterministic output |
-| `--explain` | Verbose structural reasoning |
-| `--trace` | Optional execution insight |
-| `--help`, `-h` | Show help for a command |
-| `--version`, `-v` | Show version information |
+| Flag              | Description                  |
+| ----------------- | ---------------------------- |
+| `--json`          | Output in JSON format        |
+| `--minimal`       | Quiet deterministic output   |
+| `--explain`       | Verbose structural reasoning |
+| `--trace`         | Optional execution insight   |
+| `--help`, `-h`    | Show help for a command      |
+| `--version`, `-v` | Show version information     |
 
 ## Commands by Layer
 
@@ -420,26 +420,26 @@ requiem fast-start --minimal
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `DECISION_ENGINE` | Engine type: `ts` or `requiem` (default: `ts`) |
-| `FORCE_RUST` | Force TypeScript fallback: `true`/`false` |
-| `REQUIEM_ENGINE_AVAILABLE` | Set to `true` if native engine is built |
-| `REQUIEM_WORKSPACE_ROOT` | Workspace root path |
-| `REQUIEM_TENANT_ID` | Default tenant ID |
-| `REQUIEM_ENTERPRISE` | Enable enterprise features |
+| Variable                   | Description                                    |
+| -------------------------- | ---------------------------------------------- |
+| `DECISION_ENGINE`          | Engine type: `ts` or `requiem` (default: `ts`) |
+| `FORCE_RUST`               | Force TypeScript fallback: `true`/`false`      |
+| `REQUIEM_ENGINE_AVAILABLE` | Set to `true` if native engine is built        |
+| `REQUIEM_WORKSPACE_ROOT`   | Workspace root path                            |
+| `REQUIEM_TENANT_ID`        | Default tenant ID                              |
+| `REQUIEM_ENTERPRISE`       | Enable enterprise features                     |
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | SUCCESS |
-| 1 | GENERAL_ERROR |
-| 2 | INVALID_ARGUMENTS |
-| 3 | POLICY_VIOLATION |
-| 4 | DETERMINISM_FAILURE |
-| 5 | REPLAY_MISMATCH |
-| 6 | CONFIG_ERROR |
-| 7 | DB_ERROR |
-| 8 | NETWORK_ERROR |
-| 9 | PERMISSION_DENIED |
+| Code | Meaning             |
+| ---- | ------------------- |
+| 0    | SUCCESS             |
+| 1    | GENERAL_ERROR       |
+| 2    | INVALID_ARGUMENTS   |
+| 3    | POLICY_VIOLATION    |
+| 4    | DETERMINISM_FAILURE |
+| 5    | REPLAY_MISMATCH     |
+| 6    | CONFIG_ERROR        |
+| 7    | DB_ERROR            |
+| 8    | NETWORK_ERROR       |
+| 9    | PERMISSION_DENIED   |

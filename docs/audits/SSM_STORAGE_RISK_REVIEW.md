@@ -178,11 +178,11 @@ reach state import /tmp/ledger.json
 
 ## Compliance
 
-| Requirement | Status |
-|-------------|--------|
-| Atomic writes | ⚠️ Best effort (POSIX atomic) |
-| Crash recovery | ✅ Backup/restore |
-| Path safety | ✅ Resolved paths |
-| Schema validation | ✅ Zod schemas |
-| Version enforcement | ✅ Bundle version check |
-| No traversal | ✅ Path validation |
+| Requirement         | Status                        |
+| ------------------- | ----------------------------- |
+| Atomic writes       | ⚠️ Best effort (POSIX atomic) |
+| Crash recovery      | ✅ Backup/restore             |
+| Path safety         | ✅ Resolved paths             |
+| Schema validation   | ✅ Zod schemas                |
+| Version enforcement | ✅ Bundle version check       |
+| No traversal        | ✅ Path validation            |

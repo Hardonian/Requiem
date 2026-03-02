@@ -133,6 +133,7 @@ No stack traces. No internal details. See `packages/ai/src/errors/`.
 ### Tool Registry
 
 Standardized interface for exposing system capabilities to AI agents.
+
 - **Schema**: JSON Schema validation for all inputs.
 - **Audit**: Every tool call is hashed and recorded in the trace.
 
@@ -140,13 +141,13 @@ Standardized interface for exposing system capabilities to AI agents.
 
 The security boundary between untrusted agent reasoning and trusted system tools. All tool invocations MUST pass through the policy gate.
 
-| Layer | Enforcement | Goal |
-| --- | --- | --- |
-| Tenant Scoping | Tool calls are checked to ensure they operate within the correct tenant context. | Prevent data leakage between tenants. |
-| RBAC | Actor's roles and capabilities are checked against the tool's required capabilities. | Prevent unauthorized actions (least privilege). |
-| Side Effects | Tools with side effects (e.g., writing to a database) can be restricted based on actor role. | Prevent viewers or less-privileged roles from modifying state. |
-| Budget | Token and recursive depth limits will be enforced to control cost. | Control operational expenditure. |
-| Privacy | PII and secret scrubbing will be applied to inputs and outputs. | Ensure data safety and compliance. |
+| Layer          | Enforcement                                                                                  | Goal                                                           |
+| -------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Tenant Scoping | Tool calls are checked to ensure they operate within the correct tenant context.             | Prevent data leakage between tenants.                          |
+| RBAC           | Actor's roles and capabilities are checked against the tool's required capabilities.         | Prevent unauthorized actions (least privilege).                |
+| Side Effects   | Tools with side effects (e.g., writing to a database) can be restricted based on actor role. | Prevent viewers or less-privileged roles from modifying state. |
+| Budget         | Token and recursive depth limits will be enforced to control cost.                           | Control operational expenditure.                               |
+| Privacy        | PII and secret scrubbing will be applied to inputs and outputs.                              | Ensure data safety and compliance.                             |
 
 ### Skill Runner
 
@@ -171,4 +172,5 @@ AI reasoning is inherently non-deterministic, but the Requiem bridge enforces:
 3. **Deterministic Tools**: Non-AI components must remain 100% deterministic.
 
 ---
+
 **Status**: ARCHITECTURE CLARIFIED - Phase 1/2 Baseline.

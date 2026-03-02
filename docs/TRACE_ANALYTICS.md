@@ -6,9 +6,9 @@ Projections and normalization rules for analyzing agent reasoning traces and too
 
 To ensure deterministic analysis of traces across different models, the following normalization must be applied:
 
-* **Timestamp Alignment**: All trace events must be normalized to UTC ISO-8601.
-* **ID Anonymization**: Replace sensitive resource IDs with deterministic hashes (`SHA-256(ResourceID + Salt)`) for multi-tenant analytics.
-* **Result Compaction**: Truncate tool output blobs > 1KB, preserving only the BLAKE3 digest for validation.
+- **Timestamp Alignment**: All trace events must be normalized to UTC ISO-8601.
+- **ID Anonymization**: Replace sensitive resource IDs with deterministic hashes (`SHA-256(ResourceID + Salt)`) for multi-tenant analytics.
+- **Result Compaction**: Truncate tool output blobs > 1KB, preserving only the BLAKE3 digest for validation.
 
 ## 2. Inefficiency Metrics
 
@@ -17,14 +17,14 @@ To ensure deterministic analysis of traces across different models, the followin
 The cost of internal reasoning vs. external action:
 
 $$ RO = \frac{\text{Internal Reasoning Tokens}}{\text{Tool Call Count}} $$
-*Target: < 200 tokens/action*
+_Target: < 200 tokens/action_
 
 ### Tool Ping-Pong (TPP)
 
 Detects redundant information gathering:
 
 $$ TPP = \frac{\text{Repeated Tool Methods}}{\text{Total Actions}} $$
-*Target: < 0.05*
+_Target: < 0.05_
 
 ## 3. Step Clustering Logic
 
@@ -37,8 +37,9 @@ Reasoning steps should be clustered into "Outcome-Driven Intent" blocks:
 
 ## 4. Future Metrics Proposals
 
-* **Logic Drift Score**: Measure deviation in reasoning steps between same input requests on different model versions.
-* **Entropy Contribution**: Bits of information gained per tool call vs. total trace length.
+- **Logic Drift Score**: Measure deviation in reasoning steps between same input requests on different model versions.
+- **Entropy Contribution**: Bits of information gained per tool call vs. total trace length.
 
 ---
+
 **Status**: PROPOSAL - Aligned with Antigravity principles.

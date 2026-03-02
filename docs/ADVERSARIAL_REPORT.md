@@ -10,14 +10,14 @@
 
 This report documents the adversarial testing performed on the Requiem deterministic governance kernel. The testing focused on attacking the core invariants that ensure system security, determinism, and billing integrity.
 
-| Attack Vector | Status | Mitigation |
-|---------------|--------|------------|
-| Capability bypass | ✅ BLOCKED | Policy pipeline as primary execution path |
-| Replay mismatch | ✅ BLOCKED | Engine fingerprinting in receipts |
-| CAS object tampering | ✅ BLOCKED | Dual-hash verification on read |
-| DAG reordering | ✅ BLOCKED | Topological + lexicographic ordering |
-| Logical time manipulation | ✅ BLOCKED | Monotonic counter, no external input |
-| Budget double-spend | ✅ BLOCKED | Idempotency via request_digest |
+| Attack Vector             | Status     | Mitigation                                |
+| ------------------------- | ---------- | ----------------------------------------- |
+| Capability bypass         | ✅ BLOCKED | Policy pipeline as primary execution path |
+| Replay mismatch           | ✅ BLOCKED | Engine fingerprinting in receipts         |
+| CAS object tampering      | ✅ BLOCKED | Dual-hash verification on read            |
+| DAG reordering            | ✅ BLOCKED | Topological + lexicographic ordering      |
+| Logical time manipulation | ✅ BLOCKED | Monotonic counter, no external input      |
+| Budget double-spend       | ✅ BLOCKED | Idempotency via request_digest            |
 
 ---
 
@@ -273,15 +273,15 @@ Tenant-level cost root hash provides cryptographic billing lineage.
 
 ## 8. Security Invariants Summary
 
-| Invariant | Enforcement | Tested |
-|-----------|-------------|--------|
-| Policy pipeline as primary path | Gate → Capabilities → Guardrails → Budget → Execution | ✅ |
-| Engine fingerprint in receipts | receipt.engine_fingerprint verification | ✅ NEW |
-| CAS dual-hash verification | BLAKE3 + SHA-256 on every read | ✅ |
-| Deterministic DAG scheduling | Topological + lexicographic order | ✅ |
-| Monotonic logical time | Internal counter, no external input | ✅ |
-| Budget idempotency | request_digest deduplication | ✅ |
-| Cost ledger integrity | Hash-linked receipts per tenant | ✅ NEW |
+| Invariant                       | Enforcement                                           | Tested |
+| ------------------------------- | ----------------------------------------------------- | ------ |
+| Policy pipeline as primary path | Gate → Capabilities → Guardrails → Budget → Execution | ✅     |
+| Engine fingerprint in receipts  | receipt.engine_fingerprint verification               | ✅ NEW |
+| CAS dual-hash verification      | BLAKE3 + SHA-256 on every read                        | ✅     |
+| Deterministic DAG scheduling    | Topological + lexicographic order                     | ✅     |
+| Monotonic logical time          | Internal counter, no external input                   | ✅     |
+| Budget idempotency              | request_digest deduplication                          | ✅     |
+| Cost ledger integrity           | Hash-linked receipts per tenant                       | ✅ NEW |
 
 ---
 
@@ -294,4 +294,4 @@ Tenant-level cost root hash provides cryptographic billing lineage.
 
 ---
 
-*End of Adversarial Report*
+_End of Adversarial Report_

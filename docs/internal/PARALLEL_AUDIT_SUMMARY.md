@@ -35,17 +35,18 @@ The Requiem AI Architecture upgrade is structurally sound in its intent (Antigra
 
 ## Recommended High-Leverage Improvements
 
-* **Mandatory Context Injection**: Modify `ToolHandler` to receive a validated `SkillContext` including `tenantId`.
-* **Circuit Breaker Integration**: Implement the `COST_ANOMALY_STRATEGY` at the orchestrator entry point.
-* **Trace Normalization**: Adopt `TRACE_ANALYTICS` rules to ensure cross-model observability.
-* **Automated Adversarial Eval**: Integrate `policy_adversarial_cases.json` into the CI pipeline (`verify:agent-quality`).
-* **Tool Versioning**: Add `version` and `digest` to `ToolDefinition` to ensure replayer consistency.
+- **Mandatory Context Injection**: Modify `ToolHandler` to receive a validated `SkillContext` including `tenantId`.
+- **Circuit Breaker Integration**: Implement the `COST_ANOMALY_STRATEGY` at the orchestrator entry point.
+- **Trace Normalization**: Adopt `TRACE_ANALYTICS` rules to ensure cross-model observability.
+- **Automated Adversarial Eval**: Integrate `policy_adversarial_cases.json` into the CI pipeline (`verify:agent-quality`).
+- **Tool Versioning**: Add `version` and `digest` to `ToolDefinition` to ensure replayer consistency.
 
 ## Evaluation Coverage Gaps
 
-* **Negatives/Adversarials**: 0 entries in current `goldens` for failed/blocked attempts.
-* **Performance Stability**: No current benchmarks for "Reasoning Overhead (RO)".
-* **Long-Tail Reasoning**: Missing complex multi-step dependency cases in `skill_regression_cases.json`.
+- **Negatives/Adversarials**: 0 entries in current `goldens` for failed/blocked attempts.
+- **Performance Stability**: No current benchmarks for "Reasoning Overhead (RO)".
+- **Long-Tail Reasoning**: Missing complex multi-step dependency cases in `skill_regression_cases.json`.
 
 ---
+
 **Status**: AUDIT COMPLETE - Documentation and Test Suites generated.

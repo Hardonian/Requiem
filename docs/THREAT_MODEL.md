@@ -27,16 +27,16 @@ This threat model covers:
 
 ## Assets
 
-| Asset | Value | Sensitivity | Owner |
-|-------|-------|-------------|-------|
-| **Customer code/executions** | Critical | High | Customers |
-| **CAS objects** | Critical | High | Platform |
-| **Tenant data** | High | Critical | Customers |
-| **Audit logs** | High | High | Platform |
-| **API keys/credentials** | Critical | Critical | Platform |
-| **Determinism proofs** | High | Medium | Platform |
-| **Source code** | Medium | Medium | Engineering |
-| **MCP tool definitions** | High | High | Platform |
+| Asset                        | Value    | Sensitivity | Owner       |
+| ---------------------------- | -------- | ----------- | ----------- |
+| **Customer code/executions** | Critical | High        | Customers   |
+| **CAS objects**              | Critical | High        | Platform    |
+| **Tenant data**              | High     | Critical    | Customers   |
+| **Audit logs**               | High     | High        | Platform    |
+| **API keys/credentials**     | Critical | Critical    | Platform    |
+| **Determinism proofs**       | High     | Medium      | Platform    |
+| **Source code**              | Medium   | Medium      | Engineering |
+| **MCP tool definitions**     | High     | High        | Platform    |
 
 ---
 
@@ -76,13 +76,13 @@ This threat model covers:
 
 ## Threat Actors
 
-| Actor | Motivation | Capability | Risk |
-|-------|------------|------------|------|
-| **Anonymous Attacker** | Financial gain, disruption | Low-Medium | Medium |
-| **Malicious Customer** | Access other tenants' data | Medium | High |
-| **Compromised Account** | Lateral movement, data exfil | Medium-High | High |
-| **Insider Threat** | Sabotage, data theft | High | Medium |
-| **Nation State** | IP theft, sabotage | Very High | Low |
+| Actor                   | Motivation                   | Capability  | Risk   |
+| ----------------------- | ---------------------------- | ----------- | ------ |
+| **Anonymous Attacker**  | Financial gain, disruption   | Low-Medium  | Medium |
+| **Malicious Customer**  | Access other tenants' data   | Medium      | High   |
+| **Compromised Account** | Lateral movement, data exfil | Medium-High | High   |
+| **Insider Threat**      | Sabotage, data theft         | High        | Medium |
+| **Nation State**        | IP theft, sabotage           | Very High   | Low    |
 
 ---
 
@@ -103,15 +103,15 @@ This threat model covers:
 
 **Threats:**
 
-| ID | Threat | Severity | Mitigation |
-|----|--------|----------|------------|
-| API-1 | SQL Injection via query params | High | Parameterized queries, RLS |
-| API-2 | IDOR (Insecure Direct Object Reference) | Critical | Tenant isolation, auth checks |
-| API-3 | Rate limiting bypass | Medium | Token bucket per tenant |
-| API-4 | DoS via expensive queries | Medium | Query timeouts, resource limits |
-| API-5 | Information disclosure in errors | Medium | Structured error envelope |
-| API-6 | Prompt injection via MCP tools | High | Input sanitization filter |
-| API-7 | JWT replay attacks | Medium | Short expiry, rotation |
+| ID    | Threat                                  | Severity | Mitigation                      |
+| ----- | --------------------------------------- | -------- | ------------------------------- |
+| API-1 | SQL Injection via query params          | High     | Parameterized queries, RLS      |
+| API-2 | IDOR (Insecure Direct Object Reference) | Critical | Tenant isolation, auth checks   |
+| API-3 | Rate limiting bypass                    | Medium   | Token bucket per tenant         |
+| API-4 | DoS via expensive queries               | Medium   | Query timeouts, resource limits |
+| API-5 | Information disclosure in errors        | Medium   | Structured error envelope       |
+| API-6 | Prompt injection via MCP tools          | High     | Input sanitization filter       |
+| API-7 | JWT replay attacks                      | Medium   | Short expiry, rotation          |
 
 ### 2. CLI Package (`@requiem/cli`)
 
@@ -124,13 +124,13 @@ This threat model covers:
 
 **Threats:**
 
-| ID | Threat | Severity | Mitigation |
-|----|--------|----------|------------|
-| CLI-1 | Supply chain attack via dependencies | High | Locked versions, audit |
-| CLI-2 | Credential exposure in logs | Critical | Secret redaction |
-| CLI-3 | Path traversal in workspace paths | Medium | Path canonicalization |
-| CLI-4 | Command injection | Medium | Input validation |
-| CLI-5 | Migration tampering | High | Checksum verification |
+| ID    | Threat                               | Severity | Mitigation             |
+| ----- | ------------------------------------ | -------- | ---------------------- |
+| CLI-1 | Supply chain attack via dependencies | High     | Locked versions, audit |
+| CLI-2 | Credential exposure in logs          | Critical | Secret redaction       |
+| CLI-3 | Path traversal in workspace paths    | Medium   | Path canonicalization  |
+| CLI-4 | Command injection                    | Medium   | Input validation       |
+| CLI-5 | Migration tampering                  | High     | Checksum verification  |
 
 ### 3. Native Engine (`src/`)
 
@@ -143,14 +143,14 @@ This threat model covers:
 
 **Threats:**
 
-| ID | Threat | Severity | Mitigation |
-|----|--------|----------|------------|
-| ENG-1 | Sandbox escape | Critical | Seccomp-BPF, namespaces |
-| ENG-2 | Path traversal via workspace | High | Canonicalization, chroot |
-| ENG-3 | Resource exhaustion | Medium | Timeouts, memory limits |
-| ENG-4 | Hash collision attacks | Low | BLAKE3 (collision-resistant) |
-| ENG-5 | Determinism violation | Critical | Clock abstraction, validation |
-| ENG-6 | Seccomp filter bypass | High | Careful syscall allowlisting |
+| ID    | Threat                       | Severity | Mitigation                    |
+| ----- | ---------------------------- | -------- | ----------------------------- |
+| ENG-1 | Sandbox escape               | Critical | Seccomp-BPF, namespaces       |
+| ENG-2 | Path traversal via workspace | High     | Canonicalization, chroot      |
+| ENG-3 | Resource exhaustion          | Medium   | Timeouts, memory limits       |
+| ENG-4 | Hash collision attacks       | Low      | BLAKE3 (collision-resistant)  |
+| ENG-5 | Determinism violation        | Critical | Clock abstraction, validation |
+| ENG-6 | Seccomp filter bypass        | High     | Careful syscall allowlisting  |
 
 ### 4. AI/MCP Subsystem (`packages/ai/`)
 
@@ -164,13 +164,13 @@ This threat model covers:
 
 **Threats:**
 
-| ID | Threat | Severity | Mitigation |
-|----|--------|----------|------------|
-| AI-1 | Tool output DoS | High | Output limits enforced |
-| AI-2 | Budget bypass | Critical | DB-backed budgets |
-| AI-3 | Prompt injection | High | Input filter, correlation IDs |
-| AI-4 | Policy evasion | Critical | Policy at MCP entry |
-| AI-5 | Audit log tampering | High | Merkle chain, append-only |
+| ID   | Threat              | Severity | Mitigation                    |
+| ---- | ------------------- | -------- | ----------------------------- |
+| AI-1 | Tool output DoS     | High     | Output limits enforced        |
+| AI-2 | Budget bypass       | Critical | DB-backed budgets             |
+| AI-3 | Prompt injection    | High     | Input filter, correlation IDs |
+| AI-4 | Policy evasion      | Critical | Policy at MCP entry           |
+| AI-5 | Audit log tampering | High     | Merkle chain, append-only     |
 
 ### 5. Database
 
@@ -183,13 +183,13 @@ This threat model covers:
 
 **Threats:**
 
-| ID | Threat | Severity | Mitigation |
-|----|--------|----------|------------|
-| DB-1 | Tenant isolation bypass | Critical | RLS policies, query validation |
-| DB-2 | Privilege escalation | High | Least privilege, role separation |
-| DB-3 | Connection string exposure | Critical | Secrets manager, no env vars |
-| DB-4 | Unencrypted data at rest | Medium | Encryption enabled |
-| DB-5 | Migration injection | High | Checksum verification |
+| ID   | Threat                     | Severity | Mitigation                       |
+| ---- | -------------------------- | -------- | -------------------------------- |
+| DB-1 | Tenant isolation bypass    | Critical | RLS policies, query validation   |
+| DB-2 | Privilege escalation       | High     | Least privilege, role separation |
+| DB-3 | Connection string exposure | Critical | Secrets manager, no env vars     |
+| DB-4 | Unencrypted data at rest   | Medium   | Encryption enabled               |
+| DB-5 | Migration injection        | High     | Checksum verification            |
 
 ### 6. CAS Storage
 
@@ -201,22 +201,22 @@ This threat model covers:
 
 **Threats:**
 
-| ID | Threat | Severity | Mitigation |
-|----|--------|----------|------------|
-| CAS-1 | Object tampering | Critical | Hash-on-read, immutability |
-| CAS-2 | Storage exhaustion | Medium | Quotas, garbage collection |
-| CAS-3 | Information leakage | Low | No sensitive data in CAS |
+| ID    | Threat              | Severity | Mitigation                 |
+| ----- | ------------------- | -------- | -------------------------- |
+| CAS-1 | Object tampering    | Critical | Hash-on-read, immutability |
+| CAS-2 | Storage exhaustion  | Medium   | Quotas, garbage collection |
+| CAS-3 | Information leakage | Low      | No sensitive data in CAS   |
 
 ---
 
 ## Risk Matrix
 
-| Likelihood \ Impact | Low | Medium | High | Critical |
-|---------------------|-----|--------|------|----------|
-| **High** | Low | Medium | High | Critical |
-| **Medium** | Low | Medium | High | High |
-| **Low** | Low | Low | Medium | Medium |
-| **Very Low** | Low | Low | Low | Low |
+| Likelihood \ Impact | Low | Medium | High   | Critical |
+| ------------------- | --- | ------ | ------ | -------- |
+| **High**            | Low | Medium | High   | Critical |
+| **Medium**          | Low | Medium | High   | High     |
+| **Low**             | Low | Low    | Medium | Medium   |
+| **Very Low**        | Low | Low    | Low    | Low      |
 
 ### Critical Risks
 
@@ -263,32 +263,32 @@ This threat model covers:
 
 ### Implemented
 
-| Control | Coverage | Verification |
-|---------|----------|--------------|
-| RLS policies | Database queries | `verify_tenant_isolation.sh` |
-| Structured errors | API responses | `verify_no_hard_500.sh` |
-| Input validation | All endpoints | TypeScript strict mode |
-| Path canonicalization | File operations | Unit tests |
-| Hash verification | CAS reads | `verify_cas.sh` |
-| Rate limiting | API tier | Middleware |
-| Audit logging | All operations | `verify_enterprise_boundaries.sh` |
-| Clock abstraction | Core logic | `verify_provenance.sh` |
-| JWT validation | MCP transport | `verify:mcp` tests |
-| Seccomp-BPF | Linux sandbox | Capability truth |
-| Prompt injection filter | MCP input | `verify:ai-safety` tests |
-| DB-backed budgets | Cost control | `verify:cost-accounting` |
-| Merkle audit chain | Audit integrity | `requiem audit verify` |
-| Circuit breaker | Resilience | `verify:tenant-isolation` |
-| Correlation IDs | Request tracing | Middleware |
-| Credential rotation | Secret management | Automated workflow |
+| Control                 | Coverage          | Verification                      |
+| ----------------------- | ----------------- | --------------------------------- |
+| RLS policies            | Database queries  | `verify_tenant_isolation.sh`      |
+| Structured errors       | API responses     | `verify_no_hard_500.sh`           |
+| Input validation        | All endpoints     | TypeScript strict mode            |
+| Path canonicalization   | File operations   | Unit tests                        |
+| Hash verification       | CAS reads         | `verify_cas.sh`                   |
+| Rate limiting           | API tier          | Middleware                        |
+| Audit logging           | All operations    | `verify_enterprise_boundaries.sh` |
+| Clock abstraction       | Core logic        | `verify_provenance.sh`            |
+| JWT validation          | MCP transport     | `verify:mcp` tests                |
+| Seccomp-BPF             | Linux sandbox     | Capability truth                  |
+| Prompt injection filter | MCP input         | `verify:ai-safety` tests          |
+| DB-backed budgets       | Cost control      | `verify:cost-accounting`          |
+| Merkle audit chain      | Audit integrity   | `requiem audit verify`            |
+| Circuit breaker         | Resilience        | `verify:tenant-isolation`         |
+| Correlation IDs         | Request tracing   | Middleware                        |
+| Credential rotation     | Secret management | Automated workflow                |
 
 ### Planned
 
-| Control | Target | Priority |
-|---------|--------|----------|
-| Landlock LSM | Path restrictions | Medium |
-| Network namespaces | Process isolation | Medium |
-| eBPF monitoring | Runtime security | Low |
+| Control            | Target            | Priority |
+| ------------------ | ----------------- | -------- |
+| Landlock LSM       | Path restrictions | Medium   |
+| Network namespaces | Process isolation | Medium   |
+| eBPF monitoring    | Runtime security  | Low      |
 
 ---
 
@@ -344,7 +344,7 @@ This threat model covers:
 ### Scenario 1: Cross-Tenant Data Access
 
 **Attacker:** Malicious customer with valid credentials  
-**Goal:** Access other tenants' execution data  
+**Goal:** Access other tenants' execution data
 
 **Attack Path:**
 
@@ -367,7 +367,7 @@ This threat model covers:
 ### Scenario 2: Determinism Violation
 
 **Attacker:** Compromised insider  
-**Goal:** Corrupt execution results undetectably  
+**Goal:** Corrupt execution results undetectably
 
 **Attack Path:**
 
@@ -392,7 +392,7 @@ This threat model covers:
 ### Scenario 3: CAS Tampering
 
 **Attacker:** External with storage access  
-**Goal:** Modify stored execution artifacts  
+**Goal:** Modify stored execution artifacts
 
 **Attack Path:**
 
@@ -415,7 +415,7 @@ This threat model covers:
 ### Scenario 4: Prompt Injection
 
 **Attacker:** Malicious user via MCP tool  
-**Goal:** Execute unauthorized commands via tool input  
+**Goal:** Execute unauthorized commands via tool input
 
 **Attack Path:**
 
@@ -443,60 +443,60 @@ pnpm run verify:ai-safety
 ### New Endpoint Checklist
 
 - [x] Authentication required  
-  *Validated: 2026-03-01 — All endpoints require auth*
+      _Validated: 2026-03-01 — All endpoints require auth_
 - [x] Authorization checks (tenant + role)  
-  *Validated: 2026-03-01 — RLS + server-side checks*
+      _Validated: 2026-03-01 — RLS + server-side checks_
 - [x] Input validation (Zod schemas)  
-  *Validated: 2026-03-01 — All inputs validated*
+      _Validated: 2026-03-01 — All inputs validated_
 - [x] Rate limiting applied  
-  *Validated: 2026-03-01 — Token bucket per tenant*
+      _Validated: 2026-03-01 — Token bucket per tenant_
 - [x] Structured error responses  
-  *Validated: 2026-03-01 — No hard-500s*
+      _Validated: 2026-03-01 — No hard-500s_
 - [x] No secrets in responses  
-  *Validated: 2026-03-01 — Secret redaction active*
+      _Validated: 2026-03-01 — Secret redaction active_
 - [x] Audit log entry created  
-  *Validated: 2026-03-01 — All operations logged*
+      _Validated: 2026-03-01 — All operations logged_
 - [x] Added to `verify_no_hard_500.sh`  
-  *Validated: 2026-03-01 — Verification coverage complete*
+      _Validated: 2026-03-01 — Verification coverage complete_
 
 ### New Dependency Checklist
 
 - [x] Security audit (npm audit, Snyk)  
-  *Validated: 2026-03-01 — No high/critical vulnerabilities*
+      _Validated: 2026-03-01 — No high/critical vulnerabilities_
 - [x] License compatibility check  
-  *Validated: 2026-03-01 — All licenses compatible*
+      _Validated: 2026-03-01 — All licenses compatible_
 - [x] Added to `contracts/deps.allowlist.json`  
-  *Validated: 2026-03-01 — Dependencies allowlisted*
+      _Validated: 2026-03-01 — Dependencies allowlisted_
 - [x] Pin to exact version  
-  *Validated: 2026-03-01 — Exact versions pinned*
+      _Validated: 2026-03-01 — Exact versions pinned_
 - [x] No postinstall scripts (or reviewed)  
-  *Validated: 2026-03-01 — Postinstall scripts reviewed*
+      _Validated: 2026-03-01 — Postinstall scripts reviewed_
 
 ### Release Security Checklist
 
 - [x] All CI gates pass  
-  *Validated: 2026-03-01 — verify:full passes*
+      _Validated: 2026-03-01 — verify:full passes_
 - [x] `verify_secrets.sh` clean  
-  *Validated: 2026-03-01 — No secrets detected*
+      _Validated: 2026-03-01 — No secrets detected_
 - [x] `verify_supply_chain.sh` clean  
-  *Validated: 2026-03-01 — Supply chain verified*
+      _Validated: 2026-03-01 — Supply chain verified_
 - [x] No new high/critical vulnerabilities  
-  *Validated: 2026-03-01 — Audit clean*
+      _Validated: 2026-03-01 — Audit clean_
 - [x] Security team sign-off (major releases)  
-  *Validated: 2026-03-01 — Security review complete*
+      _Validated: 2026-03-01 — Security review complete_
 
 ---
 
 ## Compliance Mapping
 
-| Requirement | Control | Evidence |
-|-------------|---------|----------|
-| **SOC 2 CC6.1** | Logical access security | RLS policies, auth checks |
-| **SOC 2 CC6.6** | Security infrastructure | Tenant isolation, encryption |
-| **SOC 2 CC7.2** | System monitoring | Audit logs, metrics |
-| **GDPR 32** | Security of processing | Encryption, access controls |
-| **ISO 27001 A.9** | Access control | Tenant isolation, roles |
-| **ISO 27001 A.12** | Malware protection | Seccomp-BPF, sandboxing |
+| Requirement        | Control                 | Evidence                     |
+| ------------------ | ----------------------- | ---------------------------- |
+| **SOC 2 CC6.1**    | Logical access security | RLS policies, auth checks    |
+| **SOC 2 CC6.6**    | Security infrastructure | Tenant isolation, encryption |
+| **SOC 2 CC7.2**    | System monitoring       | Audit logs, metrics          |
+| **GDPR 32**        | Security of processing  | Encryption, access controls  |
+| **ISO 27001 A.9**  | Access control          | Tenant isolation, roles      |
+| **ISO 27001 A.12** | Malware protection      | Seccomp-BPF, sandboxing      |
 
 ---
 

@@ -13,12 +13,12 @@ reach proof
 
 ## Overview: 4 Differentiators
 
-| ID | Differentiator | CLI Command | Why Uncopyable |
-|----|----------------|-------------|----------------|
-| A | **Tool IO Schema Lock** | `reach tool-schema` | Binds JSON Schema snapshots to semantic states |
-| B | **Replay Attestation Capsule** | `reach capsule` | Self-contained, verifiable run proofs |
-| C | **Change Budget Governance** | `reach budget` | Semantic diff budgets, not test pass/fail |
-| D | **Audit Narrative Generator** | `reach audit` | Deterministic compliance-ready narratives |
+| ID  | Differentiator                 | CLI Command         | Why Uncopyable                                 |
+| --- | ------------------------------ | ------------------- | ---------------------------------------------- |
+| A   | **Tool IO Schema Lock**        | `reach tool-schema` | Binds JSON Schema snapshots to semantic states |
+| B   | **Replay Attestation Capsule** | `reach capsule`     | Self-contained, verifiable run proofs          |
+| C   | **Change Budget Governance**   | `reach budget`      | Semantic diff budgets, not test pass/fail      |
+| D   | **Audit Narrative Generator**  | `reach audit`       | Deterministic compliance-ready narratives      |
 
 ---
 
@@ -202,28 +202,28 @@ reach budget show strict --json
 
 # Expected output (markdown format):
 # # Audit Narrative: State abc123...
-# 
+#
 # ## Executive Summary
 # This semantic state represents a stable configuration with high integrity.
-# 
+#
 # ## State Identity
 # - State ID: abc123...
 # - Created: 2024-01-15T10:00:00Z
 # - Actor: user@example.com
-# 
+#
 # ## Integrity Assessment
 # - Overall Score: 95/100
 # - Policy Binding: Verified
 # - Context Snapshot: context_def456...
-# 
+#
 # ## Configuration Binding
 # - Model: gpt-4 (2024-01)
 # - Prompt Template: template_v1.0.0
 # - Policy: policy_abc123...
-# 
+#
 # ## Risk Assessment
 # Risk Level: LOW
-# 
+#
 # ## Recommendations
 # - No action required
 
@@ -307,15 +307,15 @@ echo "- Verifiable: No marketing theatre, all commands runnable"
 
 ### Required Primitives (Reach Has, They Don't)
 
-| Primitive | Reach Implementation | Generic CI Equivalent |
-|-----------|---------------------|----------------------|
-| Content-addressed state IDs | BLAKE3 of canonical descriptor | Git commit SHA (different semantics) |
-| Drift taxonomy | 6 drift categories with significance | None (just pass/fail) |
-| Integrity scores | 0-100 computed from verifiable signals | Test coverage % (different) |
-| Policy snapshots | Versioned policy + context bindings | OPA bundles (no semantic binding) |
-| Semantic transitions | State machine with lineage | Workflow runs (no state concept) |
-| Schema snapshots | Content-addressed JSON Schema | None |
-| Attestation capsules | Self-contained verifiable bundles | Artifacts (no integrity proof) |
+| Primitive                   | Reach Implementation                   | Generic CI Equivalent                |
+| --------------------------- | -------------------------------------- | ------------------------------------ |
+| Content-addressed state IDs | BLAKE3 of canonical descriptor         | Git commit SHA (different semantics) |
+| Drift taxonomy              | 6 drift categories with significance   | None (just pass/fail)                |
+| Integrity scores            | 0-100 computed from verifiable signals | Test coverage % (different)          |
+| Policy snapshots            | Versioned policy + context bindings    | OPA bundles (no semantic binding)    |
+| Semantic transitions        | State machine with lineage             | Workflow runs (no state concept)     |
+| Schema snapshots            | Content-addressed JSON Schema          | None                                 |
+| Attestation capsules        | Self-contained verifiable bundles      | Artifacts (no integrity proof)       |
 
 ### The Gap
 

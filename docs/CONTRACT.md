@@ -20,12 +20,12 @@
     },
     "argv": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": { "type": "string" },
       "description": "Command arguments"
     },
     "env": {
       "type": "object",
-      "additionalProperties": {"type": "string"},
+      "additionalProperties": { "type": "string" },
       "description": "Environment variables"
     },
     "cwd": {
@@ -39,12 +39,12 @@
     },
     "inputs": {
       "type": "object",
-      "additionalProperties": {"type": "string"},
+      "additionalProperties": { "type": "string" },
       "description": "Input file digests (for cache validation)"
     },
     "outputs": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": { "type": "string" },
       "description": "Expected output file paths"
     },
     "nonce": {
@@ -95,17 +95,17 @@
         },
         "env_allowlist": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         },
         "env_denylist": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "default": ["RANDOM", "TZ", "HOSTNAME", "PWD", "OLDPWD", "SHLVL"]
         },
         "required_env": {
           "type": "object",
-          "additionalProperties": {"type": "string"},
-          "default": {"PYTHONHASHSEED": "0"}
+          "additionalProperties": { "type": "string" },
+          "default": { "PYTHONHASHSEED": "0" }
         },
         "enforce_sandbox": {
           "type": "boolean",
@@ -134,7 +134,7 @@
         },
         "runner_argv": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         },
         "model_ref": {
           "type": "string"
@@ -170,10 +170,10 @@
   "request_id": "build-abc-123",
   "command": "/usr/bin/gcc",
   "argv": ["-c", "main.c", "-o", "main.o"],
-  "env": {"PATH": "/usr/bin"},
+  "env": { "PATH": "/usr/bin" },
   "cwd": "src",
   "workspace_root": "/tmp/build",
-  "inputs": {"main.c": "abc123..."},
+  "inputs": { "main.c": "abc123..." },
   "outputs": ["main.o"],
   "timeout_ms": 30000,
   "policy": {
@@ -258,65 +258,65 @@
       "items": {
         "type": "object",
         "properties": {
-          "seq": {"type": "integer"},
-          "t_ns": {"type": "integer"},
-          "type": {"type": "string"},
-          "data": {"type": "object"}
+          "seq": { "type": "integer" },
+          "t_ns": { "type": "integer" },
+          "type": { "type": "string" },
+          "data": { "type": "object" }
         }
       }
     },
     "policy_applied": {
       "type": "object",
       "properties": {
-        "mode": {"type": "string"},
-        "time_mode": {"type": "string"},
+        "mode": { "type": "string" },
+        "time_mode": { "type": "string" },
         "allowed_keys": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         },
         "denied_keys": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         },
         "injected_required_keys": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         }
       }
     },
     "sandbox_applied": {
       "type": "object",
       "properties": {
-        "workspace_confinement": {"type": "boolean"},
-        "rlimits": {"type": "boolean"},
-        "seccomp": {"type": "boolean"},
-        "job_object": {"type": "boolean"},
-        "restricted_token": {"type": "boolean"},
+        "workspace_confinement": { "type": "boolean" },
+        "rlimits": { "type": "boolean" },
+        "seccomp": { "type": "boolean" },
+        "job_object": { "type": "boolean" },
+        "restricted_token": { "type": "boolean" },
         "enforced": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         },
         "unsupported": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         }
       }
     },
     "sandbox_applied": {
       "type": "object",
       "properties": {
-        "workspace_confinement": {"type": "boolean"},
-        "rlimits": {"type": "boolean"},
-        "seccomp": {"type": "boolean"},
-        "job_object": {"type": "boolean"},
-        "restricted_token": {"type": "boolean"},
+        "workspace_confinement": { "type": "boolean" },
+        "rlimits": { "type": "boolean" },
+        "seccomp": { "type": "boolean" },
+        "job_object": { "type": "boolean" },
+        "restricted_token": { "type": "boolean" },
         "enforced": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         },
         "unsupported": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": { "type": "string" }
         }
       }
     },
@@ -353,8 +353,8 @@
     "main.o": "d1e2f3a4..."
   },
   "trace_events": [
-    {"seq": 1, "t_ns": 0, "type": "process_start", "data": {"command": "/usr/bin/gcc"}},
-    {"seq": 2, "t_ns": 1500000, "type": "process_end", "data": {"exit_code": "0"}}
+    { "seq": 1, "t_ns": 0, "type": "process_start", "data": { "command": "/usr/bin/gcc" } },
+    { "seq": 2, "t_ns": 1500000, "type": "process_end", "data": { "exit_code": "0" } }
   ],
   "policy_applied": {
     "mode": "strict",
@@ -377,20 +377,20 @@
 
 ## Error Codes
 
-| Code | Description | HTTP Equivalent |
-|------|-------------|-----------------|
-| `json_parse_error` | Invalid JSON syntax | 400 |
-| `json_duplicate_key` | Duplicate keys in JSON object | 400 |
-| `path_escape` | Path escapes workspace root | 403 |
-| `missing_input` | Required input missing | 400 |
-| `spawn_failed` | Process spawn failed | 500 |
-| `timeout` | Execution exceeded timeout | 504 |
-| `cas_integrity_failed` | CAS object corrupted | 500 |
-| `replay_failed` | Replay validation failed | 409 |
-| `drift_detected` | Non-deterministic behavior detected | 409 |
-| `hash_unavailable_blake3` | BLAKE3 not available | 503 |
-| `sandbox_unavailable` | Sandbox enforcement unavailable | 503 |
-| `quota_exceeded` | Tenant quota exceeded | 429 |
+| Code                      | Description                         | HTTP Equivalent |
+| ------------------------- | ----------------------------------- | --------------- |
+| `json_parse_error`        | Invalid JSON syntax                 | 400             |
+| `json_duplicate_key`      | Duplicate keys in JSON object       | 400             |
+| `path_escape`             | Path escapes workspace root         | 403             |
+| `missing_input`           | Required input missing              | 400             |
+| `spawn_failed`            | Process spawn failed                | 500             |
+| `timeout`                 | Execution exceeded timeout          | 504             |
+| `cas_integrity_failed`    | CAS object corrupted                | 500             |
+| `replay_failed`           | Replay validation failed            | 409             |
+| `drift_detected`          | Non-deterministic behavior detected | 409             |
+| `hash_unavailable_blake3` | BLAKE3 not available                | 503             |
+| `sandbox_unavailable`     | Sandbox enforcement unavailable     | 503             |
+| `quota_exceeded`          | Tenant quota exceeded               | 429             |
 
 ## Hash Algorithms
 
@@ -426,20 +426,20 @@ The parser has these intentional limitations:
 
 ### Known Vectors
 
-| Input | BLAKE3 Hash |
-|-------|-------------|
+| Input        | BLAKE3 Hash                                                        |
+| ------------ | ------------------------------------------------------------------ |
 | `""` (empty) | `af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262` |
-| `"hello"` | `ea8f163db38682925e4491c5e58d4bb3506ef8c14eb78a86e908c5624a67200f` |
+| `"hello"`    | `ea8f163db38682925e4491c5e58d4bb3506ef8c14eb78a86e908c5624a67200f` |
 
 ## CLI Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Validation/blocker error |
-| 124 | Timeout (process exit code) |
-| 128+N | Fatal signal N |
+| Code  | Meaning                     |
+| ----- | --------------------------- |
+| 0     | Success                     |
+| 1     | General error               |
+| 2     | Validation/blocker error    |
+| 124   | Timeout (process exit code) |
+| 128+N | Fatal signal N              |
 
 ## Version Compatibility
 

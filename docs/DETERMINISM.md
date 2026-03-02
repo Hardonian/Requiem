@@ -67,14 +67,14 @@ Each has a corresponding CI enforcement mechanism.
 
 **Constants covered:**
 
-| Constant | Current | Field in `version` output |
-|---|---|---|
-| `ENGINE_ABI_VERSION` | 2 | `engine_abi_version` |
-| `HASH_ALGORITHM_VERSION` | 1 | `hash_algorithm_version` |
-| `CAS_FORMAT_VERSION` | 2 | `cas_format_version` |
-| `PROTOCOL_FRAMING_VERSION` | 1 | `protocol_framing_version` |
-| `REPLAY_LOG_VERSION` | 1 | `replay_log_version` |
-| `AUDIT_LOG_VERSION` | 1 | `audit_log_version` |
+| Constant                   | Current | Field in `version` output  |
+| -------------------------- | ------- | -------------------------- |
+| `ENGINE_ABI_VERSION`       | 2       | `engine_abi_version`       |
+| `HASH_ALGORITHM_VERSION`   | 1       | `hash_algorithm_version`   |
+| `CAS_FORMAT_VERSION`       | 2       | `cas_format_version`       |
+| `PROTOCOL_FRAMING_VERSION` | 1       | `protocol_framing_version` |
+| `REPLAY_LOG_VERSION`       | 1       | `replay_log_version`       |
+| `AUDIT_LOG_VERSION`        | 1       | `audit_log_version`        |
 
 ---
 

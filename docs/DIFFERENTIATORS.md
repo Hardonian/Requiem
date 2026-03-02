@@ -18,7 +18,7 @@ Requiem is a deterministic AI execution platform that provides **cryptographical
 Requiem guarantees that running the same request twice always produces byte-identical output. This is achieved through a pipeline of:
 
 - **BLAKE3 domain-separated hashing** — each content type hashed with a unique domain prefix preventing collision across domains
-- **Canonical JSON serialization** — keys sorted, whitespace stripped, floating-point values normalized  
+- **Canonical JSON serialization** — keys sorted, whitespace stripped, floating-point values normalized
 - **Environment sanitization** — `PATH`, timestamps, and process IDs stripped from execution context before hashing
 - **200× repeat verification gate** — determinism gate runs every request 200 times in CI and fails if any digest diverges
 
@@ -111,12 +111,12 @@ Most AI systems bolt on safety filters as an afterthought. Requiem's policy pipe
 
 Four TLA+ specifications provide machine-checkable proofs of Requiem's core protocol invariants:
 
-| Spec | What it checks |
-|------|---------------|
-| [`formal/Determinism.tla`](../formal/Determinism.tla) | Hash-chain consistency, replay equivalence |
-| [`formal/CAS.tla`](../formal/CAS.tla) | Concurrent write safety, eviction correctness, corruption detection |
-| [`formal/Protocol.tla`](../formal/Protocol.tla) | Agent execution protocol, fence/barrier semantics |
-| [`formal/Replay.tla`](../formal/Replay.tla) | Replay determinism, temporal ordering invariants |
+| Spec                                                  | What it checks                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------------- |
+| [`formal/Determinism.tla`](../formal/Determinism.tla) | Hash-chain consistency, replay equivalence                          |
+| [`formal/CAS.tla`](../formal/CAS.tla)                 | Concurrent write safety, eviction correctness, corruption detection |
+| [`formal/Protocol.tla`](../formal/Protocol.tla)       | Agent execution protocol, fence/barrier semantics                   |
+| [`formal/Replay.tla`](../formal/Replay.tla)           | Replay determinism, temporal ordering invariants                    |
 
 Additionally:
 
@@ -236,14 +236,14 @@ Security theatre — claiming features that aren't real — is worse than honest
 
 ## Summary Table
 
-| Differentiator | Status | Key Evidence |
-|----------------|--------|-------------|
-| Deterministic execution | ✅ Implemented | `contracts/determinism.contract.json`, `formal/Determinism.tla`, 200× CI gate |
-| Content-addressable storage | ✅ Implemented | `include/requiem/cas.hpp`, `formal/CAS.tla`, `scripts/verify_cas.sh` |
-| Policy-as-code control plane | ✅ Implemented | `packages/ai/src/policy/`, adversarial test suite |
-| Formal TLA+ specifications | ✅ Implemented | 4 specs in `formal/`, Python model checker |
-| Multi-scheduler modes | ✅ Implemented | `include/requiem/worker.hpp`, repro/turbo modes |
-| Benchmark & drift detection | ✅ Implemented | `docs/BENCH.md`, `scripts/verify_drift.sh` |
-| Honest security posture | ✅ Implemented | `docs/THEATRE_AUDIT.md`, implementation status table |
+| Differentiator               | Status         | Key Evidence                                                                  |
+| ---------------------------- | -------------- | ----------------------------------------------------------------------------- |
+| Deterministic execution      | ✅ Implemented | `contracts/determinism.contract.json`, `formal/Determinism.tla`, 200× CI gate |
+| Content-addressable storage  | ✅ Implemented | `include/requiem/cas.hpp`, `formal/CAS.tla`, `scripts/verify_cas.sh`          |
+| Policy-as-code control plane | ✅ Implemented | `packages/ai/src/policy/`, adversarial test suite                             |
+| Formal TLA+ specifications   | ✅ Implemented | 4 specs in `formal/`, Python model checker                                    |
+| Multi-scheduler modes        | ✅ Implemented | `include/requiem/worker.hpp`, repro/turbo modes                               |
+| Benchmark & drift detection  | ✅ Implemented | `docs/BENCH.md`, `scripts/verify_drift.sh`                                    |
+| Honest security posture      | ✅ Implemented | `docs/THEATRE_AUDIT.md`, implementation status table                          |
 
 See [`contracts/competitive.matrix.json`](../contracts/competitive.matrix.json) for a machine-readable comparison against typical alternatives.

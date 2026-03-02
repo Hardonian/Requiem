@@ -3,7 +3,7 @@
 > Version: 1.0.0  
 > Status: LOCKED  
 > Author: Opus 4.6 (Antigravity)  
-> Date: 2026-03-02  
+> Date: 2026-03-02
 
 ---
 
@@ -93,18 +93,18 @@ All encoded payloads carry this version implicitly through the `HASH_ALGORITHM_V
 
 Domain separation prevents cross-context hash collisions. Each domain tag is prepended to the hasher input as a raw prefix:
 
-| Tag | Function | Used For |
-|-----|----------|----------|
-| `"req:"` | `canonical_json_hash()` | Request canonicalization digest |
-| `"res:"` | `result_json_hash()` | Result canonicalization digest |
-| `"cas:"` | `cas_content_hash()` | CAS object content digest |
-| `"evt:"` | `event_hash()` | Event log entry digest (NEW) |
-| `"cap:"` | `capability_hash()` | Capability token fingerprint (NEW) |
-| `"pol:"` | `policy_hash()` | Policy evaluation proof digest (NEW) |
-| `"rcpt:"` | `receipt_hash()` | Receipt digest (NEW) |
-| `"plan:"` | `plan_hash()` | Plan graph step digest (NEW) |
-| (none) | `blake3_hex()` | Raw hashing (non-domain data) |
-| (none) | `deterministic_digest()` | Generic deterministic hash (stdout, stderr, trace) |
+| Tag       | Function                 | Used For                                           |
+| --------- | ------------------------ | -------------------------------------------------- |
+| `"req:"`  | `canonical_json_hash()`  | Request canonicalization digest                    |
+| `"res:"`  | `result_json_hash()`     | Result canonicalization digest                     |
+| `"cas:"`  | `cas_content_hash()`     | CAS object content digest                          |
+| `"evt:"`  | `event_hash()`           | Event log entry digest (NEW)                       |
+| `"cap:"`  | `capability_hash()`      | Capability token fingerprint (NEW)                 |
+| `"pol:"`  | `policy_hash()`          | Policy evaluation proof digest (NEW)               |
+| `"rcpt:"` | `receipt_hash()`         | Receipt digest (NEW)                               |
+| `"plan:"` | `plan_hash()`            | Plan graph step digest (NEW)                       |
+| (none)    | `blake3_hex()`           | Raw hashing (non-domain data)                      |
+| (none)    | `deterministic_digest()` | Generic deterministic hash (stdout, stderr, trace) |
 
 ### 2.3 Hash Formula
 
@@ -146,11 +146,11 @@ Every CLI response and API response is wrapped in a typed envelope:
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `v` | `uint32` | Envelope schema version (currently 1) |
-| `kind` | `string` | Dot-separated type identifier |
-| `data` | `object \| null` | Success payload |
+| Field   | Type                    | Description                                           |
+| ------- | ----------------------- | ----------------------------------------------------- |
+| `v`     | `uint32`                | Envelope schema version (currently 1)                 |
+| `kind`  | `string`                | Dot-separated type identifier                         |
+| `data`  | `object \| null`        | Success payload                                       |
 | `error` | `ErrorEnvelope \| null` | Error payload (mutually exclusive with data on error) |
 
 ### 3.2 Typed Error Envelope
@@ -169,31 +169,31 @@ Every CLI response and API response is wrapped in a typed envelope:
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `code` | `string` | Machine-readable error code from `ErrorCode` enum |
-| `message` | `string` | Human-readable description |
-| `details` | `object` | Additional structured context (e.g., expected vs actual hash) |
-| `retryable` | `bool` | Whether the caller should retry |
+| Field       | Type     | Description                                                   |
+| ----------- | -------- | ------------------------------------------------------------- |
+| `code`      | `string` | Machine-readable error code from `ErrorCode` enum             |
+| `message`   | `string` | Human-readable description                                    |
+| `details`   | `object` | Additional structured context (e.g., expected vs actual hash) |
+| `retryable` | `bool`   | Whether the caller should retry                               |
 
 ### 3.3 Kind Registry
 
-| Kind | Description |
-|------|-------------|
-| `exec.result` | Execution result |
-| `exec.stream.start` | NDJSON stream start frame |
-| `exec.stream.event` | NDJSON stream trace event |
-| `exec.stream.end` | NDJSON stream end frame |
-| `cas.put.result` | CAS put result |
-| `cas.info.result` | CAS object info |
-| `caps.mint.result` | Capability token minted |
+| Kind                 | Description                     |
+| -------------------- | ------------------------------- |
+| `exec.result`        | Execution result                |
+| `exec.stream.start`  | NDJSON stream start frame       |
+| `exec.stream.event`  | NDJSON stream trace event       |
+| `exec.stream.end`    | NDJSON stream end frame         |
+| `cas.put.result`     | CAS put result                  |
+| `cas.info.result`    | CAS object info                 |
+| `caps.mint.result`   | Capability token minted         |
 | `caps.verify.result` | Capability verification outcome |
-| `policy.eval.result` | Policy evaluation result |
-| `plan.run.result` | Plan execution result |
-| `plan.run.receipt` | Signed receipt for plan run |
-| `log.verify.result` | Event log verification result |
-| `doctor.result` | Doctor check results |
-| `error` | Error envelope |
+| `policy.eval.result` | Policy evaluation result        |
+| `plan.run.result`    | Plan execution result           |
+| `plan.run.receipt`   | Signed receipt for plan run     |
+| `log.verify.result`  | Event log verification result   |
+| `doctor.result`      | Doctor check results            |
+| `error`              | Error envelope                  |
 
 ### 3.4 Compatibility Rules
 
@@ -256,18 +256,18 @@ The `ts_logical` field is a monotonically increasing uint64, incremented by 1 pe
 
 ### 4.4 Event Types
 
-| Event Type | When |
-|------------|------|
-| `exec.complete` | After every execution (success or failure) |
-| `cap.mint` | Capability token minted |
-| `cap.revoke` | Capability token revoked |
-| `policy.add` | Policy rule added |
-| `policy.eval` | Policy evaluation completed |
-| `plan.run.start` | Plan execution started |
-| `plan.run.complete` | Plan execution finished |
-| `plan.step.complete` | Individual plan step finished |
-| `meter.budget.set` | Budget allocated for tenant |
-| `meter.deny` | Budget exceeded, operation denied |
+| Event Type           | When                                       |
+| -------------------- | ------------------------------------------ |
+| `exec.complete`      | After every execution (success or failure) |
+| `cap.mint`           | Capability token minted                    |
+| `cap.revoke`         | Capability token revoked                   |
+| `policy.add`         | Policy rule added                          |
+| `policy.eval`        | Policy evaluation completed                |
+| `plan.run.start`     | Plan execution started                     |
+| `plan.run.complete`  | Plan execution finished                    |
+| `plan.step.complete` | Individual plan step finished              |
+| `meter.budget.set`   | Budget allocated for tenant                |
+| `meter.deny`         | Budget exceeded, operation denied          |
 
 ---
 
@@ -357,17 +357,17 @@ A capability token grants specific permissions. Tokens are ed25519-signed JSON s
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `cap_version` | `uint32` | Token format version (1) |
-| `fingerprint` | `string` | `H("cap:", canonical_json(payload_without_signature))` |
-| `issuer_fingerprint` | `string` | Fingerprint of the issuing capability (root = self) |
-| `subject` | `string` | Tenant or entity this token applies to |
-| `permissions` | `string[]` | Granted actions |
-| `not_before` | `uint64` | Logical time (0 = immediate) |
-| `not_after` | `uint64` | Logical time (0 = no expiry) |
-| `nonce` | `uint64` | Anti-replay nonce |
-| `signature` | `string` | ed25519 signature over the canonical JSON (excluding signature field) |
+| Field                | Type       | Description                                                           |
+| -------------------- | ---------- | --------------------------------------------------------------------- |
+| `cap_version`        | `uint32`   | Token format version (1)                                              |
+| `fingerprint`        | `string`   | `H("cap:", canonical_json(payload_without_signature))`                |
+| `issuer_fingerprint` | `string`   | Fingerprint of the issuing capability (root = self)                   |
+| `subject`            | `string`   | Tenant or entity this token applies to                                |
+| `permissions`        | `string[]` | Granted actions                                                       |
+| `not_before`         | `uint64`   | Logical time (0 = immediate)                                          |
+| `not_after`          | `uint64`   | Logical time (0 = no expiry)                                          |
+| `nonce`              | `uint64`   | Anti-replay nonce                                                     |
+| `signature`          | `string`   | ed25519 signature over the canonical JSON (excluding signature field) |
 
 ### 6.2 Operations
 
@@ -474,13 +474,13 @@ The proof hash is stored in CAS. Replay produces the same proof hash given the s
 
 ### 8.1 Units
 
-| Unit | Represents |
-|------|------------|
-| `exec` | One execution invocation |
-| `cas_put` | One CAS write operation |
-| `cas_get` | One CAS read operation |
-| `policy_eval` | One policy evaluation |
-| `plan_step` | One plan step execution |
+| Unit          | Represents               |
+| ------------- | ------------------------ |
+| `exec`        | One execution invocation |
+| `cas_put`     | One CAS write operation  |
+| `cas_get`     | One CAS read operation   |
+| `policy_eval` | One policy evaluation    |
+| `plan_step`   | One plan step execution  |
 
 ### 8.2 Budget Model
 
@@ -603,12 +603,12 @@ A plan is a directed acyclic graph (DAG) of steps:
 
 ### 10.2 Step Kinds
 
-| Kind | Description |
-|------|-------------|
-| `exec` | Execute a command (uses existing `execute()`) |
-| `cas_put` | Store data in CAS |
-| `policy_eval` | Evaluate policy rules |
-| `gate` | Check condition, fail plan if false |
+| Kind          | Description                                   |
+| ------------- | --------------------------------------------- |
+| `exec`        | Execute a command (uses existing `execute()`) |
+| `cas_put`     | Store data in CAS                             |
+| `policy_eval` | Evaluate policy rules                         |
+| `gate`        | Check condition, fail plan if false           |
 
 ### 10.3 Deterministic Scheduler Rules
 
@@ -693,12 +693,12 @@ If they differ, the execution was non-deterministic — this is a FAIL condition
 
 ## 12. Kernel vs View Layer Boundary
 
-| Layer | Responsibilities | Examples |
-|-------|-----------------|----------|
-| **Kernel** | Encoding, hashing, CAS, event log, capabilities, policy eval, metering, plan scheduling, receipts | C++ engine library |
-| **CLI Surface** | Parse args, call kernel, format output as envelope | `requiem doctor`, `requiem plan run` |
-| **API Surface** | HTTP route handling, request parsing, call kernel, envelope response | ReadyLayer API routes |
-| **View Layer** | UI rendering, state management, user interaction | ReadyLayer React components |
+| Layer           | Responsibilities                                                                                  | Examples                             |
+| --------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **Kernel**      | Encoding, hashing, CAS, event log, capabilities, policy eval, metering, plan scheduling, receipts | C++ engine library                   |
+| **CLI Surface** | Parse args, call kernel, format output as envelope                                                | `requiem doctor`, `requiem plan run` |
+| **API Surface** | HTTP route handling, request parsing, call kernel, envelope response                              | ReadyLayer API routes                |
+| **View Layer**  | UI rendering, state management, user interaction                                                  | ReadyLayer React components          |
 
 **Rule**: The view layer MUST NOT bypass the kernel. All mutations go through kernel functions. The view layer reads kernel state via CAS and event log queries.
 
@@ -706,20 +706,20 @@ If they differ, the execution was non-deterministic — this is a FAIL condition
 
 ## 13. Constants Summary
 
-| Constant | Value | Location |
-|----------|-------|----------|
-| `ENGINE_ABI_VERSION` | 2 | `version.hpp` |
-| `HASH_ALGORITHM_VERSION` | 1 | `version.hpp` |
-| `CAS_FORMAT_VERSION` | 2 | `version.hpp` |
-| `PROTOCOL_FRAMING_VERSION` | 1 | `version.hpp` |
-| `REPLAY_LOG_VERSION` | 1 | `version.hpp` |
-| `AUDIT_LOG_VERSION` | 1 | `version.hpp` |
-| `ENVELOPE_VERSION` | 1 | NEW |
-| `CAPABILITY_VERSION` | 1 | NEW |
-| `POLICY_VM_VERSION` | 1 | NEW |
-| `RECEIPT_VERSION` | 1 | NEW |
-| `PLAN_VERSION` | 1 | NEW |
-| `BUDGET_VERSION` | 1 | NEW |
+| Constant                   | Value | Location      |
+| -------------------------- | ----- | ------------- |
+| `ENGINE_ABI_VERSION`       | 2     | `version.hpp` |
+| `HASH_ALGORITHM_VERSION`   | 1     | `version.hpp` |
+| `CAS_FORMAT_VERSION`       | 2     | `version.hpp` |
+| `PROTOCOL_FRAMING_VERSION` | 1     | `version.hpp` |
+| `REPLAY_LOG_VERSION`       | 1     | `version.hpp` |
+| `AUDIT_LOG_VERSION`        | 1     | `version.hpp` |
+| `ENVELOPE_VERSION`         | 1     | NEW           |
+| `CAPABILITY_VERSION`       | 1     | NEW           |
+| `POLICY_VM_VERSION`        | 1     | NEW           |
+| `RECEIPT_VERSION`          | 1     | NEW           |
+| `PLAN_VERSION`             | 1     | NEW           |
+| `BUDGET_VERSION`           | 1     | NEW           |
 
 ---
 

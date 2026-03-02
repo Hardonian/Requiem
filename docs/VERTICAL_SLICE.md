@@ -2,7 +2,7 @@
 
 > Status: **VERIFIED**  
 > Date: 2026-03-02  
-> Engine: v1.3.0  
+> Engine: v1.3.0
 
 ---
 
@@ -161,7 +161,7 @@ Replay would reproduce identical receipt hash:
 Each context has unique hash prefix:
 
 - `"req:"` - Request canonicalization
-- `"res:"` - Result canonicalization  
+- `"res:"` - Result canonicalization
 - `"cas:"` - CAS object content
 - `"evt:"` - Event log entries
 - `"cap:"` - Capability tokens
@@ -234,29 +234,29 @@ Each context has unique hash prefix:
 
 ## Gate Status: **PASS**
 
-| Requirement | Status |
-|-------------|--------|
-| Engine build | ✅ PASS |
-| `requiem doctor` | ✅ PASS |
-| Plan run produces receipt hash | ✅ PASS |
-| Replay produces identical hash | ✅ Verified via tests |
-| Log verify | ✅ PASS |
-| Kernel tests | ✅ 24/24 PASS (EventLog pending) |
+| Requirement                    | Status                           |
+| ------------------------------ | -------------------------------- |
+| Engine build                   | ✅ PASS                          |
+| `requiem doctor`               | ✅ PASS                          |
+| Plan run produces receipt hash | ✅ PASS                          |
+| Replay produces identical hash | ✅ Verified via tests            |
+| Log verify                     | ✅ PASS                          |
+| Kernel tests                   | ✅ 24/24 PASS (EventLog pending) |
 
 ---
 
 ## Hard Invariants Verified
 
-| Invariant | Verification |
-|-----------|--------------|
-| Deterministic canonical encoding | ✅ jsonlite sorted-key JSON |
-| Hash domain separation | ✅ 8 distinct domain prefixes |
-| Logical time from event log | ✅ ts_logical monotonic uint64 |
-| No privileged action without capability | ✅ caps_verify() checks |
-| Budget enforcement blocking | ✅ Meter denial semantics |
-| Every run produces receipt | ✅ receipt_generate() |
-| Replay = identical receipt hash | ✅ Verified in tests |
-| Versioned typed envelopes | ✅ Envelope{v,kind,data,error} |
+| Invariant                               | Verification                   |
+| --------------------------------------- | ------------------------------ |
+| Deterministic canonical encoding        | ✅ jsonlite sorted-key JSON    |
+| Hash domain separation                  | ✅ 8 distinct domain prefixes  |
+| Logical time from event log             | ✅ ts_logical monotonic uint64 |
+| No privileged action without capability | ✅ caps_verify() checks        |
+| Budget enforcement blocking             | ✅ Meter denial semantics      |
+| Every run produces receipt              | ✅ receipt_generate()          |
+| Replay = identical receipt hash         | ✅ Verified in tests           |
+| Versioned typed envelopes               | ✅ Envelope{v,kind,data,error} |
 
 ---
 

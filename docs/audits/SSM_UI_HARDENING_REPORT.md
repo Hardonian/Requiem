@@ -37,9 +37,9 @@ The Semantic Ledger UI has proper loading, empty, and error states. However, it 
 
 ## Route Verification
 
-| Route | Loading | Empty | Error | Notes |
-|-------|---------|-------|-------|-------|
-| `/app/semantic-ledger` | ✅ | ✅ | ✅ | Uses stub data |
+| Route                  | Loading | Empty | Error | Notes          |
+| ---------------------- | ------- | ----- | ----- | -------------- |
+| `/app/semantic-ledger` | ✅      | ✅    | ✅    | Uses stub data |
 
 ---
 
