@@ -4,7 +4,6 @@
  * Sub-millisecond latency baseline for engine operations.
  */
 
-import { logger } from '../core/index.js';
 import type { CommandContext } from '../cli.js';
 import { getStorage } from '../db/sqlite-storage.js';
 import { performance } from 'perf_hooks';

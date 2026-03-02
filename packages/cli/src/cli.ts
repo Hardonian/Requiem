@@ -17,7 +17,7 @@ import { logger, enablePrettyLogs, formatHuman, isAppError, toJSONObject } from 
 const VERSION = '0.2.0';
 
 // Track command timing for perf metrics
-interface CommandContext {
+export interface CommandContext {
   startTime: number;
   command: string;
   args: string[];

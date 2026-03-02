@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-03-02T01:11:00.025Z",
+  "generatedAt": "2026-03-02T01:11:31.192Z",
   "version": {
     "packageVersion": "0.1.0",
     "cliVersion": "0.2.0",
@@ -92,6 +92,17 @@
     },
     {
       "name": "backup",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "bench",
       "flags": [
         {
           "name": "json",
@@ -514,6 +525,17 @@
     {
       "name": "explain",
       "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "fast-start",
       "flags": [
         {
           "name": "json",
