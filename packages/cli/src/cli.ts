@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * Requiem CLI — Provable AI Runtime
+ * Requiem CLI — Control Plane for AI Systems
  *
  * Binary aliases: `requiem` and `reach`
  *
  * Every execution is provable. Every outcome is replayable. Every policy is enforced.
+ * This is a control plane with invariants, not a wrapper, router, or dashboard.
  *
  * INVARIANT: All tool/replay operations use the same registry + executor.
  * INVARIANT: No duplicate logic between CLI and programmatic API.
@@ -49,6 +50,8 @@ export interface CommandContext {
   traceId: string;
   json: boolean;
   minimal: boolean;
+  explain: boolean;
+  trace: boolean;
 }
 
 function generateTraceId(): string {
@@ -58,45 +61,41 @@ function generateTraceId(): string {
 function printHelp(): void {
   // Help is allowed to use stdout directly - it's user-facing output
   process.stdout.write(`
-Requiem CLI v${VERSION}  ─  Provable AI Runtime
+Requiem CLI v${VERSION}  —  Control Plane for AI Systems
 
 USAGE:
   requiem <command> [options]
 
-CORE COMMANDS:
+CONTROL COMMANDS (Deterministic Execution):
   run <name> [input]                  Execute a tool with determinism proof
   verify <hash>                       Verify execution determinism
   replay run <id>                     Replay an execution with verification
   replay diff <run1> <run2>           Deterministic diff between two runs
   fingerprint <hash>                  Generate shareable execution proof
-  ui                                  Launch the web dashboard
-  quickstart                          10-minute proof: install, run, verify
 
-GOVERNANCE COMMANDS:
-  learn [--window=7d] [--format]      Show learning signals and diagnoses
-  realign <patch-id>                  Apply patch in new branch and verify
-  pivot plan <name>                   Plan a strategic pivot
-  rollback <sha|release>              Rollback to commit or release
-  symmetry [--economics]              Show symmetry metrics
-  economics [--alerts|--forecast]     Show economic metrics
-
-INSPECTION COMMANDS:
-  tool list [--json]                  List registered tools with determinism flags
+OBSERVABILITY COMMANDS:
   trace <id>                          Visualize decision trace
   stats                               Determinism rate, policy events, replay state
   status                              System health and enforcement state
   telemetry                           Real-time usage stats
 
-MICROFRACTURE SUITE (Proof Surfaces):
+PROOF SURFACE COMMANDS (Microfracture):
   diff <runA> <runB> [--format]       Deterministic diff between runs
   lineage <runId> [--depth=N]         Show run ancestry graph
   simulate <runId> --policy=<name>    Simulate policy evaluation
   drift --since=<runId> [--window]    Analyze behavior drift over time
   explain <runId> [--format=md|json]  Generate deterministic explanation
-  usage [--format]                    Show tenant usage summary
-  tenant-check [--format]             Verify tenant isolation
-  chaos --quick [--format]            Run chaos verification checks
   share <runId> [--ttl] [--scope]     Create shareable proof link
+  chaos --quick [--format]            Run chaos verification checks
+
+GOVERNANCE COMMANDS:
+  learn [--window=7d] [--format]      Show learning signals and diagnoses
+  realign <patch-id>                  Apply patch in new branch and verify
+  pivot plan <name>                   Plan a strategic pivot
+  symmetry [--economics]              Show symmetry metrics
+  economics [--alerts|--forecast]    Show economic metrics
+  usage [--format]                    Show tenant usage summary
+  tenant-check [--format]            Verify tenant isolation
 
 ENTERPRISE COMMANDS:
   decide evaluate --junction <id>     Evaluate a decision for a junction
@@ -107,20 +106,31 @@ ENTERPRISE COMMANDS:
   ai tools list                       List all registered AI tools
   ai skills run <name>                Run an AI skill
 
+TOOL MANAGEMENT:
+  tool list [--json]                  List registered tools with determinism flags
+  tool exec <name> --input <json>     Execute a specific tool
+
+DASHBOARD & SETUP:
+  ui                                  Launch the web dashboard
+  quickstart                          10-minute proof: install, run, verify
+  init                                Initialize configuration
+
 ADMIN COMMANDS:
   backup                              Dump database to JSON
   restore                             Restore database from JSON
   import                              Ingest decision logs from CSV
   nuke                                Clear database state
-  init                                Initialize configuration
   doctor                              Validate environment setup
   bugreport                           Generate diagnostic report
   selftest                            Run comprehensive self-diagnostic checks
-  fast-start [--minimal]              Cached skip of engine/DB checks
   bench                               Sub-millisecond latency baseline
+  fast-start [--minimal]              Cached skip of engine/DB checks
 
 OPTIONS:
   --json                              Output in JSON format
+  --minimal                           Quiet deterministic output
+  --explain                           Verbose structural reasoning
+  --trace                             Optional execution insight
   --help, -h                          Show help for a command
   --version, -v                       Show version information
 
@@ -135,7 +145,7 @@ EXAMPLES:
 }
 
 function printVersion(): void {
-  process.stdout.write(`Requiem CLI v${VERSION} — Provable AI Runtime\n`);
+  process.stdout.write(`Requiem CLI v${VERSION} — Control Plane for AI Systems\n`);
 }
 
 function printFingerprint(fpHash: string): void {
@@ -263,6 +273,8 @@ async function main(): Promise<number> {
   const subArgs = args.slice(1);
   const json = subArgs.includes('--json');
   const minimal = subArgs.includes('--minimal') || command === 'fast-start';
+  const explain = subArgs.includes('--explain');
+  const trace = subArgs.includes('--trace');
 
   const ctx: CommandContext = {
     startTime,
@@ -271,6 +283,8 @@ async function main(): Promise<number> {
     traceId,
     json,
     minimal,
+    explain,
+    trace,
   };
 
   try {

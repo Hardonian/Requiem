@@ -2,16 +2,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Enterprise | Requiem — Provable AI Runtime',
+  title: 'Enterprise | Requiem — Control Plane for AI Systems',
   description: 'Provable execution, enforced governance, and replayable outcomes for enterprise AI. SOC 2 controls, signed artifacts, and SLA-backed determinism.',
   openGraph: {
-    title: 'Requiem Enterprise — Provable AI Runtime',
+    title: 'Requiem Enterprise — Control Plane for AI Systems',
     description: 'Every AI decision provable. Every outcome replayable. Every policy enforced. SOC 2 ready.',
     url: 'https://readylayer.com/enterprise',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Requiem Enterprise — Provable AI Runtime',
+    title: 'Requiem Enterprise — Control Plane for AI Systems',
     description: 'Deterministic AI execution with enforced governance and replayable outcomes.',
   },
 };
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 const guarantees = [
   {
     title: 'Provable Execution',
-    body: 'Every AI decision produces a cryptographic proof via BLAKE3 domain-separated hashing. Identical inputs produce identical result_digests across runs, workers, and time. Verified by 200x repeat gates in CI.',
+    body: 'Every AI decision produces a cryptographic proof via BLAKE3 domain-separated hashing. Identical inputs produce identical result_digests across runs, workers, and time. Verified by 200× repeat gates in CI.',
   },
   {
     title: 'Enforced Governance',
@@ -100,10 +100,10 @@ export default function EnterprisePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <section className="bg-gradient-to-b from-gray-900 to-gray-800 text-white py-24">
+      <section className="bg-gray-900 text-white py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-sm font-mono text-gray-400 mb-4 tracking-wider">PROVABLE AI RUNTIME</p>
+            <p className="text-sm font-mono text-gray-400 mb-4 tracking-wider">CONTROL PLANE FOR AI SYSTEMS</p>
             <h1 className="text-5xl font-bold mb-6">
               Every AI decision. Provable.
             </h1>
@@ -113,7 +113,7 @@ export default function EnterprisePage() {
               is caught before it ships.
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              Not a prompt router. Not a workflow engine. Not a Git wrapper.
+              Not a prompt router. Not a workflow engine. Not a Git wrapper. A control plane with invariants.
             </p>
             <div className="flex gap-4 justify-center">
               <Link
@@ -145,6 +145,36 @@ export default function EnterprisePage() {
                 <p className="text-sm text-gray-600 leading-relaxed">{g.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Architecture Diagram Placeholder */}
+      <section className="py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Data Flow</h2>
+          <p className="text-gray-500 text-center mb-8">Request → Gate → Execution → Proof → Storage</p>
+          <div className="bg-gray-100 rounded-xl p-12 border-2 border-dashed border-gray-300">
+            <div className="flex items-center justify-center gap-4">
+              {[
+                { label: 'Request', color: 'bg-blue-500' },
+                { label: 'Policy Gate', color: 'bg-purple-500' },
+                { label: 'Execution', color: 'bg-green-500' },
+                { label: 'Proof', color: 'bg-amber-500' },
+                { label: 'CAS Storage', color: 'bg-gray-500' },
+              ].map((step, i) => (
+                <div key={step.label} className="flex items-center">
+                  <div className={`${step.color} text-white px-4 py-2 rounded-lg font-medium text-sm`}>
+                    {step.label}
+                  </div>
+                  {i < 4 && <span className="mx-2 text-gray-400">→</span>}
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-gray-500 text-sm mt-8">
+              Every request flows through the policy gate. Every execution produces a proof.
+              Every proof is stored in CAS. Nothing bypasses the invariants.
+            </p>
           </div>
         </div>
       </section>
