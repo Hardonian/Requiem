@@ -3,8 +3,17 @@
 # Requiem Environment Doctor
 # Validates all required dependencies for building and running Requiem
 #
+# Usage:
+#   ./doctor.sh          # Run all checks and print human-readable output
+#   ./doctor.sh --json  # Output results as JSON for machine parsing
+#
 
 set -e
+
+JSON_OUTPUT=false
+if [[ "${1:-}" == "--json" ]]; then
+  JSON_OUTPUT=true
+fi
 
 ERR_MISSING_DEP=1
 ERR_VERSION_MISMATCH=2
@@ -18,16 +27,34 @@ NC='\033[0m' # No Color
 check_passed=0
 check_failed=0
 
+# JSON array for results
+results_json="[]"
+
 log_info() {
-  echo -e "${GREEN}[INFO]${NC} $1"
+  if [ "$JSON_OUTPUT" = false ]; then
+    echo -e "${GREEN}[INFO]${NC} $1"
+  fi
 }
 
 log_warn() {
-  echo -e "${YELLOW}[WARN]${NC} $1"
+  if [ "$JSON_OUTPUT" = false ]; then
+    echo -e "${YELLOW}[WARN]${NC} $1"
+  fi
 }
 
 log_error() {
-  echo -e "${RED}[ERROR]${NC} $1"
+  if [ "$JSON_OUTPUT" = false ]; then
+    echo -e "${RED}[ERROR]${NC} $1"
+  fi
+}
+
+add_result() {
+  local status=$1
+  local name=$2
+  local message=$3
+  if [ "$JSON_OUTPUT" = true ]; then
+    results_json=$(echo "$results_json" | jq --argjson s "$status" --arg n "$name" --arg m "$message" '. += [{"status": $s, "check": $n, "message": $m}]')
+  fi
 }
 
 check_command() {
@@ -183,14 +210,18 @@ echo ""
 
 # Summary
 echo "====================================="
-echo "Summary: $check_passed passed, $check_failed failed"
-echo "====================================="
-
-if [ $check_failed -eq 0 ]; then
-  log_info "All required dependencies are satisfied!"
-  exit 0
+if [ "$JSON_OUTPUT" = true ]; then
+  echo "{\"passed\": $check_passed, \"failed\": $check_failed, \"results\": $results_json}"
 else
-  log_error "Some required dependencies are missing or incorrect versions"
-  log_info "Please install missing dependencies before proceeding"
-  exit $ERR_MISSING_DEP
+  echo "Summary: $check_passed passed, $check_failed failed"
+  echo "====================================="
+
+  if [ $check_failed -eq 0 ]; then
+    log_info "All required dependencies are satisfied!"
+    exit 0
+  else
+    log_error "Some required dependencies are missing or incorrect versions"
+    log_info "Please install missing dependencies before proceeding"
+    exit $ERR_MISSING_DEP
+  fi
 fi

@@ -13,6 +13,7 @@
 #include "../include/requiem/cas.hpp"
 #include "../include/requiem/caps.hpp"
 #include "../include/requiem/event_log.hpp"
+#include "../include/requiem/metering.hpp"
 #include "../include/requiem/cluster.hpp"
 #include "../include/requiem/debugger.hpp"
 #include "../include/requiem/diagnostics.hpp"
@@ -1411,6 +1412,10 @@ int main(int argc, char **argv) {
   }
 
   // ---------------------------------------------------------------------------
+  // Budget commands — set, show, reset-window
+  // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
   // Phase A: reach replay verify
   // Persona: Security Auditor, SRE. Verifies a stored execution replay.
   // Returns structured JSON with verification status and mismatch details.
@@ -1903,5 +1908,6 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  return 1;
-}
+  // ---------------------------------------------------------------------------
+  // Budget commands — set, show, reset-window
+  // ---------------------------------------------------------------------------
