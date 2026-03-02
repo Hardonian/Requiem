@@ -2321,7 +2321,7 @@ int main(int argc, char **argv) {
     std::string data;
     data += "{\"ok\":true";
     data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(tenant) + "\"";
-    data += ",\"budgets\":{" exec ":{" limit\":" +
+    data += ",\"budgets\":{\"exec\":{\"limit\":" +
             std::to_string(budget.exec_limit);
     data += ",\"used\":" + std::to_string(budget.exec_used);
     data += ",\"remaining\":" + std::to_string(budget.exec_remaining) + "}";
@@ -2385,16 +2385,12 @@ int main(int argc, char **argv) {
     auto receipt = requiem::receipt_get_by_hash(receipt_hash);
     std::string data;
     data += "{\"ok\":true";
-    data += ",\"receipt\":{" receipt_version\":" +
+    data += ",\"receipt\":{\"receipt_version\":" +
             std::to_string(receipt.receipt_version);
-    data += ",\"operation\":\"" + receipt.operation + "\"";
-    data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(receipt.tenant_id) +
-            "\"";
+    data += ",\"run_id\":\"" + receipt.run_id + "\"";
+    data += ",\"plan_hash\":\"" + receipt.plan_hash + "\"";
     data += ",\"request_digest\":\"" + receipt.request_digest + "\"";
-    data += ",\"units_charged\":" + std::to_string(receipt.units_charged);
-    data += ",\"budget_before\":" + std::to_string(receipt.budget_before);
-    data += ",\"budget_after\":" + std::to_string(receipt.budget_after);
-    data += ",\"denied\":" + std::string(receipt.denied ? "true" : "false");
+    data += ",\"result_digest\":\"" + receipt.result_digest + "\"";
     data += ",\"receipt_hash\":\"" + receipt.receipt_hash + "\"";
     data += ",\"event_log_seq\":" + std::to_string(receipt.event_log_seq);
     data += "}}";

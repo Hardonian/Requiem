@@ -1,8 +1,19 @@
 #include "requiem/receipt.hpp"
 #include "requiem/hash.hpp"
 #include "requiem/jsonlite.hpp"
+#include "requiem/version.hpp"
 
 namespace requiem {
+
+// ---------------------------------------------------------------------------// Compute engine fingerprint: H(kernel_version || schema_version || hash_algo_version)
+// This binds the receipt to the specific engine state that produced it.
+// ---------------------------------------------------------------------------
+static std::string compute_engine_fingerprint() {
+  std::string input = std::to_string(version::ENGINE_ABI_VERSION) + "|" +
+                      std::to_string(version::HASH_ALGORITHM_VERSION) + "|" +
+                      std::to_string(version::CAS_FORMAT_VERSION);
+  return hash_domain("fgrp:", input);
+}
 
 // ---------------------------------------------------------------------------
 // Hash computation
@@ -11,6 +22,7 @@ namespace requiem {
 std::string receipt_compute_hash(const Receipt &receipt) {
   // Canonical JSON of all fields EXCEPT receipt_hash.
   jsonlite::Object obj;
+  obj["engine_fingerprint"] = receipt.engine_fingerprint;
   obj["event_log_prev"] = receipt.event_log_prev;
   obj["event_log_seq"] = receipt.event_log_seq;
   obj["plan_hash"] = receipt.plan_hash;
@@ -49,6 +61,8 @@ Receipt receipt_generate(const std::string &run_id,
   receipt.step_digests = step_digests;
   receipt.event_log_seq = event_log_seq;
   receipt.event_log_prev = event_log_prev;
+  // Bind receipt to engine state
+  receipt.engine_fingerprint = compute_engine_fingerprint();
   receipt.receipt_hash = receipt_compute_hash(receipt);
 
   return receipt;
@@ -63,6 +77,14 @@ ReceiptVerifyResult receipt_verify(const Receipt &receipt) {
 
   if (receipt.receipt_version != 1) {
     result.error = "unsupported_receipt_version";
+    return result;
+  }
+
+  // Verify engine fingerprint matches current engine state
+  std::string current_fingerprint = compute_engine_fingerprint();
+  if (receipt.engine_fingerprint != current_fingerprint) {
+    result.error = "engine_fingerprint_mismatch: expected=" + current_fingerprint +
+                   " actual=" + receipt.engine_fingerprint;
     return result;
   }
 
@@ -83,6 +105,7 @@ ReceiptVerifyResult receipt_verify(const Receipt &receipt) {
 
 std::string receipt_to_json(const Receipt &receipt) {
   jsonlite::Object obj;
+  obj["engine_fingerprint"] = receipt.engine_fingerprint;
   obj["event_log_prev"] = receipt.event_log_prev;
   obj["event_log_seq"] = receipt.event_log_seq;
   obj["plan_hash"] = receipt.plan_hash;
@@ -113,6 +136,7 @@ Receipt receipt_from_json(const std::string &json) {
   receipt.event_log_seq = jsonlite::get_u64(obj, "event_log_seq", 0);
   receipt.event_log_prev = jsonlite::get_string(obj, "event_log_prev", "");
   receipt.receipt_hash = jsonlite::get_string(obj, "receipt_hash", "");
+  receipt.engine_fingerprint = jsonlite::get_string(obj, "engine_fingerprint", "");
   receipt.step_digests = jsonlite::get_string_map(obj, "step_digests");
 
   return receipt;

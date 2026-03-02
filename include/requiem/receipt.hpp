@@ -26,6 +26,9 @@ struct Receipt {
   std::string event_log_prev;
   std::string
       receipt_hash; // H("rcpt:", canonical_json(this_without_receipt_hash))
+  // Engine fingerprint: cryptographic binding to engine state
+  // H(kernel_version || schema_version || hash_algo_version)
+  std::string engine_fingerprint;
 };
 
 // Generate a receipt from execution data.
