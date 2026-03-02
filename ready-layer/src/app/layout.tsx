@@ -32,6 +32,16 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Requiem — Provable AI Runtime',
+    description: 'Deterministic AI execution with cryptographic proof.',
+    creator: '@hardonian',
+    site: '@hardonian',
+  },
+  alternates: {
+    canonical: '/',
+  },
   robots: {
     index: true,
     follow: true,
@@ -59,6 +69,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="antialiased">
       <body className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              'name': 'Requiem',
+              'operatingSystem': 'Linux, Windows, macOS',
+              'applicationCategory': 'DeveloperApplication',
+              'description': 'Provable AI Runtime for deterministic agent execution.',
+              'offers': {
+                '@type': 'Offer',
+                'price': '0',
+                'priceCurrency': 'USD',
+              },
+            }),
+          }}
+        />
         {children}
       </body>
     </html>

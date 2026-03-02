@@ -1,13 +1,13 @@
 /**
  * @fileoverview Doctor Self-Healing Operator
- * 
+ *
  * Enhanced doctor command that:
  * - Runs SQLite integrity_check
  * - Performs backup + VACUUM
- * - Detects orphaned CAS objects
+ * - Detects orphaned CAS artifacts
  * - Validates config schema
  * - Validates runtime versions
- * - Produces redacted support bundle
+ * - Produces redacted support manifest
  * - Exits with structured status
  */
 
@@ -66,13 +66,13 @@ async function checkDatabaseVacuum(storage: SQLiteStorage): Promise<DoctorCheck>
     const beforeStats = storage.getStats();
     storage.vacuum();
     const afterStats = storage.getStats();
-    
+
     const spaceFreed = beforeStats.bytes - afterStats.bytes;
-    
+
     return {
       name: 'Database Optimization',
       status: spaceFreed > 1000 ? 'warn' : 'ok',
-      message: spaceFreed > 1000 
+      message: spaceFreed > 1000
         ? `Freed ${(spaceFreed / 1024).toFixed(1)}KB`
         : 'Database is optimized',
       details: { before: beforeStats.bytes, after: afterStats.bytes },
@@ -93,7 +93,7 @@ async function checkCASConsistency(): Promise<DoctorCheck> {
   try {
     const paths = getPathConfigFromEnv();
     const casDir = paths.casDir;
-    
+
     if (!fs.existsSync(casDir)) {
       return {
         name: 'CAS Consistency',
@@ -118,7 +118,7 @@ async function checkCASConsistency(): Promise<DoctorCheck> {
     let totalObjects = 0;
     let totalSize = 0;
     let orphanedMeta = 0;
-    
+
     const subdirs = fs.readdirSync(objectsDir).filter(f => f.length === 2);
     for (const subdir of subdirs) {
       const subdirPath = path.join(objectsDir, subdir);
@@ -145,7 +145,7 @@ async function checkCASConsistency(): Promise<DoctorCheck> {
     return {
       name: 'CAS Consistency',
       status: orphanedMeta > 0 ? 'warn' : 'ok',
-      message: `${totalObjects} objects, ${(totalSize / 1024).toFixed(1)}KB${orphanedMeta > 0 ? `, ${orphanedMeta} orphaned metadata` : ''}`,
+      message: `${totalObjects} artifacts, ${(totalSize / 1024).toFixed(1)}KB${orphanedMeta > 0 ? `, ${orphanedMeta} orphaned metadata` : ''}`,
       details: { totalObjects, totalSize, orphanedMeta },
     };
   } catch (e) {
@@ -163,19 +163,19 @@ async function checkCASConsistency(): Promise<DoctorCheck> {
 async function checkConfigSchema(): Promise<DoctorCheck> {
   try {
     const config = readConfig();
-    
+
     // Check required fields
     const hasTenantId = !!config.defaultTenantId;
     const hasEngineMode = !!config.engineMode;
-    
+
     const issues: string[] = [];
     if (!hasTenantId) issues.push('missing defaultTenantId');
     if (!hasEngineMode) issues.push('missing engineMode');
-    
+
     return {
       name: 'Configuration Schema',
       status: issues.length > 0 ? 'warn' : 'ok',
-      message: issues.length > 0 
+      message: issues.length > 0
         ? `Config incomplete: ${issues.join(', ')}`
         : 'Configuration valid',
       details: { config },
@@ -197,11 +197,11 @@ async function checkRuntimeVersions(): Promise<DoctorCheck> {
     const nodeVersion = process.version;
     const platform = os.platform();
     const arch = os.arch();
-    
+
     // Check Node version compatibility
     const majorVersion = parseInt(nodeVersion.replace('v', '').split('.')[0]);
     const isCompatible = majorVersion >= 20;
-    
+
     return {
       name: 'Runtime Versions',
       status: isCompatible ? 'ok' : 'fail',
@@ -267,7 +267,7 @@ async function checkConfiguration(): Promise<DoctorCheck> {
   try {
     const config = readConfig();
     const isConfigured = !!config.defaultTenantId;
-    
+
     return {
       name: 'Configuration',
       status: 'ok',
@@ -291,18 +291,18 @@ async function createSupportBundle(): Promise<string> {
   const paths = getPathConfigFromEnv();
   const bundleDir = path.join(paths.dataDir, 'support-bundles');
   ensureDir(bundleDir);
-  
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const bundleId = crypto.randomBytes(8).toString('hex');
-  const bundlePath = path.join(bundleDir, `support-bundle-${timestamp}-${bundleId}.json`);
-  
+  const manifestPath = path.join(bundleDir, `support-manifest-${timestamp}-${bundleId}.json`);
+
   const bundle = {
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     platform: os.platform(),
     arch: os.arch(),
     nodeVersion: process.version,
-    
+
     // Database stats
     database: (() => {
       try {
@@ -315,7 +315,7 @@ async function createSupportBundle(): Promise<string> {
         return { error: 'unavailable' };
       }
     })(),
-    
+
     // Config (redacted)
     config: (() => {
       try {
@@ -333,10 +333,10 @@ async function createSupportBundle(): Promise<string> {
         return { error: 'unavailable' };
       }
     })(),
-    
+
     // Paths
     paths,
-    
+
     // Environment (redacted)
     env: (() => {
       const redacted: Record<string, string> = {};
@@ -350,9 +350,9 @@ async function createSupportBundle(): Promise<string> {
       return redacted;
     })(),
   };
-  
-  fs.writeFileSync(bundlePath, JSON.stringify(bundle, null, 2));
-  return bundlePath;
+
+  fs.writeFileSync(manifestPath, JSON.stringify(bundle, null, 2));
+  return manifestPath;
 }
 
 /**
@@ -360,9 +360,9 @@ async function createSupportBundle(): Promise<string> {
  */
 export async function runDoctor(options: { json: boolean; fix?: boolean }): Promise<number> {
   const checks: DoctorCheck[] = [];
-  
+
   // Initialize storage
-  let storage: SQLiteStorage;
+  let storage: SQLiteStorage | null = null;
   try {
     storage = getStorage();
     storage.initialize();
@@ -373,23 +373,23 @@ export async function runDoctor(options: { json: boolean; fix?: boolean }): Prom
       message: `Failed to initialize storage: ${(e as Error).message}`,
     });
   }
-  
+
   // Run all checks
   checks.push(await checkEngine());
   checks.push(await checkTelemetry());
   checks.push(await checkConfiguration());
-  
+
   if (storage) {
     checks.push(await checkDatabaseIntegrity(storage));
     if (options.fix) {
       checks.push(await checkDatabaseVacuum(storage));
     }
   }
-  
+
   checks.push(await checkCASConsistency());
   checks.push(await checkConfigSchema());
   checks.push(await checkRuntimeVersions());
-  
+
   // Create support bundle if requested
   let bundlePath: string | undefined;
   if (options.fix) {
@@ -403,12 +403,12 @@ export async function runDoctor(options: { json: boolean; fix?: boolean }): Prom
       });
     }
   }
-  
+
   // Determine overall status
   const hasFail = checks.some(c => c.status === 'fail');
   const hasWarn = checks.some(c => c.status === 'warn');
   const status: 'healthy' | 'degraded' | 'unhealthy' = hasFail ? 'unhealthy' : hasWarn ? 'degraded' : 'healthy';
-  
+
   const result: DoctorResult = {
     version: '1.0.0',
     timestamp: new Date().toISOString(),
@@ -417,26 +417,26 @@ export async function runDoctor(options: { json: boolean; fix?: boolean }): Prom
     checks,
     bundlePath,
   };
-  
+
   if (options.json) {
     console.log(JSON.stringify(result, null, 2));
   } else {
     console.log('\n🩺 REQUIEM DOCTOR\n');
     console.log(`Status: ${status.toUpperCase()}\n`);
-    
+
     for (const check of checks) {
       const icon = check.status === 'ok' ? '✓' : check.status === 'warn' ? '⚠' : '✗';
       const statusIcon = icon + ' ';
       console.log(`${statusIcon}${check.name.padEnd(22)} ${check.message}`);
     }
-    
+
     if (bundlePath) {
-      console.log(`\n📦 Support bundle: ${bundlePath}`);
+      console.log(`\n📦 Support Manifest: ${bundlePath}`);
     }
-    
+
     console.log('');
   }
-  
+
   return hasFail ? 1 : 0;
 }
 

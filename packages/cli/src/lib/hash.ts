@@ -2,19 +2,20 @@
  * Hash utilities for deterministic operations
  */
 
-import { createHash } from 'crypto';
+import { hash as blake3Hash } from 'blake3';
 
 /**
  * Create a deterministic hash of input data
- * Uses SHA-256 for compatibility across platforms
+ * Uses BLAKE3 to match the native engine's hashing logic.
  */
-export function hash(data: string): string {
-  return createHash('sha256').update(data).digest('hex');
+export function hash(data: string | Buffer): string {
+  const content = typeof data === 'string' ? Buffer.from(data) : data;
+  return blake3Hash(content).toString('hex');
 }
 
 /**
  * Create a short hash (first 16 characters)
  */
-export function hashShort(data: string): string {
+export function hashShort(data: string | Buffer): string {
   return hash(data).substring(0, 16);
 }

@@ -1,0 +1,1037 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-03-02T01:11:00.025Z",
+  "version": {
+    "packageVersion": "0.1.0",
+    "cliVersion": "0.2.0",
+    "schemaVersion": "1.0.0",
+    "compatibilityMatrix": "cli-0.2.0"
+  },
+  "commands": [
+    {
+      "name": "agent",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        },
+        {
+          "name": "tenantId",
+          "type": "string"
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "serve",
+          "flags": [
+            {
+              "name": "tenantId",
+              "type": "string"
+            },
+            {
+              "name": "json",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ai",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        },
+        {
+          "name": "subCommand",
+          "type": "string"
+        },
+        {
+          "name": "skillName",
+          "type": "string"
+        },
+        {
+          "name": "toolName",
+          "type": "string"
+        },
+        {
+          "name": "tenantId",
+          "type": "string"
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "tools",
+          "flags": [
+            {
+              "name": "subCommand",
+              "type": "string"
+            },
+            {
+              "name": "skillName",
+              "type": "string"
+            },
+            {
+              "name": "toolName",
+              "type": "string"
+            },
+            {
+              "name": "json",
+              "type": "boolean"
+            },
+            {
+              "name": "tenantId",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "backup",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "bugreport",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "chaos",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "config",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "decide",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        },
+        {
+          "name": "tenantId",
+          "type": "string"
+        },
+        {
+          "name": "junctionId",
+          "type": "string"
+        },
+        {
+          "name": "decisionId",
+          "type": "string"
+        },
+        {
+          "name": "notes",
+          "type": "string"
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "evaluate",
+          "flags": [
+            {
+              "name": "tenantId",
+              "type": "string"
+            },
+            {
+              "name": "junctionId",
+              "type": "string"
+            },
+            {
+              "name": "decisionId",
+              "type": "string"
+            },
+            {
+              "name": "notes",
+              "type": "string"
+            },
+            {
+              "name": "json",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "diff",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        },
+        {
+          "name": "graph",
+          "description": "Include graph diff visualization",
+          "required": false,
+          "type": "boolean"
+        },
+        {
+          "name": "card",
+          "description": "Print local URL for diff card view",
+          "required": false,
+          "type": "boolean"
+        },
+        {
+          "name": "share",
+          "description": "Create shareable link and print URL",
+          "required": false,
+          "type": "boolean"
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "lineage",
+          "description": "Show run lineage (parent/child relationships)",
+          "arguments": [
+            {
+              "name": "runId",
+              "required": true,
+              "description": "Run ID to analyze"
+            }
+          ],
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "depth",
+              "alias": "d",
+              "description": "Maximum depth to traverse",
+              "required": false,
+              "defaultValue": "10",
+              "type": "string"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "simulate",
+          "description": "Simulate policy evaluation for a run",
+          "arguments": [
+            {
+              "name": "runId",
+              "required": true,
+              "description": "Run ID to simulate"
+            }
+          ],
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "drift",
+          "description": "Analyze drift from a baseline run",
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "since",
+              "alias": "s",
+              "description": "Baseline run ID",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "explain",
+          "description": "Generate deterministic explanation for a run",
+          "arguments": [
+            {
+              "name": "runId",
+              "required": true,
+              "description": "Run ID to explain"
+            }
+          ],
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "usage",
+          "description": "Show usage summary for current tenant",
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "tenant-check",
+          "description": "Verify tenant isolation and boundary integrity",
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "chaos",
+          "description": "Run chaos/quick verification checks",
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "share",
+          "description": "Create a shareable link for a run or diff",
+          "arguments": [
+            {
+              "name": "runId",
+              "required": true,
+              "description": "Run ID to share"
+            }
+          ],
+          "flags": [
+            {
+              "name": "graph",
+              "description": "Include graph diff visualization",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "card",
+              "description": "Print local URL for diff card view",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "share",
+              "description": "Create shareable link and print URL",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "with",
+              "alias": "w",
+              "description": "Second run ID for diff sharing",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "name": "ttl",
+              "alias": "t",
+              "description": "Token TTL in hours",
+              "required": false,
+              "defaultValue": "24",
+              "type": "string"
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "doctor",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "drift",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "economics",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "explain",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "fingerprint",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "import",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "init",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "junctions",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        },
+        {
+          "name": "since",
+          "type": "string"
+        },
+        {
+          "name": "junctionType",
+          "type": "string"
+        },
+        {
+          "name": "minSeverity",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "type": "number"
+        },
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "scan",
+          "flags": [
+            {
+              "name": "since",
+              "type": "string"
+            },
+            {
+              "name": "json",
+              "type": "boolean"
+            },
+            {
+              "name": "junctionType",
+              "type": "string"
+            },
+            {
+              "name": "minSeverity",
+              "type": "number"
+            },
+            {
+              "name": "limit",
+              "type": "number"
+            },
+            {
+              "name": "id",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "learn",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "lineage",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "nuke",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "pivot",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "quickstart",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "realign",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "replay",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "run",
+          "description": "Replay a specific run by ID with determinism verification",
+          "arguments": [
+            {
+              "name": "runId",
+              "required": true,
+              "description": "Run ID to replay"
+            }
+          ],
+          "flags": [
+            {
+              "name": "verbose",
+              "alias": "v",
+              "description": "Verbose output",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "verify",
+              "description": "Verify determinism by re-running logic locally",
+              "required": false,
+              "type": "boolean"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "list",
+          "description": "List available runs for replay",
+          "flags": [
+            {
+              "name": "limit",
+              "alias": "l",
+              "description": "Limit number of results",
+              "required": false,
+              "defaultValue": "10",
+              "type": "string"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "diff",
+          "description": "Deterministic diff between two AI runs — proves equivalence or shows divergence",
+          "arguments": [
+            {
+              "name": "run1",
+              "required": true,
+              "description": "First run ID"
+            },
+            {
+              "name": "run2",
+              "required": true,
+              "description": "Second run ID"
+            }
+          ],
+          "flags": [
+            {
+              "name": "json",
+              "description": "Output in JSON format",
+              "required": false,
+              "type": "boolean"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "export",
+          "description": "Export run data with provenance metadata",
+          "arguments": [
+            {
+              "name": "runId",
+              "required": true,
+              "description": "Run ID to export"
+            }
+          ],
+          "flags": [],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "restore",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "rollback",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "run",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "share",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "simulate",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "stats",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "status",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "stress",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "symmetry",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "telemetry",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "tenant-check",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "tool",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        },
+        {
+          "name": "capability",
+          "type": "string"
+        },
+        {
+          "name": "tenantScoped",
+          "type": "boolean"
+        },
+        {
+          "name": "deterministic",
+          "type": "boolean"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "trace",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "ui",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "usage",
+      "category": "microfracture",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "verify",
+      "flags": [
+        {
+          "name": "json",
+          "type": "boolean",
+          "description": "Output in JSON format"
+        }
+      ],
+      "subcommands": []
+    }
+  ],
+  "exports": {
+    "main": [
+      {
+        "name": "* from ./core/index.js",
+        "kind": "export-all"
+      },
+      {
+        "name": "VERSION",
+        "kind": "const"
+      }
+    ],
+    "core": []
+  },
+  "exitCodes": [
+    {
+      "code": 0,
+      "name": "SUCCESS",
+      "description": "Success"
+    },
+    {
+      "code": 1,
+      "name": "FAILURE",
+      "description": "Generic failure"
+    },
+    {
+      "code": 2,
+      "name": "USAGE_ERROR",
+      "description": "Usage error - invalid arguments or command syntax"
+    },
+    {
+      "code": 3,
+      "name": "CONFIG_ERROR",
+      "description": "Configuration error - invalid or missing configuration"
+    },
+    {
+      "code": 4,
+      "name": "NETWORK_ERROR",
+      "description": "Network error - provider unavailable or connection failed"
+    },
+    {
+      "code": 5,
+      "name": "POLICY_DENIED",
+      "description": "Policy denied - quota exceeded or capability not allowed"
+    },
+    {
+      "code": 6,
+      "name": "SIGNATURE_FAILED",
+      "description": "Signature verification failed"
+    },
+    {
+      "code": 7,
+      "name": "REPLAY_DRIFT",
+      "description": "Replay drift - determinism invariant violated"
+    },
+    {
+      "code": 8,
+      "name": "SYSTEM_ERROR",
+      "description": "System error - resource exhaustion or internal error"
+    },
+    {
+      "code": 9,
+      "name": "TIMEOUT",
+      "description": "Timeout - operation exceeded time limit"
+    }
+  ]
+}

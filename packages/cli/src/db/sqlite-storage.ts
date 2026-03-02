@@ -1,6 +1,6 @@
 /**
  * @fileoverview SQLite Storage Provider
- * 
+ *
  * Provides normalized SQLite persistence with:
  * - WAL mode for concurrent access
  * - Synchronous=NORMAL for performance
@@ -8,7 +8,7 @@
  * - Schema version tracking
  * - Migration framework
  * - In-memory mode support (--memory, --dry-run)
- * 
+ *
  * CONFIG → config.toml (human editable)
  * STATE → SQLite on-disk (WAL mode)
  * BLOBS → CAS directory (hash-addressed)
@@ -35,7 +35,7 @@ export interface SchemaVersion {
 const DEFAULT_DATA_DIR = path.join(os.homedir(), '.requiem', 'data');
 
 // Schema version - bump this when schema changes
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
 
 export class SQLiteStorage {
   private db: Database.Database | null = null;
@@ -57,8 +57,8 @@ export class SQLiteStorage {
   initialize(): void {
     if (this.db) return;
 
-    const dbPath = this.config.memory 
-      ? ':memory:' 
+    const dbPath = this.config.memory
+      ? ':memory:'
       : path.join(this.config.dataDir, 'requiem.db');
 
     // Ensure directory exists for non-memory databases
@@ -127,9 +127,13 @@ export class SQLiteStorage {
 
     const currentVersion = current?.version || 0;
 
-    // Apply migrations
-    if (currentVersion < 1) {
-      this.migrationV1();
+    // Dynamically apply migrations up to CURRENT_SCHEMA_VERSION
+    for (let v = currentVersion + 1; v <= CURRENT_SCHEMA_VERSION; v++) {
+      const migrationName = `migrationV${v}` as keyof this;
+      if (typeof this[migrationName] === 'function') {
+        const migrationFn = this[migrationName] as () => void;
+        migrationFn.call(this);
+      }
     }
 
     // Future migrations go here
@@ -375,6 +379,72 @@ export class SQLiteStorage {
   }
 
   /**
+   * Migration V2: Entropy Collapse optimization
+   */
+  private migrationV2(): void {
+    if (!this.db) return;
+
+    // Runs table: explicitly track run lifecycles and policy snapshots
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS runs (
+        run_id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        policy_snapshot_hash TEXT,
+        status TEXT,
+        metadata_json TEXT,
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+      )
+    `);
+
+    // Artifacts table: SQLite shadow for CAS metadata tracking
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS artifacts (
+        hash TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        size_bytes INTEGER NOT NULL,
+        mime_type TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+      )
+    `);
+
+    // Ledger table: Immutable accounting and audit trail
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS ledger (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        timestamp TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        description TEXT,
+        metadata_json TEXT,
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+      )
+    `);
+
+    // Add policy_snapshot_hash to decisions for audit traceability
+    try {
+      this.db.exec('ALTER TABLE decisions ADD COLUMN policy_snapshot_hash TEXT');
+    } catch (e) {
+      // Ignore if column already exists (safeguard for non-transactional DDL)
+    }
+
+    // Create requested indexes for O(1) or O(log N) lookups
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_runs_run_id ON runs(run_id);
+      CREATE INDEX IF NOT EXISTS idx_artifacts_hash ON artifacts(hash);
+      CREATE INDEX IF NOT EXISTS idx_ledger_timestamp ON ledger(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_decisions_policy_hash ON decisions(policy_snapshot_hash);
+    `);
+
+    // Record migration
+    this.db.prepare(`
+      INSERT INTO schema_version (version, applied_at, description)
+      VALUES (2, ?, 'Entropy Collapse optimization')
+    `).run(new Date().toISOString());
+  }
+
+  /**
    * Get current schema version
    */
   getSchemaVersion(): number {
@@ -390,10 +460,10 @@ export class SQLiteStorage {
    */
   integrityCheck(): { ok: boolean; errors: string[] } {
     if (!this.db) this.initialize();
-    
+
     const result = this.db!.prepare('PRAGMA integrity_check').all() as { integrity_check: string }[];
     const ok = result.every(r => r.integrity_check === 'ok');
-    
+
     return {
       ok,
       errors: ok ? [] : result.filter(r => r.integrity_check !== 'ok').map(r => r.integrity_check),
@@ -416,7 +486,7 @@ export class SQLiteStorage {
     const result = this.db!.prepare('PRAGMA page_count').get() as { page_count: number };
     const freelist = this.db!.prepare('PRAGMA freelist_count').get() as { freelist_count: number };
     const bytes = this.db!.prepare('PRAGMA page_size').get() as { page_size: number };
-    
+
     return {
       pageCount: result.page_count,
       freelistCount: freelist.freelist_count,
@@ -454,6 +524,6 @@ export function resetStorage(): void {
 export function createStorageFromConfig(): SQLiteStorage {
   const memory = process.env.REQUIEM_MEMORY === 'true';
   const dataDir = process.env.REQUIEM_DATA_DIR || DEFAULT_DATA_DIR;
-  
+
   return new SQLiteStorage({ dataDir, memory });
 }

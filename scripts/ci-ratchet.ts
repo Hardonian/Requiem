@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * SECTION 8 — CI "RATCHET" MODE (CONTINUOUS IMPROVEMENT WITHOUT PAIN)
- * 
+ *
  * Implements ratcheting for:
  * - Console violations count
  * - Unused exports count
  * - Bundle size budgets
  * - Cold start budgets
- * 
+ *
  * Each PR must not worsen metrics beyond allowed delta.
  * Nightly job runs extended tests.
  */
@@ -36,28 +36,32 @@ interface RatchetReport {
 const BUDGETS = {
   // Console usage (should be 0 in production paths)
   consoleViolations: { max: 0, unit: 'violations' },
-  
+
   // Dead code thresholds
   unusedExports: { max: 20, unit: 'exports' },
   orphanedFiles: { max: 5, unit: 'files' },
   duplicateUtilities: { max: 10, unit: 'duplicates' },
-  
+
   // Performance budgets
   coldStartMs: { max: 500, unit: 'ms' },
   helpCommandP95: { max: 100, unit: 'ms' },
   versionCommandP95: { max: 50, unit: 'ms' },
   typecheckTimeSec: { max: 60, unit: 'seconds' },
-  
+
   // Bundle size budgets (approximate)
   cliBundleKB: { max: 500, unit: 'KB' },
   webBundleKB: { max: 2000, unit: 'KB' },
+
+  // Architectural constraints
+  circularDependencyCount: { max: 0, unit: 'cycles' },
+  cliSubcommandCount: { max: 40, unit: 'commands' },
 };
 
 type BudgetKey = keyof typeof BUDGETS;
 
 function getCurrentMetrics(): Record<BudgetKey, number> {
   const metrics: Partial<Record<BudgetKey, number>> = {};
-  
+
   // Get console violations
   try {
     const result = execSync('node scripts/verify-no-console.js packages/cli/src 2>&1 || echo "0"', { encoding: 'utf-8' });
@@ -66,7 +70,7 @@ function getCurrentMetrics(): Record<BudgetKey, number> {
   } catch {
     metrics.consoleViolations = 0;
   }
-  
+
   // Get dead code metrics from analysis
   try {
     if (existsSync('reports/dead-code-analysis.json')) {
@@ -84,7 +88,7 @@ function getCurrentMetrics(): Record<BudgetKey, number> {
     metrics.orphanedFiles = 0;
     metrics.duplicateUtilities = 0;
   }
-  
+
   // Get performance metrics
   try {
     if (existsSync('reports/perf-current.json')) {
@@ -105,14 +109,14 @@ function getCurrentMetrics(): Record<BudgetKey, number> {
     metrics.versionCommandP95 = 0;
     metrics.typecheckTimeSec = 0;
   }
-  
+
   // Estimate bundle sizes
   try {
-    const cliStat = existsSync('packages/cli/dist') ? 
-      execSync('powershell -Command "(Get-ChildItem packages/cli/dist -Recurse | Measure-Object -Property Length -Sum).Sum / 1KB"', { encoding: 'utf-8' }) : 
+    const cliStat = existsSync('packages/cli/dist') ?
+      execSync('powershell -Command "(Get-ChildItem packages/cli/dist -Recurse | Measure-Object -Property Length -Sum).Sum / 1KB"', { encoding: 'utf-8' }) :
       '0';
     metrics.cliBundleKB = parseFloat(cliStat) || 0;
-    
+
     const webStat = existsSync('ready-layer/.next') ?
       execSync('powershell -Command "(Get-ChildItem ready-layer/.next -Recurse | Measure-Object -Property Length -Sum).Sum / 1KB"', { encoding: 'utf-8' }) :
       '0';
@@ -121,7 +125,28 @@ function getCurrentMetrics(): Record<BudgetKey, number> {
     metrics.cliBundleKB = 0;
     metrics.webBundleKB = 0;
   }
-  
+
+  // Get architectural metrics
+  try {
+    // CLI surface area: count subcommands in help output
+    const helpOutput = execSync('tsx packages/cli/src/cli.ts --help', { encoding: 'utf-8' });
+    const commandMatches = helpOutput.matchAll(/^\s{2}(\w+)\s/gm);
+    const subcommands = new Set([...commandMatches].map(m => m[1]));
+    metrics.cliSubcommandCount = subcommands.size;
+  } catch {
+    metrics.cliSubcommandCount = 0;
+  }
+
+  try {
+    // Circular dependencies: use madge if available, or fall back to 0
+    // In CI, we expect madge to be available via npx
+    const madgeResult = execSync('npx madge --circular --json packages/cli/src', { encoding: 'utf-8' });
+    const cycles = JSON.parse(madgeResult);
+    metrics.circularDependencyCount = Array.isArray(cycles) ? cycles.length : 0;
+  } catch {
+    metrics.circularDependencyCount = 0;
+  }
+
   return metrics as Record<BudgetKey, number>;
 }
 
@@ -139,13 +164,13 @@ function getBaselineMetrics(): Record<BudgetKey, number> | null {
 function checkBudgets(current: Record<BudgetKey, number>, baseline: Record<BudgetKey, number> | null): RatchetReport {
   const budgets: RatchetBudget[] = [];
   const violations: string[] = [];
-  
+
   for (const [key, config] of Object.entries(BUDGETS)) {
     const budgetKey = key as BudgetKey;
     const currentValue = current[budgetKey] || 0;
     const baselineValue = baseline?.[budgetKey] ?? currentValue;
     const delta = currentValue - baselineValue;
-    
+
     const budget: RatchetBudget = {
       name: key,
       current: currentValue,
@@ -154,9 +179,9 @@ function checkBudgets(current: Record<BudgetKey, number>, baseline: Record<Budge
       maxDelta: config.max,
       unit: config.unit,
     };
-    
+
     budgets.push(budget);
-    
+
     // Check if exceeded absolute max
     if (currentValue > config.max) {
       violations.push(`${key}: ${currentValue}${config.unit} exceeds maximum ${config.max}${config.unit}`);
@@ -167,7 +192,7 @@ function checkBudgets(current: Record<BudgetKey, number>, baseline: Record<Budge
       violations.push(`${key}: regressed by ${delta}${config.unit} (${((delta/baselineValue)*100).toFixed(1)}%) from baseline`);
     }
   }
-  
+
   return {
     timestamp: new Date().toISOString(),
     commit: process.env.GITHUB_SHA || 'local',
@@ -181,9 +206,9 @@ async function main() {
   const args = process.argv.slice(2);
   const isInit = args.includes('--init');
   const isNightly = args.includes('--nightly');
-  
+
   console.log('=== CI RATCHET MODE ===\n');
-  
+
   if (isInit) {
     // Initialize baseline
     console.log('Initializing baseline metrics...');
@@ -195,20 +220,20 @@ async function main() {
     console.log('✓ Baseline initialized');
     return;
   }
-  
+
   // Run checks
   console.log('Gathering current metrics...');
   const current = getCurrentMetrics();
   console.log('Loading baseline...');
   const baseline = getBaselineMetrics();
-  
+
   console.log('\n--- Current Metrics ---');
   for (const [key, value] of Object.entries(current)) {
     const config = BUDGETS[key as BudgetKey];
     const status = value <= config.max ? '✓' : '✗';
     console.log(`${status} ${key}: ${value.toFixed(2)}${config.unit} (max: ${config.max}${config.unit})`);
   }
-  
+
   if (baseline) {
     console.log('\n--- Baseline Comparison ---');
     for (const [key, value] of Object.entries(current)) {
@@ -218,13 +243,13 @@ async function main() {
       console.log(`  ${key}: ${sign}${delta.toFixed(2)} from baseline`);
     }
   }
-  
+
   console.log('\n--- Budget Check ---');
   const report = checkBudgets(current, baseline);
-  
+
   // Save report
   writeFileSync('reports/ratchet-report.json', JSON.stringify(report, null, 2));
-  
+
   if (report.violations.length > 0) {
     console.log('✗ Budget violations detected:');
     for (const violation of report.violations) {
@@ -235,7 +260,7 @@ async function main() {
   } else {
     console.log('✓ All budgets within limits');
     console.log('✓ RATCHET PASSED');
-    
+
     // Nightly extended tests
     if (isNightly) {
       console.log('\n--- NIGHTLY EXTENDED TESTS ---');
@@ -245,7 +270,7 @@ async function main() {
       // These would run actual test suites
       console.log('✓ Nightly tests complete');
     }
-    
+
     process.exit(0);
   }
 }

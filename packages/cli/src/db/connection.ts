@@ -272,7 +272,40 @@ export function getDB(): DB {
         outcome_status TEXT,
         outcome_notes TEXT,
         calibration_delta REAL,
-        execution_latency REAL
+        execution_latency REAL,
+        policy_snapshot_hash TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS runs (
+        run_id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        created_at TEXT,
+        policy_snapshot_hash TEXT,
+        status TEXT,
+        metadata_json TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS artifacts (
+        hash TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        size_bytes INTEGER,
+        mime_type TEXT,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS ledger (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        timestamp TEXT,
+        event_type TEXT,
+        description TEXT,
+        metadata_json TEXT
       )
     `);
 
@@ -376,7 +409,7 @@ export function getDB(): DB {
         created_at TEXT
       )
     `);
-  
+
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS skills (
         id TEXT PRIMARY KEY,

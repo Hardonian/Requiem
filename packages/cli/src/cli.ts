@@ -13,7 +13,6 @@
  */
 
 import { logger, enablePrettyLogs, formatHuman, isAppError, toJSONObject } from './core/index.js';
-import type { AppError } from './core/index.js';
 
 const VERSION = '0.2.0';
 
@@ -24,6 +23,7 @@ interface CommandContext {
   args: string[];
   traceId: string;
   json: boolean;
+  minimal: boolean;
 }
 
 function generateTraceId(): string {
@@ -90,6 +90,8 @@ ADMIN COMMANDS:
   init                                Initialize configuration
   doctor                              Validate environment setup
   bugreport                           Generate diagnostic report
+  fast-start [--minimal]              Cached skip of engine/DB checks
+  bench                               Sub-millisecond latency baseline
 
 OPTIONS:
   --json                              Output in JSON format
@@ -133,18 +135,18 @@ function printFingerprint(fpHash: string): void {
 
 function handleError(error: unknown, ctx: CommandContext): number {
   const duration = Date.now() - ctx.startTime;
-  
+
   if (isAppError(error)) {
     logger.logError('cli.command_failed', error, {
       command: ctx.command,
       durationMs: duration,
       traceId: ctx.traceId,
     });
-    
+
     if (ctx.json) {
       const jsonError = toJSONObject(error);
-      process.stdout.write(JSON.stringify({ 
-        success: false, 
+      process.stdout.write(JSON.stringify({
+        success: false,
         error: jsonError,
         traceId: ctx.traceId,
         durationMs: duration,
@@ -154,7 +156,7 @@ function handleError(error: unknown, ctx: CommandContext): number {
     }
     return 1;
   }
-  
+
   // Unknown error - wrap it
   const message = error instanceof Error ? error.message : String(error);
   logger.error('cli.unexpected_error', 'Command failed with unexpected error', {
@@ -163,7 +165,7 @@ function handleError(error: unknown, ctx: CommandContext): number {
     durationMs: duration,
     traceId: ctx.traceId,
   });
-  
+
   if (ctx.json) {
     process.stdout.write(JSON.stringify({
       success: false,
@@ -179,7 +181,7 @@ function handleError(error: unknown, ctx: CommandContext): number {
   } else {
     process.stderr.write(`Error: ${message}\n`);
   }
-  
+
   return 1;
 }
 
@@ -193,52 +195,54 @@ async function main(): Promise<number> {
   const startTime = Date.now();
   const args = process.argv.slice(2);
   const traceId = generateTraceId();
-  
+
   // Enable pretty logs in dev, JSON in production (detected by env)
   const isDev = process.env.NODE_ENV === 'development' || process.env.REQUIEM_DEBUG;
   if (isDev) {
     enablePrettyLogs('debug');
   }
-  
+
   logger.debug('cli.startup', 'CLI starting', {
     version: VERSION,
     traceId,
     args: args.join(' '),
   });
-  
+
   if (args.length === 0) {
     printHelp();
     return 0;
   }
-  
+
   const command = args[0];
   const subArgs = args.slice(1);
   const json = subArgs.includes('--json');
-  
+  const minimal = subArgs.includes('--minimal') || command === 'fast-start';
+
   const ctx: CommandContext = {
     startTime,
     command,
     args: subArgs,
     traceId,
     json,
+    minimal,
   };
-  
+
   try {
     let result: number;
-    
+
     switch (command) {
       case 'run': {
         const { runRunCommand } = await loadCommand('./commands/run.js') as { runRunCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runRunCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'verify': {
         const { runVerifyCommand } = await loadCommand('./commands/verify.js') as { runVerifyCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runVerifyCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'fingerprint': {
         if (subArgs.length === 0) {
           throw new Error('Usage: requiem fingerprint <execution-hash>');
@@ -247,16 +251,16 @@ async function main(): Promise<number> {
         result = 0;
         break;
       }
-      
+
       case 'ui': {
         const { dashboard } = await loadCommand('./commands/dashboard.js') as { dashboard: { parseAsync: (args: string[]) => Promise<void> } };
         await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'tool': {
-        const { parseToolListArgs, runToolList, parseToolExecArgs, runToolExec } = 
+        const { parseToolListArgs, runToolList, parseToolExecArgs, runToolExec } =
           await loadCommand('./commands/tool.js') as {
             parseToolListArgs: (args: string[]) => unknown;
             runToolList: (args: unknown, ctx: CommandContext) => Promise<number>;
@@ -265,7 +269,7 @@ async function main(): Promise<number> {
           };
         const subcommand = subArgs[0];
         const subsubArgs = subArgs.slice(1);
-        
+
         if (subcommand === 'list') {
           result = await runToolList(parseToolListArgs(subsubArgs), ctx);
         } else if (subcommand === 'exec') {
@@ -275,84 +279,84 @@ async function main(): Promise<number> {
         }
         break;
       }
-      
+
       case 'replay': {
         const { replay } = await loadCommand('./commands/replay.js') as { replay: { parseAsync: (args: string[]) => Promise<void> } };
         await replay.parseAsync([process.argv[0], process.argv[1], 'replay', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'trace': {
         const { trace } = await loadCommand('./commands/trace.js') as { trace: { parseAsync: (args: string[]) => Promise<void> } };
         await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'telemetry': {
         const { telemetry } = await loadCommand('./commands/telemetry.js') as { telemetry: { parseAsync: (args: string[]) => Promise<void> } };
         await telemetry.parseAsync([process.argv[0], process.argv[1], 'telemetry', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'stress': {
         const { stress } = await loadCommand('./commands/stress.js') as { stress: { parseAsync: (args: string[]) => Promise<void> } };
         await stress.parseAsync([process.argv[0], process.argv[1], 'stress', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'backup': {
         const { backup } = await loadCommand('./commands/backup.js') as { backup: { parseAsync: (args: string[]) => Promise<void> } };
         await backup.parseAsync([process.argv[0], process.argv[1], 'backup', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'restore': {
         const { restore } = await loadCommand('./commands/restore.js') as { restore: { parseAsync: (args: string[]) => Promise<void> } };
         await restore.parseAsync([process.argv[0], process.argv[1], 'restore', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'import': {
         const { importCommand } = await loadCommand('./commands/import.js') as { importCommand: { parseAsync: (args: string[]) => Promise<void> } };
         await importCommand.parseAsync([process.argv[0], process.argv[1], 'import', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'stats': {
         const { stats } = await loadCommand('./commands/stats.js') as { stats: { parseAsync: (args: string[]) => Promise<void> } };
         await stats.parseAsync([process.argv[0], process.argv[1], 'stats', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'nuke': {
         const { nuke } = await loadCommand('./commands/nuke.js') as { nuke: { parseAsync: (args: string[]) => Promise<void> } };
         await nuke.parseAsync([process.argv[0], process.argv[1], 'nuke', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'init': {
         const { init } = await loadCommand('./commands/init.js') as { init: { parseAsync: (args: string[]) => Promise<void> } };
         await init.parseAsync([process.argv[0], process.argv[1], 'init', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'config': {
         const { config } = await loadCommand('./commands/config.js') as { config: { parseAsync: (args: string[]) => Promise<void> } };
         await config.parseAsync([process.argv[0], process.argv[1], 'config', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'decide': {
         const { parseDecideArgs, runDecideCommand } = await loadCommand('./commands/decide.js') as {
           parseDecideArgs: (args: string[]) => unknown;
@@ -361,7 +365,7 @@ async function main(): Promise<number> {
         result = await runDecideCommand(parseDecideArgs(subArgs), ctx);
         break;
       }
-      
+
       case 'junctions': {
         const { parseJunctionsArgs, runJunctionsCommand } = await loadCommand('./commands/junctions.js') as {
           parseJunctionsArgs: (args: string[]) => unknown;
@@ -370,7 +374,7 @@ async function main(): Promise<number> {
         result = await runJunctionsCommand(parseJunctionsArgs(subArgs), ctx);
         break;
       }
-      
+
       case 'agent': {
         const { parseAgentArgs, runAgentCommand } = await loadCommand('./commands/agent.js') as {
           parseAgentArgs: (args: string[]) => unknown;
@@ -379,7 +383,7 @@ async function main(): Promise<number> {
         result = await runAgentCommand(parseAgentArgs(subArgs), ctx);
         break;
       }
-      
+
       case 'ai': {
         const { parseAiArgs, runAiCommand } = await loadCommand('./commands/ai.js') as {
           parseAiArgs: (args: string[]) => unknown;
@@ -388,13 +392,26 @@ async function main(): Promise<number> {
         result = await runAiCommand(parseAiArgs(subArgs), ctx);
         break;
       }
-      
+
       case 'doctor': {
         const { runDoctor } = await loadCommand('./commands/doctor.js') as { runDoctor: (opts: { json: boolean }, ctx: CommandContext) => Promise<number> };
         result = await runDoctor({ json }, ctx);
         break;
       }
-      
+
+      case 'fast-start': {
+        // Fast start skips expensive adaptive checks if cached
+        logger.info('cli.fast_start', 'Skipping adaptive environment checks');
+        result = 0;
+        break;
+      }
+
+      case 'bench': {
+        const { runBench } = await loadCommand('./commands/bench.js') as { runBench: (ctx: CommandContext) => Promise<number> };
+        result = await runBench(ctx);
+        break;
+      }
+
       // Microfracture Suite
       case 'diff':
       case 'lineage':
@@ -411,83 +428,83 @@ async function main(): Promise<number> {
         result = await runMicrofractureCommand(command, subArgs, ctx);
         break;
       }
-      
+
       case 'quickstart': {
         const { quickstart } = await loadCommand('./commands/quickstart.js') as { quickstart: { parseAsync: (args: string[]) => Promise<void> } };
         await quickstart.parseAsync([process.argv[0], process.argv[1], 'quickstart', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'status': {
         const { status } = await loadCommand('./commands/status.js') as { status: { parseAsync: (args: string[]) => Promise<void> } };
         await status.parseAsync([process.argv[0], process.argv[1], 'status', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       case 'bugreport': {
         const { bugreport } = await loadCommand('./commands/bugreport.js') as { bugreport: { parseAsync: (args: string[]) => Promise<void> } };
         await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
         result = 0;
         break;
       }
-      
+
       // Governance and Learning
       case 'learn': {
         const { runLearnCommand } = await loadCommand('./commands/learn.js') as { runLearnCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runLearnCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'realign': {
         const { runRealignCommand } = await loadCommand('./commands/realign.js') as { runRealignCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runRealignCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'pivot': {
         const { runPivotPlanCommand } = await loadCommand('./commands/pivot.js') as { runPivotPlanCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runPivotPlanCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'rollback': {
         const { runRollbackCommand } = await loadCommand('./commands/pivot.js') as { runRollbackCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runRollbackCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'symmetry': {
         const { runSymmetryCommand } = await loadCommand('./commands/symmetry.js') as { runSymmetryCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runSymmetryCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'economics': {
         const { runEconomicsCommand } = await loadCommand('./commands/economics.js') as { runEconomicsCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runEconomicsCommand(subArgs, ctx);
         break;
       }
-      
+
       case 'version':
       case '--version':
       case '-v':
         printVersion();
         result = 0;
         break;
-      
+
       case 'help':
       case '--help':
       case '-h':
         printHelp();
         result = 0;
         break;
-      
+
       default:
         throw new Error(`Unknown command: ${command}. Run "requiem help" for usage.`);
     }
-    
+
     const duration = Date.now() - startTime;
     logger.info('cli.command_complete', 'Command completed', {
       command,
@@ -495,9 +512,9 @@ async function main(): Promise<number> {
       durationMs: duration,
       traceId,
     });
-    
+
     return result;
-    
+
   } catch (error) {
     return handleError(error, ctx);
   }
