@@ -393,7 +393,7 @@ export function createBudgetCommand(): Command {
   receiptCmd
     .command('verify <id>')
     .description('Verify receipt integrity')
-    .action((id: string) => {
+    .action(async (id: string) => {
       try {
         const RECEIPTS_DIR = join(process.cwd(), '.reach', 'budgets', 'receipts');
         const receiptPath = join(RECEIPTS_DIR, `${id}.json`);
