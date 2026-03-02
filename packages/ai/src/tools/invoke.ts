@@ -36,9 +36,10 @@ export async function invokeToolWithPolicy(
   input: unknown,
   version?: string
 ): Promise<ToolInvocationResult> {
-  // Tenant isolation hard stop: tenant_id is MANDATORY
-  // No fallback to 'system', 'global', or undefined
-  if (!ctx.tenant?.tenantId) {
+  const { getTool } = await import('./registry.js');
+  const tool = getTool(toolName, ctx.tenant?.tenantId || 'system', version);
+
+  if (tool?.definition.tenantScoped !== false && !ctx.tenant?.tenantId) {
     throw new AiError({
       code: AiErrorCode.TENANT_REQUIRED,
       message: `Tool "${toolName}" requires a valid tenant context — no implicit default`,

@@ -96,7 +96,15 @@ function validateAgainstSchema(
  * Returns ValidationResult (does not throw).
  */
 export function validateInput(toolDef: ToolDefinition, input: unknown): ValidationResult {
-  const errors = validateAgainstSchema(toolDef.inputSchema, input);
+  if (toolDef.inputSchema && typeof toolDef.inputSchema === 'object' && 'parse' in toolDef.inputSchema) {
+    try {
+      (toolDef.inputSchema as any).parse(input);
+      return { valid: true, errors: [] };
+    } catch (e: any) {
+      return { valid: false, errors: [{ path: 'root', message: e.message || String(e) }] };
+    }
+  }
+  const errors = validateAgainstSchema(toolDef.inputSchema as JsonSchema, input);
   return { valid: errors.length === 0, errors };
 }
 
@@ -105,7 +113,15 @@ export function validateInput(toolDef: ToolDefinition, input: unknown): Validati
  * Returns ValidationResult (does not throw).
  */
 export function validateOutput(toolDef: ToolDefinition, output: unknown): ValidationResult {
-  const errors = validateAgainstSchema(toolDef.outputSchema, output);
+  if (toolDef.outputSchema && typeof toolDef.outputSchema === 'object' && 'parse' in toolDef.outputSchema) {
+    try {
+      (toolDef.outputSchema as any).parse(output);
+      return { valid: true, errors: [] };
+    } catch (e: any) {
+      return { valid: false, errors: [{ path: 'root', message: e.message || String(e) }] };
+    }
+  }
+  const errors = validateAgainstSchema(toolDef.outputSchema as JsonSchema, output);
   return { valid: errors.length === 0, errors };
 }
 

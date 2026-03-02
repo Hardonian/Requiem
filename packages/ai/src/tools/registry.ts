@@ -204,8 +204,19 @@ export function registerTool(
  * Retrieves a registered tool by its name and optionally a specific version, scoped to a tenant.
  */
 export function getTool(name: string, tenantId: string = SYSTEM_TENANT, version?: string): RegisteredTool | undefined {
-  const registry = getRegistry(tenantId);
+  let registry = getRegistry(tenantId);
+  let tool = findToolInRegistry(registry, name, version);
 
+  // Fall back to SYSTEM_TENANT if not found in the specific tenant registry
+  if (!tool && tenantId !== SYSTEM_TENANT) {
+    registry = getRegistry(SYSTEM_TENANT);
+    tool = findToolInRegistry(registry, name, version);
+  }
+
+  return tool;
+}
+
+function findToolInRegistry(registry: Map<string, RegisteredTool>, name: string, version?: string): RegisteredTool | undefined {
   if (version) {
     return registry.get(`${name}@${version}`);
   }
