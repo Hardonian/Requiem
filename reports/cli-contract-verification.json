@@ -1,422 +1,423 @@
 {
-  "timestamp": "2026-03-02T23:10:34.207Z",
+  "timestamp": "2026-03-02T23:13:26.254Z",
   "results": [
     {
       "command": "run",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'run' may not return structured errors"
       ]
     },
     {
       "command": "verify",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'verify' may not return structured errors"
       ]
     },
     {
       "command": "replay",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'replay' may not return structured errors"
       ]
     },
     {
       "command": "fingerprint",
       "exists": true,
-      "hasHelp": false,
+      "hasHelp": true,
       "jsonOutputWorks": false,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'fingerprint' may not return structured errors"
       ]
     },
     {
       "command": "ui",
       "exists": true,
-      "hasHelp": false,
+      "hasHelp": true,
       "jsonOutputWorks": false,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'ui' may not return structured errors"
       ]
     },
     {
       "command": "quickstart",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'quickstart' may not return structured errors"
       ]
     },
     {
       "command": "diff",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'diff' may not return structured errors"
       ]
     },
     {
       "command": "lineage",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'lineage' may not return structured errors"
       ]
     },
     {
       "command": "simulate",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'simulate' may not return structured errors"
       ]
     },
     {
       "command": "drift",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'drift' may not return structured errors"
       ]
     },
     {
       "command": "explain",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'explain' may not return structured errors"
       ]
     },
     {
       "command": "usage",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'usage' may not return structured errors"
       ]
     },
     {
       "command": "tenant-check",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'tenant-check' may not return structured errors"
       ]
     },
     {
       "command": "chaos",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'chaos' may not return structured errors"
       ]
     },
     {
       "command": "share",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'share' may not return structured errors"
       ]
     },
     {
       "command": "tool",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'tool' may not return structured errors"
       ]
     },
     {
       "command": "trace",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'trace' may not return structured errors"
       ]
     },
     {
       "command": "stats",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'stats' may not return structured errors"
       ]
     },
     {
       "command": "status",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'status' may not return structured errors"
       ]
     },
     {
       "command": "telemetry",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'telemetry' may not return structured errors"
       ]
     },
     {
       "command": "learn",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'learn' may not return structured errors"
       ]
     },
     {
       "command": "realign",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'realign' may not return structured errors"
       ]
     },
     {
       "command": "pivot",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'pivot' may not return structured errors"
       ]
     },
     {
       "command": "rollback",
       "exists": true,
       "hasHelp": false,
-      "jsonOutputWorks": false,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'rollback' not documented in help text",
+        "Command 'rollback' may not return structured errors"
       ]
     },
     {
       "command": "symmetry",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'symmetry' may not return structured errors"
       ]
     },
     {
       "command": "economics",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'economics' may not return structured errors"
       ]
     },
     {
       "command": "decide",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'decide' may not return structured errors"
       ]
     },
     {
       "command": "junctions",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'junctions' may not return structured errors"
       ]
     },
     {
       "command": "agent",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'agent' may not return structured errors"
       ]
     },
     {
       "command": "ai",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'ai' may not return structured errors"
       ]
     },
     {
       "command": "backup",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'backup' may not return structured errors"
       ]
     },
     {
       "command": "restore",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'restore' may not return structured errors"
       ]
     },
     {
       "command": "import",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'import' may not return structured errors"
       ]
     },
     {
       "command": "nuke",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'nuke' may not return structured errors"
       ]
     },
     {
       "command": "init",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'init' may not return structured errors"
       ]
     },
     {
       "command": "config",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'config' may not return structured errors"
       ]
     },
     {
       "command": "doctor",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'doctor' may not return structured errors"
       ]
     },
     {
       "command": "bugreport",
       "exists": true,
-      "hasHelp": false,
-      "jsonOutputWorks": false,
+      "hasHelp": true,
+      "jsonOutputWorks": true,
       "errorStructured": false,
-      "exitCodeCorrect": false,
+      "exitCodeCorrect": true,
       "issues": [
-        "Error verifying command: Command failed: node packages/cli/dist/cli.js --help\nnode:internal/modules/cjs/loader:1424\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\scott\\GitHub\\Requiem\\packages\\cli\\dist\\cli.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1227:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.12.0\r\n"
+        "Command 'bugreport' may not return structured errors"
       ]
     },
     {

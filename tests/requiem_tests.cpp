@@ -39,10 +39,15 @@ void expect(bool condition, const std::string &message) {
 
 void run_test(const std::string &name, void (*fn)()) {
   std::cout << "  " << name << "...";
-  fn();
-  std::cout << " PASSED\n";
-  g_tests_run++;
-  g_tests_passed++;
+  try {
+    fn();
+    std::cout << " PASSED\n";
+    g_tests_run++;
+    g_tests_passed++;
+  } catch (const std::exception &e) {
+    std::cout << " FAILED with exception: " << e.what() << "\n";
+    g_tests_run++;
+  }
 }
 
 // ============================================================================
