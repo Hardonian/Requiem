@@ -290,7 +290,25 @@ export class ToolRegistry {
       });
     }
 
-    // TODO: Verify versioning consistency (no downgrades)
+    // Verify versioning consistency (no downgrades)
+    // Versions must follow semver; refuse registration if new version < existing
+    const existing = this.tools.get(tool.name);
+    if (existing) {
+      const parseVer = (v: string) => v.replace(/^v/, '').split('.').map(Number);
+      const [eMaj, eMin, ePatch] = parseVer(existing.version);
+      const [nMaj, nMin, nPatch] = parseVer(tool.version);
+      const isDowngrade =
+        nMaj < eMaj ||
+        (nMaj === eMaj && nMin < eMin) ||
+        (nMaj === eMaj && nMin === eMin && nPatch < ePatch);
+      if (isDowngrade) {
+        throw new RequiemError({
+          code: ErrorCode.INTERNAL_ERROR,
+          message: `Tool version downgrade rejected: ${tool.name} ${tool.version} < ${existing.version}`,
+          severity: ErrorSeverity.CRITICAL,
+        });
+      }
+    }
     this.tools.set(tool.name, tool);
   }
 

@@ -12,7 +12,7 @@
  */
 
 import { Command } from 'commander';
-import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, statSync, watchFile, unwatchFile } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -269,7 +269,72 @@ logs.command('follow')
   .option('--json', 'Output in JSON format')
   .option('--level <levels>', 'Filter by level')
   .action(async (options) => {
+    const logDir = join(process.cwd(), '.requiem', 'logs');
+    const levelFilter = options.level ? options.level.split(',').map((l: string) => l.trim()) : undefined;
+    const filter: LogFilter = { level: levelFilter };
+
     console.log('Following logs... (Ctrl+C to stop)');
-    // In a real implementation, this would use fs.watch or chokidar
-    console.log('(Real-time log following not yet implemented)');
+
+    if (!existsSync(logDir)) {
+      console.error(`Log directory not found: ${logDir}`);
+      process.exit(1);
+    }
+
+    // Track file sizes so we only output new content on each watch event
+    const fileSizes: Map<string, number> = new Map();
+    const watchedFiles = findLogFiles(logDir);
+
+    for (const file of watchedFiles) {
+      fileSizes.set(file, statSync(file).size);
+    }
+
+    // Tail-follow: use fs.watchFile with polling (works on all platforms)
+    const watchAndPrint = (file: string) => {
+      watchFile(file, { interval: 500 }, () => {
+        try {
+          const currentSize = statSync(file).size;
+          const prevSize = fileSizes.get(file) ?? 0;
+
+          if (currentSize <= prevSize) return;
+
+          const chunk = readFileSync(file, 'utf8').slice(prevSize);
+          fileSizes.set(file, currentSize);
+
+          const lines = chunk.split('\n').filter(Boolean);
+          for (const line of lines) {
+            try {
+              const entry: LogEntry = JSON.parse(line);
+              if (filter.level && !filter.level.includes(entry.level)) continue;
+              if (options.json) {
+                console.log(JSON.stringify(entry));
+              } else {
+                console.log(formatLogEntry(entry, 'text'));
+              }
+            } catch {
+              // Non-JSON line — print raw
+              console.log(line);
+            }
+          }
+        } catch {
+          // File may have been rotated; stop watching it
+          unwatchFile(file);
+        }
+      });
+    };
+
+    for (const file of watchedFiles) {
+      watchAndPrint(file);
+    }
+
+    // Keep the process alive until Ctrl+C
+    await new Promise<void>((resolve) => {
+      process.on('SIGINT', () => {
+        for (const file of watchedFiles) unwatchFile(file);
+        resolve();
+      });
+      process.on('SIGTERM', () => {
+        for (const file of watchedFiles) unwatchFile(file);
+        resolve();
+      });
+    });
   });

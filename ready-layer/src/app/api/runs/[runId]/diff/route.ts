@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { validateTenantAuth } from '@/lib/auth';
 
 // Mock diff computation - in production this would use the engine
 function computeDiff(runA: string, runB: string) {
@@ -39,8 +40,14 @@ export async function GET(
       );
     }
 
-    // TODO: Verify tenant scope from session/token
-    // TODO: Fetch runs from database
+    // Verify tenant scope from Authorization header
+    const auth = await validateTenantAuth(request);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { error: auth.error ?? 'Unauthorized' },
+        { status: auth.status ?? 401 }
+      );
+    }
 
     const diff = computeDiff(runId, withRunId);
 
