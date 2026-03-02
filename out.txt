@@ -1,0 +1,9 @@
+
+=== Requiem Kernel Tests ===
+
+[Envelope ┬º3]
+  envelope_success ... PASS
+  envelope_error ... PASS
+  envelope_determinism ... PASS
+
+[EventLog ┬º4]

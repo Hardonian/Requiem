@@ -32,12 +32,17 @@ static int g_fail = 0;
 
 #define TEST(name)                                                             \
   do {                                                                         \
-    std::cout << "  " << #name << " ... ";                                     \
-    if (test_##name()) {                                                       \
-      std::cout << "PASS" << std::endl;                                        \
-      ++g_pass;                                                                \
-    } else {                                                                   \
-      std::cout << "FAIL" << std::endl;                                        \
+    std::cout << "  " << #name << " ... " << std::flush;                       \
+    try {                                                                      \
+      if (test_##name()) {                                                     \
+        std::cout << "PASS" << std::endl;                                      \
+        ++g_pass;                                                              \
+      } else {                                                                 \
+        std::cout << "FAIL" << std::endl;                                      \
+        ++g_fail;                                                              \
+      }                                                                        \
+    } catch (const std::exception &e) {                                        \
+      std::cout << "CRASH (" << e.what() << ")" << std::endl;                  \
       ++g_fail;                                                                \
     }                                                                          \
   } while (0)
@@ -171,18 +176,20 @@ static bool test_event_log_genesis_prev() {
   auto path = dir + "/events.ndjson";
   fs::remove(path);
 
-  requiem::EventLog log(path);
+  {
+    requiem::EventLog log(path);
 
-  requiem::EventRecord r;
-  r.event_type = "first";
-  log.append(r);
+    requiem::EventRecord r;
+    r.event_type = "first";
+    log.append(r);
 
-  auto events = log.read_all();
-  if (events.empty())
-    return false;
-  // Genesis record should have 64 zero chars as prev.
-  if (events[0].prev != std::string(64, '0'))
-    return false;
+    auto events = log.read_all();
+    if (events.empty())
+      return false;
+    // Genesis record should have 64 zero chars as prev.
+    if (events[0].prev != std::string(64, '0'))
+      return false;
+  }
 
   fs::remove_all(dir);
   return true;
@@ -227,12 +234,14 @@ static bool test_event_log_tamper_detection() {
   }
 
   // Verify should fail.
-  requiem::EventLog log2(path);
-  auto result = log2.verify();
-  if (result.ok)
-    return false; // Should have detected tampering.
-  if (result.failures.empty())
-    return false;
+  {
+    requiem::EventLog log2(path);
+    auto result = log2.verify();
+    if (result.ok)
+      return false; // Should have detected tampering.
+    if (result.failures.empty())
+      return false;
+  }
 
   fs::remove_all(dir);
   return true;
@@ -243,24 +252,26 @@ static bool test_event_log_logical_time() {
   auto path = dir + "/events.ndjson";
   fs::remove(path);
 
-  requiem::EventLog log(path);
+  {
+    requiem::EventLog log(path);
 
-  for (int i = 0; i < 3; ++i) {
-    requiem::EventRecord r;
-    r.event_type = "test";
-    log.append(r);
+    for (int i = 0; i < 3; ++i) {
+      requiem::EventRecord r;
+      r.event_type = "test";
+      log.append(r);
+    }
+
+    if (log.logical_time() != 3)
+      return false;
+
+    auto events = log.read_all();
+    if (events[0].ts_logical != 1)
+      return false;
+    if (events[1].ts_logical != 2)
+      return false;
+    if (events[2].ts_logical != 3)
+      return false;
   }
-
-  if (log.logical_time() != 3)
-    return false;
-
-  auto events = log.read_all();
-  if (events[0].ts_logical != 1)
-    return false;
-  if (events[1].ts_logical != 2)
-    return false;
-  if (events[2].ts_logical != 3)
-    return false;
 
   fs::remove_all(dir);
   return true;
