@@ -79,6 +79,12 @@ add_library(requiem
   src/autotune.cpp            # Phase 3: Performance auto-tuning feedback loop
   src/diagnostics.cpp         # Phase 4: AI-assisted root cause diagnostics
   src/context_paging.cpp      # Phase 4: Cognitive Hypervisor (Context Virtualization)
+  src/envelope.cpp            # Kernel: Versioned schema envelope (KERNEL_SPEC §3)
+  src/event_log.cpp           # Kernel: Prev-hash chained event log (KERNEL_SPEC §4)
+  src/caps.cpp                # Kernel: Capability tokens — ed25519 (KERNEL_SPEC §6)
+  src/policy_vm.cpp           # Kernel: Deterministic policy evaluation (KERNEL_SPEC §7)
+  src/plan.cpp                # Kernel: DAG scheduler (KERNEL_SPEC §10)
+  src/receipt.cpp             # Kernel: Execution receipts (KERNEL_SPEC §11)
 )
 
 target_include_directories(requiem

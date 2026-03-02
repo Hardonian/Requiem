@@ -12,8 +12,14 @@
  */
 
 import { Command } from 'commander';
-import * as fs from 'fs';
 import { join } from 'path';
+import {
+  readTextFile,
+  writeTextFile,
+  fileExists,
+  ensureDir,
+  readDir,
+} from '../lib/io.js';
 import {
   getDefaultSSMStore,
   type SemanticState,
