@@ -34,7 +34,25 @@ export interface DivergenceCheckResult {
     diff?: Record<string, { expected: unknown; actual: unknown }>;
     /** Severity of divergence */
     severity: 'warning' | 'critical';
+    /** Taxonomic classification of the drift */
+    taxonomy?: DriftTaxonomy;
   };
+}
+
+/**
+ * Classification of replay divergence (Drift Taxonomy)
+ */
+export enum DriftTaxonomy {
+  /** Complete type mismatch, structural breaking change */
+  STRUCTURAL_MISMATCH = 'STRUCTURAL_MISMATCH',
+  /** The values mutated but structure remained the same */
+  VALUE_MUTATION = 'VALUE_MUTATION',
+  /** Items were added or removed from a collection */
+  ARRAY_LENGTH_MISMATCH = 'ARRAY_LENGTH_MISMATCH',
+  /** A primitive value completely changed */
+  PRIMITIVE_CHANGE = 'PRIMITIVE_CHANGE',
+  /** The change has been evaluated as semantically different (AI judged) */
+  SEMANTIC_DRIFT = 'SEMANTIC_DRIFT',
 }
 
 /**
@@ -59,7 +77,7 @@ const DEFAULT_CONFIG: DivergenceConfig = {
 
 /**
  * Check if actual output diverges from expected output in replay cache.
- * 
+ *
  * @param expected - The cached output from replay
  * @param actual - The actual output from current execution
  * @param toolName - Name of tool (for logging)
@@ -88,6 +106,7 @@ export function checkReplayDivergence(
         expected,
         actual,
         severity: 'critical',
+        taxonomy: DriftTaxonomy.STRUCTURAL_MISMATCH,
       },
     };
   }
@@ -120,6 +139,7 @@ export function checkReplayDivergence(
         actual,
         diff,
         severity,
+        taxonomy: DriftTaxonomy.VALUE_MUTATION,
       },
     };
   }
@@ -133,6 +153,7 @@ export function checkReplayDivergence(
           expected: `Array[${expected.length}]`,
           actual: `Array[${actual.length}]`,
           severity: 'critical',
+          taxonomy: DriftTaxonomy.ARRAY_LENGTH_MISMATCH,
         },
       };
     }
@@ -153,6 +174,7 @@ export function checkReplayDivergence(
           actual,
           diff,
           severity: 'critical',
+          taxonomy: DriftTaxonomy.VALUE_MUTATION,
         },
       };
     }
@@ -167,6 +189,7 @@ export function checkReplayDivergence(
       expected,
       actual,
       severity: 'critical',
+      taxonomy: DriftTaxonomy.PRIMITIVE_CHANGE,
     },
   };
 }

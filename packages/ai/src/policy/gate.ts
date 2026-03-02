@@ -88,6 +88,14 @@ export async function evaluatePolicyWithBudget(
     }
   }
 
+  // Semantic Guardrail check (LLM-based)
+  // We import inline here to avoid circular dep if any, but better to import at top.
+  const { evaluateSemanticGuardrail } = await import('./semantic.js');
+  const semanticDecision = await evaluateSemanticGuardrail(ctx, toolDef, input);
+  if (!semanticDecision.allowed) {
+    return deny(`[Semantic Policy] ${semanticDecision.reason}`);
+  }
+
   return allow();
 }
 
