@@ -548,6 +548,13 @@ async function main(): Promise<number> {
         break;
       }
 
+      case 'entitlement': {
+        const { entitlement } = await loadCommand('./commands/entitlement.js') as { entitlement: { parseAsync: (args: string[]) => Promise<void> } };
+        await entitlement.parseAsync([process.argv[0], process.argv[1], 'entitlement', ...subArgs]);
+        result = 0;
+        break;
+      }
+
       // Note: help/version are handled at top of main() for fast path
 
       default:
