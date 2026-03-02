@@ -40,7 +40,7 @@ import {
   formatShareUrl,
   formatCardUrl,
   type RunRecord,
-} from '../lib/microfracture.js';
+} from '../lib/microfracture/index.js';
 
 // Import hash for fingerprint computation
 import { hash } from '../lib/hash.js';
