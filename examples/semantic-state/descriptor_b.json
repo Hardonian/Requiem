@@ -1,0 +1,15 @@
+{
+  "modelId": "claude-3-opus",
+  "modelVersion": "2024-02",
+  "promptTemplateId": "customer-support-v1",
+  "promptTemplateVersion": "1.0.0",
+  "policySnapshotId": "policy-prod-v1-abc123def4567890123456789012345678901234",
+  "contextSnapshotId": "context-kb-v1-fedcba0987654321098765432109876543210fedcb",
+  "runtimeId": "node-20-lts",
+  "evalSnapshotId": "eval-golden-set-v1-1234567890abcdef1234567890abcdef12345678",
+  "metadata": {
+    "temperature": 0.7,
+    "maxTokens": 2048,
+    "useCase": "customer_support"
+  }
+}

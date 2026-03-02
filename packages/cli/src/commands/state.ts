@@ -26,6 +26,8 @@ import {
   DriftCategory,
   type SemanticStateDescriptor,
   type SemanticStateId,
+  type SemanticState,
+  type SemanticTransition,
   SemanticStateDescriptorSchema,
 } from '../lib/semantic-state-machine.js';
 import { readTextFile, fileExists } from '../lib/io.js';
@@ -41,7 +43,7 @@ interface OutputContext {
   minimal: boolean;
 }
 
-function formatState(state: ReturnType<typeof getDefaultSSMStore>['getState'], ctx: OutputContext): string {
+function formatState(state: ReturnType<ReturnType<typeof getDefaultSSMStore>['getState']> | undefined, ctx: OutputContext): string {
   if (!state) return 'State not found';
 
   if (ctx.json) {
@@ -77,7 +79,7 @@ function formatState(state: ReturnType<typeof getDefaultSSMStore>['getState'], c
     lines.push(`├────────────────────────────────────────────────────────────┤`);
     lines.push(`│  LABELS                                                    │`);
     for (const [key, value] of Object.entries(state.labels)) {
-      lines.push(`│    ${key}: ${value.padEnd(54 - key.length - 4)}│`);
+      lines.push(`│    ${key}: ${String(value).padEnd(54 - key.length - 4)}│`);
     }
   }
 
@@ -97,7 +99,7 @@ function formatState(state: ReturnType<typeof getDefaultSSMStore>['getState'], c
   return lines.join('\n');
 }
 
-function formatStatesTable(states: ReturnType<typeof getDefaultSSMStore>['listStates'], ctx: OutputContext): string {
+function formatStatesTable(states: SemanticState[], ctx: OutputContext): string {
   if (states.length === 0) {
     return ctx.json ? '[]' : 'No states found';
   }
@@ -135,8 +137,8 @@ function formatStatesTable(states: ReturnType<typeof getDefaultSSMStore>['listSt
 }
 
 function formatDiff(
-  stateA: NonNullable<ReturnType<typeof getDefaultSSMStore>['getState']>,
-  stateB: NonNullable<ReturnType<typeof getDefaultSSMStore>['getState']>,
+  stateA: SemanticState,
+  stateB: SemanticState,
   ctx: OutputContext
 ): string {
   const drift = classifyDrift(stateA.descriptor, stateB.descriptor);

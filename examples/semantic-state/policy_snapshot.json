@@ -1,0 +1,36 @@
+{
+  "id": "policy-prod-v1-abc123def4567890123456789012345678901234",
+  "version": "1.0.0",
+  "createdAt": "2024-01-01T00:00:00Z",
+  "policies": [
+    {
+      "id": "cost-limit",
+      "type": "budget",
+      "config": {
+        "maxTokensPerRequest": 4096,
+        "maxCostPerDay": 100.0
+      }
+    },
+    {
+      "id": "content-safety",
+      "type": "guardrail",
+      "config": {
+        "blockedCategories": ["harmful", "illegal"],
+        "confidenceThreshold": 0.8
+      }
+    },
+    {
+      "id": "output-format",
+      "type": "schema",
+      "config": {
+        "requireJson": false,
+        "maxLength": 10000
+      }
+    }
+  ],
+  "source": {
+    "type": "file",
+    "path": "policy/default.policy.json",
+    "commit": "a1b2c3d4e5f6"
+  }
+}

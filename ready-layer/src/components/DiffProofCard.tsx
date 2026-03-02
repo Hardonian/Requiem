@@ -93,6 +93,8 @@ export function DiffProofCard({
               <button
                 onClick={() => copyToClipboard(runA.id)}
                 className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+                title="Copy Run A ID"
+                aria-label="Copy Run A ID"
               >
                 <Copy className="w-3 h-3 text-gray-400" />
               </button>
@@ -120,6 +122,8 @@ export function DiffProofCard({
               <button
                 onClick={() => copyToClipboard(runB.id)}
                 className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+                title="Copy Run B ID"
+                aria-label="Copy Run B ID"
               >
                 <Copy className="w-3 h-3 text-gray-400" />
               </button>
@@ -154,6 +158,8 @@ export function DiffProofCard({
             <button
               onClick={() => copyToClipboard(fingerprintA)}
               className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+              title="Copy Fingerprint A"
+              aria-label="Copy Fingerprint A"
             >
               <Copy className="w-3 h-3 text-gray-400" />
             </button>
@@ -163,6 +169,8 @@ export function DiffProofCard({
             <button
               onClick={() => copyToClipboard(fingerprintB)}
               className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+              title="Copy Fingerprint B"
+              aria-label="Copy Fingerprint B"
             >
               <Copy className="w-3 h-3 text-gray-400" />
             </button>

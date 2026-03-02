@@ -53,15 +53,15 @@ export type DriftCategory = typeof DriftCategory[keyof typeof DriftCategory];
  * Describes the semantic configuration of an AI execution.
  */
 export const SemanticStateDescriptorSchema = z.object({
-  modelId: z.string().min(1).describe('Model identifier (e.g., "gpt-4", "claude-3-opus")'),
-  modelVersion: z.string().optional().describe('Optional model version string'),
-  promptTemplateId: z.string().min(1).describe('Prompt template identifier'),
-  promptTemplateVersion: z.string().min(1).describe('Prompt template version'),
-  policySnapshotId: z.string().min(1).describe('Hash of policy snapshot at execution time'),
-  contextSnapshotId: z.string().min(1).describe('Hash of context/grounding data'),
-  runtimeId: z.string().min(1).describe('Runtime environment identifier'),
-  evalSnapshotId: z.string().optional().describe('Optional evaluation set snapshot'),
-  metadata: z.record(z.unknown()).optional().describe('Additional semantic metadata'),
+  modelId: z.string().min(1),
+  modelVersion: z.string().optional(),
+  promptTemplateId: z.string().min(1),
+  promptTemplateVersion: z.string().min(1),
+  policySnapshotId: z.string().min(1),
+  contextSnapshotId: z.string().min(1),
+  runtimeId: z.string().min(1),
+  evalSnapshotId: z.string().optional(),
+  metadata: z.object({}).passthrough().optional(),
 });
 
 export type SemanticStateDescriptor = z.infer<typeof SemanticStateDescriptorSchema>;
@@ -70,13 +70,13 @@ export type SemanticStateDescriptor = z.infer<typeof SemanticStateDescriptorSche
  * Zod schema for semantic state.
  */
 export const SemanticStateSchema = z.object({
-  id: z.string().min(1).describe('Semantic state ID (BLAKE3 hash of descriptor)'),
+  id: z.string().min(1),
   descriptor: SemanticStateDescriptorSchema,
-  createdAt: z.string().datetime().describe('ISO 8601 timestamp'),
-  actor: z.string().min(1).describe('Entity that created this state'),
-  labels: z.record(z.string()).optional().describe('User-defined labels'),
-  integrityScore: z.number().min(0).max(100).describe('Computed integrity score'),
-  evidenceRefs: z.array(z.string()).optional().describe('References to supporting evidence'),
+  createdAt: z.string().datetime(),
+  actor: z.string().min(1),
+  labels: z.object({}).catchall(z.string()).optional(),
+  integrityScore: z.number().min(0).max(100),
+  evidenceRefs: z.array(z.string()).optional(),
 });
 
 export type SemanticState = z.infer<typeof SemanticStateSchema>;
@@ -85,10 +85,10 @@ export type SemanticState = z.infer<typeof SemanticStateSchema>;
  * Change vector describing a specific difference between states.
  */
 export const ChangeVectorSchema = z.object({
-  path: z.string().describe('Dot-notation path to changed field'),
-  from: z.unknown().describe('Previous value'),
-  to: z.unknown().describe('New value'),
-  significance: z.enum(['critical', 'major', 'minor', 'cosmetic']).describe('Semantic significance'),
+  path: z.string(),
+  from: z.unknown(),
+  to: z.unknown(),
+  significance: z.enum(['critical', 'major', 'minor', 'cosmetic']),
 });
 
 export type ChangeVector = z.infer<typeof ChangeVectorSchema>;
@@ -97,13 +97,13 @@ export type ChangeVector = z.infer<typeof ChangeVectorSchema>;
  * Zod schema for semantic transition.
  */
 export const SemanticTransitionSchema = z.object({
-  fromId: z.string().optional().describe('Source state ID (undefined for genesis)'),
-  toId: z.string().min(1).describe('Target state ID'),
-  timestamp: z.string().datetime().describe('ISO 8601 timestamp'),
-  reason: z.string().min(1).describe('Human-readable reason for transition'),
-  driftCategories: z.array(z.string()).describe('Categories of drift detected'),
-  changeVectors: z.array(ChangeVectorSchema).describe('Detailed change vectors'),
-  integrityDelta: z.number().describe('Change in integrity score'),
+  fromId: z.string().optional(),
+  toId: z.string().min(1),
+  timestamp: z.string().datetime(),
+  reason: z.string().min(1),
+  driftCategories: z.array(z.string()),
+  changeVectors: z.array(ChangeVectorSchema),
+  integrityDelta: z.number(),
   replayStatus: z.enum(['verified', 'failed', 'pending', 'not_applicable']).optional(),
 });
 

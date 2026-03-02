@@ -15,6 +15,7 @@ const NAV_SECTIONS = [
     label: "Execution",
     items: [
       { href: "/app/executions", label: "Executions" },
+      { href: "/app/semantic-ledger", label: "Semantic Ledger" },
       { href: "/app/replay", label: "Replay" },
       { href: "/app/cas", label: "CAS Management" },
     ],

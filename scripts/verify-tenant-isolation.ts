@@ -76,8 +76,13 @@ const tenantB: InvocationContext = {
   createdAt: new Date().toISOString(),
 };
 
+import { DefaultBudgetChecker } from '../packages/ai/src/policy/budgets.js';
+
 async function main(): Promise<void> {
   console.log('\n=== verify-tenant-isolation ===\n');
+
+  DefaultBudgetChecker.configureTenant('tenant-a-001', 'free');
+  DefaultBudgetChecker.configureTenant('tenant-b-001', 'free');
 
   registerTool(
     {
@@ -92,20 +97,25 @@ async function main(): Promise<void> {
       requiredCapabilities: [],
       tenantScoped: true,
     },
-    async (input, ctx) => ({ tenantIdRead: ctx.tenant?.tenantId })
+    async (ctx, input) => ({ tenantIdRead: ctx.tenant?.tenantId })
   );
 
   console.log('[1] Tool executes strictly within Tenant A context');
-  const resA = await invokeToolWithPolicy(tenantA, 'isolation.test.read', {});
-  assert((resA.output as any).tenantIdRead === 'tenant-a-001', 'Tenant A reads correct context');
+  try {
+    const resA = await invokeToolWithPolicy(tenantA, 'isolation.test.read', {});
+    assert((resA.output as any).tenantIdRead === 'tenant-a-001', 'Tenant A reads correct context');
 
-  console.log('\n[2] Tool executes strictly within Tenant B context concurrently');
-  const results = await Promise.all([
-    invokeToolWithPolicy(tenantA, 'isolation.test.read', {}),
-    invokeToolWithPolicy(tenantB, 'isolation.test.read', {}),
-  ]);
-  assert((results[0].output as any).tenantIdRead === 'tenant-a-001', 'Tenant A execution perfectly isolated');
-  assert((results[1].output as any).tenantIdRead === 'tenant-b-001', 'Tenant B execution perfectly isolated');
+    console.log('\n[2] Tool executes strictly within Tenant B context concurrently');
+    const results = await Promise.all([
+      invokeToolWithPolicy(tenantA, 'isolation.test.read', {}),
+      invokeToolWithPolicy(tenantB, 'isolation.test.read', {}),
+    ]);
+    assert((results[0].output as any).tenantIdRead === 'tenant-a-001', 'Tenant A execution perfectly isolated');
+    assert((results[1].output as any).tenantIdRead === 'tenant-b-001', 'Tenant B execution perfectly isolated');
+  } catch (err: any) {
+    console.error('FAILED INVOCATION:', err.message, err.phase);
+    failed++;
+  }
 
   console.log(`\n=== Results: ${passed} passed, ${failed} failed ===\n`);
   if (failed > 0) process.exit(1);

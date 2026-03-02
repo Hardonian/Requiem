@@ -16,6 +16,7 @@ import { invokeToolWithPolicy } from '../packages/ai/src/tools/invoke.js';
 import { AiError } from '../packages/ai/src/errors/AiError.js';
 import { AiErrorCode } from '../packages/ai/src/errors/codes.js';
 import { TenantRole } from '../packages/ai/src/types/index.js';
+import { DefaultBudgetChecker } from '../packages/ai/src/policy/budgets.js';
 import type { InvocationContext } from '../packages/ai/src/types/index.js';
 
 // Bootstrap built-ins
@@ -98,6 +99,8 @@ const noTenantCtx: InvocationContext = {
 async function main(): Promise<void> {
   console.log('\n=== verify-ai-safety ===\n');
 
+  DefaultBudgetChecker.configureTenant('safety-tenant', 'free');
+
   // Register a side-effect tool that requires capability
   registerTool(
     {
@@ -136,7 +139,7 @@ async function main(): Promise<void> {
   console.log('\n[3] Missing tenant context denied');
   await assertThrowsCode(
     () => invokeToolWithPolicy(noTenantCtx, 'safety.test.write', {}),
-    AiErrorCode.POLICY_DENIED,
+    AiErrorCode.TENANT_REQUIRED,
     'Missing tenantId denied for tenantScoped tool'
   );
 
@@ -148,12 +151,12 @@ async function main(): Promise<void> {
     'Unknown tool raises TOOL_NOT_FOUND'
   );
 
-  // 5. Schema violation on system.echo with empty input
-  console.log('\n[5] Schema violation on system.echo with empty input');
+  // 5. Schema violation on system.echo with invalid input type
+  console.log('\n[5] Schema violation on system.echo with invalid input type');
   await assertThrowsCode(
-    () => invokeToolWithPolicy(adminCtx, 'system.echo', {}),
+    () => invokeToolWithPolicy(adminCtx, 'system.echo', null),
     AiErrorCode.TOOL_SCHEMA_VIOLATION,
-    'Empty input raises TOOL_SCHEMA_VIOLATION'
+    'Invalid input type raises TOOL_SCHEMA_VIOLATION'
   );
 
   // 6. Error does not include stack trace in safe JSON

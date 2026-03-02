@@ -25,6 +25,38 @@ A runtime that proves what your AI actually did.
 
 ---
 
+### How This Differs from GitHub Actions + OPA
+
+Requiem is not a CI wrapper. The core primitive is the **Semantic State Machine** — a first-class computing primitive for AI execution governance that cannot be replicated with GitHub Actions + OPA + Postgres without re-implementing its core semantics:
+
+| Capability | GHA + OPA | Requiem SSM |
+|------------|-----------|-------------|
+| **State Identity** | Time-based workflow run ID | Content-derived BLAKE3 fingerprint |
+| **State Lineage** | Job dependencies (structural) | Semantic transitions (intent + drift taxonomy) |
+| **Drift Detection** | Manual text diff | Automated taxonomy (model/prompt/policy/context/eval/runtime) |
+| **Integrity Metric** | None | Computed from 6 verifiable signals (0-100) |
+| **Model Migration** | Full re-test | Offline simulation + selective re-evaluation |
+| **State Export** | Unstructured logs | Versioned semantic ledger bundle |
+
+**Runnable Proof:**
+```bash
+# Create states with deterministic IDs
+reach state genesis --descriptor descriptor.json
+
+# Compare with drift taxonomy
+reach state diff <idA> <idB>
+
+# Simulate model migration impact
+reach state simulate upgrade --from gpt-4 --to claude-3
+
+# View in Cloud UI
+open http://localhost:3000/app/semantic-ledger
+```
+
+See [docs/audits/DIFFERENTIATION_PROOF.md](docs/audits/DIFFERENTIATION_PROOF.md) for the complete runnable demo.
+
+---
+
 ## Quickstart (3 commands)
 
 ```bash

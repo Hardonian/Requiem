@@ -100,8 +100,8 @@ async function main(): Promise<void> {
   assert(notFound.error?.code === AiErrorCode.TOOL_NOT_FOUND, `error code is AI_TOOL_NOT_FOUND (got: ${notFound.error?.code})`);
 
   // 6. Schema validation error on bad input
-  console.log('\n[6] handleCallTool(system.echo) with missing required field → TOOL_SCHEMA_VIOLATION');
-  const badInput = await handleCallTool(testCtx, 'system.echo', {});
+  console.log('\n[6] handleCallTool(system.echo) with invalid primitive input → TOOL_SCHEMA_VIOLATION');
+  const badInput = await handleCallTool(testCtx, 'system.echo', 123);
   assert(badInput.ok === false, 'bad input returns ok:false');
   assert(badInput.error?.code === AiErrorCode.TOOL_SCHEMA_VIOLATION, `error code is AI_TOOL_SCHEMA_VIOLATION (got: ${badInput.error?.code})`);
 
