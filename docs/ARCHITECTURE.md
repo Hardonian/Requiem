@@ -1,49 +1,42 @@
 # Requiem Architecture
 
-> **Version:** 1.3.0  
-> **Last Updated:** 2026-02-27  
+> **Version:** 1.4.0  
+> **Last Updated:** 2026-03-01  
 > **Status:** Production
 
 ## Overview
 
-Requiem is a deterministic execution engine designed for reproducible builds, test isolation, and cryptographic verification of computation. It provides a multi-layered architecture that separates concerns between core logic, server-side operations, and user interfaces.
+Requiem is a deterministic execution engine and provable AI runtime designed for reproducible builds, test isolation, and cryptographic verification of computation. It provides a multi-layered architecture that separates concerns between native execution, control-plane logic, and AI reasoning.
 
 ### Core Principles
 
-1. **Determinism First**: Same inputs always produce identical outputs
-2. **Defense in Depth**: Multiple layers of validation and enforcement
-3. **Explicit Over Implicit**: State machines, error codes, and boundaries are explicit
-4. **Server-Side Authority**: Tenant resolution and access control are server-side only
+1. **Determinism First**: Same inputs always produce identical outputs.
+2. **Provable AI**: Every AI decision produces a cryptographic fingerprint and verifiable trace.
+3. **Defense in Depth**: Multiple layers of validation and enforcement (Native Sandbox + Policy Gate).
+4. **Server-Side Authority**: Tenant resolution and access control are server-side only.
 
 ---
 
 ## Layer Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│  UI Layer (packages/ui, ready-layer)                        │
-│  - React components, design system                          │
-│  - API route handlers (Next.js)                             │
-│  - No direct DB access; calls server layer                  │
+│  UI Layer (ready-layer)                                     │
+│  - React/Next.js dashboard                                  │
+│  - Proof visualization and drift analysis                   │
 ├─────────────────────────────────────────────────────────────┤
-│  Server Layer (packages/cli/lib, ready-layer/api)           │
-│  - Tenant resolution (server-side only)                     │
-│  - Database access (Supabase/Prisma)                        │
-│  - External service integration                             │
-│  - Error envelope serialization                             │
+│  AI Control Plane (packages/ai)                             │
+│  - MCP Server / Tool Registry                               │
+│  - Policy Gate (deny-by-default)                            │
+│  - Skill Runner / Model Arbitrator                          │
 ├─────────────────────────────────────────────────────────────┤
-│  Core Layer (packages/cli/lib, src/)                        │
-│  - Deterministic algorithms                                 │
-│  - State machines                                           │
-│  - Clock abstractions                                       │
-│  - Structured errors (types only)                           │
-│  - No I/O, no side effects                                  │
+│  Control Plane (packages/cli)                               │
+│  - Tenant Resolution / DB Integration                       │
+│  - Structured Error Envelopes                               │
 ├─────────────────────────────────────────────────────────────┤
-│  Native Layer (src/*.cpp)                                   │
-│  - BLAKE3 hashing                                           │
-│  - CAS storage                                              │
-│  - Sandbox execution                                        │
-│  - Replay validation                                        │
+│  Native Engine (src/*.cpp)                                  │
+│  - BLAKE3 Hashing / CAS v2 Storage                          │
+│  - Sandbox Isolation / Replay Validation                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,252 +46,61 @@ Requiem is a deterministic execution engine designed for reproducible builds, te
 
 ### Import Rules (Enforced by ESLint)
 
-| From ↓ \ To → | Core | Server | UI | Native |
-|---------------|------|--------|-----|--------|
-| **Core** | ✅ | ❌ | ❌ | ❌ |
-| **Server** | ✅ | ✅ | ❌ | ✅ (via adapter) |
-| **UI** | ✅ | ❌ | ✅ | ❌ |
-| **CLI** | ✅ | ✅ | ❌ | ✅ (via adapter) |
-
-### Rule Details
-
-- **Core** (`packages/cli/src/lib/errors.ts`, `clock.ts`, `state-machine.ts`):
-  - Pure logic, deterministic
-  - No filesystem, network, or environment access
-  - May be imported by any layer
-
-- **Server** (`packages/cli/src/lib/tenant.ts`, `db/`):
-  - Database access, auth, external APIs
-  - Never imported by UI layer
-  - Tenant resolution is server-side only
-
-- **UI** (`packages/ui/`, `ready-layer/src/app/`):
-  - React components, route handlers
-  - Never imports server-only modules directly
-  - Communicates via HTTP/API boundaries
+| From ↓ \ To → | Native        | Core (TS) | AI       | UI  |
+| ------------- | ------------- | --------- | -------- | --- |
+| **Native**    | ✅            | ❌        | ❌       | ❌  |
+| **Core (TS)** | ✅ (Adapter)  | ✅        | ❌       | ❌  |
+| **AI**        | ✅ (via Core) | ✅        | ✅       | ❌  |
+| **UI**        | ❌            | ✅ (API)  | ✅ (API) | ✅  |
 
 ---
 
 ## Key Components
 
-### 1. Structured Error Envelope (`packages/cli/src/lib/errors.ts`)
+### 1. Native Engine (C++17)
 
-Unified error handling with stable identifiers:
+The performance-critical layer providing cryptographic primitives and execution sandboxing.
 
-```typescript
-interface ErrorEnvelope {
-  code: ErrorCode;           // Stable identifier
-  message: string;           // Safe for UI display
-  severity: ErrorSeverity;   // DEBUG, INFO, WARNING, ERROR, CRITICAL
-  retryable: boolean;        // Client guidance
-  phase?: string;            // Operation phase
-  cause?: ErrorEnvelope;     // Chain preservation
-  meta?: ErrorMeta;          // Safe context (no secrets)
-  timestamp: string;         // ISO 8601
-}
-```
+- **BLAKE3**: Domain-separated hashing (`req:`, `res:`, `cas:`, `audit:`).
+- **CAS v2**: Content-addressable storage optimized for large execution logs.
+- **Sandbox**: Seccomp-BPF (Linux) and Job Objects (Windows) for process isolation.
 
-### 2. Tenant Resolution (`packages/cli/src/lib/tenant.ts`)
+### 2. Policy Gate (`packages/ai/src/policy/`)
 
-Single source of truth for tenant context:
+The security boundary between untrusted agent reasoning and trusted system tools.
 
-```typescript
-interface TenantContext {
-  readonly tenantId: string;      // UUID
-  readonly userId: string;        // User UUID
-  readonly role: TenantRole;      // VIEWER | MEMBER | ADMIN | OWNER
-  readonly derivedAt: string;     // ISO timestamp
-  readonly derivedFrom: 'jwt' | 'api_key' | 'service_account';
-}
-```
+- **Deny-by-default**: Every tool invocation must be explicitly allowed.
+- **RBAC**: Capability-based access control.
+- **Budgets**: Resource and token limits enforced at the tool boundary.
 
-**Invariant:** Tenant derivation is ALWAYS server-side. Client input is NEVER trusted.
+### 3. MCP Server & Tool Registry (`packages/ai/src/mcp/`)
 
-### 3. State Machine (`packages/cli/src/lib/state-machine.ts`)
+Standardized interface for exposing system capabilities to AI agents.
 
-Explicit state transitions prevent impossible states:
+- **Registry**: Versioned tool definitions with JSON Schema validation.
+- **Invoke**: Unified entry point that handles policy, validation, and auditing.
 
-```typescript
-const machine = createExecutionStateMachine();
-machine.transition('running', 'succeeded'); // ✅ Valid
-machine.transition('succeeded', 'running'); // ❌ Throws (terminal state)
-```
+### 4. Structured Error Envelope (`packages/cli/src/lib/errors.ts`)
 
-**Execution States:**
-```
-PENDING → QUEUED → RUNNING → SUCCEEDED
-                      ↓
-              [FAILED, TIMEOUT, CANCELLED, PAUSED]
-                      ↓
-                   QUEUED (retry)
-```
-
-### 4. Clock Abstraction (`packages/cli/src/lib/clock.ts`)
-
-Deterministic time for reproducible execution:
-
-```typescript
-// Production
-setGlobalClock(new SystemClock());
-
-// Testing/Replay
-setGlobalClock(new SeededClock(seedFromString(requestId), 1));
-```
-
-### 5. Native Engine (`src/`)
-
-C++ core providing:
-- **Hash**: BLAKE3 for all cryptographic operations
-- **CAS**: Content-addressable storage with integrity
-- **Sandbox**: Cross-platform process isolation
-- **Replay**: Execution trace validation
+Unified error handling with stable identifiers used across all layers.
 
 ---
 
-## Data Flow
+## Data Flow (The Decision Path)
 
-### Request Processing
-
-```
-┌──────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────┐
-│  Client  │───▶│  API Route   │───▶│   Tenant     │───▶│  Handler │
-│  Request │    │   Handler    │    │  Resolution  │    │          │
-└──────────┘    └──────────────┘    └──────────────┘    └────┬─────┘
-                                                             │
-                         ┌───────────────────────────────────┘
-                         ▼
-┌──────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────┐
-│  Client  │◄───│  Structured  │◄───│   Engine     │◄───│  Core    │
-│ Response │    │    Error     │    │  (Native)    │    │  Logic   │
-└──────────┘    └──────────────┘    └──────────────┘    └──────────┘
-```
-
-### Determinism Guarantee
-
-```
-Request JSON
-    │
-    ▼
-Canonical JSON (sorted keys, no timestamps)
-    │
-    ▼
-BLAKE3 Hash = Request Digest
-    │
-    ▼
-Sandbox Execution (with seeded clock if replay)
-    │
-    ▼
-Output Hash + Result Hash
-    │
-    ▼
-Replay Validation: Recompute and verify
-```
-
----
-
-## Error Handling Strategy
-
-### Layer-Specific Handling
-
-| Layer | Strategy |
-|-------|----------|
-| **Core** | Throw `RequiemError` with codes |
-| **Server** | Catch and wrap; log with context |
-| **API** | Return structured JSON with HTTP status |
-| **UI** | Display safe message; log correlation ID |
-
-### HTTP Status Mapping
-
-| Error Code | HTTP Status |
-|------------|-------------|
-| TENANT_NOT_FOUND | 404 |
-| TENANT_ACCESS_DENIED | 403 |
-| UNAUTHORIZED | 401 |
-| VALIDATION_FAILED | 400 |
-| ENGINE_UNAVAILABLE | 503 |
-| DETERMINISM_VIOLATION | 500 |
-
----
-
-## Multi-Tenancy
-
-### Tenant Isolation
-
-1. **Request Level**: JWT/API key → TenantContext
-2. **Query Level**: All queries include `tenant_id` filter
-3. **Database Level**: RLS policies enforce tenant boundaries
-4. **Cache Level**: Keys prefixed with `tenant:{id}:`
-
-### Role Hierarchy
-
-```
-OWNER (3)
-  └─ Full control, billing access
-
-ADMIN (2)
-  └─ Manage users, settings
-
-MEMBER (1)
-  └─ Create runs, view data
-
-VIEWER (0)
-  └─ Read-only access
-```
-
----
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `REQUIEM_TENANT_ID` | CLI tenant context | CLI only |
-| `REQUIEM_API_KEY` | CLI authentication | CLI only |
-| `REQUIEM_ENGINE_PATH` | Native binary path | Optional |
-| `REQUIEM_CAS_PATH` | CAS storage directory | Optional |
-
-### Config Snapshots
-
-Captured at execution start for replay verification:
-
-```typescript
-interface ConfigSnapshot {
-  version: string;          // Config schema version
-  values: Record<string, unknown>;  // Relevant config
-  capturedAt: string;       // ISO timestamp
-  clockSeed?: number;       // If using seeded clock
-}
-```
-
----
-
-## Extension Points
-
-### Adding New Error Codes
-
-1. Add to `ErrorCode` enum in `packages/cli/src/lib/errors.ts`
-2. Add HTTP status mapping in `errorToHttpStatus()`
-3. Add factory method in `Errors` object (optional)
-
-### Adding New States
-
-1. Define state in state machine config
-2. Add transitions to `allowedTransitions`
-3. Generate SQL CHECK constraint
-4. Update documentation
-
-### Adding New Tenant Sources
-
-1. Implement `TenantResolver` interface
-2. Add to `derivedFrom` type
-3. Update `requireTenantContext()` helper
+1. **Request**: A tool call or AI decision request enters the system.
+2. **Auth**: Tenant context is derived server-side from JWT/API Key.
+3. **Registry**: The requested tool/skill is looked up in the registry.
+4. **Policy**: The Policy Gate evaluates the request against active constraints.
+5. **Execution**: If allowed, the Native Engine executes the task in a sandbox.
+6. **Proof**: A BLAKE3 result digest is computed and stored in CAS.
+7. **Audit**: The transaction is recorded in the tamper-evident Merkle audit chain.
 
 ---
 
 ## References
 
 - [INVARIANTS.md](./INVARIANTS.md) — Hard system constraints
-- [OPERATIONS.md](./OPERATIONS.md) — Runbooks and procedures
-- [THREAT_MODEL.md](./THREAT_MODEL.md) — Security analysis
+- [SECURITY.md](./SECURITY.md) — Security and Cryptography
 - [DETERMINISM.md](./DETERMINISM.md) — Determinism guarantees
+- [cli.md](./cli.md) — CLI Reference (Reach / Requiem)

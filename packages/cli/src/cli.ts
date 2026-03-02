@@ -228,13 +228,13 @@ async function main(): Promise<number> {
     
     switch (command) {
       case 'run': {
-        const { runRunCommand } = await loadCommand('./commands/run.js');
+        const { runRunCommand } = await loadCommand('./commands/run.js') as { runRunCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runRunCommand(subArgs, ctx);
         break;
       }
       
       case 'verify': {
-        const { runVerifyCommand } = await loadCommand('./commands/verify.js');
+        const { runVerifyCommand } = await loadCommand('./commands/verify.js') as { runVerifyCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runVerifyCommand(subArgs, ctx);
         break;
       }
@@ -249,7 +249,7 @@ async function main(): Promise<number> {
       }
       
       case 'ui': {
-        const { dashboard } = await loadCommand('./commands/dashboard.js');
+        const { dashboard } = await loadCommand('./commands/dashboard.js') as { dashboard: { parseAsync: (args: string[]) => Promise<void> } };
         await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
         result = 0;
         break;
@@ -257,7 +257,12 @@ async function main(): Promise<number> {
       
       case 'tool': {
         const { parseToolListArgs, runToolList, parseToolExecArgs, runToolExec } = 
-          await loadCommand('./commands/tool.js');
+          await loadCommand('./commands/tool.js') as {
+            parseToolListArgs: (args: string[]) => unknown;
+            runToolList: (args: unknown, ctx: CommandContext) => Promise<number>;
+            parseToolExecArgs: (args: string[]) => unknown;
+            runToolExec: (args: unknown, ctx: CommandContext) => Promise<number>;
+          };
         const subcommand = subArgs[0];
         const subsubArgs = subArgs.slice(1);
         
@@ -272,108 +277,120 @@ async function main(): Promise<number> {
       }
       
       case 'replay': {
-        const { replay } = await loadCommand('./commands/replay.js');
+        const { replay } = await loadCommand('./commands/replay.js') as { replay: { parseAsync: (args: string[]) => Promise<void> } };
         await replay.parseAsync([process.argv[0], process.argv[1], 'replay', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'trace': {
-        const { trace } = await loadCommand('./commands/trace.js');
+        const { trace } = await loadCommand('./commands/trace.js') as { trace: { parseAsync: (args: string[]) => Promise<void> } };
         await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'telemetry': {
-        const { telemetry } = await loadCommand('./commands/telemetry.js');
+        const { telemetry } = await loadCommand('./commands/telemetry.js') as { telemetry: { parseAsync: (args: string[]) => Promise<void> } };
         await telemetry.parseAsync([process.argv[0], process.argv[1], 'telemetry', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'stress': {
-        const { stress } = await loadCommand('./commands/stress.js');
+        const { stress } = await loadCommand('./commands/stress.js') as { stress: { parseAsync: (args: string[]) => Promise<void> } };
         await stress.parseAsync([process.argv[0], process.argv[1], 'stress', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'backup': {
-        const { backup } = await loadCommand('./commands/backup.js');
+        const { backup } = await loadCommand('./commands/backup.js') as { backup: { parseAsync: (args: string[]) => Promise<void> } };
         await backup.parseAsync([process.argv[0], process.argv[1], 'backup', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'restore': {
-        const { restore } = await loadCommand('./commands/restore.js');
+        const { restore } = await loadCommand('./commands/restore.js') as { restore: { parseAsync: (args: string[]) => Promise<void> } };
         await restore.parseAsync([process.argv[0], process.argv[1], 'restore', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'import': {
-        const { importCommand } = await loadCommand('./commands/import.js');
+        const { importCommand } = await loadCommand('./commands/import.js') as { importCommand: { parseAsync: (args: string[]) => Promise<void> } };
         await importCommand.parseAsync([process.argv[0], process.argv[1], 'import', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'stats': {
-        const { stats } = await loadCommand('./commands/stats.js');
+        const { stats } = await loadCommand('./commands/stats.js') as { stats: { parseAsync: (args: string[]) => Promise<void> } };
         await stats.parseAsync([process.argv[0], process.argv[1], 'stats', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'nuke': {
-        const { nuke } = await loadCommand('./commands/nuke.js');
+        const { nuke } = await loadCommand('./commands/nuke.js') as { nuke: { parseAsync: (args: string[]) => Promise<void> } };
         await nuke.parseAsync([process.argv[0], process.argv[1], 'nuke', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'init': {
-        const { init } = await loadCommand('./commands/init.js');
+        const { init } = await loadCommand('./commands/init.js') as { init: { parseAsync: (args: string[]) => Promise<void> } };
         await init.parseAsync([process.argv[0], process.argv[1], 'init', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'config': {
-        const { config } = await loadCommand('./commands/config.js');
+        const { config } = await loadCommand('./commands/config.js') as { config: { parseAsync: (args: string[]) => Promise<void> } };
         await config.parseAsync([process.argv[0], process.argv[1], 'config', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'decide': {
-        const { parseDecideArgs, runDecideCommand } = await loadCommand('./commands/decide.js');
+        const { parseDecideArgs, runDecideCommand } = await loadCommand('./commands/decide.js') as {
+          parseDecideArgs: (args: string[]) => unknown;
+          runDecideCommand: (args: unknown, ctx: CommandContext) => Promise<number>;
+        };
         result = await runDecideCommand(parseDecideArgs(subArgs), ctx);
         break;
       }
       
       case 'junctions': {
-        const { parseJunctionsArgs, runJunctionsCommand } = await loadCommand('./commands/junctions.js');
+        const { parseJunctionsArgs, runJunctionsCommand } = await loadCommand('./commands/junctions.js') as {
+          parseJunctionsArgs: (args: string[]) => unknown;
+          runJunctionsCommand: (args: unknown, ctx: CommandContext) => Promise<number>;
+        };
         result = await runJunctionsCommand(parseJunctionsArgs(subArgs), ctx);
         break;
       }
       
       case 'agent': {
-        const { parseAgentArgs, runAgentCommand } = await loadCommand('./commands/agent.js');
+        const { parseAgentArgs, runAgentCommand } = await loadCommand('./commands/agent.js') as {
+          parseAgentArgs: (args: string[]) => unknown;
+          runAgentCommand: (args: unknown, ctx: CommandContext) => Promise<number>;
+        };
         result = await runAgentCommand(parseAgentArgs(subArgs), ctx);
         break;
       }
       
       case 'ai': {
-        const { parseAiArgs, runAiCommand } = await loadCommand('./commands/ai.js');
+        const { parseAiArgs, runAiCommand } = await loadCommand('./commands/ai.js') as {
+          parseAiArgs: (args: string[]) => unknown;
+          runAiCommand: (args: unknown, ctx: CommandContext) => Promise<number>;
+        };
         result = await runAiCommand(parseAiArgs(subArgs), ctx);
         break;
       }
       
       case 'doctor': {
-        const { runDoctor } = await loadCommand('./commands/doctor.js');
+        const { runDoctor } = await loadCommand('./commands/doctor.js') as { runDoctor: (opts: { json: boolean }, ctx: CommandContext) => Promise<number> };
         result = await runDoctor({ json }, ctx);
         break;
       }
@@ -388,27 +405,29 @@ async function main(): Promise<number> {
       case 'tenant-check':
       case 'chaos':
       case 'share': {
-        const { runMicrofractureCommand } = await loadCommand('./commands/microfracture.js');
+        const { runMicrofractureCommand } = await loadCommand('./commands/microfracture.js') as {
+          runMicrofractureCommand: (cmd: string, args: string[], ctx: CommandContext) => Promise<number>;
+        };
         result = await runMicrofractureCommand(command, subArgs, ctx);
         break;
       }
       
       case 'quickstart': {
-        const { quickstart } = await loadCommand('./commands/quickstart.js');
+        const { quickstart } = await loadCommand('./commands/quickstart.js') as { quickstart: { parseAsync: (args: string[]) => Promise<void> } };
         await quickstart.parseAsync([process.argv[0], process.argv[1], 'quickstart', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'status': {
-        const { status } = await loadCommand('./commands/status.js');
+        const { status } = await loadCommand('./commands/status.js') as { status: { parseAsync: (args: string[]) => Promise<void> } };
         await status.parseAsync([process.argv[0], process.argv[1], 'status', ...subArgs]);
         result = 0;
         break;
       }
       
       case 'bugreport': {
-        const { bugreport } = await loadCommand('./commands/bugreport.js');
+        const { bugreport } = await loadCommand('./commands/bugreport.js') as { bugreport: { parseAsync: (args: string[]) => Promise<void> } };
         await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
         result = 0;
         break;
@@ -416,37 +435,37 @@ async function main(): Promise<number> {
       
       // Governance and Learning
       case 'learn': {
-        const { runLearnCommand } = await loadCommand('./commands/learn.js');
+        const { runLearnCommand } = await loadCommand('./commands/learn.js') as { runLearnCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runLearnCommand(subArgs, ctx);
         break;
       }
       
       case 'realign': {
-        const { runRealignCommand } = await loadCommand('./commands/realign.js');
+        const { runRealignCommand } = await loadCommand('./commands/realign.js') as { runRealignCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runRealignCommand(subArgs, ctx);
         break;
       }
       
       case 'pivot': {
-        const { runPivotPlanCommand } = await loadCommand('./commands/pivot.js');
+        const { runPivotPlanCommand } = await loadCommand('./commands/pivot.js') as { runPivotPlanCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runPivotPlanCommand(subArgs, ctx);
         break;
       }
       
       case 'rollback': {
-        const { runRollbackCommand } = await loadCommand('./commands/pivot.js');
+        const { runRollbackCommand } = await loadCommand('./commands/pivot.js') as { runRollbackCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runRollbackCommand(subArgs, ctx);
         break;
       }
       
       case 'symmetry': {
-        const { runSymmetryCommand } = await loadCommand('./commands/symmetry.js');
+        const { runSymmetryCommand } = await loadCommand('./commands/symmetry.js') as { runSymmetryCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runSymmetryCommand(subArgs, ctx);
         break;
       }
       
       case 'economics': {
-        const { runEconomicsCommand } = await loadCommand('./commands/economics.js');
+        const { runEconomicsCommand } = await loadCommand('./commands/economics.js') as { runEconomicsCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runEconomicsCommand(subArgs, ctx);
         break;
       }

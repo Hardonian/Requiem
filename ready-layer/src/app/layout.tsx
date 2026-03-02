@@ -9,17 +9,46 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Requiem — Provable AI Runtime',
+    default: 'Requiem — Deterministic AI Execution Layer',
     template: '%s | Requiem',
   },
   description:
-    'Every AI decision provable. Every outcome replayable. Every policy enforced. The deterministic AI runtime with cryptographic execution proof.',
-  robots: { index: false, follow: false },
+    'The provable AI runtime for enterprise agents. Cryptographic execution proofs, byte-perfect replay, and deny-by-default policy enforcement.',
+  keywords: ['AI', 'Deterministic', 'Runtime', 'Replay', 'BLAKE3', 'Governance'],
+  authors: [{ name: 'Hardonian Team' }],
+  creator: 'Hardonian',
+  publisher: 'Hardonian',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://requiem.hardonian.com'),
+  openGraph: {
+    title: 'Requiem — Provable AI Runtime',
+    description: 'Deterministic AI execution with cryptographic proof.',
+    url: 'https://requiem.hardonian.com',
+    siteName: 'Requiem',
+    locale: 'en_US',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: '#0f172a',
 };
 
 export default function RootLayout({
@@ -28,8 +57,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <html lang="en" suppressHydrationWarning className="antialiased">
+      <body className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
         {children}
       </body>
     </html>

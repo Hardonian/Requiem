@@ -1,6 +1,6 @@
 /**
  * Unified Error System
- * 
+ *
  * One error system for CLI, Engine, and Web.
  * INVARIANT: All thrown errors MUST be AppError or wrapped into AppError at boundary.
  * INVARIANT: No raw Error throws in production code paths.
@@ -17,70 +17,70 @@ export type ErrorCode =
   | 'E_CFG_DEPRECATED'
   | 'E_CFG_PARSE_FAILED'
   | 'E_CFG_VERSION_MISMATCH'
-  
+
   // Database errors (E_DB_*)
   | 'E_DB_CONNECTION_FAILED'
   | 'E_DB_QUERY_FAILED'
   | 'E_DB_CONSTRAINT_VIOLATION'
   | 'E_DB_MIGRATION_FAILED'
   | 'E_DB_NOT_FOUND'
-  
+
   // Artifact Store errors (E_CAS_*)
   | 'E_CAS_INTEGRITY_FAILED'
   | 'E_CAS_NOT_FOUND'
   | 'E_CAS_WRITE_FAILED'
   | 'E_CAS_READ_FAILED'
   | 'E_CAS_CORRUPTED'
-  
+
   // Signing/Verification errors (E_SIG_*)
   | 'E_SIG_INVALID'
   | 'E_SIG_VERIFICATION_FAILED'
   | 'E_SIG_KEY_NOT_FOUND'
   | 'E_SIG_EXPIRED'
   | 'E_SIG_REVOKED'
-  
+
   // Policy/Quota errors (E_POL_*)
   | 'E_POL_VIOLATION'
   | 'E_POL_QUOTA_EXCEEDED'
   | 'E_POL_RATE_LIMITED'
   | 'E_POL_UNAUTHORIZED'
   | 'E_POL_FORBIDDEN'
-  
+
   // Provider/Arbitration errors (E_PROV_*)
   | 'E_PROV_UNAVAILABLE'
   | 'E_PROV_TIMEOUT'
   | 'E_PROV_INVALID_RESPONSE'
   | 'E_PROV_ARBITRATION_FAILED'
   | 'E_PROV_CIRCUIT_OPEN'
-  
+
   // Network errors (E_NET_*)
   | 'E_NET_CONNECTION_FAILED'
   | 'E_NET_TIMEOUT'
   | 'E_NET_DNS_FAILED'
   | 'E_NET_TLS_FAILED'
   | 'E_NET_RETRY_EXHAUSTED'
-  
+
   // Filesystem errors (E_IO_*)
   | 'E_IO_NOT_FOUND'
   | 'E_IO_PERMISSION_DENIED'
   | 'E_IO_READ_FAILED'
   | 'E_IO_WRITE_FAILED'
   | 'E_IO_LOCKED'
-  
+
   // Invariant/Determinism/Replay errors (E_INT_*)
   | 'E_INT_DETERMINISM_VIOLATION'
   | 'E_INT_REPLAY_MISMATCH'
   | 'E_INT_HASH_MISMATCH'
   | 'E_INT_INVARIANT_VIOLATION'
   | 'E_INT_STATE_CORRUPTED'
-  
+
   // Web/Route errors (E_WEB_*)
   | 'E_WEB_INVALID_REQUEST'
   | 'E_WEB_ROUTE_NOT_FOUND'
   | 'E_WEB_METHOD_NOT_ALLOWED'
   | 'E_WEB_PAYLOAD_TOO_LARGE'
   | 'E_WEB_VALIDATION_FAILED'
-  
+
   // General errors
   | 'E_UNKNOWN'
   | 'E_NOT_IMPLEMENTED'
@@ -180,7 +180,7 @@ function isSensitiveKey(key: string): boolean {
 
 export function sanitizeValue(value: unknown, depth = 0): unknown {
   if (depth > 5) return '[DEPTH_LIMITED]';
-  
+
   if (value === null || value === undefined) return value;
   if (typeof value === 'string') {
     // Mask potential secrets in strings
@@ -191,17 +191,17 @@ export function sanitizeValue(value: unknown, depth = 0): unknown {
   }
   if (typeof value === 'number' || typeof value === 'boolean') return value;
   if (typeof value !== 'object') return String(value);
-  
+
   if (Array.isArray(value)) {
     return value.map(v => sanitizeValue(v, depth + 1));
   }
-  
+
   const sanitized: Record<string, unknown> = {};
   for (const [key, val] of Object.entries(value)) {
     if (isSensitiveKey(key)) {
       const valStr = String(val);
-      sanitized[key] = valStr.length > 10 
-        ? `[REDACTED:${valStr.substring(0, 4)}...]` 
+      sanitized[key] = valStr.length > 10
+        ? `[REDACTED:${valStr.substring(0, 4)}...]`
         : '[REDACTED]';
     } else {
       sanitized[key] = sanitizeValue(val, depth + 1);
@@ -261,7 +261,7 @@ export function wrap(error: unknown, context: string, component?: string): AppEr
       component: component ?? error.component,
     };
   }
-  
+
   if (error instanceof Error) {
     return err('E_UNKNOWN', `${context}: ${error.message}`, {
       cause: error,
@@ -269,7 +269,7 @@ export function wrap(error: unknown, context: string, component?: string): AppEr
       component,
     });
   }
-  
+
   return err('E_UNKNOWN', `${context}: ${String(error)}`, {
     severity: 'error',
     component,
@@ -317,7 +317,7 @@ export function toJSONObject(error: AppError, safe = true): Record<string, unkno
 export function formatHuman(error: AppError): string {
   const parts: string[] = [];
   parts.push(`[${error.code}] ${error.message}`);
-  
+
   if (error.remediation && error.remediation.length > 0) {
     parts.push('');
     parts.push('Remediation:');
@@ -325,11 +325,11 @@ export function formatHuman(error: AppError): string {
       parts.push(`  • ${step}`);
     }
   }
-  
+
   if (error.traceId) {
     parts.push(`\nTrace ID: ${error.traceId}`);
   }
-  
+
   return parts.join('\n');
 }
 
@@ -358,7 +358,7 @@ export function toHttpStatus(error: AppError): number {
     E_PROV_TIMEOUT: 504,
     E_PROV_UNAVAILABLE: 503,
   };
-  
+
   return statusMap[error.code] ?? 500;
 }
 
@@ -373,14 +373,14 @@ export const Errors = {
       component,
       remediation: ['Verify the resource identifier is correct', 'Check if the resource was deleted'],
     }),
-  
+
   invalidInput: (field: string, reason: string, component?: string) =>
     err('E_CFG_INVALID', `Invalid input for '${field}': ${reason}`, {
       severity: 'warn',
       component,
       remediation: ['Check the input format', 'Refer to the documentation for valid values'],
     }),
-  
+
   dbConnection: (cause?: Error, component?: string) =>
     err('E_DB_CONNECTION_FAILED', 'Database connection failed', {
       cause,
@@ -393,7 +393,7 @@ export const Errors = {
         'Check network connectivity',
       ],
     }),
-  
+
   determinism: (details: string, traceId?: string, component?: string) =>
     err('E_INT_DETERMINISM_VIOLATION', `Determinism violation: ${details}`, {
       severity: 'fatal',
@@ -406,7 +406,7 @@ export const Errors = {
         'Contact system administrator immediately',
       ],
     }),
-  
+
   casIntegrity: (digest: string, expected: string, component?: string) =>
     err('E_CAS_INTEGRITY_FAILED', `CAS integrity check failed for object`, {
       severity: 'fatal',
@@ -418,24 +418,37 @@ export const Errors = {
         'Check storage subsystem health',
       ],
     }),
-  
+
   rateLimited: (retryAfterSeconds?: number, component?: string) =>
     err('E_POL_RATE_LIMITED', 'Rate limit exceeded', {
       severity: 'warn',
       isRetryable: true,
       component,
       details: retryAfterSeconds ? { retryAfter: retryAfterSeconds } : undefined,
-      remediation: retryAfterSeconds 
-        ? [`Retry after ${retryAfterSeconds} seconds`] 
+      remediation: retryAfterSeconds
+        ? [`Retry after ${retryAfterSeconds} seconds`]
         : ['Reduce request frequency', 'Contact support to increase quota'],
     }),
-  
+
   internal: (message: string, cause?: Error, component?: string) =>
     err('E_INTERNAL', message, {
       cause,
       severity: 'error',
       component,
       isRetryable: true,
+    }),
+
+  engineUnavailable: (apiUrl: string, component?: string) =>
+    err('E_PROV_UNAVAILABLE', `Native engine node at ${apiUrl} is unreachable`, {
+      severity: 'error',
+      isRetryable: true,
+      component,
+      remediation: [
+        'Check if the native engine is running',
+        'Verify REQUIEM_API_URL is correct',
+        'Check network connectivity and firewall rules',
+        'Run "reach doctor" to validate environment',
+      ],
     }),
 };
 

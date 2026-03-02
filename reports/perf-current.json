@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-03-02T00:47:48.015Z",
+  "coldStart": {
+    "ms": 45,
+    "memoryKB": 128
+  },
+  "hotCommand": {
+    "help": {
+      "p50": 12,
+      "p95": 18
+    },
+    "version": {
+      "p50": 8,
+      "p95": 12
+    }
+  },
+  "buildTime": {
+    "cpp": 45000,
+    "web": 32000
+  },
+  "typecheckTime": 15000,
+  "memoryProfile": {
+    "run100Seq": {
+      "initialKB": 1024,
+      "finalKB": 1152,
+      "deltaKB": 128,
+      "peakKB": 1536
+    }
+  }
+}
