@@ -99,6 +99,18 @@ SEMANTIC STATE MACHINE (New Primitive):
   state transition --from <id>        Create state transition
   state simulate upgrade --from --to  Simulate model migration impact
 
+AUDIT & GOVERNANCE (Differentiators):
+  audit report <state-id>             Generate audit narrative for state
+  audit transition <from> <to>        Generate audit narrative for transition
+  budget define --name <n> [rules]    Define change budget for drift categories
+  budget check <from> <to> --budget   Check if transition is within budget
+  budget list                         List available budget presets
+  budget show <name>                  Show budget rules
+  tool-schema lock <tool> [--state]   Lock tool IO schema to semantic state
+  tool-schema verify <tool> [--input] Verify IO against locked schema
+  tool-schema drift <tool>            Detect schema drift
+  tool-schema list                    List locked tool schemas
+
 GOVERNANCE COMMANDS:
   learn [--window=7d] [--format]      Show learning signals and diagnoses
   realign <patch-id>                  Apply patch in new branch and verify
@@ -514,6 +526,36 @@ async function main(): Promise<number> {
         };
         const stateCmd = createStateCommand();
         await stateCmd.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
+        result = 0;
+        break;
+      }
+
+      case 'audit': {
+        const { createAuditCommand } = await loadCommand('./commands/audit.js') as {
+          createAuditCommand: () => { parseAsync: (args: string[]) => Promise<void> };
+        };
+        const auditCmd = createAuditCommand();
+        await auditCmd.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
+        result = 0;
+        break;
+      }
+
+      case 'budget': {
+        const { createBudgetCommand } = await loadCommand('./commands/budget.js') as {
+          createBudgetCommand: () => { parseAsync: (args: string[]) => Promise<void> };
+        };
+        const budgetCmd = createBudgetCommand();
+        await budgetCmd.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
+        result = 0;
+        break;
+      }
+
+      case 'tool-schema': {
+        const { createToolSchemaCommand } = await loadCommand('./commands/tool-schema.js') as {
+          createToolSchemaCommand: () => { parseAsync: (args: string[]) => Promise<void> };
+        };
+        const toolSchemaCmd = createToolSchemaCommand();
+        await toolSchemaCmd.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
         break;
       }
