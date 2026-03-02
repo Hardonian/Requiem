@@ -217,6 +217,171 @@ http://localhost:3000/app/semantic-ledger
 
 **GitHub Actions + OPA Equivalent:** Would require building a custom dashboard. No built-in semantic visualization.
 
+## NEW DIFFERENTIATORS (Added)
+
+### Differentiator A: Tool IO Schema Lock
+
+**What It Is:** Strict IO schema enforcement for tools — binds JSON Schema snapshots to semantic states.
+
+**Proof:**
+```bash
+# Lock a tool schema to current state
+reach tool-schema lock system.echo --state $STATE_A
+
+# Verify tool input against locked schema
+echo '{"message": "test"}' > /tmp/test-input.json
+reach tool-schema verify system.echo --input /tmp/test-input.json
+
+# Detect schema drift
+reach tool-schema drift system.echo
+```
+
+**What This Proves:**
+- Tool IO contracts are versioned alongside semantic states
+- Schema drift is detectable and preventable
+- No generic CI system provides tool-level schema governance
+
+**GitHub Actions + OPA Equivalent:** Would require custom tooling. No native concept of "tool schema versioning."
+
+---
+
+### Differentiator C: Change Budget Governance
+
+**What It Is:** Semantic diff budgets that control which drift categories are allowed without re-approval.
+
+**Proof:**
+```bash
+# Define a production budget (strict)
+reach budget define --name production \
+  --model-drift none --model-approval \
+  --prompt-drift none --prompt-approval \
+  --policy-drift none --policy-approval
+
+# Check if a transition is within budget
+reach budget check $STATE_A $STATE_B --budget production
+# Returns: Transition EXCEEDS budget with 1 blocked category
+
+# Define a permissive budget
+reach budget define --name development \
+  --model-drift critical \
+  --prompt-drift major \
+  --policy-drift major
+
+# Check again with permissive budget
+reach budget check $STATE_A $STATE_B --budget development
+# Returns: Transition is WITHIN budget
+```
+
+**What This Proves:**
+- Drift governance with configurable thresholds
+- Different budgets for different environments
+- Fails closed (no budget = no approval)
+
+**GitHub Actions + OPA Equivalent:** Would require custom OPA policies for each drift category. No built-in semantic drift budgeting.
+
+---
+
+### Differentiator D: Audit Narrative Generator
+
+**What It Is:** Deterministic, policy-grade audit narratives from SSM signals — no LLM involvement.
+
+**Proof:**
+```bash
+# Generate audit report for a state
+reach audit report $STATE_A
+
+# Generate as JSON for programmatic use
+reach audit report $STATE_A --json
+
+# Generate audit for a transition
+reach audit transition $STATE_A $STATE_B
+```
+
+**Expected Output (excerpt):**
+```markdown
+# Audit Narrative: Semantic State
+
+> **Version:** 1.0.0  
+> **Generated:** 2024-...  
+> **Subject:** `abc123...`
+
+## Executive Summary
+
+Semantic state abc123... is within normal parameters. Integrity score: 83/100. 2 recommendation(s) provided.
+
+## Integrity Assessment
+
+Overall Score: 83/100
+
+Component Breakdown:
+  [✗] Parity Verified
+  [✓] Policy Bound
+  [✓] Context Captured
+  [✗] Eval Attached
+  [✗] Replay Verified
+  [✗] Artifact Signed
+
+## Recommendations
+
+• Enable parity verification for cross-environment consistency
+• Run replay verification to ensure deterministic behavior
+```
+
+**What This Proves:**
+- Compliance-ready audit trails without human editing
+- Deterministic output (same inputs → same narrative)
+- Suitable for governance tickets
+
+**GitHub Actions + OPA Equivalent:** Would require building custom audit log parsers. No deterministic narrative generation.
+
+---
+
+### Differentiator B: Replay Attestation Capsule
+
+**What It Is:** Portable, verifiable run "capsule" containing semantic state, policy refs, context refs, and lineage — verifiable offline.
+
+**Proof:**
+```bash
+# Export capsule for a state
+reach capsule export $STATE_A --output /tmp/capsule.json
+
+# Verify capsule integrity (offline)
+reach capsule verify /tmp/capsule.json
+# Returns: ✓ Capsule verification passed — all checks valid
+
+# Quick verify (checksum only)
+reach capsule verify /tmp/capsule.json --quick
+
+# Show capsule info
+reach capsule info /tmp/capsule.json
+```
+
+**Expected Output:**
+```json
+{
+  "valid": true,
+  "capsuleId": "capsule-abc123...",
+  "verifiedAt": "2024-01-15T10:30:00Z",
+  "checks": {
+    "formatVersion": true,
+    "checksum": true,
+    "stateIdDerivation": true,
+    "lineageIntegrity": true
+  },
+  "errors": [],
+  "summary": "Capsule verification passed — all checks valid"
+}
+```
+
+**What This Proves:**
+- Self-contained verifiable proof of execution state
+- Cryptographic binding via checksums
+- No network required for verification
+
+**GitHub Actions + OPA Equivalent:** No equivalent. GHA logs are not portable, content-addressed, or verifiable offline.
+
+---
+
 ## Summary: The Differentiation
 
 | Capability | GitHub Actions + OPA | Requiem SSM |
@@ -229,6 +394,10 @@ http://localhost:3000/app/semantic-ledger
 | **Model Migration** | Full re-test | Simulation + selective re-eval |
 | **Export Format** | Logs (unstructured) | Semantic ledger bundle |
 | **Purpose-Built UI** | Generic dashboard | Semantic ledger explorer |
+| **Tool IO Schema Lock** | None | Schema snapshots bound to states |
+| **Change Budget Governance** | Custom OPA policies | Built-in drift budgets |
+| **Audit Narrative Generator** | Manual/log parsing | Deterministic templates |
+| **Replay Attestation Capsule** | None | Portable verifiable bundles |
 
 ## Why This Matters
 

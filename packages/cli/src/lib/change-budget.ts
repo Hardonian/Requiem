@@ -13,7 +13,7 @@ import {
   type SemanticState,
   type SemanticTransition,
   type DriftCategory,
-  DriftCategory,
+  DriftCategory as DriftCategoryValue,
   classifyDrift,
   type ChangeVector,
 } from './semantic-state-machine.js';
@@ -130,23 +130,23 @@ export function createStrictBudget(name: string): ChangeBudget {
   const rules = new Map<DriftCategory, BudgetRule>();
 
   // Model and prompt drift always require approval
-  rules.set(DriftCategory.ModelDrift, {
-    category: DriftCategory.ModelDrift,
+  rules.set(DriftCategoryValue.ModelDrift, {
+    category: DriftCategoryValue.ModelDrift,
     maxSignificance: 'critical',
     requiresApproval: true,
     violationMessage: 'Model changes always require explicit approval',
   });
 
-  rules.set(DriftCategory.PromptDrift, {
-    category: DriftCategory.PromptDrift,
+  rules.set(DriftCategoryValue.PromptDrift, {
+    category: DriftCategoryValue.PromptDrift,
     maxSignificance: 'major',
     requiresApproval: true,
     violationMessage: 'Prompt changes require approval',
   });
 
   // Policy drift requires approval
-  rules.set(DriftCategory.PolicyDrift, {
-    category: DriftCategory.PolicyDrift,
+  rules.set(DriftCategoryValue.PolicyDrift, {
+    category: DriftCategoryValue.PolicyDrift,
     maxSignificance: 'major',
     requiresApproval: true,
     violationMessage: 'Policy changes require governance review',
@@ -172,32 +172,32 @@ export function createProductionBudget(name: string): ChangeBudget {
   const rules = new Map<DriftCategory, BudgetRule>();
 
   // No model changes in production without approval
-  rules.set(DriftCategory.ModelDrift, {
-    category: DriftCategory.ModelDrift,
+  rules.set(DriftCategoryValue.ModelDrift, {
+    category: DriftCategoryValue.ModelDrift,
     maxSignificance: null, // Disallowed entirely
     requiresApproval: true,
     violationMessage: 'Model changes are BLOCKED in production budget',
   });
 
   // No prompt changes without approval
-  rules.set(DriftCategory.PromptDrift, {
-    category: DriftCategory.PromptDrift,
+  rules.set(DriftCategoryValue.PromptDrift, {
+    category: DriftCategoryValue.PromptDrift,
     maxSignificance: null,
     requiresApproval: true,
     violationMessage: 'Prompt changes are BLOCKED in production budget',
   });
 
   // No policy changes without approval
-  rules.set(DriftCategory.PolicyDrift, {
-    category: DriftCategory.PolicyDrift,
+  rules.set(DriftCategoryValue.PolicyDrift, {
+    category: DriftCategoryValue.PolicyDrift,
     maxSignificance: null,
     requiresApproval: true,
     violationMessage: 'Policy changes are BLOCKED in production budget',
   });
 
   // Context changes allowed if minor
-  rules.set(DriftCategory.ContextDrift, {
-    category: DriftCategory.ContextDrift,
+  rules.set(DriftCategoryValue.ContextDrift, {
+    category: DriftCategoryValue.ContextDrift,
     maxSignificance: 'minor',
     requiresApproval: false,
     violationMessage: 'Context changes beyond minor significance blocked',
@@ -328,9 +328,9 @@ export function checkChangeBudget(
 
   // If no drift categories but states differ, check for unknown drift
   if (categoryResults.length === 0) {
-    const rule = budget.rules.get(DriftCategory.UnknownDrift) ?? {
+    const rule = budget.rules.get(DriftCategoryValue.UnknownDrift) ?? {
       ...budget.defaultRule,
-      category: DriftCategory.UnknownDrift,
+      category: DriftCategoryValue.UnknownDrift,
     };
 
     const allowed = isSignificanceAllowed('cosmetic', rule.maxSignificance);

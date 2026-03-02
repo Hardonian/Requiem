@@ -15,7 +15,7 @@ import {
   type DriftCategory,
   type ChangeVector,
   type DriftClassification,
-  DriftCategory,
+  DriftCategory as DriftCategoryValue,
   computeIntegrityScore,
 } from './semantic-state-machine.js';
 
@@ -401,11 +401,11 @@ function generateTransitionRecommendations(
 ): string[] {
   const recommendations: string[] = [];
 
-  if (transition.driftCategories.includes(DriftCategory.ModelDrift)) {
+  if (transition.driftCategories.includes(DriftCategoryValue.ModelDrift)) {
     recommendations.push('Model drift detected—run full evaluation suite before promotion');
   }
 
-  if (transition.driftCategories.includes(DriftCategory.PolicyDrift)) {
+  if (transition.driftCategories.includes(DriftCategoryValue.PolicyDrift)) {
     recommendations.push('Policy drift detected—review governance implications');
   }
 
@@ -505,13 +505,13 @@ export function renderNarrativeAsJSON(narrative: AuditNarrative): string {
 
 function getDriftCategoryDescription(category: DriftCategory): string {
   const descriptions: Record<DriftCategory, string> = {
-    [DriftCategory.ModelDrift]: 'AI model or version changed—requires re-evaluation',
-    [DriftCategory.PromptDrift]: 'Prompt template or version changed—may affect behavior',
-    [DriftCategory.ContextDrift]: 'Knowledge base or context snapshot changed',
-    [DriftCategory.PolicyDrift]: 'Policy snapshot changed—governance review needed',
-    [DriftCategory.EvalDrift]: 'Evaluation criteria or snapshot changed',
-    [DriftCategory.RuntimeDrift]: 'Runtime environment changed—parity check recommended',
-    [DriftCategory.UnknownDrift]: 'Unclassified drift detected—manual review required',
+    [DriftCategoryValue.ModelDrift]: 'AI model or version changed—requires re-evaluation',
+    [DriftCategoryValue.PromptDrift]: 'Prompt template or version changed—may affect behavior',
+    [DriftCategoryValue.ContextDrift]: 'Knowledge base or context snapshot changed',
+    [DriftCategoryValue.PolicyDrift]: 'Policy snapshot changed—governance review needed',
+    [DriftCategoryValue.EvalDrift]: 'Evaluation criteria or snapshot changed',
+    [DriftCategoryValue.RuntimeDrift]: 'Runtime environment changed—parity check recommended',
+    [DriftCategoryValue.UnknownDrift]: 'Unclassified drift detected—manual review required',
   };
 
   return descriptions[category] || 'Unknown drift category';

@@ -1,0 +1,22 @@
+{
+  "toolName": "system.echo",
+  "inputSchema": {
+    "type": "object",
+    "required": ["message"],
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "The message to echo"
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "string",
+        "description": "The echoed message"
+      }
+    }
+  }
+}

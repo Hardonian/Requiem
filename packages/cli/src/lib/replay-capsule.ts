@@ -211,11 +211,12 @@ export function createCapsule(
  */
 export function verifyCapsule(capsule: ReplayAttestationCapsule): CapsuleVerificationResult {
   const errors: string[] = [];
-  const checks = {
+  const checks: CapsuleVerificationResult['checks'] = {
     formatVersion: false,
     checksum: false,
     stateIdDerivation: false,
     lineageIntegrity: false,
+    signature: undefined,
   };
 
   // Check format version
