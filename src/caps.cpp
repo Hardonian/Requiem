@@ -95,11 +95,14 @@ KeyPair caps_generate_keypair() {
   EVP_PKEY_get_raw_public_key(pkey, pub, &pub_len);
   kp.public_key_hex = bytes_to_hex(pub, pub_len);
 
-  // Extract private key (seed).
+  // Extract private key (seed). ED25519 uses 32-byte seed.
+  // OpenSSL returns 64 bytes (expanded form: seed + public key), but
+  // we only need the first 32 bytes (the seed) for signing.
   unsigned char priv[64];
   size_t priv_len = 64;
   EVP_PKEY_get_raw_private_key(pkey, priv, &priv_len);
-  kp.secret_key_hex = bytes_to_hex(priv, priv_len);
+  // Store only the first 32 bytes (the seed)
+  kp.secret_key_hex = bytes_to_hex(priv, 32);
 
   EVP_PKEY_free(pkey);
   return kp;
@@ -110,10 +113,10 @@ KeyPair caps_generate_keypair() {
 // ---------------------------------------------------------------------------
 
 std::string caps_token_to_signing_payload(const CapabilityToken &token) {
-  // Canonical JSON of all fields except signature, sorted by key.
+  // Canonical JSON of all fields except signature and fingerprint, sorted by key.
+  // Note: fingerprint is computed FROM this payload, so it must not be included.
   jsonlite::Object obj;
   obj["cap_version"] = static_cast<uint64_t>(token.cap_version);
-  obj["fingerprint"] = token.fingerprint;
   obj["issuer_fingerprint"] = token.issuer_fingerprint;
   obj["nonce"] = token.nonce;
   obj["not_after"] = token.not_after;
@@ -197,14 +200,13 @@ CapabilityToken caps_mint(const std::vector<std::string> &permissions,
   // Sign the payload.
   const std::string payload = caps_token_to_signing_payload(token);
 
-  unsigned char priv_bytes[64];
-  size_t priv_len = (secret_key_hex.size() / 2);
-  if (priv_len > 64)
-    priv_len = 64;
-  hex_to_bytes(secret_key_hex, priv_bytes, priv_len);
+  // ED25519 private key is 32 bytes (seed). OpenSSL's get_raw_private_key
+  // returns 64 bytes (seed + public key), but new_raw_private_key expects 32.
+  unsigned char priv_bytes[32];
+  hex_to_bytes(secret_key_hex, priv_bytes, 32);
 
   EVP_PKEY *pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, nullptr,
-                                                priv_bytes, priv_len);
+                                                priv_bytes, 32);
 
   if (pkey) {
     EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();

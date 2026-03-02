@@ -91,7 +91,8 @@ The following is **production-ready** (deterministic, tested, documented):
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| Fix CAS compact test | High | Test expects 2 lines but gets different count |
+| Fix EventLog test hang | High | Tests hang on Windows during EventLog construction |
+| Fix CAS compact test | Medium | Test expects 2 lines but gets different count |
 | Implement full debugger | Medium | Currently returns nullptr stub |
 | Complete sandbox implementation | Medium | Windows sandbox needs Job Objects |
 | Add more CLI commands | Low | Export, import, validate-only |
