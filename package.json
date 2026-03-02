@@ -8,7 +8,6 @@
   "scripts": {
     "reach": "pnpm --filter @requiem/cli",
     "reality-gate": "bash scripts/reality-gate.sh",
-    "generate:sbom": "tsx scripts/generate-sbom.ts",
     "build": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j",
     "build:ui": "pnpm --filter @requiem/ui build",
     "build:web": "pnpm --filter ready-layer build",
@@ -52,7 +51,9 @@
     "verify:economics": "node scripts/verify-economics.mjs",
     "verify:governance": "npm-run-all verify:skills verify:schemas verify:economics",
     "audit": "pnpm audit",
-    "audit:fix": "pnpm audit --fix"
+    "audit:fix": "pnpm audit --fix",
+    "generate:sbom": "tsx scripts/generate-sbom.ts",
+    "verify:supplychain": "tsx scripts/verify-supplychain.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

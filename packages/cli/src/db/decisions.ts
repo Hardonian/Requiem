@@ -50,9 +50,11 @@ export interface UpdateDecisionInput {
 }
 
 export class DecisionRepository {
-  private static stmtCache = new Map<string, any>(); // Generic 'any' for better-sqlite3 Statement
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static stmtCache = new Map<string, any>();
 
-  private static getStmt(query: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static getStmt(query: string): any {
     if (!this.stmtCache.has(query)) {
       this.stmtCache.set(query, getDB().prepare(query));
     }
@@ -128,7 +130,6 @@ export class DecisionRepository {
    * Updates a decision
    */
   static update(id: string, input: UpdateDecisionInput): DecisionReport | undefined {
-    const db = getDB();
     const existing = this.findById(id);
     if (!existing) {
       return undefined;
@@ -143,7 +144,7 @@ export class DecisionRepository {
     const setClause = Object.keys(updateData)
       .map(key => `${key} = @${key}`)
       .join(', ');
-    this.getStmt(query).run({ ...updateData, id });
+    this.getStmt(`UPDATE decisions SET ${setClause} WHERE id = @id`).run({ ...updateData, id });
     return this.findById(id);
   }
 

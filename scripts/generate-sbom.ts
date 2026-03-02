@@ -8,7 +8,10 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const OUTPUT_FILE = path.join(REPO_ROOT, 'artifacts', 'reports', 'sbom.json');
 const ALLOWLIST_FILE = path.join(REPO_ROOT, 'contracts', 'deps.allowlist.json');

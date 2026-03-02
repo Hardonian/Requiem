@@ -447,29 +447,13 @@ function parseExports(filePath: string, includeReExports: boolean = false): Expo
     }
   }
 
-  // Star exports
+  // Star exports (export * from ...)
   const starExportPattern = /export\s+\*\s+from\s+['"]([^'"]+)['"]/g;
   while ((match = starExportPattern.exec(content)) !== null) {
     exports.push({
       name: `* from ${match[1]}`,
       kind: 'export-all',
     });
-
-    // Optionally recursively parse re-exports
-    if (includeReExports) {
-      try {
-        const sourceFile = match[1].replace('.js', '.ts');
-        const fullPath = join(baseDir, sourceFile);
-        const reExports = parseExports(fullPath, false);
-        for (const reExp of reExports) {
-          if (reExp.kind !== 'export-all' && !exports.find(e => e.name === reExp.name)) {
-            exports.push({ ...reExp, source: `via ${match[1]}` });
-          }
-        }
-      } catch {
-        // Ignore re-export parsing errors
-      }
-    }
   }
 
   // Default exports and individual exports

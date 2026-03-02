@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-03-02T01:13:09.328Z",
+  "generatedAt": "2026-03-02T01:14:59.120Z",
   "version": {
     "packageVersion": "0.1.0",
     "cliVersion": "0.2.0",
@@ -994,6 +994,672 @@
   "exports": {
     "main": [
       {
+        "name": "runDecideCommand",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/decide"
+      },
+      {
+        "name": "parseDecideArgs",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/decide"
+      },
+      {
+        "name": "DecideCliArgs",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/decide"
+      },
+      {
+        "name": "runJunctionsCommand",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/junctions"
+      },
+      {
+        "name": "parseJunctionsArgs",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/junctions"
+      },
+      {
+        "name": "JunctionsCliArgs",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/junctions"
+      },
+      {
+        "name": "trace",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/trace"
+      },
+      {
+        "name": "replay",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/replay"
+      },
+      {
+        "name": "stats",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/stats"
+      },
+      {
+        "name": "nuke",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/nuke"
+      },
+      {
+        "name": "config",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/config"
+      },
+      {
+        "name": "init",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/init"
+      },
+      {
+        "name": "telemetry",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/telemetry"
+      },
+      {
+        "name": "stress",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/stress"
+      },
+      {
+        "name": "dashboard",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/dashboard"
+      },
+      {
+        "name": "serve",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/serve"
+      },
+      {
+        "name": "backup",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/backup"
+      },
+      {
+        "name": "restore",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/restore"
+      },
+      {
+        "name": "importCommand",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./commands/import"
+      },
+      {
+        "name": "evaluateDecision",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "getDecisionEngine",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "createDecisionEngine",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "checkEngineAvailability",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "TsReferenceEngine",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "RequiemEngine",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "DecisionEngine",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "DecisionInput",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "DecisionOutput",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "ExecRequest",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "ExecResult",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "EngineErrorCodes",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./engine/adapter"
+      },
+      {
+        "name": "evaluateDecisionFallback",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/fallback"
+      },
+      {
+        "name": "FallbackDecisionInput",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/fallback"
+      },
+      {
+        "name": "FallbackDecisionOutput",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/fallback"
+      },
+      {
+        "name": "junctionOrchestrator",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/orchestrator"
+      },
+      {
+        "name": "JunctionOrchestrator",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./junctions/orchestrator"
+      },
+      {
+        "name": "JunctionOrchestratorConfig",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/orchestrator"
+      },
+      {
+        "name": "generateJunctionFingerprint",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/orchestrator"
+      },
+      {
+        "name": "generateDeduplicationKey",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/orchestrator"
+      },
+      {
+        "name": "JUNCTION_TYPE_META",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "DEFAULT_JUNCTION_CONFIG",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "getSeverityLevel",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "JunctionType",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "SourceType",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "JunctionTrigger",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "JunctionConfig",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "JunctionRule",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./junctions/types"
+      },
+      {
+        "name": "JunctionRepository",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./db/junctions"
+      },
+      {
+        "name": "ActionIntentRepository",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./db/junctions"
+      },
+      {
+        "name": "Junction",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/junctions"
+      },
+      {
+        "name": "ActionIntent",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/junctions"
+      },
+      {
+        "name": "CreateJunctionInput",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/junctions"
+      },
+      {
+        "name": "CreateActionIntentInput",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/junctions"
+      },
+      {
+        "name": "DecisionRepository",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./db/decisions"
+      },
+      {
+        "name": "DecisionReport",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/decisions"
+      },
+      {
+        "name": "CreateDecisionInput",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/decisions"
+      },
+      {
+        "name": "UpdateDecisionInput",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/decisions"
+      },
+      {
+        "name": "getDB",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/connection"
+      },
+      {
+        "name": "resetDB",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/connection"
+      },
+      {
+        "name": "DB",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/connection"
+      },
+      {
+        "name": "Statement",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/connection"
+      },
+      {
+        "name": "newId",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/helpers"
+      },
+      {
+        "name": "uuid",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./db/helpers"
+      },
+      {
+        "name": "hash",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/hash"
+      },
+      {
+        "name": "hashShort",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/hash"
+      },
+      {
+        "name": "RequiemError",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "ErrorCode",
+        "kind": "type",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "ErrorSeverity",
+        "kind": "type",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "Errors",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "errorToHttpStatus",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "ErrorEnvelope",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "ErrorMeta",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "RequiemErrorOptions",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/errors"
+      },
+      {
+        "name": "DefaultTenantResolver",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "MockTenantResolver",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "TenantRole",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "hasRequiredRole",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "requireTenantContext",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "requireTenantContextCli",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "setGlobalTenantResolver",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "getGlobalTenantResolver",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "TenantContext",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "TenantResolver",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "TenantResolutionOptions",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "TenantMembership",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/tenant"
+      },
+      {
+        "name": "StateMachine",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "createExecutionStateMachine",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "createJunctionStateMachine",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "ExecutionStates",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "JunctionStates",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "transitionEntity",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "generateStateCheckConstraint",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "StateDefinition",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "StateTransition",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "StatefulEntity",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "ExecutionState",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "JunctionState",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/state-machine"
+      },
+      {
+        "name": "SystemClock",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "SeededClock",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "FrozenClock",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "OffsetClock",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "setGlobalClock",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "getGlobalClock",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "ClockUtil",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "seedFromString",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "captureConfigSnapshot",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "hashConfigSnapshot",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "verifyConfigSnapshot",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "withTimeout",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "Clock",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
+        "name": "ConfigSnapshot",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./lib/clock"
+      },
+      {
         "name": "* from ./core/index.js",
         "kind": "export-all"
       },
@@ -1002,7 +1668,229 @@
         "kind": "const"
       }
     ],
-    "core": []
+    "core": [
+      {
+        "name": "ErrorCode",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "ErrorSeverity",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "AppError",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "AppErrorDetails",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "ERROR_CATEGORIES",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "SEVERITY_ORDER",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "err",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "wrap",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "isAppError",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "toJSON",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "toJSONObject",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "formatHuman",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "toHttpStatus",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "sanitizeValue",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "sanitizeError",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "Errors",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "assertInvariant",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "assertDefined",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./errors.js"
+      },
+      {
+        "name": "LogLevel",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "LogEntry",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "LogFields",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "LogSink",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "Logger",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "getLogger",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "configureLogger",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "resetLogger",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "logger",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "sinks",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "enablePrettyLogs",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "captureLogs",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./logging.js"
+      },
+      {
+        "name": "ExitCode",
+        "kind": "const",
+        "isTypeOnly": false,
+        "source": "via ./exit-codes.js"
+      },
+      {
+        "name": "ExitCodeValue",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./exit-codes.js"
+      },
+      {
+        "name": "errorToExitCode",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./exit-codes.js"
+      },
+      {
+        "name": "describeExitCode",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./exit-codes.js"
+      },
+      {
+        "name": "StructuredError",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./exit-codes.js"
+      },
+      {
+        "name": "normalizeError",
+        "kind": "function",
+        "isTypeOnly": false,
+        "source": "via ./exit-codes.js"
+      },
+      {
+        "name": "ExitCodeDescription",
+        "kind": "const",
+        "source": "via ./exit-codes.js"
+      }
+    ]
   },
   "exitCodes": [
     {
