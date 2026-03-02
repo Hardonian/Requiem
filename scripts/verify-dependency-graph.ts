@@ -864,8 +864,12 @@ async function main(): Promise<void> {
   process.exit(hasErrors ? 1 : 0);
 }
 
-// Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run if called directly (check if this is the main module)
+const isMainModule = import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/')) ||
+  process.argv[1].endsWith('verify-dependency-graph.js') ||
+  process.argv[1].endsWith('verify-dependency-graph.ts');
+
+if (isMainModule) {
   main().catch((error) => {
     console.error('Error:', error);
     process.exit(1);
