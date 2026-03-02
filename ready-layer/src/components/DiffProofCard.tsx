@@ -53,6 +53,7 @@ export function DiffProofCard({
 
   return (
     <div className="max-w-2xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <style>{`.run-a-bar { width: ${runA.replayMatchPercent}% } .run-b-bar { width: ${runB.replayMatchPercent}% }`}</style>
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -105,8 +106,7 @@ export function DiffProofCard({
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all"
-                  style={{ width: `${runA.replayMatchPercent}%` }}
+                  className="bg-blue-500 h-2 rounded-full transition-all run-a-bar"
                 />
               </div>
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -134,8 +134,7 @@ export function DiffProofCard({
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all"
-                  style={{ width: `${runB.replayMatchPercent}%` }}
+                  className="bg-blue-500 h-2 rounded-full transition-all run-b-bar"
                 />
               </div>
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">

@@ -55,11 +55,25 @@ const createTestDescriptor = (overrides: Partial<SemanticStateDescriptor> = {}):
   modelVersion: '2024-01',
   promptTemplateId: 'test-template',
   promptTemplateVersion: '1.0.0',
-  policySnapshotId: 'abc123def456',
-  contextSnapshotId: 'context789',
+  policySnapshotId: 'abc123def4567890abcdef1234567890abcdef12',
+  contextSnapshotId: 'context7890abcdef1234567890abcdef1234567890abcdef12',
   runtimeId: 'node-20',
   ...overrides,
 });
+
+/**
+ * Generate a valid 64-character hex state ID for testing.
+ * In production, these are BLAKE3 hashes of descriptors.
+ */
+const testId = (seed: string): string => {
+  // Create a deterministic 64-char hex string from seed
+  const hexChars = 'abcdef0123456789';
+  let result = '';
+  for (let i = 0; i < 64; i++) {
+    result += hexChars[(seed.charCodeAt(i % seed.length) + i) % 16];
+  }
+  return result;
+};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SCHEMA VALIDATION TESTS
@@ -379,8 +393,9 @@ describe('LocalSSMStore', () => {
 
   describe('State Operations', () => {
     it('should store and retrieve a state', () => {
+      const stateId = testId('state-123');
       const state: SemanticState = {
-        id: 'state-123',
+        id: stateId,
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
@@ -388,26 +403,26 @@ describe('LocalSSMStore', () => {
       };
 
       store.putState(state);
-      const retrieved = store.getState('state-123');
+      const retrieved = store.getState(stateId);
 
       expect(retrieved).toEqual(state);
     });
 
     it('should return undefined for non-existent state', () => {
-      const retrieved = store.getState('non-existent');
+      const retrieved = store.getState(testId('non-existent'));
       expect(retrieved).toBeUndefined();
     });
 
     it('should list all states', () => {
       const state1: SemanticState = {
-        id: 'state-1',
+        id: testId('list-state-1'),
         descriptor: createTestDescriptor({ modelId: 'gpt-4' }),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
         integrityScore: 80,
       };
       const state2: SemanticState = {
-        id: 'state-2',
+        id: testId('list-state-2'),
         descriptor: createTestDescriptor({ modelId: 'claude-3' }),
         createdAt: '2024-01-15T11:00:00Z',
         actor: 'test',
@@ -423,14 +438,14 @@ describe('LocalSSMStore', () => {
 
     it('should filter states by modelId', () => {
       const state1: SemanticState = {
-        id: 'state-1',
+        id: testId('filter-model-1'),
         descriptor: createTestDescriptor({ modelId: 'gpt-4' }),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
         integrityScore: 80,
       };
       const state2: SemanticState = {
-        id: 'state-2',
+        id: testId('filter-model-2'),
         descriptor: createTestDescriptor({ modelId: 'claude-3' }),
         createdAt: '2024-01-15T11:00:00Z',
         actor: 'test',
@@ -447,14 +462,14 @@ describe('LocalSSMStore', () => {
 
     it('should filter states by minIntegrityScore', () => {
       const state1: SemanticState = {
-        id: 'state-1',
+        id: testId('filter-score-1'),
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
         integrityScore: 50,
       };
       const state2: SemanticState = {
-        id: 'state-2',
+        id: testId('filter-score-2'),
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T11:00:00Z',
         actor: 'test',
@@ -471,7 +486,7 @@ describe('LocalSSMStore', () => {
 
     it('should filter states by labels', () => {
       const state1: SemanticState = {
-        id: 'state-1',
+        id: testId('filter-label-1'),
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
@@ -479,7 +494,7 @@ describe('LocalSSMStore', () => {
         labels: { env: 'prod', team: 'platform' },
       };
       const state2: SemanticState = {
-        id: 'state-2',
+        id: testId('filter-label-2'),
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T11:00:00Z',
         actor: 'test',
@@ -497,14 +512,14 @@ describe('LocalSSMStore', () => {
 
     it('should sort states by createdAt descending', () => {
       const state1: SemanticState = {
-        id: 'state-1',
+        id: testId('sort-state-1'),
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
         integrityScore: 80,
       };
       const state2: SemanticState = {
-        id: 'state-2',
+        id: testId('sort-state-2'),
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T12:00:00Z',
         actor: 'test',
@@ -515,16 +530,18 @@ describe('LocalSSMStore', () => {
       store.putState(state2);
       const listed = store.listStates();
 
-      expect(listed[0].id).toBe('state-2');
-      expect(listed[1].id).toBe('state-1');
+      expect(listed[0].id).toBe(testId('sort-state-2'));
+      expect(listed[1].id).toBe(testId('sort-state-1'));
     });
   });
 
   describe('Transition Operations', () => {
     it('should append and retrieve transitions', () => {
+      const fromId = testId('trans-from');
+      const toId = testId('trans-to');
       const transition: SemanticTransition = {
-        fromId: 'state-1',
-        toId: 'state-2',
+        fromId,
+        toId,
         timestamp: '2024-01-15T10:00:00Z',
         reason: 'Model upgrade',
         driftCategories: [DriftCategory.ModelDrift],
@@ -533,8 +550,8 @@ describe('LocalSSMStore', () => {
       };
 
       store.appendTransition(transition);
-      const toTransitions = store.getTransitionsTo('state-2');
-      const fromTransitions = store.getTransitionsFrom('state-1');
+      const toTransitions = store.getTransitionsTo(toId);
+      const fromTransitions = store.getTransitionsFrom(fromId);
 
       expect(toTransitions).toHaveLength(1);
       expect(fromTransitions).toHaveLength(1);
@@ -542,8 +559,9 @@ describe('LocalSSMStore', () => {
     });
 
     it('should handle genesis transitions (no fromId)', () => {
+      const toId = testId('genesis-to');
       const transition: SemanticTransition = {
-        toId: 'state-1',
+        toId,
         timestamp: '2024-01-15T10:00:00Z',
         reason: 'Initial state',
         driftCategories: [],
@@ -552,7 +570,7 @@ describe('LocalSSMStore', () => {
       };
 
       store.appendTransition(transition);
-      const toTransitions = store.getTransitionsTo('state-1');
+      const toTransitions = store.getTransitionsTo(toId);
 
       expect(toTransitions).toHaveLength(1);
       expect(toTransitions[0].fromId).toBeUndefined();
@@ -561,15 +579,16 @@ describe('LocalSSMStore', () => {
 
   describe('Bundle Operations', () => {
     it('should export and import bundle', () => {
+      const stateId = testId('bundle-state');
       const state: SemanticState = {
-        id: 'state-1',
+        id: stateId,
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
         integrityScore: 83,
       };
       const transition: SemanticTransition = {
-        toId: 'state-1',
+        toId: stateId,
         timestamp: '2024-01-15T10:00:00Z',
         reason: 'Initial',
         driftCategories: [],
@@ -589,8 +608,8 @@ describe('LocalSSMStore', () => {
       const newStore = new LocalSSMStore(join(tempDir, 'imported'));
       newStore.importBundle(bundle);
 
-      expect(newStore.getState('state-1')).toEqual(state);
-      expect(newStore.getTransitionsTo('state-1')).toHaveLength(1);
+      expect(newStore.getState(stateId)).toEqual(state);
+      expect(newStore.getTransitionsTo(stateId)).toHaveLength(1);
     });
 
     it('should validate bundle on import', () => {
@@ -608,16 +627,18 @@ describe('LocalSSMStore', () => {
   describe('Lineage', () => {
     it('should compute lineage', () => {
       const storeWithLineage = store as LocalSSMStore;
+      const state1Id = testId('lineage-state-1');
+      const state2Id = testId('lineage-state-2');
 
       const state1: SemanticState = {
-        id: 'state-1',
+        id: state1Id,
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',
         integrityScore: 80,
       };
       const state2: SemanticState = {
-        id: 'state-2',
+        id: state2Id,
         descriptor: createTestDescriptor({ modelId: 'claude-3' }),
         createdAt: '2024-01-15T11:00:00Z',
         actor: 'test',
@@ -628,8 +649,8 @@ describe('LocalSSMStore', () => {
       store.putState(state2);
 
       const transition: SemanticTransition = {
-        fromId: 'state-1',
-        toId: 'state-2',
+        fromId: state1Id,
+        toId: state2Id,
         timestamp: '2024-01-15T11:00:00Z',
         reason: 'Model upgrade',
         driftCategories: [DriftCategory.ModelDrift],
@@ -638,17 +659,18 @@ describe('LocalSSMStore', () => {
       };
       store.appendTransition(transition);
 
-      const lineage = storeWithLineage.getLineage('state-2');
+      const lineage = storeWithLineage.getLineage(state2Id);
       expect(lineage).toHaveLength(2);
-      expect(lineage[0].id).toBe('state-1');
-      expect(lineage[1].id).toBe('state-2');
+      expect(lineage[0].id).toBe(state1Id);
+      expect(lineage[1].id).toBe(state2Id);
     });
 
     it('should generate DOT graph', () => {
       const storeWithGraph = store as LocalSSMStore;
+      const stateId = testId('dot-graph-state');
 
       const state1: SemanticState = {
-        id: 'abc123def456',
+        id: stateId,
         descriptor: createTestDescriptor(),
         createdAt: '2024-01-15T10:00:00Z',
         actor: 'test',

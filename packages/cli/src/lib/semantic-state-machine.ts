@@ -19,6 +19,108 @@ import { join } from 'path';
 import { z } from 'zod';
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// INVARIANT ASSERTIONS (SSM-INV-1 through SSM-INV-8)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Error thrown when SSM invariants are violated.
+ * These should never happen in production; they indicate bugs or corruption.
+ */
+export class SSMInvariantError extends Error {
+  constructor(
+    public readonly invariant: string,
+    message: string,
+    public readonly context?: Record<string, unknown>
+  ) {
+    super(`SSM Invariant ${invariant} violated: ${message}`);
+    this.name = 'SSMInvariantError';
+  }
+}
+
+/**
+ * SSM-INV-1: StateId is Opaque Fingerprint
+ * Validates that state IDs are 64-character hex strings (BLAKE3 format).
+ */
+export function assertValidStateId(id: string): asserts id is SemanticStateId {
+  if (!/^[a-f0-9]{64}$/.test(id)) {
+    throw new SSMInvariantError(
+      'SSM-INV-1',
+      `Invalid state ID format: expected 64-char hex, got ${id.length} chars: ${id.substring(0, 32)}...`,
+      { id }
+    );
+  }
+}
+
+/**
+ * SSM-INV-5: Integrity Score Verifiability
+ * Validates that integrity scores are integers 0-100.
+ */
+export function assertValidIntegrityScore(score: number): void {
+  if (!Number.isInteger(score) || score < 0 || score > 100) {
+    throw new SSMInvariantError(
+      'SSM-INV-5',
+      `Integrity score must be integer 0-100, got ${score}`,
+      { score }
+    );
+  }
+}
+
+/**
+ * SSM-INV-6: Export Bundle Stability
+ * Validates bundle version and structure.
+ */
+export function assertValidBundle(bundle: unknown): asserts bundle is SemanticLedgerBundle {
+  // Basic structure check before Zod validation
+  if (typeof bundle !== 'object' || bundle === null) {
+    throw new SSMInvariantError('SSM-INV-6', 'Bundle must be an object', { type: typeof bundle });
+  }
+
+  const b = bundle as Record<string, unknown>;
+
+  // Version check
+  if (b.version !== '1.0.0') {
+    throw new SSMInvariantError(
+      'SSM-INV-6',
+      `Unsupported bundle version: ${b.version}. Expected: 1.0.0`,
+      { version: b.version }
+    );
+  }
+
+  // Timestamp format check (ISO 8601)
+  const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+  if (typeof b.exportedAt !== 'string' || !iso8601Regex.test(b.exportedAt)) {
+    throw new SSMInvariantError(
+      'SSM-INV-6',
+      `Invalid exportedAt timestamp format: ${b.exportedAt}`,
+      { exportedAt: b.exportedAt }
+    );
+  }
+}
+
+/**
+ * SSM-INV-7: Append-Only Storage
+ * Detects attempts to mutate existing state with different content.
+ */
+export function assertNoStateMutation(
+  existing: SemanticState | undefined,
+  proposed: SemanticState
+): void {
+  if (!existing) return; // No existing state, no mutation possible
+
+  // Compare canonical representations
+  const existingStr = JSON.stringify(existing, Object.keys(existing).sort());
+  const proposedStr = JSON.stringify(proposed, Object.keys(proposed).sort());
+
+  if (existingStr !== proposedStr) {
+    throw new SSMInvariantError(
+      'SSM-INV-7',
+      `Attempted to mutate existing state ${proposed.id}. States are append-only.`,
+      { stateId: proposed.id }
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // TYPES AND SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -349,6 +451,9 @@ export interface SSMStore {
 /**
  * Local file-based SSM store implementation.
  * Stores states and transitions in `.reach/state/` directory.
+ *
+ * Environment:
+ *   REQUIEM_STATE_DIR - Override default state directory path
  */
 export class LocalSSMStore implements SSMStore {
   private basePath: string;
@@ -356,8 +461,11 @@ export class LocalSSMStore implements SSMStore {
   private transitions: SemanticTransition[] = [];
   private initialized = false;
 
-  constructor(basePath: string = join(process.cwd(), '.reach', 'state')) {
-    this.basePath = basePath;
+  constructor(basePath?: string) {
+    // Use provided path, or env var, or default
+    this.basePath = basePath
+      ?? process.env.REQUIEM_STATE_DIR
+      ?? join(process.cwd(), '.reach', 'state');
     this.initialize();
   }
 
@@ -464,8 +572,19 @@ export class LocalSSMStore implements SSMStore {
   }
 
   putState(state: SemanticState): void {
-    // Validate state before storing
+    // SSM-INV-2: Validate state schema
     SemanticStateSchema.parse(state);
+
+    // SSM-INV-1: Validate state ID format
+    assertValidStateId(state.id);
+
+    // SSM-INV-5: Validate integrity score
+    assertValidIntegrityScore(state.integrityScore);
+
+    // SSM-INV-7: Check for mutation attempt
+    const existing = this.states.get(state.id as SemanticStateId);
+    assertNoStateMutation(existing, state);
+
     this.states.set(state.id as SemanticStateId, state);
     this.save();
   }
@@ -495,11 +614,17 @@ export class LocalSSMStore implements SSMStore {
   }
 
   importBundle(bundle: SemanticLedgerBundle): void {
-    // Validate bundle
+    // SSM-INV-6: Validate bundle structure and version
+    assertValidBundle(bundle);
+
+    // SSM-INV-2: Validate with Zod schema
     SemanticLedgerBundleSchema.parse(bundle);
 
     // Merge states (newer wins)
     for (const state of bundle.states) {
+      // Validate each state
+      assertValidStateId(state.id);
+      assertValidIntegrityScore(state.integrityScore);
       this.states.set(state.id as SemanticStateId, state);
     }
 
