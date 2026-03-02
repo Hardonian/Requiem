@@ -91,4 +91,40 @@ PlanRunResult plan_execute(const Plan &plan, const std::string &workspace_root,
 // Compute deterministic topological ordering with lexicographic tie-breaking.
 std::vector<std::string> plan_topological_order(const Plan &plan);
 
+// ---------------------------------------------------------------------------
+// PHASE A: Additional plan operations
+// ---------------------------------------------------------------------------
+
+// Add a plan to the store.
+Plan plan_add(const std::string& plan_id, const std::string& steps_json);
+
+// List all stored plans (optionally filtered by tenant).
+std::vector<Plan> plan_list(const std::string& tenant_id = "");
+
+// Result of showing a plan with its execution history.
+struct PlanShowResult {
+  Plan plan;
+  std::vector<PlanRunResult> runs;
+};
+
+// Show plan details and execution history.
+PlanShowResult plan_show(const std::string& plan_hash);
+
+// Result of replaying a plan run.
+struct PlanReplayResult {
+  bool ok{false};
+  std::string original_run_id;
+  std::string replay_run_id;
+  bool exact_match{false};
+  std::string receipt_hash_original;
+  std::string receipt_hash_replay;
+  std::string error;
+};
+
+// Replay a plan run for verification.
+PlanReplayResult plan_replay(const std::string& run_id, bool verify_exact);
+
+// Serialize plan steps to JSON array.
+std::string plan_steps_to_json(const std::vector<PlanStep>& steps);
+
 } // namespace requiem

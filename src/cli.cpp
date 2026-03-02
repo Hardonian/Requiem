@@ -19,6 +19,7 @@
 #include "../include/requiem/event_log.hpp"
 #include "../include/requiem/hash.hpp"
 #include "../include/requiem/jsonlite.hpp"
+#include "../include/requiem/metering.hpp"
 #include "../include/requiem/observability.hpp"
 #include "../include/requiem/plan.hpp"
 #include "../include/requiem/policy_linter.hpp"
@@ -28,6 +29,7 @@
 #include "../include/requiem/replay.hpp"
 #include "../include/requiem/runtime.hpp"
 #include "../include/requiem/sandbox.hpp"
+#include "../include/requiem/snapshot.hpp"
 #include "../include/requiem/version.hpp"
 #include "../include/requiem/worker.hpp"
 
@@ -172,28 +174,60 @@ int main(int argc, char **argv) {
         << "  exec replay     Verify an execution against a result digest\n"
         << "  cas put         Store content in content-addressable storage\n"
         << "  cas get         Retrieve content from CAS by digest\n"
+        << "  cas ls          List CAS objects with optional prefix filter\n"
         << "  cas info        Query CAS object metadata\n"
         << "  cas verify      Verify all CAS objects for integrity\n"
+        << "  cas gc          Safe garbage collection (dry-run by default)\n"
         << "  policy check    Verify a request against active policy\n"
         << "  policy vm-eval  Evaluate policy rules against a context JSON\n"
+        << "  policy add      Add a policy rule set to CAS\n"
+        << "  policy list     List all stored policies\n"
+        << "  policy eval     Evaluate a specific policy against input\n"
+        << "  policy versions Show versions for a policy\n"
+        << "  policy test     Run golden tests for policies\n"
         << "  digest file     Compute BLAKE3 fingerprint of a file\n\n"
-        << "Kernel Commands:\n"
+        << "Event Log Commands:\n"
+        << "  log tail        Show recent event log entries\n"
+        << "  log read        Read events in a sequence range\n"
+        << "  log search      Search events by query string\n"
+        << "  log verify      Verify event log prev-hash chain integrity\n\n"
+        << "Capability Commands:\n"
         << "  cap keygen      Generate an ed25519 keypair\n"
         << "  cap mint        Issue a capability token\n"
         << "  cap verify      Verify a capability token for an action\n"
         << "  cap revoke      Revoke a capability token by fingerprint\n"
+        << "  caps mint       Alias for cap mint\n"
+        << "  caps inspect    Inspect a capability token\n"
+        << "  caps list       List all minted capabilities\n"
+        << "  caps revoke     Alias for cap revoke\n\n"
+        << "Plan Commands:\n"
+        << "  plan add        Add a plan with steps to the store\n"
+        << "  plan list       List all stored plans\n"
+        << "  plan show       Show plan details and execution history\n"
         << "  plan verify     Validate a plan DAG (cycle/dep check)\n"
         << "  plan hash       Compute deterministic plan content hash\n"
         << "  plan run        Execute a plan DAG with receipt anchoring\n"
-        << "  log verify      Verify event log prev-hash chain integrity\n"
-        << "  log tail        Show recent event log entries\n"
+        << "  plan replay     Replay a plan run for verification\n\n"
+        << "Budget Commands:\n"
+        << "  budget set      Set budget limit for a tenant\n"
+        << "  budget show     Show current budget for a tenant\n"
+        << "  budget reset-window  Reset the budget accounting window\n\n"
+        << "Receipt Commands:\n"
+        << "  receipt show    Show receipt by hash\n"
         << "  receipt verify  Verify an execution receipt hash\n\n"
+        << "Snapshot Commands (Gated):\n"
+        << "  snapshot create Create a state snapshot\n"
+        << "  snapshot list   List available snapshots\n"
+        << "  snapshot restore Restore from snapshot (requires --force)\n\n"
         << "Diagnostic Commands:\n"
         << "  doctor          Run platform capability and health checks\n"
         << "  health          Print engine capability and hash info\n"
         << "  version         Print engine and protocol versions\n"
+        << "  status          Show runtime status and metrics\n"
+        << "  metrics         Show full metrics dump\n"
         << "  cluster status  Show local cluster health and drift\n"
-        << "  bugreport       Collect diagnostic info for bug reports\n\n"
+        << "  bugreport       Collect diagnostic info for bug reports\n"
+        << "  quickstart      Get started guide\n\n"
         << "Harnesses:\n"
         << "  stress, shadow, billing, security, recovery, memory, protocol, "
            "chaos\n\n"
@@ -2233,9 +2267,136 @@ int main(int argc, char **argv) {
   }
 
   // ---------------------------------------------------------------------------
-  // Kernel: receipt — Execution receipt commands
+  // PHASE A: Budget commands — set, show, reset-window
+  // budget set   --tenant ID --unit UNIT --limit N
+  // budget show  --tenant ID
+  // budget reset-window --tenant ID
+  // ---------------------------------------------------------------------------
+
+  if (cmd == "budget" && argc >= 3 && std::string(argv[2]) == "set") {
+    std::string tenant, unit;
+    uint64_t limit = 0;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc)
+        tenant = argv[++i];
+      if (std::string(argv[i]) == "--unit" && i + 1 < argc)
+        unit = argv[++i];
+      if (std::string(argv[i]) == "--limit" && i + 1 < argc)
+        limit = std::strtoull(argv[++i], nullptr, 10);
+    }
+    if (tenant.empty() || unit.empty() || limit == 0) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument",
+                       "--tenant, --unit, and --limit required", false))
+                << "\n";
+      return 2;
+    }
+    // Set budget in metering system
+    auto budget = requiem::meter_set_budget(tenant, unit, limit);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(tenant) + "\"";
+    data += ",\"unit\":\"" + unit + "\"";
+    data += ",\"limit\":" + std::to_string(limit);
+    data += ",\"budget_hash\":\"" + budget.budget_hash + "\"";
+    data += "}";
+    auto env = requiem::make_envelope("budget.set", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  if (cmd == "budget" && argc >= 3 && std::string(argv[2]) == "show") {
+    std::string tenant;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc)
+        tenant = argv[++i];
+    }
+    if (tenant.empty()) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument", "--tenant required", false))
+                << "\n";
+      return 2;
+    }
+    auto budget = requiem::meter_get_budget(tenant);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(tenant) + "\"";
+    data += ",\"budgets\":{"exec":{"limit\":" + std::to_string(budget.exec_limit);
+    data += ",\"used\":" + std::to_string(budget.exec_used);
+    data += ",\"remaining\":" + std::to_string(budget.exec_remaining) + "}";
+    data += ",\"cas_put\":{\"limit\":" + std::to_string(budget.cas_put_limit);
+    data += ",\"used\":" + std::to_string(budget.cas_put_used);
+    data += ",\"remaining\":" + std::to_string(budget.cas_put_remaining) + "}";
+    data += ",\"policy_eval\":{\"limit\":" + std::to_string(budget.policy_eval_limit);
+    data += ",\"used\":" + std::to_string(budget.policy_eval_used);
+    data += ",\"remaining\":" + std::to_string(budget.policy_eval_remaining) + "}";
+    data += "}";
+    data += ",\"budget_hash\":\"" + budget.budget_hash + "\"";
+    data += "}";
+    auto env = requiem::make_envelope("budget.show", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  if (cmd == "budget" && argc >= 3 && std::string(argv[2]) == "reset-window") {
+    std::string tenant;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc)
+        tenant = argv[++i];
+    }
+    if (tenant.empty()) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument", "--tenant required", false))
+                << "\n";
+      return 2;
+    }
+    requiem::meter_reset_window(tenant);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(tenant) + "\"";
+    data += ",\"message\":\"Budget window reset successfully\"";
+    data += "}";
+    auto env = requiem::make_envelope("budget.reset_window", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // PHASE A: Receipt commands — show, verify
+  // receipt show  --receipt-hash HASH
   // receipt verify --receipt FILE
   // ---------------------------------------------------------------------------
+
+  if (cmd == "receipt" && argc >= 3 && std::string(argv[2]) == "show") {
+    std::string receipt_hash;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--receipt-hash" && i + 1 < argc)
+        receipt_hash = argv[++i];
+    }
+    if (receipt_hash.empty()) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument", "--receipt-hash required", false))
+                << "\n";
+      return 2;
+    }
+    auto receipt = requiem::receipt_get_by_hash(receipt_hash);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"receipt\":{"receipt_version\":" + std::to_string(receipt.receipt_version);
+    data += ",\"operation\":\"" + receipt.operation + "\"";
+    data += ",\"tenant_id\":\"" + requiem::jsonlite::escape(receipt.tenant_id) + "\"";
+    data += ",\"request_digest\":\"" + receipt.request_digest + "\"";
+    data += ",\"units_charged\":" + std::to_string(receipt.units_charged);
+    data += ",\"budget_before\":" + std::to_string(receipt.budget_before);
+    data += ",\"budget_after\":" + std::to_string(receipt.budget_after);
+    data += ",\"denied\":" + std::string(receipt.denied ? "true" : "false");
+    data += ",\"receipt_hash\":\"" + receipt.receipt_hash + "\"";
+    data += ",\"event_log_seq\":" + std::to_string(receipt.event_log_seq);
+    data += "}}";
+    auto env = requiem::make_envelope("receipt.show", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
 
   if (cmd == "receipt" && argc >= 3 && std::string(argv[2]) == "verify") {
     std::string receipt_file;
@@ -2262,6 +2423,220 @@ int main(int argc, char **argv) {
                 << "\n";
       return 1;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PHASE A: Snapshot commands — create, list, restore (gated)
+  // snapshot create [--tenant ID]
+  // snapshot list [--tenant ID]
+  // snapshot restore --snapshot-hash HASH [--force]
+  // ---------------------------------------------------------------------------
+
+  if (cmd == "snapshot" && argc >= 3 && std::string(argv[2]) == "create") {
+    std::string tenant;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc)
+        tenant = argv[++i];
+    }
+    auto snapshot = requiem::snapshot_create(tenant);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"snapshot\":{"snapshot_version\":" + std::to_string(snapshot.snapshot_version);
+    data += ",\"logical_time\":" + std::to_string(snapshot.logical_time);
+    data += ",\"event_log_head\":\"" + snapshot.event_log_head + "\"";
+    data += ",\"cas_root_hash\":\"" + snapshot.cas_root_hash + "\"";
+    data += ",\"snapshot_hash\":\"" + snapshot.snapshot_hash + "\"";
+    data += ",\"active_caps_count\":" + std::to_string(snapshot.active_caps.size());
+    data += ",\"revoked_caps_count\":" + std::to_string(snapshot.revoked_caps.size());
+    data += "}}";
+    auto env = requiem::make_envelope("snapshot.create", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  if (cmd == "snapshot" && argc >= 3 && std::string(argv[2]) == "list") {
+    std::string tenant;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc)
+        tenant = argv[++i];
+    }
+    auto snapshots = requiem::snapshot_list(tenant);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"snapshots\":[";
+    bool first = true;
+    for (const auto& snap : snapshots) {
+      if (!first) data += ",";
+      first = false;
+      data += "{\"snapshot_hash\":\"" + snap.snapshot_hash + "\"";
+      data += ",\"logical_time\":" + std::to_string(snap.logical_time);
+      data += ",\"event_log_head\":\"" + snap.event_log_head + "\"";
+      data += ",\"created_at\":" + std::to_string(snap.timestamp_unix_ms);
+      data += "}";
+    }
+    data += "],\"total\":" + std::to_string(snapshots.size()) + "}";
+    auto env = requiem::make_envelope("snapshot.list", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  if (cmd == "snapshot" && argc >= 3 && std::string(argv[2]) == "restore") {
+    std::string snapshot_hash;
+    bool force = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--snapshot-hash" && i + 1 < argc)
+        snapshot_hash = argv[++i];
+      if (std::string(argv[i]) == "--force")
+        force = true;
+    }
+    if (snapshot_hash.empty()) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument", "--snapshot-hash required", false))
+                << "\n";
+      return 2;
+    }
+    // Gate: require --force for restore
+    if (!force) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "operation_gated",
+                       "Snapshot restore is gated. Use --force to proceed. "
+                       "WARNING: This will revert state to the snapshot point.",
+                       false))
+                << "\n";
+      return 2;
+    }
+    auto result = requiem::snapshot_restore(snapshot_hash);
+    std::string data;
+    data += "{\"ok\":" + std::string(result.ok ? "true" : "false");
+    data += ",\"restored_logical_time\":" + std::to_string(result.restored_logical_time);
+    data += ",\"message\":\"" + requiem::jsonlite::escape(result.message) + "\"";
+    data += "}";
+    auto env = requiem::make_envelope("snapshot.restore", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return result.ok ? 0 : 1;
+  }
+
+  // ---------------------------------------------------------------------------
+  // PHASE A: Additional Plan commands — add, list, show, replay
+  // plan add    --plan-id ID --steps FILE
+  // plan list   [--tenant ID]
+  // plan show   --plan-hash HASH
+  // plan replay --run-id ID [--verify-exact]
+  // ---------------------------------------------------------------------------
+
+  if (cmd == "plan" && argc >= 3 && std::string(argv[2]) == "add") {
+    std::string plan_id, steps_file;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--plan-id" && i + 1 < argc)
+        plan_id = argv[++i];
+      if (std::string(argv[i]) == "--steps" && i + 1 < argc)
+        steps_file = argv[++i];
+    }
+    if (plan_id.empty() || steps_file.empty()) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument", "--plan-id and --steps required", false))
+                << "\n";
+      return 2;
+    }
+    auto plan = requiem::plan_add(plan_id, read_file(steps_file));
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"plan\":{\"plan_id\":\"" + requiem::jsonlite::escape(plan.plan_id) + "\"";
+    data += ",\"plan_version\":" + std::to_string(plan.plan_version);
+    data += ",\"plan_hash\":\"" + plan.plan_hash + "\"";
+    data += ",\"step_count\":" + std::to_string(plan.steps.size()) + "}";
+    data += "}";
+    auto env = requiem::make_envelope("plan.add", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  if (cmd == "plan" && argc >= 3 && std::string(argv[2]) == "list") {
+    std::string tenant;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc)
+        tenant = argv[++i];
+    }
+    auto plans = requiem::plan_list(tenant);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"plans\":[";
+    bool first = true;
+    for (const auto& plan : plans) {
+      if (!first) data += ",";
+      first = false;
+      data += "{\"plan_id\":\"" + requiem::jsonlite::escape(plan.plan_id) + "\"";
+      data += ",\"plan_hash\":\"" + plan.plan_hash + "\"";
+      data += ",\"step_count\":" + std::to_string(plan.steps.size()) + "}";
+    }
+    data += "],\"total\":" + std::to_string(plans.size()) + "}";
+    auto env = requiem::make_envelope("plan.list", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  if (cmd == "plan" && argc >= 3 && std::string(argv[2]) == "show") {
+    std::string plan_hash;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--plan-hash" && i + 1 < argc)
+        plan_hash = argv[++i];
+    }
+    if (plan_hash.empty()) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument", "--plan-hash required", false))
+                << "\n";
+      return 2;
+    }
+    auto result = requiem::plan_show(plan_hash);
+    std::string data;
+    data += "{\"ok\":true";
+    data += ",\"plan\":{\"plan_id\":\"" + requiem::jsonlite::escape(result.plan.plan_id) + "\"";
+    data += ",\"plan_version\":" + std::to_string(result.plan.plan_version);
+    data += ",\"plan_hash\":\"" + result.plan.plan_hash + "\"";
+    data += ",\"steps\":" + requiem::plan_steps_to_json(result.plan.steps) + "}";
+    data += ",\"runs\":[";
+    bool first = true;
+    for (const auto& run : result.runs) {
+      if (!first) data += ",";
+      first = false;
+      data += "{\"run_id\":\"" + run.run_id + "\"";
+      data += ",\"ok\":" + std::string(run.ok ? "true" : "false");
+      data += ",\"steps_completed\":" + std::to_string(run.steps_completed);
+      data += ",\"steps_total\":" + std::to_string(run.steps_total) + "}";
+    }
+    data += "]}";
+    auto env = requiem::make_envelope("plan.show", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return 0;
+  }
+
+  if (cmd == "plan" && argc >= 3 && std::string(argv[2]) == "replay") {
+    std::string run_id;
+    bool verify_exact = false;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--run-id" && i + 1 < argc)
+        run_id = argv[++i];
+      if (std::string(argv[i]) == "--verify-exact")
+        verify_exact = true;
+    }
+    if (run_id.empty()) {
+      std::cout << requiem::envelope_to_json(requiem::make_error_envelope(
+                       "missing_argument", "--run-id required", false))
+                << "\n";
+      return 2;
+    }
+    auto result = requiem::plan_replay(run_id, verify_exact);
+    std::string data;
+    data += "{\"ok\":" + std::string(result.ok ? "true" : "false");
+    data += ",\"original_run_id\":\"" + result.original_run_id + "\"";
+    data += ",\"replay_run_id\":\"" + result.replay_run_id + "\"";
+    data += ",\"exact_match\":" + std::string(result.exact_match ? "true" : "false");
+    data += ",\"receipt_hash_original\":\"" + result.receipt_hash_original + "\"";
+    data += ",\"receipt_hash_replay\":\"" + result.receipt_hash_replay + "\"";
+    data += "}";
+    auto env = requiem::make_envelope("plan.replay", data);
+    std::cout << requiem::envelope_to_json(env) << "\n";
+    return (result.ok && (!verify_exact || result.exact_match)) ? 0 : 1;
   }
 
   // ---------------------------------------------------------------------------

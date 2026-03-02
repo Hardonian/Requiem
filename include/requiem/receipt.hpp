@@ -56,4 +56,7 @@ Receipt receipt_from_json(const std::string &json);
 // canonical_json(fields_without_receipt_hash))
 std::string receipt_compute_hash(const Receipt &receipt);
 
+// Get a receipt by its hash (from the receipt store).
+Receipt receipt_get_by_hash(const std::string& receipt_hash);
+
 } // namespace requiem

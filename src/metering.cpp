@@ -197,4 +197,72 @@ MeterEvent make_meter_event(
   return e;
 }
 
+// ---------------------------------------------------------------------------
+// PHASE A: Budget management implementation
+// ---------------------------------------------------------------------------
+
+// In-memory budget store (in production, this would be backed by a database)
+struct BudgetStore {
+  std::mutex mu;
+  std::map<std::string, BudgetInfo> budgets;  // tenant_id -> budget
+};
+
+static BudgetStore& budget_store() {
+  static BudgetStore store;
+  return store;
+}
+
+BudgetInfo meter_set_budget(const std::string& tenant_id,
+                            const std::string& unit,
+                            uint64_t limit) {
+  std::lock_guard<std::mutex> lock(budget_store().mu);
+  auto& budget = budget_store().budgets[tenant_id];
+  
+  if (unit == "exec") {
+    budget.exec_limit = limit;
+    budget.exec_remaining = limit - budget.exec_used;
+  } else if (unit == "cas_put") {
+    budget.cas_put_limit = limit;
+    budget.cas_put_remaining = limit - budget.cas_put_used;
+  } else if (unit == "policy_eval") {
+    budget.policy_eval_limit = limit;
+    budget.policy_eval_remaining = limit - budget.policy_eval_used;
+  }
+  
+  // Compute budget hash
+  budget.budget_hash = std::to_string(budget.exec_limit) + ":" +
+                       std::to_string(budget.cas_put_limit) + ":" +
+                       std::to_string(budget.policy_eval_limit);
+  
+  return budget;
+}
+
+BudgetInfo meter_get_budget(const std::string& tenant_id) {
+  std::lock_guard<std::mutex> lock(budget_store().mu);
+  auto it = budget_store().budgets.find(tenant_id);
+  if (it != budget_store().budgets.end()) {
+    return it->second;
+  }
+  // Return empty budget if not found
+  return BudgetInfo{};
+}
+
+void meter_reset_window(const std::string& tenant_id) {
+  std::lock_guard<std::mutex> lock(budget_store().mu);
+  auto it = budget_store().budgets.find(tenant_id);
+  if (it != budget_store().budgets.end()) {
+    auto& budget = it->second;
+    budget.exec_used = 0;
+    budget.exec_remaining = budget.exec_limit;
+    budget.cas_put_used = 0;
+    budget.cas_put_remaining = budget.cas_put_limit;
+    budget.policy_eval_used = 0;
+    budget.policy_eval_remaining = budget.policy_eval_limit;
+    // Recompute hash
+    budget.budget_hash = std::to_string(budget.exec_limit) + ":" +
+                         std::to_string(budget.cas_put_limit) + ":" +
+                         std::to_string(budget.policy_eval_limit);
+  }
+}
+
 }  // namespace requiem

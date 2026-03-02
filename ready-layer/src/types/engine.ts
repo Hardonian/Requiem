@@ -355,3 +355,470 @@ export interface WorkerIdentityExtended extends WorkerIdentity {
   hash_algorithm_version: number;
   protocol_framing_version: number;
 }
+
+// ---------------------------------------------------------------------------
+// PHASE A: Budget Types
+// ---------------------------------------------------------------------------
+
+export interface BudgetUnit {
+  limit: number;
+  used: number;
+  remaining: number;
+}
+
+export interface Budget {
+  tenant_id: string;
+  budgets: {
+    exec?: BudgetUnit;
+    cas_put?: BudgetUnit;
+    cas_get?: BudgetUnit;
+    policy_eval?: BudgetUnit;
+    plan_step?: BudgetUnit;
+  };
+  budget_hash: string;
+  version: number;
+}
+
+export interface BudgetSetRequest {
+  tenant_id: string;
+  unit: 'exec' | 'cas_put' | 'cas_get' | 'policy_eval' | 'plan_step';
+  limit: number;
+}
+
+export interface BudgetSetResponse {
+  ok: boolean;
+  budget?: Budget;
+  error?: TypedError;
+}
+
+export interface BudgetShowResponse {
+  ok: boolean;
+  budget?: Budget;
+  error?: TypedError;
+}
+
+export interface BudgetResetResponse {
+  ok: boolean;
+  message: string;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE A: Receipt Types
+// ---------------------------------------------------------------------------
+
+export interface Receipt {
+  receipt_version: number;
+  operation: string;
+  tenant_id: string;
+  request_digest: string;
+  units_charged: number;
+  budget_before: number;
+  budget_after: number;
+  denied: boolean;
+  receipt_hash: string;
+  event_log_seq: number;
+  timestamp_unix_ms: number;
+}
+
+export interface ReceiptShowResponse {
+  ok: boolean;
+  receipt?: Receipt;
+  error?: TypedError;
+}
+
+export interface ReceiptVerifyResponse {
+  ok: boolean;
+  valid: boolean;
+  receipt_hash_computed: string;
+  receipt_hash_stored: string;
+  error?: string;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE A: Snapshot Types
+// ---------------------------------------------------------------------------
+
+export interface Snapshot {
+  snapshot_version: number;
+  logical_time: number;
+  event_log_head: string;
+  cas_root_hash: string;
+  active_caps: string[];
+  revoked_caps: string[];
+  budgets: Record<string, Budget>;
+  policies: Record<string, string>;
+  snapshot_hash: string;
+  timestamp_unix_ms: number;
+}
+
+export interface SnapshotCreateResponse {
+  ok: boolean;
+  snapshot?: Snapshot;
+  error?: TypedError;
+}
+
+export interface SnapshotListResponse {
+  ok: boolean;
+  snapshots: Snapshot[];
+  total: number;
+}
+
+export interface SnapshotRestoreResponse {
+  ok: boolean;
+  restored_logical_time: number;
+  message: string;
+  error?: TypedError;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE A: Plan Types
+// ---------------------------------------------------------------------------
+
+export interface PlanStep {
+  step_id: string;
+  kind: 'exec' | 'cas_put' | 'policy_eval' | 'gate';
+  depends_on: string[];
+  config: Record<string, unknown>;
+}
+
+export interface Plan {
+  plan_id: string;
+  plan_version: number;
+  steps: PlanStep[];
+  plan_hash: string;
+}
+
+export interface PlanStepResult {
+  ok: boolean;
+  result_digest?: string;
+  duration_ns: number;
+  error?: string;
+}
+
+export interface PlanRunResult {
+  run_id: string;
+  plan_hash: string;
+  steps_completed: number;
+  steps_total: number;
+  ok: boolean;
+  step_results: Record<string, PlanStepResult>;
+  receipt_hash: string;
+  started_at_unix_ms: number;
+  completed_at_unix_ms: number;
+}
+
+export interface PlanAddRequest {
+  plan_id: string;
+  steps: PlanStep[];
+}
+
+export interface PlanAddResponse {
+  ok: boolean;
+  plan?: Plan;
+  error?: TypedError;
+}
+
+export interface PlanListResponse {
+  ok: boolean;
+  plans: Plan[];
+  total: number;
+}
+
+export interface PlanRunResponse {
+  ok: boolean;
+  result?: PlanRunResult;
+  error?: TypedError;
+}
+
+export interface PlanShowResponse {
+  ok: boolean;
+  plan?: Plan;
+  runs?: PlanRunResult[];
+  error?: TypedError;
+}
+
+export interface PlanReplayResponse {
+  ok: boolean;
+  original_run_id: string;
+  replay_run_id: string;
+  exact_match: boolean;
+  receipt_hash_original: string;
+  receipt_hash_replay: string;
+  error?: TypedError;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE A: Capability Types
+// ---------------------------------------------------------------------------
+
+export interface CapabilityToken {
+  cap_version: number;
+  fingerprint: string;
+  issuer_fingerprint: string;
+  subject: string;
+  permissions: string[];
+  not_before: number;
+  not_after: number;
+  nonce: number;
+  signature: string;
+}
+
+export interface CapabilityMintRequest {
+  subject: string;
+  permissions: string[];
+  not_before?: number;
+  not_after?: number;
+}
+
+export interface CapabilityMintResponse {
+  ok: boolean;
+  fingerprint?: string;
+  subject?: string;
+  scopes?: string[];
+  not_before?: number;
+  not_after?: number;
+  error?: TypedError;
+}
+
+export interface CapabilityInspectResponse {
+  ok: boolean;
+  token?: CapabilityToken;
+  error?: TypedError;
+}
+
+export interface CapabilityListItem {
+  actor: string;
+  seq: number;
+  data_hash: string;
+  event_type: string;
+}
+
+export interface CapabilityListResponse {
+  ok: boolean;
+  capabilities: CapabilityListItem[];
+  total: number;
+}
+
+export interface CapabilityRevokeResponse {
+  ok: boolean;
+  fingerprint: string;
+  revoked: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE A: Policy Types
+// ---------------------------------------------------------------------------
+
+export interface PolicyRule {
+  rule_id: string;
+  condition: {
+    field: string;
+    op: 'eq' | 'neq' | 'in' | 'not_in' | 'exists' | 'gt' | 'lt' | 'gte' | 'lte' | 'matches';
+    value: unknown;
+  };
+  effect: 'allow' | 'deny';
+  priority: number;
+}
+
+export interface PolicyDecision {
+  decision: 'allow' | 'deny';
+  matched_rule_id?: string;
+  context_hash: string;
+  rules_hash: string;
+  proof_hash: string;
+  evaluated_at_logical_time: number;
+}
+
+export interface PolicyAddResponse {
+  ok: boolean;
+  policy_hash?: string;
+  size?: number;
+  error?: TypedError;
+}
+
+export interface PolicyListItem {
+  hash: string;
+  size: number;
+  created_at_unix_ms?: number;
+}
+
+export interface PolicyListResponse {
+  ok: boolean;
+  policies: PolicyListItem[];
+  total: number;
+}
+
+export interface PolicyEvalResponse {
+  ok: boolean;
+  decision?: PolicyDecision;
+  error?: TypedError;
+}
+
+export interface PolicyVersionsResponse {
+  ok: boolean;
+  policy_id: string;
+  versions: string[];
+}
+
+export interface PolicyTestResponse {
+  ok: boolean;
+  tests_run: number;
+  tests_passed: number;
+  tests_failed: number;
+  failures?: Array<{
+    test_name: string;
+    expected: string;
+    actual: string;
+  }>;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE A: Event Log Types
+// ---------------------------------------------------------------------------
+
+export interface EventLogEntry {
+  seq: number;
+  prev: string;
+  ts_logical: number;
+  event_type: string;
+  actor: string;
+  data_hash: string;
+  execution_id: string;
+  tenant_id: string;
+  request_digest: string;
+  result_digest: string;
+  engine_semver: string;
+  engine_abi_version: number;
+  hash_algorithm_version: number;
+  cas_format_version: number;
+  replay_verified: boolean;
+  ok: boolean;
+  error_code: string;
+  duration_ns: number;
+  worker_id: string;
+  node_id: string;
+}
+
+export interface EventLogTailResponse {
+  ok: boolean;
+  events: EventLogEntry[];
+}
+
+export interface EventLogReadResponse {
+  ok: boolean;
+  events: EventLogEntry[];
+  total: number;
+}
+
+export interface EventLogSearchResponse {
+  ok: boolean;
+  events: EventLogEntry[];
+  query: string;
+  total: number;
+}
+
+export interface EventLogVerifyFailure {
+  seq: number;
+  error: string;
+}
+
+export interface EventLogVerifyResponse {
+  ok: boolean;
+  total_events: number;
+  verified_events: number;
+  failures: EventLogVerifyFailure[];
+}
+
+// ---------------------------------------------------------------------------
+// PHASE A: CAS Types
+// ---------------------------------------------------------------------------
+
+export interface CasObject {
+  digest: string;
+  encoding: string;
+  original_size: number;
+  stored_size: number;
+  created_at_unix_ms?: number;
+}
+
+export interface CasPutResponse {
+  ok: boolean;
+  digest?: string;
+  size?: number;
+  encoding?: string;
+  error?: TypedError;
+}
+
+export interface CasGetResponse {
+  ok: boolean;
+  digest?: string;
+  content?: string;
+  size?: number;
+  error?: TypedError;
+}
+
+export interface CasListResponse {
+  ok: boolean;
+  objects: CasObject[];
+  total: number;
+}
+
+export interface CasVerifyResult {
+  digest: string;
+  ok: boolean;
+  stored_size: number;
+  original_size: number;
+  encoding: string;
+  hash_match: boolean;
+}
+
+export interface CasVerifyResponse {
+  ok: boolean;
+  results: CasVerifyResult[];
+  verified_count: number;
+  errors_count: number;
+}
+
+export interface CasGcResponse {
+  ok: boolean;
+  dry_run: boolean;
+  count: number;
+  stored_bytes: number;
+  bytes_reclaimed?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Common: Typed Error Envelope
+// ---------------------------------------------------------------------------
+
+export interface TypedError {
+  code: string;
+  message: string;
+  details: Record<string, unknown>;
+  retryable: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Common: API Response Envelope
+// ---------------------------------------------------------------------------
+
+export interface ApiResponse<T> {
+  v: number;
+  kind: string;
+  data: T | null;
+  error: TypedError | null;
+}
+
+// ---------------------------------------------------------------------------
+// Common: Paginated Response
+// ---------------------------------------------------------------------------
+
+export interface PaginatedResponse<T> {
+  ok: boolean;
+  data: T[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_more: boolean;
+  trace_id: string;
+}

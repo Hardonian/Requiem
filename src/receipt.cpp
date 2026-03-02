@@ -118,4 +118,29 @@ Receipt receipt_from_json(const std::string &json) {
   return receipt;
 }
 
+// ---------------------------------------------------------------------------
+// PHASE A: Receipt store operations
+// ---------------------------------------------------------------------------
+
+struct ReceiptStore {
+  std::map<std::string, Receipt> receipts;  // receipt_hash -> receipt
+};
+
+static ReceiptStore& receipt_store() {
+  static ReceiptStore store;
+  return store;
+}
+
+Receipt receipt_get_by_hash(const std::string& receipt_hash) {
+  auto it = receipt_store().receipts.find(receipt_hash);
+  if (it != receipt_store().receipts.end()) {
+    return it->second;
+  }
+  
+  // Return an empty receipt if not found
+  Receipt empty;
+  empty.receipt_hash = receipt_hash;
+  return empty;
+}
+
 } // namespace requiem

@@ -87,4 +87,32 @@ MeterEvent make_meter_event(
     const std::string& error_code,
     bool               is_shadow);
 
+// ---------------------------------------------------------------------------
+// PHASE A: Budget management
+// ---------------------------------------------------------------------------
+
+struct BudgetInfo {
+  uint64_t exec_limit{0};
+  uint64_t exec_used{0};
+  uint64_t exec_remaining{0};
+  uint64_t cas_put_limit{0};
+  uint64_t cas_put_used{0};
+  uint64_t cas_put_remaining{0};
+  uint64_t policy_eval_limit{0};
+  uint64_t policy_eval_used{0};
+  uint64_t policy_eval_remaining{0};
+  std::string budget_hash;
+};
+
+// Set budget limit for a tenant and unit type.
+BudgetInfo meter_set_budget(const std::string& tenant_id,
+                            const std::string& unit,
+                            uint64_t limit);
+
+// Get current budget for a tenant.
+BudgetInfo meter_get_budget(const std::string& tenant_id);
+
+// Reset the budget accounting window for a tenant.
+void meter_reset_window(const std::string& tenant_id);
+
 }  // namespace requiem

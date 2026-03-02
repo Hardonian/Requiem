@@ -84,6 +84,7 @@ add_library(requiem
   src/policy_vm.cpp           # Kernel: Deterministic policy evaluation (KERNEL_SPEC §7)
   src/plan.cpp                # Kernel: DAG scheduler (KERNEL_SPEC §10)
   src/receipt.cpp             # Kernel: Execution receipts (KERNEL_SPEC §11)
+  src/snapshot.cpp            # PHASE A: State snapshots for checkpoint/restore
 )
 
 target_include_directories(requiem

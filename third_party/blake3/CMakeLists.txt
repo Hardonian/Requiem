@@ -26,7 +26,13 @@ target_compile_definitions(blake3_vendor PRIVATE
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
   target_compile_options(blake3_vendor PRIVATE -O3 -w)
 elseif(MSVC)
-  target_compile_options(blake3_vendor PRIVATE /O2 /W0)
+  # /O2 is incompatible with /RTC1 (runtime checks, added by CMake in Debug).
+  # Remove /RTC1 and use /O2 regardless of build type — BLAKE3 is vendored,
+  # we never need to debug it with runtime checks enabled.
+  target_compile_options(blake3_vendor PRIVATE
+    /O2 /W0
+    $<$<CONFIG:Debug>:/RTC->   # disable runtime checks in Debug for this target
+  )
 endif()
 
 # Set C standard
