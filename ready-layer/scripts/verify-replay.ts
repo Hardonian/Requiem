@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * verify:replay - Replay determinism verification per KERNEL_SPEC §8, §10
  * 
@@ -80,17 +81,17 @@ test('Same plan execution produces same receipt hash', () => {
   // Add the plan
   const addResult = runCli(['plan', 'add', '--plan', JSON.stringify(plan)]);
   planId1 = addResult.data?.plan_id;
-  assert(planId1, 'Plan should be created');
+  assert(!!planId1, 'Plan should be created');
   
   // Execute first time
   const run1 = runCli(['plan', 'run', planId1]);
   receiptHash1 = run1.data?.receipt?.hash || run1.data?.receipt_hash;
-  assert(receiptHash1, 'First execution should produce receipt');
+  assert(!!receiptHash1, 'First execution should produce receipt');
   
   // Execute second time (same inputs)
   const run2 = runCli(['plan', 'run', planId1]);
   receiptHash2 = run2.data?.receipt?.hash || run2.data?.receipt_hash;
-  assert(receiptHash2, 'Second execution should produce receipt');
+  assert(!!receiptHash2, 'Second execution should produce receipt');
   
   // INV-REPLAY: same inputs → identical receipt_hash
   assert(receiptHash1 === receiptHash2, 

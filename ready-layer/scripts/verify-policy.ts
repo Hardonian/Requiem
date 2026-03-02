@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * verify:policy - Policy engine verification per KERNEL_SPEC §7
  * 
@@ -72,9 +73,9 @@ test('Policy add creates new policy', () => {
   });
   
   const result = runCli(['policy', 'add', '--policy', policyJson]);
-  assert(result.ok === true || result.data?.policy_id, 'Policy add should succeed');
+  assert(!!(result.ok === true || result.data?.policy_id), 'Policy add should succeed');
   testPolicyId = result.data?.policy_id || result.data?.id;
-  assert(testPolicyId, 'Policy ID should be returned');
+  assert(!!testPolicyId, 'Policy ID should be returned');
 });
 
 test('Policy list includes created policy', () => {

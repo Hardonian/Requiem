@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * verify:integrity - Content-addressed storage & capability registry integrity
  * 
@@ -130,7 +131,7 @@ test('Cap mint creates capability', () => {
   const result = runCli(['cap', 'mint', '--action=read', '--resource=/test-resource']);
   assert(result.data?.capability, 'Capability should be created');
   testCapId = result.data.capability.id || result.data.capability;
-  assert(testCapId, 'Capability ID should be returned');
+  assert(!!testCapId, 'Capability ID should be returned');
 });
 
 test('Cap inspect returns capability details', () => {

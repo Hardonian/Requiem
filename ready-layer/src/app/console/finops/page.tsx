@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import type { Budget } from '@/types/engine';
+
 
 interface BudgetView {
   name: string;
@@ -22,6 +22,7 @@ export default function ConsoleFinOpsPage() {
 
   useEffect(() => {
     fetchBudgets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenant]);
 
   const fetchBudgets = async () => {

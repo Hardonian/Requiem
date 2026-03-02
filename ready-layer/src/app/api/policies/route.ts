@@ -5,7 +5,6 @@
 
 import { NextResponse } from 'next/server';
 import type { 
-  PolicyRule,
   PolicyDecision,
   PolicyAddResponse,
   PolicyListItem,
@@ -29,7 +28,7 @@ function createError(code: string, message: string, retryable = false): TypedErr
 
 // GET - List policies or show versions
 export async function GET(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const { searchParams } = new URL(request.url);
@@ -74,7 +73,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         page: Math.floor(offset / limit) + 1,
         page_size: limit,
         has_more: offset + mockPolicies.length < 50,
-        trace_id,
+        trace_id: traceId,
       },
       error: null,
     };
@@ -93,7 +92,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 // POST - Add, eval, or test policies
 export async function POST(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const body = await request.json();

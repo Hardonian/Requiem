@@ -19,7 +19,7 @@ function createError(code: string, message: string, retryable = false): TypedErr
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const { searchParams } = new URL(request.url);
@@ -50,7 +50,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       page: Math.floor(offset / limit) + 1,
       page_size: limit,
       has_more: offset + mockObjects.length < 100,
-      trace_id,
+      trace_id: traceId,
     };
 
     const response: ApiResponse<PaginatedResponse<CasObject>> = {
@@ -78,7 +78,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 // HEAD - Check object existence
 export async function HEAD(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const { searchParams } = new URL(request.url);
   const hash = searchParams.get('hash');
 

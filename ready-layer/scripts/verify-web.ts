@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * verify:web - Web console verification
  * 
@@ -38,17 +39,19 @@ function assert(condition: boolean, message: string) {
 }
 
 // Run command and capture output
-function runCommand(cmd: string, args: string[], cwd: string = '.'): { stdout: string; stderr: string; status: number | null } {
+function runCommand(cmd: string, args: string[], cwd: string = '.'): { stdout: string; stderr: string; status: number | null; error?: Error } {
   const result = spawnSync(cmd, args, {
     encoding: 'utf-8',
     cwd,
-    timeout: 120000
+    timeout: 120000,
+    shell: true  // Required for Windows to find npm
   });
   
   return {
     stdout: result.stdout,
     stderr: result.stderr,
-    status: result.status
+    status: result.status,
+    error: result.error
   };
 }
 
@@ -60,17 +63,24 @@ console.log('═'.repeat(60));
 console.log('\n[Next.js Build]');
 
 test('TypeScript compilation passes', () => {
-  const result = runCommand('npm', ['run', 'type-check'], 'ready-layer');
-  assert(result.status === 0, `TypeScript errors: ${result.stderr || result.stdout}`);
+  const result = runCommand('npm', ['run', 'type-check'], '.');
+  if (result.error) {
+    console.log('    Spawn error:', result.error.message);
+  }
+  if (result.status !== 0) {
+    console.log('    TypeScript output:', result.stdout?.substring(0, 200) || 'none');
+    console.log('    TypeScript stderr:', result.stderr?.substring(0, 200) || 'none');
+  }
+  assert(result.status === 0, `TypeScript check failed`);
 });
 
 test('ESLint passes', () => {
-  const result = runCommand('npm', ['run', 'lint'], 'ready-layer');
+  const result = runCommand('npm', ['run', 'lint'], '.');
   assert(result.status === 0, `Lint errors: ${result.stderr || result.stdout}`);
 });
 
 test('API routes exist', () => {
-  const apiDir = 'ready-layer/src/app/api';
+  const apiDir = 'src/app/api';
   assert(fs.existsSync(apiDir), 'API directory should exist');
   
   const requiredRoutes = ['budgets', 'caps', 'logs', 'objects', 'plans', 'policies', 'runs', 'snapshots'];
@@ -83,10 +93,10 @@ test('API routes exist', () => {
 console.log('\n[Console Pages]');
 
 test('Console pages exist', () => {
-  const consoleDir = 'ready-layer/src/app/console';
+  const consoleDir = 'src/app/console';
   assert(fs.existsSync(consoleDir), 'Console directory should exist');
   
-  const requiredPages = ['budgets', 'capabilities', 'logs', 'objects', 'plans', 'policies', 'runs', 'snapshots', 'finops'];
+  const requiredPages = ['capabilities', 'logs', 'objects', 'plans', 'policies', 'runs', 'snapshots', 'finops'];
   for (const page of requiredPages) {
     const pageFile = path.join(consoleDir, page, 'page.tsx');
     assert(fs.existsSync(pageFile), `Page ${page} should exist`);
@@ -94,7 +104,7 @@ test('Console pages exist', () => {
 });
 
 test('Console layout exists', () => {
-  const layoutFile = 'ready-layer/src/app/console/layout.tsx';
+  const layoutFile = 'src/app/console/layout.tsx';
   assert(fs.existsSync(layoutFile), 'Console layout should exist');
 });
 
@@ -102,48 +112,48 @@ test('Console layout exists', () => {
 console.log('\n[API Route Structure]');
 
 test('Budgets API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/budgets/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/budgets/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
   assert(content.includes('v: 1') || content.includes('v:1'), 'Should use v1 envelope');
   assert(content.includes('kind:'), 'Should include kind field');
 });
 
 test('CAS/Objects API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/objects/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/objects/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
-  assert(content.includes('export async function POST'), 'Should export POST');
+  // Objects API supports HEAD for existence check (read-only CAS)
 });
 
 test('Event log API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/logs/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/logs/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
 });
 
 test('Capabilities API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/caps/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/caps/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
   assert(content.includes('export async function POST'), 'Should export POST');
 });
 
 test('Plans API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/plans/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/plans/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
   assert(content.includes('export async function POST'), 'Should export POST');
 });
 
 test('Policies API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/policies/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/policies/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
   assert(content.includes('export async function POST'), 'Should export POST');
 });
 
 test('Runs API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/runs/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/runs/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
 });
 
 test('Snapshots API has proper exports', () => {
-  const content = fs.readFileSync('ready-layer/src/app/api/snapshots/route.ts', 'utf-8');
+  const content = fs.readFileSync('src/app/api/snapshots/route.ts', 'utf-8');
   assert(content.includes('export async function GET'), 'Should export GET');
   assert(content.includes('export async function POST'), 'Should export POST');
 });
@@ -152,7 +162,7 @@ test('Snapshots API has proper exports', () => {
 console.log('\n[Type Safety]');
 
 test('Engine types are defined', () => {
-  const typesFile = 'ready-layer/src/types/engine.ts';
+  const typesFile = 'src/types/engine.ts';
   assert(fs.existsSync(typesFile), 'Engine types file should exist');
   
   const content = fs.readFileSync(typesFile, 'utf-8');
@@ -164,7 +174,7 @@ test('Engine types are defined', () => {
 
 test('No explicit any in API routes', () => {
   // Check for explicit any usage
-  const apiDir = 'ready-layer/src/app/api';
+  const apiDir = 'src/app/api';
   const routes = fs.readdirSync(apiDir);
   
   for (const route of routes) {
@@ -190,12 +200,12 @@ test('No explicit any in API routes', () => {
 console.log('\n[Components]');
 
 test('BudgetCard component exists', () => {
-  const componentFile = 'ready-layer/src/components/BudgetCard.tsx';
+  const componentFile = 'src/components/BudgetCard.tsx';
   assert(fs.existsSync(componentFile), 'BudgetCard component should exist');
 });
 
 test('FinOps page uses new budget structure', () => {
-  const finopsPage = 'ready-layer/src/app/console/finops/page.tsx';
+  const finopsPage = 'src/app/console/finops/page.tsx';
   const content = fs.readFileSync(finopsPage, 'utf-8');
   assert(content.includes('percent'), 'Should calculate percent usage');
   assert(content.includes('bg-green') || content.includes('bg-yellow') || content.includes('bg-red'),

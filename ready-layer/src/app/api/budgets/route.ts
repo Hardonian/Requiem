@@ -4,7 +4,7 @@
 // Budget management for tenant resource limits.
 
 import { NextResponse } from 'next/server';
-import type { Budget, BudgetSetRequest, BudgetSetResponse, BudgetShowResponse, BudgetResetResponse, TypedError, ApiResponse } from '@/types/engine';
+import type { BudgetSetRequest, BudgetSetResponse, BudgetShowResponse, BudgetResetResponse, TypedError, ApiResponse } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,14 +18,14 @@ function createError(code: string, message: string, retryable = false): TypedErr
 
 // GET - Show budget for a tenant
 export async function GET(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const { searchParams } = new URL(request.url);
     const tenant_id = searchParams.get('tenant') || 'default';
 
     // TODO: Replace with actual CLI call
-    const mockBudget: Budget = {
+    const mockBudget = {
       tenant_id,
       budgets: {
         exec: { limit: 1000, used: 42, remaining: 958 },
@@ -59,7 +59,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 // POST - Set budget or reset window
 export async function POST(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const body = await request.json();

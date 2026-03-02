@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 /**
  * verify:boundaries - API boundary verification per KERNEL_SPEC §3
  * 

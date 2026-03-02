@@ -7,7 +7,6 @@ import { NextResponse } from 'next/server';
 import type { 
   Snapshot,
   SnapshotCreateResponse,
-  SnapshotListResponse,
   SnapshotRestoreResponse,
   TypedError, 
   ApiResponse,
@@ -26,11 +25,11 @@ function createError(code: string, message: string, retryable = false): TypedErr
 
 // GET - List snapshots
 export async function GET(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const { searchParams } = new URL(request.url);
-    const tenant = searchParams.get('tenant') || '';
+    const _tenant = searchParams.get('tenant') || ''; // eslint-disable-line @typescript-eslint/no-unused-vars
     const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 1000);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
@@ -62,7 +61,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         page: Math.floor(offset / limit) + 1,
         page_size: limit,
         has_more: offset + mockSnapshots.length < 50,
-        trace_id,
+        trace_id: traceId,
       },
       error: null,
     };
@@ -81,7 +80,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 // POST - Create or restore snapshot
 export async function POST(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const body = await request.json();

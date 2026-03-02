@@ -26,18 +26,9 @@ target_compile_definitions(blake3_vendor PRIVATE
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
   target_compile_options(blake3_vendor PRIVATE -O3 -w)
 elseif(MSVC)
-  # Strip /RTC1 (runtime checks) and /Od (debug opt-disable) inherited from
-  # CMAKE_C_FLAGS_DEBUG — they conflict with /O2 which blake3 needs.
-  # We override at the source level using COMPILE_FLAGS on the target.
-  set_target_properties(blake3_vendor PROPERTIES
-    COMPILE_FLAGS "/O2 /W0 /GS-"
-  )
-  # Remove inherited debug optimisation/RTC flags for this static lib.
-  string(REPLACE "/RTC1" "" CMAKE_C_FLAGS_DEBUG_BLAKE3 "${CMAKE_C_FLAGS_DEBUG}")
-  string(REPLACE "/Od"   "" CMAKE_C_FLAGS_DEBUG_BLAKE3 "${CMAKE_C_FLAGS_DEBUG_BLAKE3}")
-  set_property(TARGET blake3_vendor PROPERTY
-    COMPILE_OPTIONS ""  # clear, rely on COMPILE_FLAGS above
-  )
+  # Suppress warnings only — do not force /O2 which conflicts with /RTC1 in Debug.
+  # CMake's default per-config flags handle optimization correctly.
+  target_compile_options(blake3_vendor PRIVATE /W0)
 endif()
 
 # Set C standard

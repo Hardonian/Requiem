@@ -6,15 +6,13 @@
 import { NextResponse } from 'next/server';
 import type { 
   Plan,
-  PlanStep,
   PlanRunResult,
   PlanAddResponse,
   PlanListResponse,
   PlanShowResponse,
   PlanReplayResponse,
   TypedError, 
-  ApiResponse,
-  PaginatedResponse 
+  ApiResponse
 } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +27,7 @@ function createError(code: string, message: string, retryable = false): TypedErr
 
 // GET - List plans or show a specific plan
 export async function GET(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const { searchParams } = new URL(request.url);
@@ -132,7 +130,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 // POST - Add plan, run plan, or replay plan
 export async function POST(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
+  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
   
   try {
     const body = await request.json();

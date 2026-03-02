@@ -4,7 +4,7 @@
 // Returns event log entries with pagination and search.
 
 import { NextResponse } from 'next/server';
-import type { EventLogEntry, PaginatedResponse, TypedError } from '@/types/engine';
+import type { EventLogEntry, TypedError } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +36,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     const from = parseInt(searchParams.get('from') || '0', 10);
     const to = parseInt(searchParams.get('to') || '999999999', 10);
-    const q = searchParams.get('q') || '';
+    const _q = searchParams.get('q') || ''; // TODO: Implement search filtering
     const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 1000);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
