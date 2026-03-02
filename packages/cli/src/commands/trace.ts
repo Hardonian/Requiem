@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { DecisionRepository } from '../db/decisions';
-import { hash } from '../lib/hash';
-import { AgentStep } from '../lib/agent-runner';
+import { DecisionRepository } from '../db/decisions.js';
+import { hash } from '../lib/hash.js';
+import { AgentStep } from '../lib/agent-runner.js';
 
 export const trace = new Command('trace')
   .description('Visualize the decision trace for a specific execution ID')
@@ -77,3 +77,4 @@ export const trace = new Command('trace')
     }
     console.log(''); // Trailing newline
   });
+

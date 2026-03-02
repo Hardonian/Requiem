@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
-import { init } from './commands/init';
-import { readConfig } from './global-config';
+import { init } from './commands/init.js';
+import { readConfig } from './global-config.js';
 import { randomUUID } from 'crypto';
 
 async function main() {
@@ -25,3 +25,4 @@ main().catch(e => {
   console.error(e);
   process.exit(1);
 });
+

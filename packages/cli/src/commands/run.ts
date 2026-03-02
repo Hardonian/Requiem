@@ -5,7 +5,7 @@
  * Future: Will intelligently dispatch to skills/agents.
  */
 
-import { runToolExec, parseToolExecArgs } from './tool';
+import { runToolExec, parseToolExecArgs } from './tool.js';
 
 export async function runRunCommand(args: string[]): Promise<number> {
   // If the first arg is not a flag, it's the tool name.
@@ -41,3 +41,4 @@ export async function runRunCommand(args: string[]): Promise<number> {
   // Execute
   return await runToolExec(toolArgs);
 }
+

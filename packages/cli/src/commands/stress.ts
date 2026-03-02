@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { DecisionRepository } from '../db/decisions';
+import { DecisionRepository } from '../db/decisions.js';
 import { randomBytes } from 'crypto';
 
 export const stress = new Command('stress')
@@ -54,3 +54,4 @@ export const stress = new Command('stress')
 
     console.log(`\n\n✅ Completed. Generated ${count} decisions.`);
   });
+

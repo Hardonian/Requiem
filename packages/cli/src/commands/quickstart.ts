@@ -217,3 +217,4 @@ function fail(message: string, isJson: boolean | undefined, results: QuickstartR
   }
   process.exit(1);
 }
+

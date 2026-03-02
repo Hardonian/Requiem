@@ -8,7 +8,7 @@
  * Used for: job executions, runs, workflows, background tasks.
  */
 
-import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
+import { RequiemError, ErrorCode, ErrorSeverity } from './errors.js';
 
 /**
  * State definition with allowed transitions.
@@ -488,3 +488,4 @@ CREATE TRIGGER ${tableName}_state_transition
   EXECUTE FUNCTION ${tableName}_validate_transition();
 `;
 }
+

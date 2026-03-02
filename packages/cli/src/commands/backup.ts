@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import * as path from 'path';
-import { getDB } from '../db/connection';
-import { writeJsonFile } from '../lib/io';
+import { getDB } from '../db/connection.js';
+import { writeJsonFile } from '../lib/io.js';
 
 export const backup = new Command('backup')
   .description('Dump database to JSON file')
@@ -28,3 +28,4 @@ export const backup = new Command('backup')
     writeJsonFile(outputPath, dump);
     console.log(`✅ Backup saved to: ${outputPath}`);
   });
+

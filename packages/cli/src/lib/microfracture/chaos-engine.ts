@@ -6,7 +6,7 @@
  * INVARIANT: No actual chaos - just verification
  */
 
-import { hash } from '../hash';
+import { hash } from '../hash.js';
 
 export interface ChaosCheckResult {
   name: string;
@@ -273,3 +273,4 @@ export function formatChaosAsJson(report: ChaosReport): Record<string, unknown> 
     reportHash: report.reportHash,
   };
 }
+

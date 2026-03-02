@@ -455,3 +455,4 @@ export function captureLogs<T>(fn: () => T): { result: T; logs: LogEntry[] } {
     globalLogger = originalLogger;
   }
 }
+

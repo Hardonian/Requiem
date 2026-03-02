@@ -299,3 +299,4 @@ export class OptimizedDatabase {
 export function getDB(dbPath?: string): OptimizedDatabase {
   return OptimizedDatabase.getInstance(dbPath);
 }
+

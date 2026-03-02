@@ -28,3 +28,4 @@ export function getTelemetrySummary(_tenantId: string): TelemetrySummary {
     errorRate: 0,
   };
 }
+

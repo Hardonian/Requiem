@@ -15,13 +15,13 @@
  */
 
 import { Command } from 'commander';
-import { getDB, getDatabaseStatus } from '../db/connection';
-import { hash } from '../lib/hash';
-import { createRunLifecycleStateMachine, RunLifecycleStates, RunLifecycleTracker } from '../lib/run-lifecycle';
-import { createExecutionStateMachine, createJunctionStateMachine } from '../lib/state-machine';
-import { evaluateDecisionFallback } from '../lib/fallback';
-import { capturePolicySnapshotHash } from '../lib/policy-snapshot';
-import { ErrorCode } from '../lib/errors';
+import { getDB, getDatabaseStatus } from '../db/connection.js';
+import { hash } from '../lib/hash.js';
+import { createRunLifecycleStateMachine, RunLifecycleStates, RunLifecycleTracker } from '../lib/run-lifecycle.js';
+import { createExecutionStateMachine, createJunctionStateMachine } from '../lib/state-machine.js';
+import { evaluateDecisionFallback } from '../lib/fallback.js';
+import { capturePolicySnapshotHash } from '../lib/policy-snapshot.js';
+import { ErrorCode } from '../lib/errors.js';
 
 interface SelftestResult {
   name: string;
@@ -313,3 +313,4 @@ export const selftest = new Command('selftest')
       process.exit(1);
     }
   });
+

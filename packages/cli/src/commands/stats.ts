@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { DecisionRepository } from '../db/decisions';
+import { DecisionRepository } from '../db/decisions.js';
 
 export const stats = new Command('stats')
   .description('Aggregated telemetry: determinism rate, policy events, replay verification')
@@ -36,3 +36,4 @@ export const stats = new Command('stats')
     console.log('└────────────────────────────────────────────────┘');
     console.log('');
   });
+

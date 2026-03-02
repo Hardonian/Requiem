@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { runDoctor } from './commands/doctor';
+import { runDoctor } from './commands/doctor.js';
 
 async function main() {
   // Execute the doctor check
@@ -11,3 +11,4 @@ main().catch(err => {
   console.error(err);
   process.exit(1);
 });
+

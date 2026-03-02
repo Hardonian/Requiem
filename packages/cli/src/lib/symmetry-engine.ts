@@ -18,8 +18,8 @@ import {
   type MetricName,
   type LearningSignal,
   type LearningPatch,
-} from '../db/governance';
-import { analyzeSignals } from './drift-detector';
+} from '../db/governance.js';
+import { analyzeSignals } from './drift-detector.js';
 
 // ─── Technical Symmetry ────────────────────────────────────────────────────────
 
@@ -343,3 +343,4 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodEnd: params.periodEnd,
   });
 }
+

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { DecisionRepository } from '../db/decisions';
+import { DecisionRepository } from '../db/decisions.js';
 
 export const telemetry = new Command('telemetry')
   .description('Show real-time usage stats (sliding window)')
@@ -75,3 +75,4 @@ export const telemetry = new Command('telemetry')
       setInterval(runLoop, refreshSec * 1000);
     }
   });
+

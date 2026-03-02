@@ -208,3 +208,4 @@ export function logError(event: string, error: unknown, context?: LogContext): v
   const message = error instanceof Error ? error.message : String(error);
   logger.error(event, message, context);
 }
+

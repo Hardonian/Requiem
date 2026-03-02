@@ -452,3 +452,4 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
     },
   };
 }
+

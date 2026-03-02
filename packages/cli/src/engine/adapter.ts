@@ -6,8 +6,8 @@
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { DecisionInput, DecisionOutput, evaluateDecisionFallback } from '../lib/fallback';
-import { hash } from '../lib/hash';
+import { DecisionInput, DecisionOutput, evaluateDecisionFallback } from '../lib/fallback.js';
+import { hash } from '../lib/hash.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -333,3 +333,4 @@ export async function checkEngineAvailability(): Promise<{
 
 // Re-export types for convenience
 export type { DecisionInput, DecisionOutput };
+

@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import * as path from 'path';
-import { DecisionRepository, type CreateDecisionInput } from '../db/decisions';
-import { hash } from '../lib/hash';
-import { readTextFile, fileExists } from '../lib/io';
+import { DecisionRepository, type CreateDecisionInput } from '../db/decisions.js';
+import { hash } from '../lib/hash.js';
+import { readTextFile, fileExists } from '../lib/io.js';
 
 export const importCommand = new Command('import')
   .description('Ingest decision logs from an external CSV file')
@@ -91,3 +91,4 @@ function parseCsvLine(line: string): string[] {
   result.push(current);
   return result.map(s => s.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
 }
+

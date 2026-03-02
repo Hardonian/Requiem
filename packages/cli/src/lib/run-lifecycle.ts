@@ -13,8 +13,8 @@
  * INVARIANT: Transitions are validated in code.
  */
 
-import { StateMachine } from './state-machine';
-import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
+import { StateMachine } from './state-machine.js';
+import { RequiemError, ErrorCode, ErrorSeverity } from './errors.js';
 
 // ─── Run lifecycle states ────────────────────────────────────────────────────────
 
@@ -225,3 +225,4 @@ export class RunLifecycleTracker {
     return this.currentState === RunLifecycleStates.DIVERGENT;
   }
 }
+

@@ -4,7 +4,7 @@
  * Sub-millisecond latency baseline for engine operations.
  */
 
-import type { CommandContext } from '../cli';
+import type { CommandContext } from '../cli.js';
 import { getStorage } from '../db/sqlite-storage.js';
 import { performance } from 'perf_hooks';
 
@@ -52,3 +52,4 @@ export async function runBench(ctx: CommandContext): Promise<number> {
 
   return 0;
 }
+

@@ -8,8 +8,8 @@
  */
 
 import { randomUUID } from 'crypto';
-import { DecisionRepository } from './decisions';
-import { hash } from '../lib/hash';
+import { DecisionRepository } from './decisions.js';
+import { hash } from '../lib/hash.js';
 
 export interface RequiemOptions {
   tenantId: string;
@@ -83,3 +83,4 @@ export class RequiemWrapper {
     };
   }
 }
+

@@ -199,3 +199,4 @@ export function formatTenantCheckAsJson(result: TenantCheckResult): Record<strin
     resultHash: result.resultHash,
   };
 }
+

@@ -7,11 +7,11 @@
  * - requiem decide outcome --id <id> --status success|failure|mixed --notes
  */
 
-import { ActionIntentRepository, JunctionRepository, Junction } from '../db/junctions';
-import { evaluateDecision } from '../engine/adapter';
-import type { DecisionInput, DecisionOutput } from '../lib/fallback';
-import { DecisionRepository, DecisionReport, CalibrationRepository } from '../db/decisions';
-import { capturePolicySnapshotHash, writeLedgerEntry, recordExecutionCost } from '../lib/policy-snapshot';
+import { ActionIntentRepository, JunctionRepository, Junction } from '../db/junctions.js';
+import { evaluateDecision } from '../engine/adapter.js';
+import type { DecisionInput, DecisionOutput } from '../lib/fallback.js';
+import { DecisionRepository, DecisionReport, CalibrationRepository } from '../db/decisions.js';
+import { capturePolicySnapshotHash, writeLedgerEntry, recordExecutionCost } from '../lib/policy-snapshot.js';
 
 export interface DecisionReportOutput {
   id: string;
@@ -91,7 +91,7 @@ export function parseDecideArgs(argv: string[]): DecideCliArgs {
  */
 export async function runDecideCommand(args: DecideCliArgs): Promise<number> {
   try {
-    const { requireTenantContextCli, getGlobalTenantResolver } = await import('../lib/tenant');
+    const { requireTenantContextCli, getGlobalTenantResolver } = await import('../lib/tenant.js');
     const context = await requireTenantContextCli(getGlobalTenantResolver(), {
       ...process.env,
       REQUIEM_TENANT_ID: args.tenantId || process.env.REQUIEM_TENANT_ID,
@@ -518,3 +518,4 @@ function formatDecisionReport(decision: DecisionReport, verbose: boolean = false
 
   return output;
 }
+

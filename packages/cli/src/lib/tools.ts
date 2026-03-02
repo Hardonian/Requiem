@@ -8,8 +8,8 @@
  */
 
 import { z } from 'zod';
-import { TenantContext, TenantRole, hasRequiredRole } from './tenant';
-import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
+import { TenantContext, TenantRole, hasRequiredRole } from './tenant.js';
+import { RequiemError, ErrorCode, ErrorSeverity } from './errors.js';
 
 // Budget tracking for CLI (in production, this would be shared with AI package)
 interface BudgetState {
@@ -411,3 +411,4 @@ export class ToolRegistry {
 
 // Singleton instance
 export const toolRegistry = new ToolRegistry();
+

@@ -366,3 +366,4 @@ export function formatExplainAsTable(result: ExplainResult): string {
 
   return lines.join('\n');
 }
+

@@ -2,8 +2,8 @@
  * Junction Data Model and Repository
  */
 
-import { getDB } from './connection';
-import { newId } from './helpers';
+import { getDB } from './connection.js';
+import { newId } from './helpers.js';
 
 export interface Junction {
   id: string;
@@ -337,3 +337,4 @@ export class ActionIntentRepository {
     return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as ActionIntent | undefined;
   }
 }
+

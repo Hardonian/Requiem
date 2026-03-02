@@ -8,8 +8,8 @@
  *   reach symmetry --economics
  */
 
-import { calculateSymmetry } from '../lib/symmetry-engine';
-import { getEconomicSummary } from '../lib/economic-layer';
+import { calculateSymmetry } from '../lib/symmetry-engine.js';
+import { getEconomicSummary } from '../lib/economic-layer.js';
 
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
 
@@ -112,3 +112,4 @@ export const symmetry = {
     return runSymmetryCommand(args);
   },
 };
+

@@ -8,7 +8,7 @@
  *   reach rollback <sha|release>
  */
 
-import { LearningPatchRepository } from '../db/governance';
+import { LearningPatchRepository } from '../db/governance.js';
 import { randomUUID } from 'crypto';
 
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
@@ -187,3 +187,4 @@ export const rollbackCommand = {
     return runRollbackCommand(args);
   },
 };
+

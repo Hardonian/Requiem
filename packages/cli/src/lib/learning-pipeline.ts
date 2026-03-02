@@ -21,12 +21,12 @@ import {
   type LearningSignal,
   type LearningDiagnosis,
   type LearningPatch,
-} from '../db/governance';
+} from '../db/governance.js';
 import {
   analyzeSignals,
   determineRootCause,
   calculateConfidenceScore,
-} from './drift-detector';
+} from './drift-detector.js';
 
 // ─── Signal Threshold ─────────────────────────────────────────────────────────
 
@@ -294,3 +294,4 @@ export function getLearningSummary(params: LearningSummaryParams): LearningSumma
     rejectedPatches: patches.filter(p => p.status === 'rejected'),
   };
 }
+

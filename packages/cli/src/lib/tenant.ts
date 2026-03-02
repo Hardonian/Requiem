@@ -11,7 +11,7 @@
  * - Background jobs (worker context)
  */
 
-import { RequiemError, ErrorCode, ErrorSeverity, type ErrorMeta } from './errors';
+import { RequiemError, ErrorCode, ErrorSeverity, type ErrorMeta } from './errors.js';
 
 /**
  * Valid tenant membership roles.
@@ -570,3 +570,4 @@ export function getGlobalTenantResolver(): TenantResolver {
   }
   return globalResolver;
 }
+

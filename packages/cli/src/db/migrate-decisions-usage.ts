@@ -6,7 +6,7 @@
  * and populates existing records with a zero-drift default.
  */
 
-import { getDB } from './connection';
+import { getDB } from './connection.js';
 
 async function main() {
   console.log('🔄 Starting migration: decisions.usage backfill');
@@ -35,3 +35,4 @@ void main().catch(err => {
   console.error('Migration failed:', err);
   process.exit(1);
 });
+

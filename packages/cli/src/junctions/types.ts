@@ -2,7 +2,7 @@
  * Junction Types and Configuration
  */
 
-import { hashShort } from '../lib/hash';
+import { hashShort } from '../lib/hash.js';
 
 export type JunctionType = 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
 export type SourceType = 'diff' | 'drift' | 'policy' | 'trust';
@@ -171,3 +171,4 @@ export const DEFAULT_JUNCTION_CONFIG: JunctionConfig = {
     },
   },
 };
+

@@ -3,11 +3,11 @@
  */
 
 import { z } from 'zod';
-import { ToolDefinition, toolRegistry } from './tools';
-import { DecisionRepository } from '../db/decisions';
-import { JunctionRepository } from '../db/junctions';
-import { evaluateDecision } from '../engine/adapter';
-import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
+import { ToolDefinition, toolRegistry } from './tools.js';
+import { DecisionRepository } from '../db/decisions.js';
+import { JunctionRepository } from '../db/junctions.js';
+import { evaluateDecision } from '../engine/adapter.js';
+import { RequiemError, ErrorCode, ErrorSeverity } from './errors.js';
 
 /**
  * decide_evaluate
@@ -126,3 +126,4 @@ export function registerStandardTools(): void {
   toolRegistry.register(decideEvaluate);
   toolRegistry.register(junctionsList);
 }
+

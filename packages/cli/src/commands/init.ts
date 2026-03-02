@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { randomUUID } from 'crypto';
-import { readConfig, writeConfig } from '../global-config';
-import { getDB } from '../db/connection';
+import { readConfig, writeConfig } from '../global-config.js';
+import { getDB } from '../db/connection.js';
 
 export const init = new Command('init')
   .description('Initialize Requiem configuration and database')
@@ -36,3 +36,4 @@ export const init = new Command('init')
     console.log(`   Database:    Initialized (${tableCount} tables)`);
     console.log('\nRun "requiem doctor" to verify system health.');
   });
+

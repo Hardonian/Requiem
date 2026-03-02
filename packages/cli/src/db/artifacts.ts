@@ -69,3 +69,4 @@ export class ArtifactStore {
     return io.readTextFile(filePath);
   }
 }
+

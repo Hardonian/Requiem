@@ -200,3 +200,4 @@ function getRemediation(code: string, exitCode: ExitCodeValue): string {
   
   return remediations[code] || remediations[exitCode.toString()] || 'Contact support if the issue persists';
 }
+

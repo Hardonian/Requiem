@@ -7,9 +7,9 @@
  * 2. Database schema supports the 'usage' column.
  */
 
-import { replay } from '../commands/replay';
-import { trace } from '../commands/trace';
-import { getDB } from './connection';
+import { replay } from '../commands/replay.js';
+import { trace } from '../commands/trace.js';
+import { getDB } from './connection.js';
 import { randomBytes } from 'crypto';
 import type { Command, Option } from 'commander';
 
@@ -76,3 +76,4 @@ async function main() {
 }
 
 void main();
+

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { RequiemWrapper } from './wrapper';
-import { DecisionRepository } from './decisions';
+import { RequiemWrapper } from './wrapper.js';
+import { DecisionRepository } from './decisions.js';
 
 describe('RequiemWrapper', () => {
   it('should intercept calls and attach correlation_id', async () => {
@@ -69,3 +69,4 @@ describe('RequiemWrapper', () => {
     assert.strictEqual(result.requiem_meta.usage.total_tokens, 0);
   });
 });
+

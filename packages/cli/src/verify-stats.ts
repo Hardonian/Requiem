@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
-import { DecisionRepository } from './db/decisions';
-import { resetDB } from './db/connection';
+import { DecisionRepository } from './db/decisions.js';
+import { resetDB } from './db/connection.js';
 
 async function main() {
   console.log('🧪 Verifying Stats and Trace commands...');
@@ -57,3 +57,4 @@ main().catch(e => {
   console.error(e);
   process.exit(1);
 });
+

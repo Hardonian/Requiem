@@ -7,7 +7,7 @@
  *   reach realign <patch-id>
  */
 
-import { LearningPatchRepository } from '../db/governance';
+import { LearningPatchRepository } from '../db/governance.js';
 import { execSync } from 'child_process';
 
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
@@ -124,3 +124,4 @@ export const realign = {
     return runRealignCommand(args);
   },
 };
+

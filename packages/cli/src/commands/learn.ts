@@ -7,8 +7,8 @@
  *   reach learn --window=7d --format=table|json
  */
 
-import { getLearningSummary, runLearningPipeline } from '../lib/learning-pipeline';
-import { calculateSymmetry } from '../lib/symmetry-engine';
+import { getLearningSummary, runLearningPipeline } from '../lib/learning-pipeline.js';
+import { calculateSymmetry } from '../lib/symmetry-engine.js';
 
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
 
@@ -200,3 +200,4 @@ export const learn = {
     return runLearnCommand(args);
   },
 };
+

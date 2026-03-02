@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { readConfig, setConfigValue, getConfigValue } from '../global-config';
+import { readConfig, setConfigValue, getConfigValue } from '../global-config.js';
 
 export const config = new Command('config')
   .description('Manage global configuration')
@@ -30,3 +30,4 @@ config.command('set')
     setConfigValue(key, value);
     console.log(`Set ${key} = ${value}`);
   });
+

@@ -14,7 +14,7 @@
 import { Command } from 'commander';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { getDatabaseStatus } from '../db/connection';
+import { getDatabaseStatus } from '../db/connection.js';
 
 const VERSION = '0.2.0';
 
@@ -189,3 +189,4 @@ function formatSection(title: string): string {
   const content = `│ ${title}`;
   return content.padEnd(53) + '│';
 }
+

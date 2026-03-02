@@ -4,7 +4,7 @@
  * Aliases to `replay run <hash> --verify` to surface trust.
  */
 
-import { replay } from './replay';
+import { replay } from './replay.js';
 
 export async function runVerifyCommand(args: string[]): Promise<number> {
   // args[0] should be the hash
@@ -40,3 +40,4 @@ export async function runVerifyCommand(args: string[]): Promise<number> {
     return 1;
   }
 }
+

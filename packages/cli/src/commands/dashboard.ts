@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import * as http from 'http';
-import { DecisionRepository } from '../db/decisions';
+import { DecisionRepository } from '../db/decisions.js';
 
 export const dashboard = new Command('dashboard')
   .description('Launch the local telemetry dashboard')
@@ -107,3 +107,4 @@ function getDashboardHtml() {
 </html>
 `;
 }
+

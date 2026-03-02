@@ -7,9 +7,9 @@
  * - requiem junctions show <id>
  */
 
-import { junctionOrchestrator } from '../junctions/orchestrator';
-import type { Junction } from '../db/junctions';
-import { JUNCTION_TYPE_META, getSeverityLevel } from '../junctions/types';
+import { junctionOrchestrator } from '../junctions/orchestrator.js';
+import type { Junction } from '../db/junctions.js';
+import { JUNCTION_TYPE_META, getSeverityLevel } from '../junctions/types.js';
 
 export interface JunctionsCliArgs {
   command: 'scan' | 'list' | 'show';
@@ -274,3 +274,4 @@ async function handleShow(args: JunctionsCliArgs): Promise<number> {
   
   return 0;
 }
+

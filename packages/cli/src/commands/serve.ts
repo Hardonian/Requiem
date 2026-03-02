@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import * as http from 'http';
-import { DecisionRepository } from '../db/decisions';
+import { DecisionRepository } from '../db/decisions.js';
 
 export const serve = new Command('serve')
   .description('Expose decision engine as a REST API')
@@ -55,3 +55,4 @@ export const serve = new Command('serve')
       console.log('Ingesting decisions from remote clients...\n');
     });
   });
+

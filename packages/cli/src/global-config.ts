@@ -1,6 +1,6 @@
 import path from 'path';
 import os from 'os';
-import { readJsonFile, writeJsonFile } from './lib/io';
+import { readJsonFile, writeJsonFile } from './lib/io.js';
 
 const CONFIG_DIR = path.join(os.homedir(), '.requiem');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
@@ -29,3 +29,4 @@ export function getConfigValue(key: string): unknown {
   const config = readConfig();
   return config[key];
 }
+

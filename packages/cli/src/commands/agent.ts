@@ -5,10 +5,10 @@
  * - requiem agent serve --tenant <id>
  */
 
-import { McpServer, McpRequest } from '../lib/mcp';
-import { requireTenantContextCli, getGlobalTenantResolver } from '../lib/tenant';
-import { registerStandardTools } from '../lib/tool-definitions';
-import { newId } from '../db/helpers';
+import { McpServer, McpRequest } from '../lib/mcp.js';
+import { requireTenantContextCli, getGlobalTenantResolver } from '../lib/tenant.js';
+import { registerStandardTools } from '../lib/tool-definitions.js';
+import { newId } from '../db/helpers.js';
 
 export interface AgentCliArgs {
   command: 'serve';
@@ -89,3 +89,4 @@ async function handleServe(args: AgentCliArgs): Promise<number> {
   // Keep alive
   return new Promise(() => {});
 }
+

@@ -4,12 +4,12 @@
  * Standardized interface for model interaction with Requiem tools.
  */
 
-import { toolRegistry } from './tools';
-import { AgentRunner, AgentRunState } from './agent-runner';
-import { TenantContext } from './tenant';
-import { RequiemError, ErrorCode } from './errors';
-import { DecisionRepository } from '../db/decisions';
-import { hash } from './hash';
+import { toolRegistry } from './tools.js';
+import { AgentRunner, AgentRunState } from './agent-runner.js';
+import { TenantContext } from './tenant.js';
+import { RequiemError, ErrorCode } from './errors.js';
+import { DecisionRepository } from '../db/decisions.js';
+import { hash } from './hash.js';
 
 export interface McpRequest {
   jsonrpc: '2.0';
@@ -134,3 +134,4 @@ export class McpServer {
     }
   }
 }
+

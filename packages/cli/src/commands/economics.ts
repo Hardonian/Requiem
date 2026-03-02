@@ -10,7 +10,7 @@
  *   reach fairness
  */
 
-import { getEconomicSummary, detectEconomicAlerts, createAlertsFromDetection } from '../lib/economic-layer';
+import { getEconomicSummary, detectEconomicAlerts, createAlertsFromDetection } from '../lib/economic-layer.js';
 
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
 
@@ -171,3 +171,4 @@ export const economics = {
     return runEconomicsCommand(args);
   },
 };
+

@@ -19,3 +19,4 @@ export function hash(data: string | Buffer): string {
 export function hashShort(data: string | Buffer): string {
   return hash(data).substring(0, 16);
 }
+

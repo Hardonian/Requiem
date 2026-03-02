@@ -24,7 +24,7 @@ export {
   type DiffOutput,
   type PolicyDelta,
   type GraphDelta,
-} from './diff-engine';
+} from './diff-engine.js';
 
 // Lineage Engine
 export {
@@ -36,7 +36,7 @@ export {
   type LineageEdge,
   type LineageGraph,
   type LineageOptions,
-} from './lineage-engine';
+} from './lineage-engine.js';
 
 // Policy Simulation Engine
 export {
@@ -48,7 +48,7 @@ export {
   type PolicyContext,
   type PolicyViolation,
   type PolicySimulationResult,
-} from './policy-sim-engine';
+} from './policy-sim-engine.js';
 
 // Drift Engine
 export {
@@ -58,7 +58,7 @@ export {
   type DriftEvent,
   type DriftComparison,
   type DriftResult,
-} from './drift-engine';
+} from './drift-engine.js';
 
 // Explain Engine
 export {
@@ -69,7 +69,7 @@ export {
   type ExplainInfluence,
   type ExplainSection,
   type ExplainResult,
-} from './explain-engine';
+} from './explain-engine.js';
 
 // Usage Engine
 export {
@@ -80,7 +80,7 @@ export {
   type UsageRecord,
   type UsageRollup,
   type UsageSummary,
-} from './usage-engine';
+} from './usage-engine.js';
 
 // Tenant Check Engine
 export {
@@ -89,7 +89,7 @@ export {
   formatTenantCheckAsJson,
   type TenantCheckRecord,
   type TenantCheckResult,
-} from './tenant-check-engine';
+} from './tenant-check-engine.js';
 
 // Chaos Engine
 export {
@@ -99,7 +99,7 @@ export {
   type ChaosCheckResult,
   type ChaosReport,
   type ChaosContext,
-} from './chaos-engine';
+} from './chaos-engine.js';
 
 // Share Engine
 export {
@@ -112,4 +112,5 @@ export {
   type ShareToken,
   type ShareValidationResult,
   type DiffProofCardData,
-} from './share-engine';
+} from './share-engine.js';
+

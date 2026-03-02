@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import * as path from 'path';
-import { getDB } from '../db/connection';
-import { readJsonFile, fileExists } from '../lib/io';
+import { getDB } from '../db/connection.js';
+import { readJsonFile, fileExists } from '../lib/io.js';
 
 export const restore = new Command('restore')
   .description('Restore database from JSON backup')
@@ -65,3 +65,4 @@ export const restore = new Command('restore')
       process.exit(1);
     }
   });
+

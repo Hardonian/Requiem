@@ -9,8 +9,8 @@
  */
 
 import { Command } from 'commander';
-import { DecisionRepository } from '../db/decisions';
-import { getDB } from '../db/connection';
+import { DecisionRepository } from '../db/decisions.js';
+import { getDB } from '../db/connection.js';
 import {
   computeDiff,
   formatDiffAsTable,
@@ -40,10 +40,10 @@ import {
   formatShareUrl,
   formatCardUrl,
   type RunRecord,
-} from '../lib/microfracture';
+} from '../lib/microfracture.js';
 
 // Import hash for fingerprint computation
-import { hash } from '../lib/hash';
+import { hash } from '../lib/hash.js';
 
 /**
  * reach diff <runA> <runB> [--format=table|json] [--graph] [--card] [--share]
@@ -591,3 +591,4 @@ export async function runMicrofractureCommand(command: string, args: string[], _
 
   return 0;
 }
+

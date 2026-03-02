@@ -11,15 +11,15 @@
  *   requiem doctor [--json]
  */
 
-import '../../../ai/src/index'; // Bootstrap built-in tools
+import '../../../ai/src/index.js'; // Bootstrap built-in tools
 
 // We import from relative paths since workspace deps may not be built yet.
 // In production, these would be '@requiem/ai' imports.
-import { listTools } from '../../../ai/src/tools/registry';
-import { getReplayRecord } from '../../../ai/src/tools/replay';
-import { executeToolEnvelope } from '../../../ai/src/tools/executor';
-import { TenantRole } from '../../../ai/src/types/index';
-import type { InvocationContext } from '../../../ai/src/types/index';
+import { listTools } from '../../../ai/src/tools/registry.js';
+import { getReplayRecord } from '../../../ai/src/tools/replay.js';
+import { executeToolEnvelope } from '../../../ai/src/tools/executor.js';
+import { TenantRole } from '../../../ai/src/types/index.js';
+import type { InvocationContext } from '../../../ai/src/types/index.js';
 
 // ─── Output Formatting ──────────────────────────────────────────────────────
 
@@ -351,3 +351,4 @@ export async function runDoctorFull(args: DoctorArgs): Promise<number> {
 
   return hasFailure ? 1 : 0;
 }
+

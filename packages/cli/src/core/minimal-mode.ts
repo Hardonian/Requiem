@@ -144,3 +144,4 @@ function printFastVersion(): void {
   const VERSION = '0.2.0';
   process.stdout.write(`Requiem CLI v${VERSION}\n`);
 }
+

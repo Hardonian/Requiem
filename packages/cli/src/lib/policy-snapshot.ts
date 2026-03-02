@@ -15,11 +15,11 @@
  */
 
 import path from 'path';
-import { hash } from './hash';
-import { readTextFile, fileExists } from './io';
-import { getDB } from '../db/connection';
-import { newId } from '../db/helpers';
-import { EconomicEventRepository } from '../db/governance';
+import { hash } from './hash.js';
+import { readTextFile, fileExists } from './io.js';
+import { getDB } from '../db/connection.js';
+import { newId } from '../db/helpers.js';
+import { EconomicEventRepository } from '../db/governance.js';
 
 /**
  * Capture the current policy snapshot hash.
@@ -95,3 +95,4 @@ export function recordExecutionCost(params: {
     costUnits,
   });
 }
+

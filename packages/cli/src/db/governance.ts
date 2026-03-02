@@ -10,7 +10,7 @@
  * All operations are pure functions of stored data.
  */
 
-import { getDB } from './connection';
+import { getDB } from './connection.js';
 import { randomUUID } from 'crypto';
 
 // ─── Types ───────────────────────────────────────────────────────────────────────
@@ -877,3 +877,4 @@ export const SkillRepository = {
     return { valid: errors.length === 0, errors };
   },
 };
+

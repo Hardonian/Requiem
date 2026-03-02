@@ -6,7 +6,7 @@
  * INVARIANT: No raw inputs exposed without redaction policy
  */
 
-import { hash } from '../hash';
+import { hash } from '../hash.js';
 
 export interface DiffInput {
   digest: string;
@@ -302,3 +302,4 @@ export function getTopDeltas(diff: RunDiffResult): Array<{ type: string; severit
     })
     .slice(0, 3);
 }
+

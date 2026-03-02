@@ -6,7 +6,7 @@
  * and populates existing records with a default value (0).
  */
 
-import { getDB } from './connection';
+import { getDB } from './connection.js';
 
 async function main() {
   console.log('🔄 Starting migration: decisions.execution_latency backfill');
@@ -34,3 +34,4 @@ void main().catch(err => {
   console.error('Migration failed:', err);
   process.exit(1);
 });
+

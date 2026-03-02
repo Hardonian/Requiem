@@ -12,7 +12,7 @@
  * INVARIANT: Assertions must use structured RequiemError on failure.
  */
 
-import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
+import { RequiemError, ErrorCode, ErrorSeverity } from './errors.js';
 
 // ─── Configuration ──────────────────────────────────────────────────────────────
 
@@ -249,3 +249,4 @@ function truncate(s: string, maxLen = 40): string {
   if (s.length <= maxLen) return s;
   return s.substring(0, maxLen) + '...';
 }
+

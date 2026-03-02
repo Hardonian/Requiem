@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { DecisionRepository } from '../db/decisions';
-import { hash } from '../lib/hash';
-import { AgentStep } from '../lib/agent-runner';
+import { DecisionRepository } from '../db/decisions.js';
+import { hash } from '../lib/hash.js';
+import { AgentStep } from '../lib/agent-runner.js';
 
 const DEFAULT_TENANT = process.env.REQUIEM_TENANT_ID ?? 'default';
 
@@ -258,3 +258,4 @@ replay
 
     console.log(JSON.stringify(exportData, null, 2));
   });
+

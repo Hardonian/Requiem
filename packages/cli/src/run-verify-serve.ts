@@ -14,3 +14,4 @@ if (result.status !== 0) {
   console.error(`❌ Verification failed.`);
   process.exit(1);
 }
+

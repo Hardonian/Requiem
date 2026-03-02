@@ -17,7 +17,7 @@ import { Command } from 'commander';
 // eslint-disable-next-line no-restricted-imports -- bugreport legitimately needs execSync for tool version diagnostics
 import { execSync } from 'child_process';
 import { join } from 'path';
-import { fileExists, readTextFile, readJsonFile } from '../lib/io';
+import { fileExists, readTextFile, readJsonFile } from '../lib/io.js';
 
 const VERSION = '0.2.0';
 
@@ -250,3 +250,4 @@ function collectRecentLogs(): string[] {
   // For now, return an empty array to avoid exposing sensitive data
   return [];
 }
+

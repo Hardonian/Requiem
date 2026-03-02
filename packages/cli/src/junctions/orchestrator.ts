@@ -3,8 +3,8 @@
  * Manages junction detection, deduplication, and persistence
  */
 
-import { JunctionTrigger, JunctionType, generateJunctionFingerprint, generateDeduplicationKey } from './types';
-import { JunctionRepository, type Junction } from '../db/junctions';
+import { JunctionTrigger, JunctionType, generateJunctionFingerprint, generateDeduplicationKey } from './types.js';
+import { JunctionRepository, type Junction } from '../db/junctions.js';
 
 // Default configuration
 const DEFAULT_CONFIG = {
@@ -156,3 +156,4 @@ export const junctionOrchestrator = new JunctionOrchestrator();
 
 // Export helper functions
 export { generateJunctionFingerprint, generateDeduplicationKey };
+

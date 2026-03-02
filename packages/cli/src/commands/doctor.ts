@@ -11,12 +11,12 @@
  * - Exits with structured status
  */
 
-import { getStorage, SQLiteStorage } from '../db/sqlite-storage';
-import { getPathConfigFromEnv } from '../lib/paths';
-import * as io from '../lib/io';
-import { readConfig } from '../global-config';
-import { checkEngineAvailability } from '../engine/adapter';
-import { DecisionRepository } from '../db/decisions';
+import { getStorage, SQLiteStorage } from '../db/sqlite-storage.js';
+import { getPathConfigFromEnv } from '../lib/paths.js';
+import * as io from '../lib/io.js';
+import { readConfig } from '../global-config.js';
+import { checkEngineAvailability } from '../engine/adapter.js';
+import { DecisionRepository } from '../db/decisions.js';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
@@ -441,3 +441,4 @@ export async function runDoctor(options: { json: boolean; fix?: boolean }): Prom
 }
 
 export default runDoctor;
+

@@ -7,7 +7,7 @@
  * INVARIANT: Revocation supported
  */
 
-import { hash } from '../hash';
+import { hash } from '../hash.js';
 
 export interface ShareToken {
   token: string;
@@ -235,3 +235,4 @@ export function redactData<T extends Record<string, unknown>>(
 
   return redacted;
 }
+

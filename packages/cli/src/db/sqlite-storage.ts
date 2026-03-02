@@ -527,3 +527,4 @@ export function createStorageFromConfig(): SQLiteStorage {
 
   return new SQLiteStorage({ dataDir, memory });
 }
+

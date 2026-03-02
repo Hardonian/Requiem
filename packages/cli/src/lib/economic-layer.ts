@@ -20,7 +20,7 @@ import {
   type EconomicEvent,
   type EconomicRollup,
   type EconomicAlert,
-} from '../db/governance';
+} from '../db/governance.js';
 
 // ─── Cost Model Configuration ─────────────────────────────────────────────────
 
@@ -393,3 +393,4 @@ export function getEconomicSummary(tenantId: string): EconomicSummary {
     fairness,
   };
 }
+

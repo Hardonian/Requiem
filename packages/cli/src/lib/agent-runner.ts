@@ -5,11 +5,11 @@
  * Enforces hard recursion limits and tenant isolation.
  */
 
-import { TenantContext } from './tenant';
-import { ToolContext, toolRegistry } from './tools';
-import { RequiemError, ErrorCode, ErrorSeverity } from './errors';
-import { hash } from './hash';
-import { RequiemWrapper } from '../db/wrapper';
+import { TenantContext } from './tenant.js';
+import { ToolContext, toolRegistry } from './tools.js';
+import { RequiemError, ErrorCode, ErrorSeverity } from './errors.js';
+import { hash } from './hash.js';
+import { RequiemWrapper } from '../db/wrapper.js';
 
 export interface AgentUsage {
   prompt_tokens: number;
@@ -126,3 +126,4 @@ export class AgentRunner {
     state.depth++;
   }
 }
+

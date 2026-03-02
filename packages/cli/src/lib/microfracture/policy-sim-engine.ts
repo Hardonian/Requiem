@@ -276,3 +276,4 @@ export function formatPolicyResultAsTable(result: PolicySimulationResult): strin
 export function listPolicyProfiles(): string[] {
   return Object.keys(POLICY_PROFILES);
 }
+

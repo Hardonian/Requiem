@@ -275,3 +275,4 @@ export function formatDivergenceBadge(status: { isDivergent: boolean; severity?:
   
   return '🟡 divergent';
 }
+

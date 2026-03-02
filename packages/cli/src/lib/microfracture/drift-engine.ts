@@ -5,7 +5,7 @@
  * INVARIANT: No time-based nondeterminism in scoring algorithm
  */
 
-import { hash } from '../hash';
+import { hash } from '../hash.js';
 
 export interface DriftEvent {
   runId: string;
@@ -249,3 +249,4 @@ export function formatDriftAsJson(result: DriftResult): Record<string, unknown> 
     resultHash: result.resultHash,
   };
 }
+

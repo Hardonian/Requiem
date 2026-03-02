@@ -179,3 +179,4 @@ function formatBytes(bytes: number): string {
 
 // Export for programmatic use
 export { loadEntitlements, getEntitlementsSummary, policyGate };
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
-import { nuke } from './commands/nuke';
-import { DecisionRepository } from './db/decisions';
-import { getDB } from './db/connection';
+import { nuke } from './commands/nuke.js';
+import { DecisionRepository } from './db/decisions.js';
+import { getDB } from './db/connection.js';
 
 async function main() {
   console.log('💥 Verifying Nuke command...');
@@ -39,3 +39,4 @@ main().catch(e => {
   console.error(e);
   process.exit(1);
 });
+

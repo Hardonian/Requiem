@@ -14,7 +14,7 @@
 import { 
   type SignalCategory,
   type LearningSignal 
-} from '../db/governance';
+} from '../db/governance.js';
 
 // ─── Signal Category Thresholds ─────────────────────────────────────────────────
 
@@ -345,3 +345,4 @@ export function analyzeSignals(
     hasSignificantDrift,
   };
 }
+

@@ -8,9 +8,9 @@
  * - requiem ai telemetry
  */
 
-import { listTools as listAiTools, setPolicyGate } from '../lib/ai-tools';
-import { listSkills, getSkill } from '../lib/ai-skills';
-import { getTelemetrySummary } from '../lib/ai-telemetry';
+import { listTools as listAiTools, setPolicyGate } from '../lib/ai-tools.js';
+import { listSkills, getSkill } from '../lib/ai-skills.js';
+import { getTelemetrySummary } from '../lib/ai-telemetry.js';
 
 export interface AiCliArgs {
   command: 'tools' | 'skills' | 'telemetry';
@@ -185,3 +185,4 @@ async function handleTelemetryCommand(args: AiCliArgs): Promise<number> {
 
   return 0;
 }
+

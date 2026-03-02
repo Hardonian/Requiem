@@ -2,10 +2,10 @@
  * Decision Data Model and Repository
  */
 
-import { getDB } from './connection';
-import { newId } from './helpers';
-import { ArtifactStore } from './artifacts';
-import type { DecisionInput, DecisionOutput } from '../lib/fallback';
+import { getDB } from './connection.js';
+import { newId } from './helpers.js';
+import { ArtifactStore } from './artifacts.js';
+import type { DecisionInput, DecisionOutput } from '../lib/fallback.js';
 
 export interface DecisionReport {
   id: string;
@@ -300,3 +300,4 @@ export class CalibrationRepository {
     return result?.avg_delta || 0;
   }
 }
+
