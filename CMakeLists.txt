@@ -48,8 +48,7 @@ find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 
 if(REQUIEM_WITH_ZSTD)
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(ZSTD REQUIRED libzstd)
+  find_package(zstd CONFIG REQUIRED)
 endif()
 
 # Add vendored BLAKE3
@@ -90,8 +89,6 @@ add_library(requiem
 target_include_directories(requiem
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-  PRIVATE
-    ${ZSTD_INCLUDE_DIRS}
 )
 
 target_link_libraries(requiem
@@ -102,7 +99,7 @@ target_link_libraries(requiem
 )
 
 if(REQUIEM_WITH_ZSTD)
-  target_link_libraries(requiem PUBLIC ${ZSTD_LIBRARIES})
+  target_link_libraries(requiem PUBLIC zstd::libzstd_shared)
   target_compile_definitions(requiem PUBLIC REQUIEM_WITH_ZSTD=1)
 endif()
 

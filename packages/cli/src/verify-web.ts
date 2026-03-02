@@ -18,9 +18,11 @@ async function verifyWeb(): Promise<boolean> {
   let allPassed = true;
   
   // Check for Next.js app directory
+  // The CLI package is in packages/cli, the app is in ready-layer/src/app
+  const rootDir = join(cwd, '..', '..');
   const appDirs = [
-    join(cwd, 'app'),
-    join(cwd, 'src', 'app'),
+    join(rootDir, 'ready-layer', 'src', 'app'),
+    join(cwd, '..', 'ready-layer', 'src', 'app'),
   ];
   
   let foundAppDir = false;
@@ -51,7 +53,7 @@ async function verifyWeb(): Promise<boolean> {
   
   console.log('\n📋 Console pages:');
   for (const page of consolePages) {
-    const pagePath = join(cwd, 'src', 'app', 'console', page, 'page.tsx');
+    const pagePath = join(rootDir, 'ready-layer', 'src', 'app', 'console', page, 'page.tsx');
     if (existsSync(pagePath)) {
       console.log(`  ✓ ${page}`);
     } else {
@@ -74,7 +76,7 @@ async function verifyWeb(): Promise<boolean> {
   
   console.log('\n📋 API routes:');
   for (const route of apiRoutes) {
-    const routePath = join(cwd, 'src', 'app', 'api', route, 'route.ts');
+    const routePath = join(rootDir, 'ready-layer', 'src', 'app', 'api', route, 'route.ts');
     if (existsSync(routePath)) {
       console.log(`  ✓ /api/${route}`);
     } else {
