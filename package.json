@@ -85,5 +85,10 @@
     "sandbox",
     "ui",
     "design-system"
-  ]
+  ],
+  "pnpm": {
+    "neverBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  }
 }
