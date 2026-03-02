@@ -18,6 +18,24 @@ option(REQUIEM_TSAN             "Enable ThreadSanitizer"                        
 option(REQUIEM_FUZZ             "Enable fuzz targets (requires clang + libFuzzer)"   OFF)
 # Phase 5: C ABI shared library
 option(REQUIEM_BUILD_C_API      "Build librequiem_c shared library"                  ON)
+# Phase 2: Deterministic build for reproducible builds
+option(REQUIEM_REPRODUCIBLE    "Enable reproducible builds (timestamp normalization)"  ON)
+
+if(REQUIEM_REPRODUCIBLE)
+  if(NOT DEFINED ENV{SOURCE_DATE_EPOCH})
+    set(REPRODUCIBLE_TIMESTAMP "0")
+    message(STATUS "Requiem: Reproducible build enabled (SOURCE_DATE_EPOCH not set)")
+  else()
+    set(REPRODUCIBLE_TIMESTAMP $ENV{SOURCE_DATE_EPOCH})
+    message(STATUS "Requiem: Reproducible build enabled (SOURCE_DATE_EPOCH=$ENV{SOURCE_DATE_EPOCH})")
+  endif()
+  if(MSVC)
+    add_compile_options(/Brepro)
+  else()
+    add_compile_options(-fno-build-timestamp -fno-debug-macro)
+  endif()
+  add_compile_definitions(REQUIEM_REPRODUCIBLE_BUILD=1)
+endif()
 
 # ---------------------------------------------------------------------------
 # Sanitizer configuration (applied before targets are defined)
@@ -85,6 +103,7 @@ add_library(requiem
   src/plan.cpp                # Kernel: DAG scheduler (KERNEL_SPEC §10)
   src/receipt.cpp             # Kernel: Execution receipts (KERNEL_SPEC §11)
   src/snapshot.cpp            # PHASE A: State snapshots for checkpoint/restore
+  src/merkle.cpp              # Phase 2: Merkle tree utilities (event log + receipt transparency)
 )
 
 target_include_directories(requiem

@@ -128,14 +128,16 @@ static bool test_event_log_append_and_read() {
   }
 
   // Re-open and read.
-  requiem::EventLog log2(path);
-  auto events = log2.read_all();
-  if (events.size() != 2)
-    return false;
-  if (events[0].event_type != "exec.complete")
-    return false;
-  if (events[1].event_type != "cap.mint")
-    return false;
+  {
+    requiem::EventLog log2(path);
+    auto events = log2.read_all();
+    if (events.size() != 2)
+      return false;
+    if (events[0].event_type != "exec.complete")
+      return false;
+    if (events[1].event_type != "cap.mint")
+      return false;
+  }
 
   fs::remove_all(dir);
   return true;
