@@ -34,7 +34,10 @@
     "make-executable": "node -e \"const fs=require('fs'); fs.chmodSync('dist/cli/src/cli.js', 0o755)\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "verify": "npm run typecheck && npm run lint && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run build",
+    "verify:no-console": "tsx ../../scripts/verify-no-console.ts src",
+    "verify:perf-maint": "tsx ../../scripts/verify-perf-maintainability.ts",
+    "verify:full": "npm run verify && npm run verify:no-console && npm run verify:perf-maint"
   },
   "dependencies": {
     "commander": "^12.0.0",

@@ -24,6 +24,8 @@
     "test:e2e": "pnpm --filter ready-layer test:e2e",
     "doctor": "bash scripts/doctor.sh",
     "verify:full": "npm-run-all lint typecheck verify:boundaries build:web",
+    "verify:perf-maint": "tsx scripts/verify-perf-maintainability.ts",
+    "verify:no-console": "tsx scripts/verify-no-console.ts packages/cli/src",
     "verify": "npm-run-all --parallel lint typecheck verify:boundaries",
     "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes",
     "verify:cpp": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j && ctest --test-dir build --output-on-failure",
