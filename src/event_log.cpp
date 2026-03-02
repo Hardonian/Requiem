@@ -82,6 +82,8 @@ EventLog::EventLog(const std::string &path) : path_(path) {
         }
       }
     }
+    // Windows requires closing the read handle before opening for append.
+    ifs.close();
 
     // Open for append.
     file_ = std::fopen(path_.c_str(), "a");

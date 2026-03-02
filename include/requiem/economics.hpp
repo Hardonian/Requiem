@@ -21,11 +21,19 @@
 //   3. Quota enforcement only blocks new submissions — never aborts in-flight.
 //   4. All quota checks are logged to the audit stream.
 //   5. dry-run cost estimation must not alter any stored state.
+//
+// PHASE 4 UPGRADE: Cryptographic Cost Ledger
+//   - Cost records stored in CAS (not in-memory)
+//   - Hash-linked cost receipts per tenant (previous_cost_receipt_hash)
+//   - Tenant-level cost root hash for cryptographic billing verification
+//   - Verification command: `requiem cost verify --tenant`
 
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace requiem {
 namespace economics {
@@ -206,6 +214,90 @@ inline uint64_t compute_units_from_duration_ms(uint64_t duration_ms) {
 inline uint64_t memory_units_from_rss(uint64_t peak_rss_mb, uint64_t duration_ms) {
   return (peak_rss_mb * duration_ms) / 1000;  // MB·second
 }
+
+// ---------------------------------------------------------------------------
+// PHASE 4 UPGRADE: Cryptographic Cost Ledger
+// ---------------------------------------------------------------------------// Cost receipt: hash-linked record of a single execution's cost
+// Stored in CAS for tamper-evidence and external verification
+struct CostReceipt {
+  uint32_t version{1};
+  std::string tenant_id;
+  std::string receipt_id;           // Unique ID for this cost receipt
+  std::string execution_receipt_hash; // Links to execution receipt
+  ResourceUnits units;               // Units consumed
+  uint64_t logical_time{0};          // Logical timestamp
+  std::string prev_cost_receipt_hash; // Hash-linked chain per tenant
+  std::string cost_receipt_hash;     // H("cost:", canonical_json(this_without_hash))
+  uint64_t created_at_unix_ns{0};    // Wall-clock for metadata only
+};
+
+// Cost ledger: tracks the cryptographic chain of cost records per tenant
+struct CostLedger {
+  std::string tenant_id;
+  std::string cost_root_hash;        // H(previous_root || latest_cost_receipt)
+  uint64_t total_compute_units{0};
+  uint64_t total_memory_units{0};
+  uint64_t total_cas_io_units{0};
+  uint64_t total_replay_units{0};
+  uint64_t total_storage_units{0};
+  uint64_t total_network_units{0};
+  uint64_t receipt_count{0};
+  uint64_t last_logical_time{0};
+  std::string last_updated_iso;
+};
+
+// Verification result for cost ledger integrity
+struct CostLedgerVerifyResult {
+  bool ok{false};
+  std::string error;
+  std::string tenant_id;
+  std::string claimed_root;
+  std::string computed_root;
+  uint64_t verified_receipts{0};
+  uint64_t failed_receipts{0};
+};
+
+// CostLedgerManager: manages cryptographic cost ledger per tenant
+// Uses CAS for storage to ensure tamper-evidence
+class CostLedgerManager {
+ public:
+  // Record a cost receipt for an execution
+  // Links to previous receipt via prev_cost_receipt_hash
+  CostReceipt record_cost(const std::string& tenant_id,
+                          const std::string& execution_receipt_hash,
+                          const ResourceUnits& units,
+                          uint64_t logical_time);
+
+  // Get the current cost ledger for a tenant
+  std::optional<CostLedger> get_ledger(const std::string& tenant_id) const;
+
+  // Verify the cryptographic integrity of a tenant's cost ledger
+  CostLedgerVerifyResult verify_ledger(const std::string& tenant_id) const;
+
+  // Get cost root hash for a tenant (for external verification)
+  std::string get_cost_root(const std::string& tenant_id) const;
+
+  // List all cost receipts for a tenant (for audit)
+  std::vector<CostReceipt> list_receipts(const std::string& tenant_id) const;
+
+  // Serialize cost receipt to JSON
+  static std::string cost_receipt_to_json(const CostReceipt& r);
+
+  // Parse cost receipt from JSON
+  static CostReceipt cost_receipt_from_json(const std::string& json);
+
+  // Compute cost receipt hash
+  static std::string compute_cost_receipt_hash(const CostReceipt& r);
+
+ private:
+  mutable std::mutex mu_;
+  // In-memory index: tenant_id -> latest cost root hash
+  // Actual receipts stored in CAS
+  std::unordered_map<std::string, std::string> tenant_root_hashes_;
+};
+
+// Singleton accessor
+CostLedgerManager& global_cost_ledger();
 
 }  // namespace economics
 }  // namespace requiem
