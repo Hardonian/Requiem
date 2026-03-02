@@ -25,7 +25,7 @@ function createError(code: string, message: string, retryable = false): TypedErr
 
 // GET - List snapshots
 export async function GET(request: Request): Promise<NextResponse> {
-  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const traceId = generateTraceId();
   
   try {
     const { searchParams } = new URL(request.url);
@@ -87,7 +87,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const { action } = body;
 
     if (action === 'create') {
-      const { tenant_id } = body;
+      const { tenant_id } = body; // eslint-disable-line @typescript-eslint/no-unused-vars
 
       // TODO: Replace with actual CLI call
       const snapshot: Snapshot = {

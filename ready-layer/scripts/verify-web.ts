@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * verify:web - Web console verification
  * 

@@ -28,7 +28,7 @@ function createError(code: string, message: string, retryable = false): TypedErr
 
 // GET - List policies or show versions
 export async function GET(request: Request): Promise<NextResponse> {
-  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const traceId = generateTraceId();
   
   try {
     const { searchParams } = new URL(request.url);
@@ -158,7 +158,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     if (action === 'test') {
-      const { policy_hash } = body;
+      const { policy_hash } = body; // eslint-disable-line @typescript-eslint/no-unused-vars
       
       // TODO: Replace with actual CLI call
       const response: ApiResponse<PolicyTestResponse> = {

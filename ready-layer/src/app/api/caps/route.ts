@@ -5,11 +5,9 @@
 
 import { NextResponse } from 'next/server';
 import type { 
-  CapabilityToken, 
   CapabilityMintRequest, 
   CapabilityMintResponse,
   CapabilityListItem,
-  CapabilityListResponse,
   CapabilityRevokeResponse,
   TypedError, 
   ApiResponse,
@@ -28,7 +26,7 @@ function createError(code: string, message: string, retryable = false): TypedErr
 
 // GET - List capabilities
 export async function GET(request: Request): Promise<NextResponse> {
-  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const traceId = generateTraceId();
   
   try {
     const { searchParams } = new URL(request.url);

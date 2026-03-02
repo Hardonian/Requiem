@@ -170,7 +170,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     if (action === 'run') {
-      const { plan_hash, workspace, seq, nonce } = body;
+      const { plan_hash } = body;
       
       if (!plan_hash) {
         const response: ApiResponse<null> = {

@@ -19,7 +19,7 @@ function createError(code: string, message: string, retryable = false): TypedErr
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const traceId = generateTraceId();
   
   try {
     const { searchParams } = new URL(request.url);

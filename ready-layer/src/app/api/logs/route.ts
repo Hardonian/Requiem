@@ -36,7 +36,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     const from = parseInt(searchParams.get('from') || '0', 10);
     const to = parseInt(searchParams.get('to') || '999999999', 10);
-    const _q = searchParams.get('q') || ''; // TODO: Implement search filtering
+    const _query = searchParams.get('q') || ''; // eslint-disable-line @typescript-eslint/no-unused-vars
     const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 1000);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
