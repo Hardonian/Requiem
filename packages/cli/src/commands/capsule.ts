@@ -12,7 +12,11 @@
  */
 
 import { Command } from 'commander';
-import * as fs from 'fs';
+import {
+  writeTextFile,
+  fileExists,
+  readTextFile,
+} from '../lib/io.js';
 import {
   getDefaultSSMStore,
   LocalSSMStore,

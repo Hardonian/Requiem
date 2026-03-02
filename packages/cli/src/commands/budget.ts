@@ -44,34 +44,29 @@ import {
 
 const BUDGET_DIR = join(process.cwd(), '.reach', 'budgets');
 
-function ensureBudgetDir(): void {
-  if (!fs.existsSync(BUDGET_DIR)) {
-    fs.mkdirSync(BUDGET_DIR, { recursive: true });
-  }
-}
-
 function getBudgetPath(name: string): string {
   return join(BUDGET_DIR, `${name}.json`);
 }
 
 function saveBudget(budget: ChangeBudget): void {
-  ensureBudgetDir();
-  fs.writeFileSync(getBudgetPath(budget.name), serializeBudget(budget));
+  ensureDir(BUDGET_DIR);
+  writeTextFile(getBudgetPath(budget.name), serializeBudget(budget));
 }
 
 function loadBudget(name: string): ChangeBudget | null {
   const path = getBudgetPath(name);
-  if (!fs.existsSync(path)) return null;
+  if (!fileExists(path)) return null;
   try {
-    return deserializeBudget(fs.readFileSync(path, 'utf-8'));
+    const content = readTextFile(path);
+    return deserializeBudget(content);
   } catch {
     return null;
   }
 }
 
 function listBudgets(): string[] {
-  if (!fs.existsSync(BUDGET_DIR)) return [];
-  const files = fs.readdirSync(BUDGET_DIR) as string[];
+  if (!fileExists(BUDGET_DIR)) return [];
+  const files = readDir(BUDGET_DIR) as string[];
   return files.filter(f => f.endsWith('.json')).map(f => f.slice(0, -5));
 }
 
