@@ -2419,18 +2419,20 @@ void test_enforce_audit_append_only() {
          "sequences must be monotonically increasing");
 
   // Verify file contains both entries (not overwritten)
-  std::ifstream ifs(tmp.string());
-  std::string line1, line2;
-  std::getline(ifs, line1);
-  std::getline(ifs, line2);
-  expect(!line1.empty() && !line2.empty(),
-         "both audit entries must exist in file");
-  expect(line1.find("append-test-1") != std::string::npos,
-         "first entry preserved");
-  expect(line2.find("append-test-2") != std::string::npos,
-         "second entry preserved");
+  {
+    std::ifstream ifs(tmp.string());
+    std::string line1, line2;
+    std::getline(ifs, line1);
+    std::getline(ifs, line2);
+    expect(!line1.empty() && !line2.empty(),
+           "both audit entries must exist in file");
+    expect(line1.find("append-test-1") != std::string::npos,
+           "first entry preserved");
+    expect(line2.find("append-test-2") != std::string::npos,
+           "second entry preserved");
+  }
 
-  fs::remove(tmp);
+  fs::remove_all(tmp);
 }
 
 int main() {
