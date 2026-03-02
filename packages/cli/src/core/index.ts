@@ -64,3 +64,13 @@ export {
   enablePrettyLogs,
   captureLogs,
 } from './logging.js';
+
+// Exit codes (SECTION 2)
+export {
+  ExitCode,
+  type ExitCodeValue,
+  errorToExitCode,
+  describeExitCode,
+  type StructuredError,
+  normalizeError,
+} from './exit-codes.js';
