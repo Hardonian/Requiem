@@ -11,6 +11,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 ## INV-1: Digest Parity (Determinism)
 
 > For any two executions of the same canonical request (request_id excluded), `result_digest` MUST be byte-for-byte identical regardless of:
+>
 > - Time of execution (wall clock)
 > - Order of execution (sequential or concurrent)
 > - Which worker/node runs the request
@@ -20,6 +21,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Contract:** `contracts/determinism.contract.json`
 
 **CI Gates:**
+
 - `scripts/verify_determinism.sh` — 200x sequential + 3-worker concurrent
 - `scripts/verify_provenance.sh` — Clock abstraction checks
 
@@ -28,6 +30,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Type Constraint:** `Fingerprint` branded type (`packages/cli/src/lib/branded-types.ts`)
 
 **Violation Triggers:**
+
 - Using `Date.now()`, `time(NULL)`, `std::chrono::system_clock::now()` in core logic
 - Using `rand()` or non-seeded PRNGs
 - Reading environment variables not in allowlist
@@ -35,6 +38,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 - Hash algorithm change without version bump
 
 **Enforcement:**
+
 - Clock abstraction (`packages/cli/src/lib/clock.ts`)
 - Deterministic seed generation for replays
 - Config snapshot capture
@@ -54,11 +58,13 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Type Constraint:** `CASDigest` branded type
 
 **Violation Triggers:**
+
 - Overwriting an existing CAS entry with different content
 - Compressing/recompressing with different parameters after initial write
 - Changing `CAS_FORMAT_VERSION` without a migration path
 
 **Enforcement:**
+
 - Hash-on-read verification in `src/cas.cpp`
 - Write-once enforcement at filesystem level
 
@@ -71,18 +77,21 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **CI Gate:** `scripts/verify_boundaries.sh`
 
 **Required Fields:**
+
 - `code`: Stable `ErrorCode` enum value
 - `message`: Human-readable, safe for UI display
 - `severity`: `ErrorSeverity` level
 - `timestamp`: ISO 8601 timestamp
 
 **Prohibited:**
+
 - `throw new Error("message")` in API routes
 - `throw "string"` anywhere
 - Including secrets in error messages
 - Raw SQL or paths in user-facing messages
 
 **Enforcement:**
+
 - ESLint rules in `packages/cli/eslint.config.mjs`
 - TypeScript strict mode
 - Code review checklist
@@ -98,6 +107,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Type Constraint:** `TenantId` branded type
 
 **Required Flow:**
+
 1. Extract auth token from Authorization header
 2. Validate token (JWT/API key)
 3. Extract tenant_id from validated claims
@@ -105,12 +115,14 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 5. Return `TenantContext`
 
 **Prohibited:**
+
 - Reading tenant ID from request body
 - Reading tenant ID from query parameters
 - Trusting client-provided tenant headers
 - Caching tenant context across requests
 
 **Enforcement:**
+
 - `DefaultTenantResolver` in `packages/cli/src/lib/tenant.ts`
 - RLS policies in database
 - Integration tests with cross-tenant access attempts
@@ -128,17 +140,20 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Type Constraint:** `RunLifecycleState` union type, `ExecutionState`, `JunctionState`
 
 **Required:**
+
 - State definition with `allowedTransitions`
 - Terminal state marking
 - Transition validation before state change
 - Audit trail for all transitions
 
 **Prohibited:**
+
 - Direct state assignment: `entity.state = "new"`
 - String-based state comparisons
 - Transitions from terminal states
 
 **Enforcement:**
+
 - `StateMachine` class in `packages/cli/src/lib/state-machine.ts`
 - `RunLifecycleTracker` in `packages/cli/src/lib/run-lifecycle.ts`
 - `transitionEntity()` helper for atomic updates
@@ -155,11 +170,13 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Code Invariant:** `ready-layer/src/app/api/audit/logs/route.ts` exports only `GET`
 
 **Required:**
+
 - INSERT-only for audit entries
 - Immutable storage (WORM if possible)
 - Tamper-evident hashing (optional)
 
 **Prohibited:**
+
 - DELETE on audit tables
 - UPDATE on audit entries
 - Reordering or compaction without retention policy
@@ -173,11 +190,13 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **CI Gate:** `scripts/verify_no_hard_500.sh`
 
 **Required:**
+
 - Try/catch around all async operations
 - `NextResponse.json({ ok: false, error: ... }, { status })`
 - `export const dynamic = 'force-dynamic'` on API routes
 
 **Error Response Format:**
+
 ```json
 {
   "ok": false,
@@ -198,16 +217,18 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **CI Gate:** `scripts/verify_boundaries.sh`
 
 **Rules:**
-| From → To | Allowed |
-|-----------|---------|
-| Core → Server | ❌ No |
-| Core → UI | ❌ No |
-| Server → Core | ✅ Yes |
-| UI → Core | ✅ Yes |
-| UI → Server | ❌ No |
-| CLI → ready-layer | ❌ No |
+
+| From → To          | Allowed |
+| ------------------- | ------- |
+| Core → Server      | ❌ No   |
+| Core → UI          | ❌ No   |
+| Server → Core      | ✅ Yes  |
+| UI → Core          | ✅ Yes  |
+| UI → Server        | ❌ No   |
+| CLI → ready-layer  | ❌ No   |
 
 **Enforcement:**
+
 - ESLint `no-restricted-imports` rules
 - Dependency graph analysis in CI
 
@@ -220,16 +241,19 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **CI Gate:** `scripts/verify_provenance.sh`
 
 **Required:**
+
 - `ClockUtil.now()` or injected `Clock` instance
 - `SeededClock` for replay scenarios
 - Config snapshot with clock seed
 
 **Prohibited:**
+
 - `Date.now()` in core logic
 - `new Date()` in algorithms
 - `setTimeout/setInterval` without clock abstraction
 
 **Enforcement:**
+
 - `Clock` interface in `packages/cli/src/lib/clock.ts`
 - Global clock setter/getter
 - Lint rules for Date usage
@@ -243,9 +267,11 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **CI Gate:** `scripts/verify_secrets.sh`
 
 **Sensitive Keys:**
+
 - password, token, secret, key, auth, credential, api_key
 
 **Required:**
+
 - Automatic redaction in `RequiemError.sanitizeMeta()`
 - `[REDACTED]` placeholder in logs
 - Type-safe secret handling (no string interpolation)
@@ -261,6 +287,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Allowlist:** `contracts/deps.allowlist.json`
 
 **Process:**
+
 1. New deps require PR review
 2. Security audit for additions
 3. Pin to exact version
@@ -270,6 +297,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 ## INV-12: Migration Gating
 
 > Any change to CAS format, protocol framing, or DB schema must include:
+>
 > 1. Version bump
 > 2. Forward-compatibility test
 > 3. Entry in `docs/MIGRATION.md`
@@ -285,6 +313,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **CI Gate:** `scripts/verify_oss_boundaries.sh`
 
 **Prohibited in OSS:**
+
 - `#include "enterprise/..."`
 - Hardcoded URLs matching `ready-layer.com`
 - Cloud-specific data structures
@@ -302,6 +331,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Type Constraint:** `PolicySnapshotHash` branded type
 
 **Enforcement:**
+
 - `capturePolicySnapshotHash()` in `packages/cli/src/lib/policy-snapshot.ts`
 - `RunLifecycleTracker` enforces POLICY_CHECKED before ARBITRATED
 
@@ -318,6 +348,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Type Constraint:** `ArbitrationDecision` discriminated union
 
 **Enforcement:**
+
 - `RunLifecycleTracker` enforces ARBITRATED before EXECUTED
 
 ---
@@ -329,6 +360,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Runtime Assertion:** `assertCostRecorded(costUnits, runId)`
 
 **Enforcement:**
+
 - `RunLifecycleTracker` enforces MANIFEST_BUILT → SIGNED → LEDGER_COMMITTED
 - `recordExecutionCost()` in `packages/cli/src/lib/policy-snapshot.ts`
 
@@ -358,6 +390,7 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 **Type Constraint:** `RunLifecycleState` union type
 
 **Enforcement:**
+
 - `RunLifecycleTracker` in `packages/cli/src/lib/run-lifecycle.ts`
 - State machine prevents skip, regression, and terminal escape
 
@@ -366,11 +399,13 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 ## Invariant Change Process
 
 ### To Strengthen an Invariant
+
 1. Create PR with justification
 2. Code review
 3. Merge
 
 ### To Weaken an Invariant
+
 1. Write ADR in `docs/decisions/INV-XX-adr.md`
 2. Two reviewer sign-offs
 3. Update this file with rationale comment
@@ -382,23 +417,23 @@ Machine-readable manifest: [`guarantees/system-guarantees.json`](../guarantees/s
 
 ## Verification Matrix
 
-| Invariant | Unit Test | Runtime Assert | CI Script | Formal | Branded Type |
-|-----------|-----------|---------------|-----------|--------|--------------|
-| INV-1 (Determinism) | ✅ | ✅ | verify_determinism | ✅ | Fingerprint |
-| INV-2 (CAS) | ✅ | ✅ | verify_cas | - | CASDigest |
-| INV-3 (Errors) | ✅ | - | verify_boundaries | - | ErrorCode |
-| INV-4 (Tenant) | ✅ | - | verify_tenant_isolation | - | TenantId |
-| INV-5 (State) | ✅ | ✅ | invariant tests | ✅ | RunLifecycleState |
-| INV-6 (Audit) | - | - | verify_enterprise | - | - |
-| INV-7 (No 500) | - | - | verify_no_hard_500 | - | - |
-| INV-8 (Boundaries) | - | - | verify_boundaries | - | - |
-| INV-9 (Clock) | ✅ | - | verify_provenance | - | Clock |
-| INV-10 (Secrets) | - | - | verify_secrets | - | - |
-| INV-11 (Deps) | - | - | verify_deps | - | - |
-| INV-12 (Migrations) | - | - | verify_migrations | - | - |
-| INV-13 (OSS) | - | - | verify_oss_boundaries | - | - |
-| INV-14 (Policy) | ✅ | ✅ | invariant tests | - | PolicySnapshotHash |
-| INV-15 (Arbitration) | ✅ | ✅ | invariant tests | - | ArbitrationDecision |
-| INV-16 (Cost) | ✅ | ✅ | invariant tests | - | - |
-| INV-17 (Ledger) | ✅ | ✅ | invariant tests | - | LedgerId |
-| INV-18 (Lifecycle) | ✅ | ✅ | invariant tests | - | RunLifecycleState |
+| Invariant               | Unit Test | Runtime Assert | CI Script              | Formal | Branded Type       |
+| ----------------------- | --------- | -------------- | ---------------------- | ------ | ------------------ |
+| INV-1 (Determinism)     | ✅        | ✅             | verify_determinism     | ✅     | Fingerprint        |
+| INV-2 (CAS)             | ✅        | ✅             | verify_cas             | -      | CASDigest          |
+| INV-3 (Errors)          | ✅        | -              | verify_boundaries      | -      | ErrorCode          |
+| INV-4 (Tenant)          | ✅        | -              | verify_tenant_isolation | -     | TenantId           |
+| INV-5 (State)           | ✅        | ✅             | invariant tests        | ✅     | RunLifecycleState  |
+| INV-6 (Audit)           | -         | -              | verify_enterprise      | -      | -                  |
+| INV-7 (No 500)          | -         | -              | verify_no_hard_500     | -      | -                  |
+| INV-8 (Boundaries)      | -         | -              | verify_boundaries      | -      | -                  |
+| INV-9 (Clock)           | ✅        | -              | verify_provenance      | -      | Clock              |
+| INV-10 (Secrets)        | -         | -              | verify_secrets         | -      | -                  |
+| INV-11 (Deps)           | -         | -              | verify_deps            | -      | -                  |
+| INV-12 (Migrations)     | -         | -              | verify_migrations      | -      | -                  |
+| INV-13 (OSS)            | -         | -              | verify_oss_boundaries  | -      | -                  |
+| INV-14 (Policy)         | ✅        | ✅             | invariant tests        | -      | PolicySnapshotHash |
+| INV-15 (Arbitration)    | ✅        | ✅             | invariant tests        | -      | ArbitrationDecision |
+| INV-16 (Cost)           | ✅        | ✅             | invariant tests        | -      | -                  |
+| INV-17 (Ledger)         | ✅        | ✅             | invariant tests        | -      | LedgerId           |
+| INV-18 (Lifecycle)      | ✅        | ✅             | invariant tests        | -      | RunLifecycleState  |

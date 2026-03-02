@@ -64,7 +64,7 @@ entitlement
         ['Priority Support', entitlements.features.prioritySupport],
       ];
       
-      for (const [name, enabled] of features) {
+      for (const [name, enabled] of features as [string, boolean][]) {
         const status = enabled ? '✓ ENABLED' : '✗ disabled';
         console.log(`║  ${name.padEnd(20)} ${status.padEnd(27)}║`);
       }
