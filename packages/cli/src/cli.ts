@@ -563,6 +563,16 @@ async function main(): Promise<number> {
         break;
       }
 
+      case 'capsule': {
+        const { createCapsuleCommand } = await loadCommand('./commands/capsule.js') as {
+          createCapsuleCommand: () => { parseAsync: (args: string[]) => Promise<void> };
+        };
+        const capsuleCmd = createCapsuleCommand();
+        await capsuleCmd.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
+        result = 0;
+        break;
+      }
+
       case 'quickstart': {
         const { quickstart } = await loadCommand('./commands/quickstart.js') as { quickstart: { parseAsync: (args: string[]) => Promise<void> } };
         await quickstart.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
