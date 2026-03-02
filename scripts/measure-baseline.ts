@@ -150,7 +150,7 @@ function measureMemoryProfile100(): { initialKB: number; finalKB: number; deltaK
   
   for (let i = 0; i < 100; i++) {
     try {
-      execSync('node packages/cli/dist/cli.js --help', {
+      execSync('node packages/cli/dist/cli/src/cli.js --help', {
         stdio: 'pipe',
         timeout: 5000,
       });
