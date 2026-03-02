@@ -9,24 +9,30 @@
  * INVARIANT: All tool/replay operations use the same registry + executor.
  * INVARIANT: No duplicate logic between CLI and programmatic API.
  * INVARIANT: Every execution passes through the policy gate.
+ * INVARIANT: No console.* in production paths (use logger).
  */
 
-import { parseDecideArgs, runDecideCommand } from './commands/decide';
-import { parseJunctionsArgs, runJunctionsCommand } from './commands/junctions';
-import { parseAgentArgs, runAgentCommand } from './commands/agent';
-import { parseAiArgs, runAiCommand } from './commands/ai';
-import { runRunCommand } from './commands/run';
-import { runVerifyCommand } from './commands/verify';
-import { runLearnCommand } from './commands/learn';
-import { runRealignCommand } from './commands/realign';
-import { runPivotPlanCommand, runRollbackCommand } from './commands/pivot';
-import { runSymmetryCommand } from './commands/symmetry';
-import { runEconomicsCommand } from './commands/economics';
+import { logger, enablePrettyLogs, formatHuman, isAppError, toJSONObject } from './core/index.js';
+import type { AppError } from './core/index.js';
 
 const VERSION = '0.2.0';
 
+// Track command timing for perf metrics
+interface CommandContext {
+  startTime: number;
+  command: string;
+  args: string[];
+  traceId: string;
+  json: boolean;
+}
+
+function generateTraceId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function printHelp(): void {
-  console.log(`
+  // Help is allowed to use stdout directly - it's user-facing output
+  process.stdout.write(`
 Requiem CLI v${VERSION}  ─  Provable AI Runtime
 
 USAGE:
@@ -101,301 +107,387 @@ EXAMPLES:
 }
 
 function printVersion(): void {
-  console.log(`Requiem CLI v${VERSION} — Provable AI Runtime`);
+  process.stdout.write(`Requiem CLI v${VERSION} — Provable AI Runtime\n`);
+}
+
+function printFingerprint(fpHash: string): void {
+  const shortHash = fpHash.substring(0, 16);
+  const timestamp = new Date().toISOString();
+  process.stdout.write(`
+┌────────────────────────────────────────────────────────────┐
+│ EXECUTION FINGERPRINT                                      │
+├────────────────────────────────────────────────────────────┤
+│  Hash:        ${fpHash.padEnd(54)}│
+│  Short ID:    ${shortHash.padEnd(54)}│
+│  Verified:    ${timestamp.padEnd(54)}│
+│  Algorithm:   BLAKE3-v1 (domain-separated)${' '.repeat(13)}│
+│  CAS:         v2 (dual-hash: BLAKE3 + SHA-256)${' '.repeat(9)}│
+│  Policy:      enforced (deny-by-default)${' '.repeat(14)}│
+├────────────────────────────────────────────────────────────┤
+│  This fingerprint proves that the execution produced a     │
+│  deterministic result that is replayable and               │
+│  policy-compliant.                                         │
+└────────────────────────────────────────────────────────────┘
+`);
+}
+
+function handleError(error: unknown, ctx: CommandContext): number {
+  const duration = Date.now() - ctx.startTime;
+  
+  if (isAppError(error)) {
+    logger.logError('cli.command_failed', error, {
+      command: ctx.command,
+      durationMs: duration,
+      traceId: ctx.traceId,
+    });
+    
+    if (ctx.json) {
+      const jsonError = toJSONObject(error);
+      process.stdout.write(JSON.stringify({ 
+        success: false, 
+        error: jsonError,
+        traceId: ctx.traceId,
+        durationMs: duration,
+      }) + '\n');
+    } else {
+      process.stderr.write(formatHuman(error) + '\n');
+    }
+    return 1;
+  }
+  
+  // Unknown error - wrap it
+  const message = error instanceof Error ? error.message : String(error);
+  logger.error('cli.unexpected_error', 'Command failed with unexpected error', {
+    command: ctx.command,
+    error: message,
+    durationMs: duration,
+    traceId: ctx.traceId,
+  });
+  
+  if (ctx.json) {
+    process.stdout.write(JSON.stringify({
+      success: false,
+      error: {
+        code: 'E_UNKNOWN',
+        message: message || 'An unexpected error occurred',
+        severity: 'error',
+        timestamp: new Date().toISOString(),
+      },
+      traceId: ctx.traceId,
+      durationMs: duration,
+    }) + '\n');
+  } else {
+    process.stderr.write(`Error: ${message}\n`);
+  }
+  
+  return 1;
+}
+
+// Lazy command loader - only imports when needed
+async function loadCommand(modulePath: string): Promise<unknown> {
+  // Dynamic import ensures module is only loaded when command runs
+  return import(modulePath);
 }
 
 async function main(): Promise<number> {
+  const startTime = Date.now();
   const args = process.argv.slice(2);
-
+  const traceId = generateTraceId();
+  
+  // Enable pretty logs in dev, JSON in production (detected by env)
+  const isDev = process.env.NODE_ENV === 'development' || process.env.REQUIEM_DEBUG;
+  if (isDev) {
+    enablePrettyLogs('debug');
+  }
+  
+  logger.debug('cli.startup', 'CLI starting', {
+    version: VERSION,
+    traceId,
+    args: args.join(' '),
+  });
+  
   if (args.length === 0) {
     printHelp();
     return 0;
   }
-
+  
   const command = args[0];
   const subArgs = args.slice(1);
-
-  switch (command) {
-    case 'run':
-      return await runRunCommand(subArgs);
-
-    case 'verify':
-      return await runVerifyCommand(subArgs);
-
-    case 'fingerprint': {
-      if (subArgs.length === 0) {
-        console.error('Usage: requiem fingerprint <execution-hash>');
-        return 1;
+  const json = subArgs.includes('--json');
+  
+  const ctx: CommandContext = {
+    startTime,
+    command,
+    args: subArgs,
+    traceId,
+    json,
+  };
+  
+  try {
+    let result: number;
+    
+    switch (command) {
+      case 'run': {
+        const { runRunCommand } = await loadCommand('./commands/run.js');
+        result = await runRunCommand(subArgs, ctx);
+        break;
       }
-      const fpHash = subArgs[0];
-      const shortHash = fpHash.substring(0, 16);
-      const timestamp = new Date().toISOString();
-      console.log('');
-      console.log('┌────────────────────────────────────────────────────────────┐');
-      console.log('│ EXECUTION FINGERPRINT                                      │');
-      console.log('├────────────────────────────────────────────────────────────┤');
-      console.log(`│  Hash:        ${fpHash}`.padEnd(61) + '│');
-      console.log(`│  Short ID:    ${shortHash}`.padEnd(61) + '│');
-      console.log(`│  Verified:    ${timestamp}`.padEnd(61) + '│');
-      console.log(`│  Algorithm:   BLAKE3-v1 (domain-separated)`.padEnd(61) + '│');
-      console.log(`│  CAS:         v2 (dual-hash: BLAKE3 + SHA-256)`.padEnd(61) + '│');
-      console.log(`│  Policy:      enforced (deny-by-default)`.padEnd(61) + '│');
-      console.log('├────────────────────────────────────────────────────────────┤');
-      console.log('│  This fingerprint proves that the execution produced a     │');
-      console.log('│  deterministic result that is replayable and               │');
-      console.log('│  policy-compliant.                                         │');
-      console.log('└────────────────────────────────────────────────────────────┘');
-      return 0;
-    }
-
-    case 'ui': {
-      const { dashboard } = await import('./commands/dashboard');
-      await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
-      return 0;
-    }
-
-    case 'tool': {
-      const { parseToolListArgs, runToolList, parseToolExecArgs, runToolExec } =
-        await import('./commands/tool');
-
-      const subcommand = subArgs[0];
-      const subsubArgs = subArgs.slice(1);
-
-      if (subcommand === 'list') {
-        return runToolList(parseToolListArgs(subsubArgs));
-      } else if (subcommand === 'exec') {
-        return await runToolExec(parseToolExecArgs(subsubArgs));
-      } else {
-        console.error(`Unknown tool subcommand: ${subcommand}`);
-        console.error('Run "requiem tool list" or "requiem tool exec <name>"');
-        return 1;
+      
+      case 'verify': {
+        const { runVerifyCommand } = await loadCommand('./commands/verify.js');
+        result = await runVerifyCommand(subArgs, ctx);
+        break;
       }
+      
+      case 'fingerprint': {
+        if (subArgs.length === 0) {
+          throw new Error('Usage: requiem fingerprint <execution-hash>');
+        }
+        printFingerprint(subArgs[0]);
+        result = 0;
+        break;
+      }
+      
+      case 'ui': {
+        const { dashboard } = await loadCommand('./commands/dashboard.js');
+        await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'tool': {
+        const { parseToolListArgs, runToolList, parseToolExecArgs, runToolExec } = 
+          await loadCommand('./commands/tool.js');
+        const subcommand = subArgs[0];
+        const subsubArgs = subArgs.slice(1);
+        
+        if (subcommand === 'list') {
+          result = await runToolList(parseToolListArgs(subsubArgs), ctx);
+        } else if (subcommand === 'exec') {
+          result = await runToolExec(parseToolExecArgs(subsubArgs), ctx);
+        } else {
+          throw new Error(`Unknown tool subcommand: ${subcommand}`);
+        }
+        break;
+      }
+      
+      case 'replay': {
+        const { replay } = await loadCommand('./commands/replay.js');
+        await replay.parseAsync([process.argv[0], process.argv[1], 'replay', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'trace': {
+        const { trace } = await loadCommand('./commands/trace.js');
+        await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'telemetry': {
+        const { telemetry } = await loadCommand('./commands/telemetry.js');
+        await telemetry.parseAsync([process.argv[0], process.argv[1], 'telemetry', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'stress': {
+        const { stress } = await loadCommand('./commands/stress.js');
+        await stress.parseAsync([process.argv[0], process.argv[1], 'stress', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'backup': {
+        const { backup } = await loadCommand('./commands/backup.js');
+        await backup.parseAsync([process.argv[0], process.argv[1], 'backup', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'restore': {
+        const { restore } = await loadCommand('./commands/restore.js');
+        await restore.parseAsync([process.argv[0], process.argv[1], 'restore', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'import': {
+        const { importCommand } = await loadCommand('./commands/import.js');
+        await importCommand.parseAsync([process.argv[0], process.argv[1], 'import', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'stats': {
+        const { stats } = await loadCommand('./commands/stats.js');
+        await stats.parseAsync([process.argv[0], process.argv[1], 'stats', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'nuke': {
+        const { nuke } = await loadCommand('./commands/nuke.js');
+        await nuke.parseAsync([process.argv[0], process.argv[1], 'nuke', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'init': {
+        const { init } = await loadCommand('./commands/init.js');
+        await init.parseAsync([process.argv[0], process.argv[1], 'init', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'config': {
+        const { config } = await loadCommand('./commands/config.js');
+        await config.parseAsync([process.argv[0], process.argv[1], 'config', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'decide': {
+        const { parseDecideArgs, runDecideCommand } = await loadCommand('./commands/decide.js');
+        result = await runDecideCommand(parseDecideArgs(subArgs), ctx);
+        break;
+      }
+      
+      case 'junctions': {
+        const { parseJunctionsArgs, runJunctionsCommand } = await loadCommand('./commands/junctions.js');
+        result = await runJunctionsCommand(parseJunctionsArgs(subArgs), ctx);
+        break;
+      }
+      
+      case 'agent': {
+        const { parseAgentArgs, runAgentCommand } = await loadCommand('./commands/agent.js');
+        result = await runAgentCommand(parseAgentArgs(subArgs), ctx);
+        break;
+      }
+      
+      case 'ai': {
+        const { parseAiArgs, runAiCommand } = await loadCommand('./commands/ai.js');
+        result = await runAiCommand(parseAiArgs(subArgs), ctx);
+        break;
+      }
+      
+      case 'doctor': {
+        const { runDoctor } = await loadCommand('./commands/doctor.js');
+        result = await runDoctor({ json }, ctx);
+        break;
+      }
+      
+      // Microfracture Suite
+      case 'diff':
+      case 'lineage':
+      case 'simulate':
+      case 'drift':
+      case 'explain':
+      case 'usage':
+      case 'tenant-check':
+      case 'chaos':
+      case 'share': {
+        const { runMicrofractureCommand } = await loadCommand('./commands/microfracture.js');
+        result = await runMicrofractureCommand(command, subArgs, ctx);
+        break;
+      }
+      
+      case 'quickstart': {
+        const { quickstart } = await loadCommand('./commands/quickstart.js');
+        await quickstart.parseAsync([process.argv[0], process.argv[1], 'quickstart', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'status': {
+        const { status } = await loadCommand('./commands/status.js');
+        await status.parseAsync([process.argv[0], process.argv[1], 'status', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      case 'bugreport': {
+        const { bugreport } = await loadCommand('./commands/bugreport.js');
+        await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
+        result = 0;
+        break;
+      }
+      
+      // Governance and Learning
+      case 'learn': {
+        const { runLearnCommand } = await loadCommand('./commands/learn.js');
+        result = await runLearnCommand(subArgs, ctx);
+        break;
+      }
+      
+      case 'realign': {
+        const { runRealignCommand } = await loadCommand('./commands/realign.js');
+        result = await runRealignCommand(subArgs, ctx);
+        break;
+      }
+      
+      case 'pivot': {
+        const { runPivotPlanCommand } = await loadCommand('./commands/pivot.js');
+        result = await runPivotPlanCommand(subArgs, ctx);
+        break;
+      }
+      
+      case 'rollback': {
+        const { runRollbackCommand } = await loadCommand('./commands/pivot.js');
+        result = await runRollbackCommand(subArgs, ctx);
+        break;
+      }
+      
+      case 'symmetry': {
+        const { runSymmetryCommand } = await loadCommand('./commands/symmetry.js');
+        result = await runSymmetryCommand(subArgs, ctx);
+        break;
+      }
+      
+      case 'economics': {
+        const { runEconomicsCommand } = await loadCommand('./commands/economics.js');
+        result = await runEconomicsCommand(subArgs, ctx);
+        break;
+      }
+      
+      case 'version':
+      case '--version':
+      case '-v':
+        printVersion();
+        result = 0;
+        break;
+      
+      case 'help':
+      case '--help':
+      case '-h':
+        printHelp();
+        result = 0;
+        break;
+      
+      default:
+        throw new Error(`Unknown command: ${command}. Run "requiem help" for usage.`);
     }
-
-    case 'replay': {
-      const { replay } = await import('./commands/replay');
-      await replay.parseAsync([process.argv[0], process.argv[1], 'replay', ...subArgs]);
-      return 0;
-    }
-
-    case 'trace': {
-      const { trace } = await import('./commands/trace');
-      await trace.parseAsync([process.argv[0], process.argv[1], 'trace', ...subArgs]);
-      return 0;
-    }
-
-    case 'telemetry': {
-      const { telemetry } = await import('./commands/telemetry');
-      await telemetry.parseAsync([process.argv[0], process.argv[1], 'telemetry', ...subArgs]);
-      return 0;
-    }
-
-    case 'stress': {
-      const { stress } = await import('./commands/stress');
-      await stress.parseAsync([process.argv[0], process.argv[1], 'stress', ...subArgs]);
-      return 0;
-    }
-
-    case 'dashboard': {
-      const { dashboard } = await import('./commands/dashboard');
-      await dashboard.parseAsync([process.argv[0], process.argv[1], 'dashboard', ...subArgs]);
-      return 0;
-    }
-
-    case 'serve': {
-      const { serve } = await import('./commands/serve');
-      await serve.parseAsync([process.argv[0], process.argv[1], 'serve', ...subArgs]);
-      return 0;
-    }
-
-    case 'backup': {
-      const { backup } = await import('./commands/backup');
-      await backup.parseAsync([process.argv[0], process.argv[1], 'backup', ...subArgs]);
-      return 0;
-    }
-
-    case 'restore': {
-      const { restore } = await import('./commands/restore');
-      await restore.parseAsync([process.argv[0], process.argv[1], 'restore', ...subArgs]);
-      return 0;
-    }
-
-    case 'import': {
-      const { importCommand } = await import('./commands/import');
-      await importCommand.parseAsync([process.argv[0], process.argv[1], 'import', ...subArgs]);
-      return 0;
-    }
-
-    case 'stats': {
-      const { stats } = await import('./commands/stats');
-      await stats.parseAsync([process.argv[0], process.argv[1], 'stats', ...subArgs]);
-      return 0;
-    }
-
-    case 'nuke': {
-      const { nuke } = await import('./commands/nuke');
-      await nuke.parseAsync([process.argv[0], process.argv[1], 'nuke', ...subArgs]);
-      return 0;
-    }
-
-    case 'init': {
-      const { init } = await import('./commands/init');
-      await init.parseAsync([process.argv[0], process.argv[1], 'init', ...subArgs]);
-      return 0;
-    }
-
-    case 'config': {
-      const { config } = await import('./commands/config');
-      await config.parseAsync([process.argv[0], process.argv[1], 'config', ...subArgs]);
-      return 0;
-    }
-
-    case 'decide': {
-      const decideArgs = parseDecideArgs(subArgs);
-      return await runDecideCommand(decideArgs);
-    }
-
-    case 'junctions': {
-      const junctionsArgs = parseJunctionsArgs(subArgs);
-      return await runJunctionsCommand(junctionsArgs);
-    }
-
-    case 'agent': {
-      const agentArgs = parseAgentArgs(subArgs);
-      return await runAgentCommand(agentArgs);
-    }
-
-    case 'ai': {
-      const aiArgs = parseAiArgs(subArgs);
-      return await runAiCommand(aiArgs);
-    }
-
-    case 'doctor': {
-      const { runDoctor } = await import('./commands/doctor');
-      const json = subArgs.includes('--json');
-      return await runDoctor({ json });
-    }
-
-    // Microfracture Suite Commands
-    case 'diff': {
-      const { diffCommand } = await import('./commands/microfracture');
-      await diffCommand.parseAsync([process.argv[0], process.argv[1], 'diff', ...subArgs]);
-      return 0;
-    }
-
-    case 'lineage': {
-      const { lineageCommand } = await import('./commands/microfracture');
-      await lineageCommand.parseAsync([process.argv[0], process.argv[1], 'lineage', ...subArgs]);
-      return 0;
-    }
-
-    case 'simulate': {
-      const { simulateCommand } = await import('./commands/microfracture');
-      await simulateCommand.parseAsync([process.argv[0], process.argv[1], 'simulate', ...subArgs]);
-      return 0;
-    }
-
-    case 'drift': {
-      const { driftCommand } = await import('./commands/microfracture');
-      await driftCommand.parseAsync([process.argv[0], process.argv[1], 'drift', ...subArgs]);
-      return 0;
-    }
-
-    case 'explain': {
-      const { explainCommand } = await import('./commands/microfracture');
-      await explainCommand.parseAsync([process.argv[0], process.argv[1], 'explain', ...subArgs]);
-      return 0;
-    }
-
-    case 'usage': {
-      const { usageCommand } = await import('./commands/microfracture');
-      await usageCommand.parseAsync([process.argv[0], process.argv[1], 'usage', ...subArgs]);
-      return 0;
-    }
-
-    case 'tenant-check': {
-      const { tenantCheckCommand } = await import('./commands/microfracture');
-      await tenantCheckCommand.parseAsync([process.argv[0], process.argv[1], 'tenant-check', ...subArgs]);
-      return 0;
-    }
-
-    case 'chaos': {
-      const { chaosCommand } = await import('./commands/microfracture');
-      await chaosCommand.parseAsync([process.argv[0], process.argv[1], 'chaos', ...subArgs]);
-      return 0;
-    }
-
-    case 'share': {
-      const { shareCommand } = await import('./commands/microfracture');
-      await shareCommand.parseAsync([process.argv[0], process.argv[1], 'share', ...subArgs]);
-      return 0;
-    }
-
-    case 'quickstart': {
-      const { quickstart } = await import('./commands/quickstart');
-      await quickstart.parseAsync([process.argv[0], process.argv[1], 'quickstart', ...subArgs]);
-      return 0;
-    }
-
-    case 'status': {
-      const { status } = await import('./commands/status');
-      await status.parseAsync([process.argv[0], process.argv[1], 'status', ...subArgs]);
-      return 0;
-    }
-
-    case 'bugreport': {
-      const { bugreport } = await import('./commands/bugreport');
-      await bugreport.parseAsync([process.argv[0], process.argv[1], 'bugreport', ...subArgs]);
-      return 0;
-    }
-
-    // Governance and Learning Commands
-    case 'learn': {
-      return await runLearnCommand(subArgs);
-    }
-
-    case 'realign': {
-      return await runRealignCommand(subArgs);
-    }
-
-    case 'pivot': {
-      return await runPivotPlanCommand(subArgs);
-    }
-
-    case 'rollback': {
-      return await runRollbackCommand(subArgs);
-    }
-
-    case 'symmetry': {
-      return await runSymmetryCommand(subArgs);
-    }
-
-    case 'economics': {
-      return await runEconomicsCommand(subArgs);
-    }
-
-    case 'version':
-    case '--version':
-    case '-v':
-      printVersion();
-      return 0;
-
-    case 'help':
-    case '--help':
-    case '-h':
-      printHelp();
-      return 0;
-
-    default:
-      console.error(`Unknown command: ${command}`);
-      console.error('Run "requiem help" for usage information.');
-      return 1;
+    
+    const duration = Date.now() - startTime;
+    logger.info('cli.command_complete', 'Command completed', {
+      command,
+      result,
+      durationMs: duration,
+      traceId,
+    });
+    
+    return result;
+    
+  } catch (error) {
+    return handleError(error, ctx);
   }
 }
 
 main()
   .then(code => process.exit(code))
   .catch(err => {
-    console.error('Fatal error:', err);
+    // Last resort - should never reach here due to handleError
+    process.stderr.write(`Fatal: ${err instanceof Error ? err.message : String(err)}\n`);
     process.exit(1);
   });
