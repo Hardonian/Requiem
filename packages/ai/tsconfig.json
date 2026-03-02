@@ -6,8 +6,8 @@
     "types": ["node"],
     "lib": ["ES2022"],
     "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
