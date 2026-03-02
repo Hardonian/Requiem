@@ -407,62 +407,40 @@ PlanRunResult plan_execute(const Plan &plan, const std::string &workspace_root,
 
 // In-memory plan store
 struct PlanStore {
-  std::map<std::string, Plan> plans;  // plan_hash -> plan
-  std::map<std::string, std::vector<PlanRunResult>> plan_runs;  // plan_hash -> runs
+  std::map<std::string, Plan> plans; // plan_hash -> plan
+  std::map<std::string, std::vector<PlanRunResult>>
+      plan_runs; // plan_hash -> runs
 };
 
-static PlanStore& plan_store() {
+static PlanStore &plan_store() {
   static PlanStore store;
   return store;
 }
 
-Plan plan_add(const std::string& plan_id, const std::string& steps_json) {
-  Plan plan;
-  plan.plan_id = plan_id;
-  plan.plan_version = 1;
-  
-  // Parse steps from JSON
-  auto steps_val = jsonlite::parse(steps_json, nullptr);
-  if (std::holds_alternative<jsonlite::Array>(steps_val.v)) {
-    const auto& arr = std::get<jsonlite::Array>(steps_val.v);
-    for (const auto& sv : arr) {
-      if (std::holds_alternative<jsonlite::Object>(sv.v)) {
-        const auto& sobj = std::get<jsonlite::Object>(sv.v);
-        PlanStep step;
-        step.step_id = jsonlite::get_string(sobj, "step_id", "");
-        step.kind = jsonlite::get_string(sobj, "kind", "exec");
-        step.depends_on = jsonlite::get_string_array(sobj, "depends_on");
-        
-        auto cit = sobj.find("config");
-        if (cit != sobj.end() &&
-            std::holds_alternative<jsonlite::Object>(cit->second.v)) {
-          const auto& cobj = std::get<jsonlite::Object>(cit->second.v);
-          step.config.command = jsonlite::get_string(cobj, "command", "");
-          step.config.argv = jsonlite::get_string_array(cobj, "argv");
-          step.config.workspace_root = jsonlite::get_string(cobj, "workspace_root", ".");
-          step.config.timeout_ms = jsonlite::get_u64(cobj, "timeout_ms", 5000);
-          step.config.data = jsonlite::get_string(cobj, "data", "");
-        }
-        plan.steps.push_back(step);
-      }
-    }
-  }
-  
+Plan plan_add(const std::string &plan_id, const std::string &steps_json) {
+  // Wrap the steps array in a complete plan JSON envelope and reuse
+  // plan_from_json.
+  std::string plan_json = "{\"plan_id\":\"" + jsonlite::escape(plan_id) +
+                          "\","
+                          "\"plan_version\":1,"
+                          "\"plan_hash\":\"\","
+                          "\"steps\":" +
+                          steps_json + "}";
+  Plan plan = plan_from_json(plan_json);
   plan.plan_hash = plan_compute_hash(plan);
   plan_store().plans[plan.plan_hash] = plan;
-  
   return plan;
 }
 
-std::vector<Plan> plan_list(const std::string& /*tenant_id*/) {
+std::vector<Plan> plan_list(const std::string & /*tenant_id*/) {
   std::vector<Plan> result;
-  for (const auto& [hash, plan] : plan_store().plans) {
+  for (const auto &[hash, plan] : plan_store().plans) {
     result.push_back(plan);
   }
   return result;
 }
 
-PlanShowResult plan_show(const std::string& plan_hash) {
+PlanShowResult plan_show(const std::string &plan_hash) {
   PlanShowResult result;
   auto it = plan_store().plans.find(plan_hash);
   if (it != plan_store().plans.end()) {
@@ -475,30 +453,31 @@ PlanShowResult plan_show(const std::string& plan_hash) {
   return result;
 }
 
-PlanReplayResult plan_replay(const std::string& run_id, bool verify_exact) {
+PlanReplayResult plan_replay(const std::string &run_id, bool verify_exact) {
   PlanReplayResult result;
   result.original_run_id = run_id;
-  
+
   // Find the original run
   bool found = false;
   PlanRunResult original_run;
-  for (const auto& [hash, runs] : plan_store().plan_runs) {
-    for (const auto& run : runs) {
+  for (const auto &[hash, runs] : plan_store().plan_runs) {
+    for (const auto &run : runs) {
       if (run.run_id == run_id) {
         found = true;
         original_run = run;
         break;
       }
     }
-    if (found) break;
+    if (found)
+      break;
   }
-  
+
   if (!found) {
     result.ok = false;
     result.error = "Run not found: " + run_id;
     return result;
   }
-  
+
   // Replay the plan
   auto plan_it = plan_store().plans.find(original_run.plan_hash);
   if (plan_it == plan_store().plans.end()) {
@@ -506,34 +485,35 @@ PlanReplayResult plan_replay(const std::string& run_id, bool verify_exact) {
     result.error = "Plan not found: " + original_run.plan_hash;
     return result;
   }
-  
-  auto replay_run = plan_execute(plan_it->second, ".", 0, 1);  // Different nonce for replay
+
+  auto replay_run =
+      plan_execute(plan_it->second, ".", 0, 1); // Different nonce for replay
   result.replay_run_id = replay_run.run_id;
   result.receipt_hash_original = original_run.receipt_hash;
   result.receipt_hash_replay = replay_run.receipt_hash;
   result.exact_match = (original_run.receipt_hash == replay_run.receipt_hash);
   result.ok = !verify_exact || result.exact_match;
-  
+
   return result;
 }
 
-std::string plan_steps_to_json(const std::vector<PlanStep>& steps) {
+std::string plan_steps_to_json(const std::vector<PlanStep> &steps) {
   jsonlite::Array arr;
-  for (const auto& s : steps) {
+  for (const auto &s : steps) {
     jsonlite::Object obj;
     obj["step_id"] = s.step_id;
     obj["kind"] = s.kind;
-    
+
     jsonlite::Array deps;
-    for (const auto& d : s.depends_on) {
+    for (const auto &d : s.depends_on) {
       deps.push_back(jsonlite::Value{d});
     }
     obj["depends_on"] = std::move(deps);
-    
+
     jsonlite::Object cfg;
     cfg["command"] = s.config.command;
     jsonlite::Array argv;
-    for (const auto& a : s.config.argv) {
+    for (const auto &a : s.config.argv) {
       argv.push_back(jsonlite::Value{a});
     }
     cfg["argv"] = std::move(argv);
@@ -543,7 +523,7 @@ std::string plan_steps_to_json(const std::vector<PlanStep>& steps) {
       cfg["data"] = s.config.data;
     }
     obj["config"] = jsonlite::Value{std::move(cfg)};
-    
+
     arr.push_back(jsonlite::Value{std::move(obj)});
   }
   return jsonlite::to_json(jsonlite::Value{std::move(arr)});
