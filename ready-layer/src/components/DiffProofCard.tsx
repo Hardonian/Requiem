@@ -26,9 +26,9 @@ interface DiffProofCardProps {
   fingerprintA: string;
   fingerprintB: string;
   topDeltas: Array<{
-    type: string;
     severity: 'high' | 'medium' | 'low';
     summary: string;
+    taxonomy?: string;
   }>;
   firstDivergencePoint: number | null;
   diffDigest: string;
@@ -186,8 +186,14 @@ export function DiffProofCard({
                     : 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
                 }`}
               >
-                <span className="text-xs font-bold uppercase">{delta.type}</span>
-                <span className="text-sm">{delta.summary}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm">{delta.summary}</span>
+                  {delta.taxonomy && (
+                    <span className="text-xs opacity-75 mt-0.5">
+                      Taxonomy: {delta.taxonomy}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

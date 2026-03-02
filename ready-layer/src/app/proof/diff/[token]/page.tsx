@@ -37,8 +37,8 @@ async function fetchProofData(token: string) {
     fingerprintA: 'a1b2c3d4e5f67890',
     fingerprintB: 'x9y8z7w6v5u43210',
     topDeltas: [
-      { type: 'output', severity: 'high' as const, summary: 'Output fingerprint differs' },
-      { type: 'policy', severity: 'medium' as const, summary: 'Policy evaluation changed' },
+      { type: 'output', severity: 'high' as const, summary: 'Output fingerprint differs', taxonomy: 'VALUE_MUTATION' },
+      { type: 'policy', severity: 'medium' as const, summary: 'Policy evaluation changed', taxonomy: 'SEMANTIC_DRIFT' },
     ],
     firstDivergencePoint: 3,
     diffDigest: 'diff_a1b2_x9y8_16384',

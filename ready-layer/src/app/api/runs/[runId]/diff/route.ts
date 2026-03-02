@@ -19,7 +19,7 @@ function computeDiff(runA: string, runB: string) {
     firstDivergenceStep: runA === runB ? null : 0,
     diffDigest: `diff_${runA.substring(0, 8)}_${runB.substring(0, 8)}`,
     topDeltas: runA === runB ? [] : [
-      { type: 'output', severity: 'high', summary: 'Output fingerprint differs' }
+      { type: 'output', severity: 'high', summary: 'Output fingerprint differs', taxonomy: 'STRUCTURAL_MISMATCH' }
     ],
   };
 }
