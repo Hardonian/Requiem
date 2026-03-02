@@ -4,8 +4,8 @@
 #include "requiem/receipt.hpp"
 #include "requiem/runtime.hpp"
 
-#include <algorithm>
 #include <chrono>
+#include <map>
 #include <queue>
 #include <set>
 
@@ -65,16 +65,36 @@ std::string plan_to_json(const Plan &plan) {
   obj["plan_id"] = plan.plan_id;
   obj["plan_version"] = static_cast<uint64_t>(plan.plan_version);
 
-  // Steps as a parsed array.
-  auto steps_str = steps_to_json(plan.steps);
-  auto steps_parsed = jsonlite::parse(steps_str, nullptr);
-  // Wrap in a Value holding the array (steps_parsed is an Object, but we need
-  // the raw parsed result). Since steps_to_json produces an array string, we
-  // re-parse it and store.
+  // steps_to_json() returns a JSON array string; re-embed it by building
+  // the steps array directly as a Value so it round-trips correctly.
   jsonlite::Array steps_arr;
-  // We need to handle this differently since parse returns Object.
-  // The simplest approach: store the steps JSON string and re-parse.
-  obj["steps"] = jsonlite::Value{steps_str};
+  for (const auto &s : plan.steps) {
+    jsonlite::Object sobj;
+
+    // Config sub-object.
+    jsonlite::Object cobj;
+    jsonlite::Array argv_arr;
+    for (const auto &a : s.config.argv)
+      argv_arr.push_back(jsonlite::Value{a});
+    cobj["argv"] = std::move(argv_arr);
+    cobj["command"] = s.config.command;
+    if (!s.config.data.empty())
+      cobj["data"] = s.config.data;
+    cobj["timeout_ms"] = s.config.timeout_ms;
+    cobj["workspace_root"] = s.config.workspace_root;
+    sobj["config"] = jsonlite::Value{std::move(cobj)};
+
+    // Depends array.
+    jsonlite::Array deps_arr;
+    for (const auto &d : s.depends_on)
+      deps_arr.push_back(jsonlite::Value{d});
+    sobj["depends_on"] = std::move(deps_arr);
+
+    sobj["kind"] = s.kind;
+    sobj["step_id"] = s.step_id;
+    steps_arr.push_back(jsonlite::Value{std::move(sobj)});
+  }
+  obj["steps"] = std::move(steps_arr);
 
   return jsonlite::to_json(jsonlite::Value{std::move(obj)});
 }
