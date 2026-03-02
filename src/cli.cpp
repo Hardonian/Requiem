@@ -11,6 +11,8 @@
 #include "../include/requiem/audit.hpp"
 #include "../include/requiem/autotune.hpp"
 #include "../include/requiem/cas.hpp"
+#include "../include/requiem/caps.hpp"
+#include "../include/requiem/event_log.hpp"
 #include "../include/requiem/cluster.hpp"
 #include "../include/requiem/debugger.hpp"
 #include "../include/requiem/diagnostics.hpp"
@@ -410,6 +412,206 @@ int main(int argc, char **argv) {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Capability commands — mint, inspect, list, revoke
+  // ---------------------------------------------------------------------------
+
+  if (cmd == "caps" && argc >= 3 && std::string(argv[2]) == "mint") {
+    std::string subject, scopes_str, constraints_str;
+    std::string secret_key, public_key, issuer_fp;
+    uint64_t not_before = 0, not_after = 0;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--subject" && i + 1 < argc)
+        subject = argv[++i];
+      if (std::string(argv[i]) == "--scopes" && i + 1 < argc)
+        scopes_str = argv[++i];
+      if (std::string(argv[i]) == "--constraints" && i + 1 < argc)
+        constraints_str = argv[++i];
+      if (std::string(argv[i]) == "--secret-key" && i + 1 < argc)
+        secret_key = argv[++i];
+      if (std::string(argv[i]) == "--public-key" && i + 1 < argc)
+        public_key = argv[++i];
+      if (std::string(argv[i]) == "--issuer" && i + 1 < argc)
+        issuer_fp = argv[++i];
+      if (std::string(argv[i]) == "--not-before" && i + 1 < argc)
+        not_before = std::strtoull(argv[++i], nullptr, 10);
+      if (std::string(argv[i]) == "--not-after" && i + 1 < argc)
+        not_after = std::strtoull(argv[++i], nullptr, 10);
+    }
+    if (subject.empty() || scopes_str.empty() || secret_key.empty() || public_key.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--subject, --scopes, --secret-key, and --public-key are required\"}\n";
+      return 2;
+    }
+    // Parse scopes (comma-separated)
+    std::vector<std::string> scopes;
+    std::istringstream ss(scopes_str);
+    std::string s;
+    while (std::getline(ss, s, ',')) {
+      if (!s.empty()) scopes.push_back(s);
+    }
+    auto token = requiem::caps_mint(scopes, subject, secret_key, public_key, issuer_fp, not_before, not_after);
+    // Return only fingerprint, NOT the private key
+    std::cout << "{\"ok\":true,\"fingerprint\":\"" << token.fingerprint << "\",\"subject\":\""
+              << requiem::jsonlite::escape(subject) << "\",\"scopes\":[";
+    for (size_t i = 0; i < scopes.size(); ++i) {
+      if (i > 0) std::cout << ",";
+      std::cout << "\"" << scopes[i] << "\"";
+    }
+    std::cout << "],\"not_before\":" << token.not_before << ",\"not_after\":" << token.not_after << "}\n";
+    return 0;
+  }
+
+  if (cmd == "caps" && argc >= 3 && std::string(argv[2]) == "inspect") {
+    std::string token_file;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--token" && i + 1 < argc)
+        token_file = argv[++i];
+    }
+    if (token_file.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--token required\"}\n";
+      return 2;
+    }
+    try {
+      auto token = requiem::caps_token_from_json(read_file(token_file));
+      std::cout << "{\"ok\":true,\"fingerprint\":\"" << token.fingerprint << "\",\"subject\":\""
+                << requiem::jsonlite::escape(token.subject) << "\",\"permissions\":[";
+      for (size_t i = 0; i < token.permissions.size(); ++i) {
+        if (i > 0) std::cout << ",";
+        std::cout << "\"" << token.permissions[i] << "\"";
+      }
+      std::cout << "],\"not_before\":" << token.not_before << ",\"not_after\":" << token.not_after
+                << ",\"issuer_fingerprint\":\"" << token.issuer_fingerprint << "\",\"cap_version\":" << token.cap_version << "}\n";
+      return 0;
+    } catch (const std::exception &e) {
+      std::cout << "{\"ok\":false,\"error\":\"" << requiem::jsonlite::escape(e.what()) << "\"}\n";
+      return 2;
+    }
+  }
+
+  if (cmd == "caps" && argc >= 3 && std::string(argv[2]) == "list") {
+    std::string tenant;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--tenant" && i + 1 < argc)
+        tenant = argv[++i];
+    }
+    // Read from event log to find cap.mint events
+    std::string log_path = ".requiem/event_log.ndjson";
+    std::ifstream ifs(log_path);
+    std::cout << "{\"capabilities\":[";
+    bool first = true;
+    std::string line;
+    while (std::getline(ifs, line)) {
+      if (line.empty()) continue;
+      auto obj = requiem::jsonlite::parse(line, nullptr);
+      std::string event_type = requiem::jsonlite::get_string(obj, "event_type", "");
+      if (event_type != "cap.mint") continue;
+      std::string actor = requiem::jsonlite::get_string(obj, "actor", "");
+      if (!tenant.empty() && actor.find(tenant) == std::string::npos) continue;
+      if (!first) std::cout << ",";
+      first = false;
+      std::cout << "{\"actor\":\"" << requiem::jsonlite::escape(actor) << "\",\"seq\":"
+                << requiem::jsonlite::get_u64(obj, "seq", 0) << ",\"data_hash\":\""
+                << requiem::jsonlite::get_string(obj, "data_hash", "") << "\"}";
+    }
+    std::cout << "]}\n";
+    return 0;
+  }
+
+  if (cmd == "caps" && argc >= 3 && std::string(argv[2]) == "revoke") {
+    std::string fingerprint;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--cap-id" && i + 1 < argc)
+        fingerprint = argv[++i];
+    }
+    if (fingerprint.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--cap-id required\"}\n";
+      return 2;
+    }
+    requiem::caps_revoke(fingerprint);
+    std::cout << "{\"ok\":true,\"fingerprint\":\"" << fingerprint << "\",\"revoked\":true}\n";
+    return 0;
+  }
+
+  // -------------------------------------------------------------------------
+  // Policy commands — add, list, eval, test, versions
+  // -------------------------------------------------------------------------
+
+  if (cmd == "policy" && argc >= 3 && std::string(argv[2]) == "add") {
+    std::string policy_file;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--file" && i + 1 < argc)
+        policy_file = argv[++i];
+    }
+    if (policy_file.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--file required\"}\n";
+      return 2;
+    }
+    std::string content = read_file(policy_file);
+    if (content.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"file not found or empty\"}\n";
+      return 2;
+    }
+    // Store in CAS
+    requiem::CasStore cas(".requiem/cas/v2");
+    auto digest = cas.put(content, "off");
+    std::cout << "{\"ok\":true,\"policy_hash\":\"" << digest << "\",\"size\":" << content.size() << "}\n";
+    return 0;
+  }
+
+  if (cmd == "policy" && argc >= 3 && std::string(argv[2]) == "list") {
+    // List policies from CAS
+    requiem::CasStore cas(".requiem/cas/v2");
+    auto objects = cas.scan_objects();
+    std::cout << "{\"policies\":[";
+    bool first = true;
+    for (const auto &o : objects) {
+      // Filter for policies (could check prefix or content)
+      if (!first) std::cout << ",";
+      first = false;
+      std::cout << "{\"hash\":\"" << o.digest << "\",\"size\":" << o.stored_size << "}";
+    }
+    std::cout << "]}\n";
+    return 0;
+  }
+
+  if (cmd == "policy" && argc >= 3 && std::string(argv[2]) == "eval") {
+    std::string policy_id, input_file;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--policy" && i + 1 < argc)
+        policy_id = argv[++i];
+      if (std::string(argv[i]) == "--input" && i + 1 < argc)
+        input_file = argv[++i];
+    }
+    if (policy_id.empty() || input_file.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--policy and --input required\"}\n";
+      return 2;
+    }
+    // For now, use the existing policy_check_json
+    std::cout << requiem::policy_check_json(read_file(input_file)) << "\n";
+    return 0;
+  }
+
+  if (cmd == "policy" && argc >= 3 && std::string(argv[2]) == "test") {
+    // Run golden tests - would require test framework integration
+    std::cout << "{\"ok\":true,\"tests_run\":0,\"tests_passed\":0,\"message\":\"golden tests not implemented\"}\n";
+    return 0;
+  }
+
+  if (cmd == "policy" && argc >= 3 && std::string(argv[2]) == "versions") {
+    std::string policy_id;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--policy" && i + 1 < argc)
+        policy_id = argv[++i];
+    }
+    if (policy_id.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--policy required\"}\n";
+      return 2;
+    }
+    // Return the policy version info
+    std::cout << "{\"ok\":true,\"policy_id\":\"" << policy_id << "\",\"versions\":[]}\n";
+    return 0;
+  }
+
   if (cmd == "cas" && argc >= 3 && std::string(argv[2]) == "put") {
     std::string in, cas_dir = ".requiem/cas/v2", compress = "off";
     for (int i = 3; i < argc; ++i) {
@@ -479,6 +681,178 @@ int main(int argc, char **argv) {
     std::cout << "{\"verified\":" << (objects.size() - errors)
               << ",\"errors\":" << errors << "}\n";
     return errors > 0 ? 2 : 0;
+  }
+
+  if (cmd == "cas" && argc >= 3 && std::string(argv[2]) == "get") {
+    std::string h, cas_dir = ".requiem/cas/v2", out;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--hash" && i + 1 < argc)
+        h = argv[++i];
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--out" && i + 1 < argc)
+        out = argv[++i];
+    }
+    if (h.empty()) {
+      std::cout << "{\"ok\":false,\"error\":\"--hash required\"}\n";
+      return 2;
+    }
+    requiem::CasStore cas(cas_dir);
+    auto content = cas.get(h);
+    if (!content) {
+      std::cout << "{\"ok\":false,\"error\":\"object not found\"}\n";
+      return 2;
+    }
+    if (!out.empty()) {
+      write_file(out, *content);
+      std::cout << "{\"ok\":true,\"digest\":\"" << h << "\",\"size\":" << content->size() << "}\n";
+    } else {
+      std::cout << "{\"ok\":true,\"digest\":\"" << h << "\",\"content\":\"" << requiem::jsonlite::escape(*content) << "\"}\n";
+    }
+    return 0;
+  }
+
+  if (cmd == "cas" && argc >= 3 && std::string(argv[2]) == "ls") {
+    std::string cas_dir = ".requiem/cas/v2", prefix;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--cas" && i + 1 < argc)
+        cas_dir = argv[++i];
+      if (std::string(argv[i]) == "--prefix" && i + 1 < argc)
+        prefix = argv[++i];
+    }
+    requiem::CasStore cas(cas_dir);
+    auto objects = cas.scan_objects();
+    std::cout << "{\"objects\":[";
+    bool first = true;
+    for (const auto &o : objects) {
+      if (!prefix.empty() && o.digest.find(prefix) != 0)
+        continue;
+      if (!first)
+        std::cout << ",";
+      first = false;
+      std::cout << "{\"digest\":\"" << o.digest << "\",\"size\":" << o.stored_size << "}";
+    }
+    std::cout << "]}\n";
+    return 0;
+  }
+
+  // -------------------------------------------------------------------------
+  // Event Log commands — append-only audit trail with prev-hash chaining
+  // -------------------------------------------------------------------------
+
+  if (cmd == "log" && argc >= 3 && std::string(argv[2]) == "tail") {
+    std::string log_path = ".requiem/event_log.ndjson";
+    int lines = 10;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--log" && i + 1 < argc)
+        log_path = argv[++i];
+      if (std::string(argv[i]) == "--lines" && i + 1 < argc)
+        lines = std::atoi(argv[++i]);
+    }
+    std::ifstream ifs(log_path);
+    if (!ifs.good()) {
+      std::cout << "{\"ok\":false,\"error\":\"event log not found\"}\n";
+      return 2;
+    }
+    std::vector<std::string> all_lines;
+    std::string line;
+    while (std::getline(ifs, line)) {
+      if (!line.empty())
+        all_lines.push_back(line);
+    }
+    int start = (int)all_lines.size() - lines;
+    if (start < 0) start = 0;
+    std::cout << "{\"events\":[";
+    for (size_t i = start; i < all_lines.size(); ++i) {
+      if (i > start) std::cout << ",";
+      std::cout << all_lines[i];
+    }
+    std::cout << "]}\n";
+    return 0;
+  }
+
+  if (cmd == "log" && argc >= 3 && std::string(argv[2]) == "read") {
+    std::string log_path = ".requiem/event_log.ndjson";
+    uint64_t from_seq = 0, to_seq = UINT64_MAX;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--log" && i + 1 < argc)
+        log_path = argv[++i];
+      if (std::string(argv[i]) == "--from" && i + 1 < argc)
+        from_seq = std::strtoull(argv[++i], nullptr, 10);
+      if (std::string(argv[i]) == "--to" && i + 1 < argc)
+        to_seq = std::strtoull(argv[++i], nullptr, 10);
+    }
+    std::ifstream ifs(log_path);
+    if (!ifs.good()) {
+      std::cout << "{\"ok\":false,\"error\":\"event log not found\"}\n";
+      return 2;
+    }
+    std::cout << "{\"events\":[";
+    bool first = true;
+    std::string line;
+    while (std::getline(ifs, line)) {
+      if (line.empty()) continue;
+      auto obj = requiem::jsonlite::parse(line, nullptr);
+      uint64_t seq = requiem::jsonlite::get_u64(obj, "seq", 0);
+      if (seq >= from_seq && seq <= to_seq) {
+        if (!first) std::cout << ",";
+        first = false;
+        std::cout << line;
+      }
+    }
+    std::cout << "]}\n";
+    return 0;
+  }
+
+  if (cmd == "log" && argc >= 3 && std::string(argv[2]) == "search") {
+    std::string log_path = ".requiem/event_log.ndjson", q;
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--log" && i + 1 < argc)
+        log_path = argv[++i];
+      if (std::string(argv[i]) == "-q" && i + 1 < argc)
+        q = argv[++i];
+      if (std::string(argv[i]) == "--q" && i + 1 < argc)
+        q = argv[++i];
+    }
+    std::ifstream ifs(log_path);
+    if (!ifs.good()) {
+      std::cout << "{\"ok\":false,\"error\":\"event log not found\"}\n";
+      return 2;
+    }
+    std::cout << "{\"events\":[";
+    bool first = true;
+    std::string line;
+    while (std::getline(ifs, line)) {
+      if (line.empty()) continue;
+      if (!q.empty() && line.find(q) == std::string::npos)
+        continue;
+      if (!first) std::cout << ",";
+      first = false;
+      std::cout << line;
+    }
+    std::cout << "]}\n";
+    return 0;
+  }
+
+  if (cmd == "log" && argc >= 3 && std::string(argv[2]) == "verify") {
+    std::string log_path = ".requiem/event_log.ndjson";
+    for (int i = 3; i < argc; ++i) {
+      if (std::string(argv[i]) == "--log" && i + 1 < argc)
+        log_path = argv[++i];
+    }
+    requiem::EventLog log(log_path);
+    auto result = log.verify();
+    std::cout << "{\"ok\":" << (result.ok ? "true" : "false")
+              << ",\"total_events\":" << result.total_events
+              << ",\"verified_events\":" << result.verified_events
+              << ",\"failures\":[";
+    for (size_t i = 0; i < result.failures.size(); ++i) {
+      if (i > 0) std::cout << ",";
+      std::cout << "{\"seq\":" << result.failures[i].seq
+                << ",\"error\":\"" << requiem::jsonlite::escape(result.failures[i].error) << "\"}";
+    }
+    std::cout << "]}\n";
+    return result.ok ? 0 : 2;
   }
 
   if (cmd == "digest" && argc >= 3 && std::string(argv[2]) == "verify") {
