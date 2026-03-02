@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Pricing | Requiem',
-  description: 'Provable AI Runtime pricing: OSS, Pro, and Enterprise tiers.',
+  description: 'Control Plane for AI Systems pricing: OSS, Pro, and Enterprise tiers.',
 };
 
 const tiers = [
@@ -24,7 +24,7 @@ const tiers = [
       'Community support',
     ],
     cta: 'Get Started',
-    ctaHref: '#quickstart',
+    ctaHref: '/docs',
     highlighted: false,
   },
   {
@@ -91,7 +91,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <section className="bg-gradient-to-b from-gray-900 to-gray-800 text-white py-20">
+      <section className="bg-gray-900 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-4">
             Determinism has a price. It&apos;s less than you think.
@@ -148,6 +148,57 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Feature Layer Mapping */}
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Feature Layer Mapping</h2>
+          <p className="text-gray-500 text-center mb-8">Every feature maps to one of four layers.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-3 pr-4 text-gray-500 font-medium">Layer</th>
+                  <th className="text-left py-3 pr-4 text-gray-500 font-medium">Description</th>
+                  <th className="text-center py-3 pr-4 text-gray-500 font-medium">OSS</th>
+                  <th className="text-center py-3 pr-4 text-gray-500 font-medium">Pro</th>
+                  <th className="text-center py-3 text-gray-500 font-medium">Enterprise</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-3 pr-4 font-medium text-gray-900">Control</td>
+                  <td className="py-3 pr-4 text-gray-500">Determinism, Replay, Provenance</td>
+                  <td className="py-3 pr-4 text-center">✅</td>
+                  <td className="py-3 pr-4 text-center">✅</td>
+                  <td className="py-3 text-center">✅</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 pr-4 font-medium text-gray-900">Governance</td>
+                  <td className="py-3 pr-4 text-gray-500">Policy Gate, RBAC, Budgets</td>
+                  <td className="py-3 pr-4 text-center">✅</td>
+                  <td className="py-3 pr-4 text-center">✅</td>
+                  <td className="py-3 text-center">✅</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 pr-4 font-medium text-gray-900">Economic</td>
+                  <td className="py-3 pr-4 text-gray-500">Metering, Quotas, Chargeback</td>
+                  <td className="py-3 pr-4 text-center">—</td>
+                  <td className="py-3 pr-4 text-center">✅</td>
+                  <td className="py-3 text-center">✅</td>
+                </tr>
+                <tr>
+                  <td className="py-3 pr-4 font-medium text-gray-900">Enterprise</td>
+                  <td className="py-3 pr-4 text-gray-500">Compliance, Isolation, Support</td>
+                  <td className="py-3 pr-4 text-center">—</td>
+                  <td className="py-3 pr-4 text-center">—</td>
+                  <td className="py-3 text-center">✅</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Usage Primitives */}
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4">
@@ -193,17 +244,3 @@ export default function PricingPage() {
               },
               {
                 title: 'Reproducible AI decisions',
-                body: 'Replay any execution and verify it matches the original proof. Divergence is detected, not ignored.',
-              },
-            ].map((item) => (
-              <div key={item.title} className="bg-white rounded-lg border border-gray-100 p-5">
-                <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-600">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
