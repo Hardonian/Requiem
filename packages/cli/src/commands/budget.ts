@@ -39,8 +39,8 @@ import {
 const BUDGET_DIR = join(process.cwd(), '.reach', 'budgets');
 
 function ensureBudgetDir(): void {
-  if (!existsSync(BUDGET_DIR)) {
-    mkdirSync(BUDGET_DIR, { recursive: true });
+  if (!fs.existsSync(BUDGET_DIR)) {
+    fs.mkdirSync(BUDGET_DIR, { recursive: true });
   }
 }
 
@@ -50,22 +50,22 @@ function getBudgetPath(name: string): string {
 
 function saveBudget(budget: ChangeBudget): void {
   ensureBudgetDir();
-  writeFileSync(getBudgetPath(budget.name), serializeBudget(budget));
+  fs.writeFileSync(getBudgetPath(budget.name), serializeBudget(budget));
 }
 
 function loadBudget(name: string): ChangeBudget | null {
   const path = getBudgetPath(name);
-  if (!existsSync(path)) return null;
+  if (!fs.existsSync(path)) return null;
   try {
-    return deserializeBudget(readFileSync(path, 'utf-8'));
+    return deserializeBudget(fs.readFileSync(path, 'utf-8'));
   } catch {
     return null;
   }
 }
 
 function listBudgets(): string[] {
-  if (!existsSync(BUDGET_DIR)) return [];
-  const files = require('fs').readdirSync(BUDGET_DIR) as string[];
+  if (!fs.existsSync(BUDGET_DIR)) return [];
+  const files = fs.readdirSync(BUDGET_DIR) as string[];
   return files.filter(f => f.endsWith('.json')).map(f => f.slice(0, -5));
 }
 
@@ -127,11 +127,11 @@ export function createBudgetCommand(): Command {
     .action((options) => {
       try {
         // Build custom rules from options
-        const rules: { category: DriftCategory; maxSignificance: SignificanceLevel | 'none'; requiresApproval: boolean }[] = [];
+        const rules: { category: import('../lib/change-budget.js').BudgetRuleSpec['category']; maxSignificance: SignificanceLevel | 'none'; requiresApproval: boolean }[] = [];
 
         if (options.modelDrift) {
           rules.push({
-            category: DriftCategory.ModelDrift,
+            category: DriftCategoryValue.ModelDrift,
             maxSignificance: options.modelDrift,
             requiresApproval: options.modelApproval || false,
           });
@@ -139,7 +139,7 @@ export function createBudgetCommand(): Command {
 
         if (options.promptDrift) {
           rules.push({
-            category: DriftCategory.PromptDrift,
+            category: DriftCategoryValue.PromptDrift,
             maxSignificance: options.promptDrift,
             requiresApproval: options.promptApproval || false,
           });
@@ -147,7 +147,7 @@ export function createBudgetCommand(): Command {
 
         if (options.policyDrift) {
           rules.push({
-            category: DriftCategory.PolicyDrift,
+            category: DriftCategoryValue.PolicyDrift,
             maxSignificance: options.policyDrift,
             requiresApproval: options.policyApproval || false,
           });
@@ -155,7 +155,7 @@ export function createBudgetCommand(): Command {
 
         if (options.contextDrift) {
           rules.push({
-            category: DriftCategory.ContextDrift,
+            category: DriftCategoryValue.ContextDrift,
             maxSignificance: options.contextDrift,
             requiresApproval: false,
           });
@@ -163,7 +163,7 @@ export function createBudgetCommand(): Command {
 
         if (options.runtimeDrift) {
           rules.push({
-            category: DriftCategory.RuntimeDrift,
+            category: DriftCategoryValue.RuntimeDrift,
             maxSignificance: options.runtimeDrift,
             requiresApproval: false,
           });

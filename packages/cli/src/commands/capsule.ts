@@ -12,7 +12,7 @@
  */
 
 import { Command } from 'commander';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import * as fs from 'fs';
 import {
   getDefaultSSMStore,
   LocalSSMStore,
@@ -101,7 +101,7 @@ export function createCapsuleCommand(): Command {
         const serialized = serializeCapsule(capsule);
 
         if (options.output) {
-          writeFileSync(options.output, serialized);
+          fs.writeFileSync(options.output, serialized);
 
           if (options.parent?.json) {
             process.stdout.write(JSON.stringify({
@@ -136,12 +136,12 @@ export function createCapsuleCommand(): Command {
     .option('--quick', 'Quick verify (checksum only)')
     .action((file, options) => {
       try {
-        if (!existsSync(file)) {
+        if (!fs.existsSync(file)) {
           handleError(`File not found: ${file}`, options.parent?.json);
           return;
         }
 
-        const content = readFileSync(file, 'utf-8');
+        const content = fs.readFileSync(file, 'utf-8');
         let capsule: ReplayAttestationCapsule;
 
         try {
@@ -193,12 +193,12 @@ export function createCapsuleCommand(): Command {
     .argument('<file>', 'Capsule file path')
     .action((file, options) => {
       try {
-        if (!existsSync(file)) {
+        if (!fs.existsSync(file)) {
           handleError(`File not found: ${file}`, options.parent?.json);
           return;
         }
 
-        const content = readFileSync(file, 'utf-8');
+        const content = fs.readFileSync(file, 'utf-8');
         const capsule = deserializeCapsule(content);
         const summary = getCapsuleSummary(capsule);
 
