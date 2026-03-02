@@ -388,8 +388,9 @@ function parseExports(filePath: string, includeReExports: boolean = false): Expo
   const exports: ExportedItem[] = [];
   const baseDir = dirname(filePath);
 
-  // Named exports
-  const namedExportPattern = /export\s+(?:\{|type)\s*\{([^}]+)\}/g;
+  // Named exports - handle multiline blocks with optional comments
+  // Match: export { ... } or export type { ... } (possibly with from clause)
+  const namedExportPattern = /export\s+(type\s+)?\{([^}]+)\}(?:\s+from\s+['"]([^'"]+)['"])?/g;
   let match: RegExpExecArray | null;
 
   while ((match = namedExportPattern.exec(content)) !== null) {
@@ -434,7 +435,6 @@ function parseExports(filePath: string, includeReExports: boolean = false): Expo
     if (includeReExports) {
       try {
         const sourceFile = match[1].replace('.js', '.ts');
-        const baseDir = dirname(filePath);
         const fullPath = join(baseDir, sourceFile);
         const reExports = parseExports(fullPath, false);
         for (const reExp of reExports) {

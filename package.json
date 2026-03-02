@@ -8,6 +8,7 @@
   "scripts": {
     "reach": "pnpm --filter @requiem/cli",
     "reality-gate": "bash scripts/reality-gate.sh",
+    "generate:sbom": "tsx scripts/generate-sbom.ts",
     "build": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j",
     "build:ui": "pnpm --filter @requiem/ui build",
     "build:web": "pnpm --filter ready-layer build",
@@ -30,6 +31,8 @@
     "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:ratchet",
     "verify:contracts": "npx tsx scripts/verify-cli-contract.ts && npx tsx scripts/verify-routes.ts",
     "verify:ratchet": "npx tsx scripts/ci-ratchet.ts",
+    "verify:ratchet-gates": "npx tsx scripts/ci-ratchet-gates.ts",
+    "verify:ratchet-gates:update": "npx tsx scripts/ci-ratchet-gates.ts --update-baselines",
     "verify:dead-code": "npx tsx scripts/dead-code-elimination.ts",
     "verify:final": "npx tsx scripts/final-verification.ts",
     "measure:baseline": "npx tsx scripts/measure-baseline.ts",

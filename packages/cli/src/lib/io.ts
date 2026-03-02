@@ -43,3 +43,21 @@ export function deleteFile(filePath: string): void {
     fs.unlinkSync(filePath);
   }
 }
+
+export function readDir(dirPath: string): string[] {
+  return fs.readdirSync(dirPath);
+}
+
+export function statFile(filePath: string): fs.Stats {
+  return fs.statSync(filePath);
+}
+
+export function isDirectory(filePath: string): boolean {
+  return fs.statSync(filePath).isDirectory();
+}
+
+export function ensureDir(dirPath: string): void {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}

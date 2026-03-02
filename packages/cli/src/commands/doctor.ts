@@ -12,11 +12,11 @@
  */
 
 import { getStorage, SQLiteStorage } from '../db/sqlite-storage';
-import { getPathConfigFromEnv, ensureDir } from '../lib/paths';
+import { getPathConfigFromEnv } from '../lib/paths';
+import * as io from '../lib/io';
 import { readConfig } from '../global-config';
 import { checkEngineAvailability } from '../engine/adapter';
 import { DecisionRepository } from '../db/decisions';
-import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
@@ -94,7 +94,7 @@ async function checkCASConsistency(): Promise<DoctorCheck> {
     const paths = getPathConfigFromEnv();
     const casDir = paths.casDir;
 
-    if (!fs.existsSync(casDir)) {
+    if (!io.fileExists(casDir)) {
       return {
         name: 'CAS Consistency',
         status: 'warn',
@@ -105,7 +105,7 @@ async function checkCASConsistency(): Promise<DoctorCheck> {
 
     // Check CAS structure
     const objectsDir = path.join(casDir, 'objects');
-    if (!fs.existsSync(objectsDir)) {
+    if (!io.fileExists(objectsDir)) {
       return {
         name: 'CAS Consistency',
         status: 'warn',
@@ -119,22 +119,22 @@ async function checkCASConsistency(): Promise<DoctorCheck> {
     let totalSize = 0;
     let orphanedMeta = 0;
 
-    const subdirs = fs.readdirSync(objectsDir).filter(f => f.length === 2);
+    const subdirs = io.readDir(objectsDir).filter(f => f.length === 2);
     for (const subdir of subdirs) {
       const subdirPath = path.join(objectsDir, subdir);
-      const stat = fs.statSync(subdirPath);
+      const stat = io.statFile(subdirPath);
       if (stat.isDirectory()) {
-        const files = fs.readdirSync(subdirPath);
+        const files = io.readDir(subdirPath);
         for (const file of files) {
           if (file.length === 64 && /^[a-f0-9]+$/.test(file)) {
             totalObjects++;
             const filePath = path.join(subdirPath, file);
-            totalSize += fs.statSync(filePath).size;
+            totalSize += io.statFile(filePath).size;
           } else if (file.endsWith('.meta')) {
             // Check if corresponding object exists
             const objFile = file.replace('.meta', '');
             const objPath = path.join(subdirPath, objFile);
-            if (!fs.existsSync(objPath)) {
+            if (!io.fileExists(objPath)) {
               orphanedMeta++;
             }
           }
@@ -290,7 +290,7 @@ async function checkConfiguration(): Promise<DoctorCheck> {
 async function createSupportBundle(): Promise<string> {
   const paths = getPathConfigFromEnv();
   const bundleDir = path.join(paths.dataDir, 'support-bundles');
-  ensureDir(bundleDir);
+  io.ensureDir(bundleDir);
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const bundleId = crypto.randomBytes(8).toString('hex');
@@ -351,7 +351,7 @@ async function createSupportBundle(): Promise<string> {
     })(),
   };
 
-  fs.writeFileSync(manifestPath, JSON.stringify(bundle, null, 2));
+  io.writeTextFile(manifestPath, JSON.stringify(bundle, null, 2));
   return manifestPath;
 }
 

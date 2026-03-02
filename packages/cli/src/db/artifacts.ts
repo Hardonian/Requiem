@@ -6,11 +6,11 @@
  * - Store references (refs) in the database.
  */
 
-import fs from 'fs';
 import path from 'path';
-import { getPathConfigFromEnv, ensureDir } from '../lib/paths.js';
+import { getPathConfigFromEnv } from '../lib/paths.js';
 import { hash } from '../lib/hash.js';
 import { logger } from '../core/index.js';
+import * as io from '../lib/io.js';
 
 const COLLAPSE_THRESHOLD = 64 * 1024; // 64KB
 
@@ -32,12 +32,12 @@ export class ArtifactStore {
     const finalDir = path.join(artifactsDir, subdir);
     const filePath = path.join(finalDir, digest);
 
-    if (fs.existsSync(filePath)) {
+    if (io.fileExists(filePath)) {
       return `cas:${digest}`;
     }
 
-    ensureDir(finalDir);
-    fs.writeFileSync(filePath, raw);
+    io.ensureDir(finalDir);
+    io.writeTextFile(filePath, raw);
 
     logger.debug('db.artifact_collapsed', `Collapsed large JSON into artifact: ${digest}`, {
       size: raw.length,
@@ -61,11 +61,11 @@ export class ArtifactStore {
     const subdir = digest.substring(0, 2);
     const filePath = path.join(artifactsDir, subdir, digest);
 
-    if (!fs.existsSync(filePath)) {
+    if (!io.fileExists(filePath)) {
       logger.error('db.artifact_missing', `Referenced artifact missing from CAS: ${digest}`);
       return null;
     }
 
-    return fs.readFileSync(filePath, 'utf-8');
+    return io.readTextFile(filePath);
   }
 }
