@@ -49,7 +49,7 @@ interface PerfMetrics {
 
 function measureColdStart(): { ms: number; memoryKB: number } {
   const start = process.hrtime.bigint();
-  const result = execSync('node packages/cli/dist/cli.js --version', {
+  const result = execSync('node packages/cli/dist/cli/src/cli.js --version', {
     encoding: 'utf-8',
     stdio: ['pipe', 'pipe', 'pipe'],
   });
@@ -68,7 +68,7 @@ function measureCommandTimes(command: string, args: string[], runs: number): { p
   for (let i = 0; i < runs; i++) {
     const start = process.hrtime.bigint();
     try {
-      execSync(`node packages/cli/dist/cli.js ${command} ${args.join(' ')}`, {
+      execSync(`node packages/cli/dist/cli/src/cli.js ${command} ${args.join(' ')}`, {
         encoding: 'utf-8',
         stdio: 'pipe',
         timeout: 30000,

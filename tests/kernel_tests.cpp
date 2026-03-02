@@ -47,6 +47,12 @@ static int g_fail = 0;
     }                                                                          \
   } while (0)
 
+void expect(bool condition, const std::string &message) {
+  if (!condition) {
+    throw std::runtime_error("FAIL: " + message);
+  }
+}
+
 // Temp directory helper.
 static std::string make_temp_dir(const std::string &prefix) {
   auto p = fs::temp_directory_path() / (prefix + "_kernel_test");

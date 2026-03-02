@@ -33,8 +33,7 @@ int g_tests_passed = 0;
 
 void expect(bool condition, const std::string &message) {
   if (!condition) {
-    std::cerr << "FAIL: " << message << "\n";
-    std::exit(1);
+    throw std::runtime_error("FAIL: " + message);
   }
 }
 

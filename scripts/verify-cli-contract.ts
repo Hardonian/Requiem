@@ -454,7 +454,7 @@ function verifyCommand(contract: CommandContract): VerificationResult {
     // Check help (skip for help/version themselves)
     if (contract.hasHelp && result.exists) {
       // Help is embedded in CLI, check if documented
-      const helpText = execSync('node packages/cli/dist/cli.js --help', { encoding: 'utf-8' });
+      const helpText = execSync('node packages/cli/dist/cli/src/cli.js --help', { encoding: 'utf-8' });
       result.hasHelp = helpText.includes(contract.name);
       if (!result.hasHelp) {
         result.issues.push(`Command '${contract.name}' not documented in help text`);
