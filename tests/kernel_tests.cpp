@@ -801,12 +801,11 @@ int main() {
   TEST(envelope_determinism);
 
   std::cout << "\n[EventLog §4]" << std::endl;
-  std::cout << "  (EventLog tests skipped - see Issue #352-hang)" << std::endl;
-  // TEST(event_log_append_and_read);
-  // TEST(event_log_chain_verification);
-  // TEST(event_log_genesis_prev);
-  // TEST(event_log_tamper_detection);
-  // TEST(event_log_logical_time);
+  TEST(event_log_append_and_read);
+  TEST(event_log_chain_verification);
+  TEST(event_log_genesis_prev);
+  TEST(event_log_tamper_detection);
+  TEST(event_log_logical_time);
 
   std::cout << "\n[Capabilities §6]" << std::endl;
   TEST(caps_mint_and_verify);
