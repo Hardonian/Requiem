@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-01T19:18:00Z",
+  "gitSha": "baseline",
+  "cli": {
+    "coldStartMs": 450,
+    "helpTimeMs": 120,
+    "versionTimeMs": 80
+  },
+  "bundle": {
+    "totalSizeBytes": 0,
+    "fileCount": 0
+  },
+  "dependencies": {
+    "prodCount": 4,
+    "devCount": 5,
+    "totalSizeMb": 0,
+    "heaviestDeps": []
+  },
+  "codeMetrics": {
+    "totalFiles": 50,
+    "totalLines": 15000,
+    "consoleUsageCount": 768,
+    "errorClassCount": 1
+  },
+  "build": {
+    "buildTimeMs": 0,
+    "testTimeMs": 0
+  }
+}
