@@ -47,7 +47,7 @@
     "commander": "^14.0.2",
     "framer-motion": "^12.26.2",
     "js-yaml": "^4.1.0",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^0.575.0",
     "next": "^15.5.10",
     "next-themes": "^0.4.6",
     "pino": "^10.2.0",
