@@ -1,23 +1,26 @@
 # Red Team Findings — Enterprise Due Diligence
 
-**Date**: 2026-03-01  
-**Scope**: Full repo (CLI + ReadyLayer + Engine + Storage + Policy + Signing + Arbitration + CI)  
-**Method**: Manual code review + static analysis + baseline verification runs  
+**Date**: 2026-03-01
+**Scope**: Full repo (CLI + ReadyLayer + Engine + Storage + Policy + Signing + Arbitration + CI)
+**Method**: Manual code review + static analysis + baseline verification runs
 
 ---
 
 ## Finding RT-001: Replay Tenant Isolation Bypass [SEVERITY: HIGH]
 
-**Surface**: `packages/cli/src/commands/replay.ts` — `run`, `diff`, `export` subcommands  
+**Surface**: `packages/cli/src/commands/replay.ts` — `run`, `diff`, `export` subcommands
+
 **Reproduction**:
+
 1. Tenant A creates a decision via `decide evaluate`
 2. Tenant B calls `replay run <decisionId>` or `replay export <decisionId>` without `--tenant`
 3. The `findById(runId)` call has no tenantId filter — returns any tenant's data
 
 **Root Cause**: Three `DecisionRepository.findById()` calls pass only `runId` without `tenantId`:
+
 - Line 19: `const decision = DecisionRepository.findById(runId);`
-- Line 122-123: `DecisionRepository.findById(run1)` and `findById(run2)`  
-- Line 216: `DecisionRepository.findById(runId);`
+- Line 122-123: `DecisionRepository.findById(run1)` and `findById(run2)`
+- Line 216: `const decision = DecisionRepository.findById(runId);`
 
 **Impact**: Cross-tenant data exfiltration. Any tenant with CLI access can read another tenant's decision records, traces, and usage data, including potentially sensitive decision inputs/outputs.
 
@@ -27,8 +30,10 @@
 
 ## Finding RT-002: Bugreport Environment Variable Leakage [SEVERITY: HIGH]
 
-**Surface**: `packages/cli/src/commands/bugreport.ts` — `sanitizeEnvironment()`  
+**Surface**: `packages/cli/src/commands/bugreport.ts` — `sanitizeEnvironment()`
+
 **Reproduction**:
+
 1. Set `DATABASE_URL=postgresql://user:secret_password@host/db` in environment
 2. Run `requiem bugreport`
 3. `DATABASE_URL` is **included with full value** because it doesn't match any `SECRET_PATTERNS` regex
@@ -43,12 +48,15 @@
 
 ## Finding RT-003: Lint and Typecheck Failures (Build Gate Broken) [SEVERITY: MEDIUM]
 
-**Surface**: `ready-layer/` — lint + typecheck  
+**Surface**: `ready-layer/` — lint + typecheck
+
 **Reproduction**:
+
 1. `pnpm run lint` → 4 errors
 2. `pnpm run typecheck` → 1 error
 
 **Findings**:
+
 - `next.config.performance.ts:9` — unused `PERFORMANCE_BUDGETS` variable
 - `next.config.performance.ts:36` — `require()` import forbidden by ESLint
 - `next.config.performance.ts:30` — `placeholder` property not valid in `NextConfig.images`
@@ -63,7 +71,8 @@
 
 ## Finding RT-004: Decision List Not Tenant-Scoped (Partial) [SEVERITY: LOW]
 
-**Surface**: `packages/cli/src/db/decisions.ts` — `DecisionRepository.list()` method  
+**Surface**: `packages/cli/src/db/decisions.ts` — `DecisionRepository.list()` method
+
 **Observation**: The `list()` method has an optional `tenantId` parameter. When called without it (e.g., from some internal paths), it returns all decisions across tenants.
 
 **Mitigation**: The `handleList()` in `decide.ts` always passes `tenantId` from the resolved tenant context. The risk is in direct repository usage without tenant scoping.
@@ -74,8 +83,10 @@
 
 ## Finding RT-005: In-Memory DB (No WAL/Transaction Safety) [SEVERITY: INFORMATIONAL]
 
-**Surface**: `packages/cli/src/db/connection.ts`  
+**Surface**: `packages/cli/src/db/connection.ts`
+
 **Observation**: The current DB implementation is a pure in-memory mock (`InMemoryDB`). This means:
+
 - No write-ahead log (WAL)
 - No transaction isolation
 - No persistence
@@ -89,8 +100,10 @@
 
 ## Finding RT-006: Error Handler Doesn't Leak Stack Traces [SEVERITY: PASS]
 
-**Surface**: `ready-layer/src/app/error.tsx`  
+**Surface**: `ready-layer/src/app/error.tsx`
+
 **Verification**: The global error boundary:
+
 - Only renders `error.digest` (a safe opaque identifier)
 - Never renders `error.message` or `error.stack`
 - Console.error logs only the digest
@@ -101,7 +114,8 @@
 
 ## Finding RT-007: SECURITY.md Present [SEVERITY: PASS]
 
-**Surface**: Root `SECURITY.md`  
+**Surface**: Root `SECURITY.md`
+
 **Verification**: File exists at repo root with reporting instructions.
 
 **Status**: **PASS**
@@ -110,8 +124,10 @@
 
 ## Finding RT-008: CI Permissions and Secrets Handling [SEVERITY: LOW]
 
-**Surface**: `.github/workflows/ci.yml`  
-**Observation**: 
+**Surface**: `.github/workflows/ci.yml`
+
+**Observation**:
+
 - Secrets are properly accessed via `${{ secrets.* }}` syntax
 - No secrets are echoed in commands
 - `actions/checkout@v4` used (pinned major version, not unpinned `@latest`)
@@ -125,8 +141,10 @@
 
 ## Finding RT-009: Policy File Not Enforcing Quotas [SEVERITY: LOW]
 
-**Surface**: `policy/default.policy.json` — `tenant.default_quota`  
+**Surface**: `policy/default.policy.json` — `tenant.default_quota`
+
 **Observation**: All quota values are `null`, meaning no limits are enforced:
+
 ```json
 "default_quota": {
   "compute_units_per_hour": null,
@@ -144,7 +162,7 @@
 ## Summary
 
 | ID | Finding | Severity | Status |
-|----|---------|----------|--------|
+| :--- | :--- | :--- | :--- |
 | RT-001 | Replay tenant isolation bypass | HIGH | PATCHED |
 | RT-002 | Bugreport env var leakage | HIGH | PATCHED |
 | RT-003 | Lint/typecheck failures | MEDIUM | PATCHED |

@@ -38,7 +38,7 @@ were patched in this session. The system now passes lint, typecheck, and build g
 ### Baseline Verification Results
 
 | Gate | Before | After |
-| --- | --- | --- |
+| :--- | :--- | :--- |
 | `pnpm install` | ✅ | ✅ |
 | `pnpm run lint` | ❌ (4 errors) | ✅ |
 | `pnpm run typecheck` | ❌ (1 error) | ✅ |
@@ -83,16 +83,16 @@ and added a scoped eslint-disable for the legitimate `child_process` usage.
 
 Five issues fixed:
 
-1. Unused `PERFORMANCE_BUDGETS` → exported for external consumers
-2. `require()` import → `require()` with type cast + eslint-disable (optional dep)
-3. Invalid `placeholder` property on `NextConfig.images` → removed
-4. Unused `ReactNode` import → removed
-5. Unused `dynamicRoutePatterns` → exported
+- `next.config.performance.ts:9` — unused `PERFORMANCE_BUDGETS` variable
+- `next.config.performance.ts:36` — `require()` import forbidden by ESLint
+- `next.config.performance.ts:30` — `placeholder` property not valid in `NextConfig.images`
+- `StructuredData.tsx:11` — unused `ReactNode` import
+- `sitemap.ts:43` — unused `dynamicRoutePatterns` variable
 
 ### Additional Checks (PASS)
 
 | Surface | Status | Notes |
-| --- | --- | --- |
+| :--- | :--- | :--- |
 | Error boundary (web) | ✅ PASS | Only renders `error.digest`, never stack traces |
 | SECURITY.md | ✅ PASS | Present at repo root |
 | CI secrets handling | ✅ PASS | Uses `${{ secrets.* }}`, no echo |
@@ -106,7 +106,7 @@ Five issues fixed:
 ## Phase 2: Blue Team Patches (Applied)
 
 | Patch | Finding | Files Changed | Approach |
-| --- | --- | --- | --- |
+| :--- | :--- | :--- | :--- |
 | P-001 | RT-001 Replay tenant bypass | `replay.ts` | Add `--tenant` option, pass to all findById calls |
 | P-002 | RT-002 Env var leakage | `bugreport.ts` | Allowlist-only values, `[PRESENT]` for others |
 | P-003 | RT-002 Restricted imports | `bugreport.ts` | Use `lib/io` wrappers, eslint-disable for execSync |
@@ -153,7 +153,7 @@ Five issues fixed:
 
 ## Phase 4: Final Verification Evidence
 
-```
+```bash
 pnpm run lint        → ✅ PASS (0 errors)
 pnpm run typecheck   → ✅ PASS (0 errors)
 pnpm run build:web   → ✅ PASS (all routes compiled)
@@ -181,7 +181,7 @@ No changes were made to:
 
 ## Final Status
 
-```
+```text
 DUE_DILIGENCE: PASSED
 RED_TEAM: COMPLETE (3 findings, all patched)
 BLUE_TEAM: COMPLETE (6 patches applied)

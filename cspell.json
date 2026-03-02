@@ -78,6 +78,9 @@
     "Virtualizes",
     "Wextra",
     "Wpedantic",
+    "bugreport",
+    "exfiltration",
+    "nightlies",
     "zstd"
   ],
   "ignorePaths": [

@@ -277,6 +277,11 @@ export function getDB(): DB {
       )
     `);
 
+    -- Critical indexes for decision queries (SECTION 2)
+    dbInstance.exec(`CREATE INDEX IF NOT EXISTS idx_decisions_tenant ON decisions(tenant_id)`);
+    dbInstance.exec(`CREATE INDEX IF NOT EXISTS idx_decisions_created ON decisions(created_at)`);
+    dbInstance.exec(`CREATE INDEX IF NOT EXISTS idx_decisions_policy ON decisions(policy_snapshot_hash)`);
+
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS runs (
         run_id TEXT PRIMARY KEY,
@@ -288,6 +293,11 @@ export function getDB(): DB {
       )
     `);
 
+    -- Critical indexes for hot queries (SECTION 2)
+    dbInstance.exec(`CREATE INDEX IF NOT EXISTS idx_runs_run_id ON runs(run_id)`);
+    dbInstance.exec(`CREATE INDEX IF NOT EXISTS idx_runs_tenant ON runs(tenant_id)`);
+    dbInstance.exec(`CREATE INDEX IF NOT EXISTS idx_runs_policy ON runs(policy_snapshot_hash)`);
+
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS artifacts (
         hash TEXT PRIMARY KEY,
@@ -297,6 +307,9 @@ export function getDB(): DB {
         created_at TEXT
       )
     `);
+
+    -- Critical index for artifact lookups (SECTION 2)
+    dbInstance.exec(`CREATE INDEX IF NOT EXISTS idx_artifacts_hash ON artifacts(hash)`);
 
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS ledger (
