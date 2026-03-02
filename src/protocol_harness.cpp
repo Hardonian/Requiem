@@ -144,7 +144,7 @@ std::string get_type(const std::string& line) {
 
 }  // namespace
 
-int main() {
+int protocol_main(int argc, char **argv) {
   const auto base_tmp = fs::temp_directory_path() / "requiem_protocol_harness";
   fs::remove_all(base_tmp);
   fs::create_directories(base_tmp);

@@ -5,7 +5,13 @@
 #include <cstdlib>
 #include <mutex>
 #include <sstream>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <process.h>
+#else
 #include <unistd.h>  // getpid, gethostname
+#endif
 
 namespace requiem {
 
@@ -17,12 +23,20 @@ bool           g_initialized{false};
 
 std::string get_hostname() {
   char buf[256] = {};
+#ifdef _WIN32
   if (::gethostname(buf, sizeof(buf) - 1) == 0) return buf;
+#else
+  if (::gethostname(buf, sizeof(buf) - 1) == 0) return buf;
+#endif
   return "unknown-host";
 }
 
 std::string make_default_worker_id() {
+#ifdef _WIN32
+  return "w-" + std::to_string(static_cast<int>(::_getpid()));
+#else
   return "w-" + std::to_string(static_cast<long>(::getpid()));
+#endif
 }
 
 }  // namespace

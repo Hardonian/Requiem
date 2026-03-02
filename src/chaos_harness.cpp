@@ -909,7 +909,7 @@ void test_debugger_linked_traversal() {
   fs::remove_all(test_root);
 }
 
-int main(int argc, char *argv[]) {
+int chaos_main(int argc, char **argv) {
   using namespace requiem::chaos;
 
   std::cerr << "[chaos_harness] Requiem Chaos Engineering Harness\n";

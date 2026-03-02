@@ -78,9 +78,11 @@ struct SandboxCapabilities {
   bool rlimits_mem{false};
   bool rlimits_fds{false};
   bool seccomp_baseline{false};
+  bool seccomp_bpf{false};         // Windows placeholder
   bool job_objects{false};
   bool restricted_token{false};
   bool process_mitigations{false};
+  bool network_isolation{false};   // Windows placeholder
 
   // EXTENSION_POINT: seccomp_profile
   // Current: seccomp_baseline is always false (not implemented).

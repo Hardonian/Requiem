@@ -66,7 +66,7 @@ bool corrupt_meta(const std::string& cas_root, const std::string& digest) {
 
 }  // namespace
 
-int main() {
+int recovery_main(int argc, char **argv) {
   const auto base_tmp = fs::temp_directory_path() / "requiem_recovery_harness";
   fs::remove_all(base_tmp);
   fs::create_directories(base_tmp);

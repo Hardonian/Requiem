@@ -62,7 +62,7 @@ add_library(requiem
   src/hash.cpp
   src/jsonlite.cpp
   src/cas.cpp
-  src/debugger.cpp
+  src/debugger.cpp            # Minimal stub for build compatibility
   src/policy_linter.cpp
   src/runtime.cpp
   src/replay.cpp
@@ -98,6 +98,10 @@ target_link_libraries(requiem
     blake3_vendor
 )
 
+if(WIN32)
+  target_link_libraries(requiem PUBLIC ws2_32)
+endif()
+
 if(REQUIEM_WITH_ZSTD)
   target_link_libraries(requiem PUBLIC zstd::libzstd_shared)
   target_compile_definitions(requiem PUBLIC REQUIEM_WITH_ZSTD=1)
@@ -106,13 +110,23 @@ endif()
 # Always use vendored BLAKE3
 target_compile_definitions(requiem PUBLIC REQUIEM_BLAKE3_VENDORED=1)
 
-target_compile_options(requiem
-  PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-    -fno-omit-frame-pointer   # Retain for perf/flamegraph profiling
-)
+if(MSVC)
+  target_compile_options(requiem
+    PRIVATE
+      /W4
+      /permissive-
+      /Zc:__cplusplus
+      /Oy-   # Retain frame pointer for profiling
+  )
+else()
+  target_compile_options(requiem
+    PRIVATE
+      -Wall
+      -Wextra
+      -Wpedantic
+      -fno-omit-frame-pointer   # Retain for perf/flamegraph profiling
+  )
+endif()
 # Enable PIC so librequiem can be linked into shared libraries (librequiem_c).
 set_property(TARGET requiem PROPERTY POSITION_INDEPENDENT_CODE ON)
 
@@ -172,6 +186,7 @@ add_executable(requiem_cli
 
 target_link_libraries(requiem_cli PRIVATE requiem)
 target_compile_definitions(requiem_cli PRIVATE PROJECT_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(requiem_cli PRIVATE REQUIEM_CHAOS_MAIN)
 set_target_properties(requiem_cli PROPERTIES OUTPUT_NAME "requiem")
 
 # Apply LTO to CLI in release builds as well.

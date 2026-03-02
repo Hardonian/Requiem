@@ -82,11 +82,11 @@ struct TenantFixture {
   std::string id;
   fs::path workspace;
   fs::path cas_root;
-  requiem::CasStore cas;
+  std::unique_ptr<requiem::CasStore> cas;
 
   explicit TenantFixture(const std::string &tid, const fs::path &base)
       : id(tid), workspace(base / tid / "ws"), cas_root(base / tid / "cas"),
-        cas((base / tid / "cas").string()) {
+        cas(std::make_unique<requiem::CasStore>((base / tid / "cas").string())) {
     fs::create_directories(workspace);
   }
 };
@@ -366,10 +366,10 @@ int stress_main(int /*argc*/, char ** /*argv*/) {
     // Store something unique in tenant-0's CAS.
     const std::string secret_data =
         "only-for-tenant-001-" + std::string(32, 'x');
-    const std::string stored = tenants[0].cas.put(secret_data, "off");
+    const std::string stored = tenants[0].cas->put(secret_data, "off");
     if (!stored.empty()) {
       // Try to fetch from tenant-1's CAS (different root path).
-      const bool visible = tenants[1].cas.contains(stored);
+      const bool visible = tenants[1].cas->contains(stored);
       if (visible) {
         std::cerr << "FATAL: cross-tenant CAS read — tenant-001 digest visible "
                      "from tenant-002\n";

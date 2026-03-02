@@ -86,7 +86,7 @@ void write_file(const std::string& path, const std::string& data) {
 
 }  // namespace
 
-int main() {
+int memory_main(int argc, char **argv) {
   const auto base_tmp = fs::temp_directory_path() / "requiem_memory_harness";
   fs::remove_all(base_tmp);
   fs::create_directories(base_tmp);

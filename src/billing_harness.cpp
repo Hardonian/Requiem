@@ -91,7 +91,7 @@ std::string run_and_meter(requiem::MeterLog& meter,
 
 }  // namespace
 
-int main() {
+int billing_main(int argc, char **argv) {
   const auto base_tmp = fs::temp_directory_path() / "requiem_billing_harness";
   fs::remove_all(base_tmp);
 

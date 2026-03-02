@@ -61,7 +61,7 @@ requiem::ExecutionResult exec_request(const requiem::ExecutionRequest& req) {
 
 }  // namespace
 
-int main() {
+int security_main(int argc, char **argv) {
   const auto base_tmp = fs::temp_directory_path() / "requiem_security_gauntlet";
   fs::remove_all(base_tmp);
   fs::create_directories(base_tmp);
