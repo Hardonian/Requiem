@@ -2390,35 +2390,37 @@ void test_enforce_audit_append_only() {
       fs::temp_directory_path() / "requiem_audit_append_test.ndjson";
   fs::remove(tmp);
 
-  requiem::ImmutableAuditLog alog(tmp.string());
+  {
+    requiem::ImmutableAuditLog alog(tmp.string());
 
-  // Write first entry
-  requiem::ProvenanceRecord rec1;
-  rec1.execution_id = "append-test-1";
-  rec1.tenant_id = "t-append";
-  rec1.ok = true;
-  rec1.request_digest = std::string(64, 'a');
-  rec1.result_digest = std::string(64, 'b');
-  rec1.engine_semver = "0.8.0";
-  bool w1 = alog.append(rec1);
-  expect(w1, "first append must succeed");
-  expect(rec1.sequence == 1, "first entry must have sequence 1");
+    // Write first entry
+    requiem::ProvenanceRecord rec1;
+    rec1.execution_id = "append-test-1";
+    rec1.tenant_id = "t-append";
+    rec1.ok = true;
+    rec1.request_digest = std::string(64, 'a');
+    rec1.result_digest = std::string(64, 'b');
+    rec1.engine_semver = "0.8.0";
+    bool w1 = alog.append(rec1);
+    expect(w1, "first append must succeed");
+    expect(rec1.sequence == 1, "first entry must have sequence 1");
 
-  // Write second entry
-  requiem::ProvenanceRecord rec2;
-  rec2.execution_id = "append-test-2";
-  rec2.tenant_id = "t-append";
-  rec2.ok = true;
-  rec2.request_digest = std::string(64, 'c');
-  rec2.result_digest = std::string(64, 'd');
-  rec2.engine_semver = "0.8.0";
-  bool w2 = alog.append(rec2);
-  expect(w2, "second append must succeed");
-  expect(rec2.sequence == 2, "second entry must have sequence 2");
+    // Write second entry
+    requiem::ProvenanceRecord rec2;
+    rec2.execution_id = "append-test-2";
+    rec2.tenant_id = "t-append";
+    rec2.ok = true;
+    rec2.request_digest = std::string(64, 'c');
+    rec2.result_digest = std::string(64, 'd');
+    rec2.engine_semver = "0.8.0";
+    bool w2 = alog.append(rec2);
+    expect(w2, "second append must succeed");
+    expect(rec2.sequence == 2, "second entry must have sequence 2");
 
-  // Verify monotonic sequence
-  expect(rec2.sequence > rec1.sequence,
-         "sequences must be monotonically increasing");
+    // Verify monotonic sequence
+    expect(rec2.sequence > rec1.sequence,
+           "sequences must be monotonically increasing");
+  }
 
   // Verify file contains both entries (not overwritten)
   {
