@@ -10,6 +10,7 @@
  */
 
 interface VerificationBadgeProps {
+  key?: string;
   status: 'verified' | 'failed' | 'pending' | 'unknown';
   message?: string;
   details?: string;

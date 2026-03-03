@@ -13,6 +13,7 @@
 import { ReactNode } from 'react';
 
 interface StitchActivityItemProps {
+  key?: string;
   title: string;
   description: string;
   timestamp: string;

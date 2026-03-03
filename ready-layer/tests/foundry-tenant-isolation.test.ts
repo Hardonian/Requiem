@@ -1,10 +1,9 @@
 // ready-layer/tests/foundry-tenant-isolation.test.ts
 // Tenant isolation tests for Test Data Foundry
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   computeStableHash,
-  createFoundryRepository,
   generateRunId,
 } from '@/lib/foundry-repository';
 import {

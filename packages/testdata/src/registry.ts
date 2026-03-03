@@ -1,131 +1,136 @@
-/**
- * Dataset registry - central registration for all test datasets.
- */
+import { createRng, type DeterministicRng } from './rng.js';
+import { computeDatasetId } from './hash.js';
 
-import type { CanonicalValue } from './canonical.js';
-import type { SeededRNG } from './rng.js';
+export type CanonicalValue =
+  | string
+  | number
+  | boolean
+  | null
+  | CanonicalValue[]
+  | { [key: string]: CanonicalValue };
 
-/**
- * Dataset metadata.
- */
 export interface DatasetMetadata {
   code: string;
   name: string;
   description: string;
   version: number;
-  schemaVersion: string;
-  itemCount: number;
-  labels: Record<string, string>;
+  schema_version: string;
+  item_count: number;
+  labels_schema: Record<string, CanonicalValue>;
 }
 
-/**
- * Single dataset item.
- */
 export interface DatasetItem {
   [key: string]: CanonicalValue;
 }
 
-/**
- * Item label.
- */
-export interface ItemLabel {
+export interface DatasetLabel {
   [key: string]: CanonicalValue;
 }
 
-/**
- * Dataset validation result.
- */
+export interface GenerationContext {
+  dataset_code: string;
+  version: number;
+  seed: number;
+  dataset_id: string;
+  schema_version: string;
+  tenant_id: string;
+  trace_id: string;
+  recorded_at: string;
+  rng: DeterministicRng;
+}
+
+export interface ValidationIssue {
+  item_index: number;
+  field: string;
+  message: string;
+}
+
+export interface ValidationCheck {
+  name: string;
+  passed: boolean;
+  details: Record<string, CanonicalValue>;
+}
+
 export interface ValidationResult {
   valid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
+  errors: ValidationIssue[];
+  warnings: ValidationIssue[];
+  checks: ValidationCheck[];
 }
 
-/**
- * Validation error.
- */
-export interface ValidationError {
-  itemIndex: number;
-  field: string;
-  message: string;
-}
-
-/**
- * Validation warning.
- */
-export interface ValidationWarning {
-  itemIndex: number;
-  field: string;
-  message: string;
-}
-
-/**
- * Dataset generator function.
- */
-export type DatasetGenerator = (
-  rng: SeededRNG,
-  seed: number,
-  version: number
-) => Generator<DatasetItem>;
-
-/**
- * Dataset validator function.
- */
-export type DatasetValidator = (
-  items: DatasetItem[],
-  labels: ItemLabel[]
-) => ValidationResult;
-
-/**
- * Registered dataset.
- */
-export interface RegisteredDataset {
+export interface DatasetDefinition {
   metadata: DatasetMetadata;
-  generate: DatasetGenerator;
-  validate?: DatasetValidator;
+  generate: (ctx: GenerationContext) => DatasetItem[];
+  label: (item: DatasetItem, index: number, ctx: GenerationContext) => DatasetLabel;
+  validate: (items: DatasetItem[], labels: DatasetLabel[], ctx: GenerationContext) => ValidationResult;
 }
 
-/**
- * Global dataset registry.
- */
-const registry = new Map<string, RegisteredDataset>();
+export interface PreparedDataset {
+  definition: DatasetDefinition;
+  context: GenerationContext;
+  items: DatasetItem[];
+  labels: DatasetLabel[];
+}
 
-/**
- * Register a dataset.
- */
-export function registerDataset(dataset: RegisteredDataset): void {
-  if (registry.has(dataset.metadata.code)) {
-    throw new Error(
-      `Dataset ${dataset.metadata.code} is already registered`
-    );
+const registry = new Map<string, DatasetDefinition>();
+
+export function registerDataset(definition: DatasetDefinition): void {
+  if (registry.has(definition.metadata.code)) {
+    throw new Error(`Dataset already registered: ${definition.metadata.code}`);
   }
-  registry.set(dataset.metadata.code, dataset);
+  registry.set(definition.metadata.code, definition);
 }
 
-/**
- * Get a dataset by code.
- */
-export function getDataset(code: string): RegisteredDataset | undefined {
+export function getDataset(code: string): DatasetDefinition | undefined {
   return registry.get(code);
 }
 
-/**
- * List all registered datasets.
- */
 export function listDatasets(): DatasetMetadata[] {
-  return Array.from(registry.values()).map((d) => d.metadata);
+  return [...registry.values()]
+    .map((d) => d.metadata)
+    .sort((a, b) => a.code.localeCompare(b.code));
 }
 
-/**
- * Check if a dataset is registered.
- */
-export function hasDataset(code: string): boolean {
-  return registry.has(code);
+export function clearRegistry(): void {
+  registry.clear();
 }
 
-/**
- * Get all dataset codes.
- */
-export function getDatasetCodes(): string[] {
-  return Array.from(registry.keys());
+export function deterministicRecordedAt(): string {
+  return '2026-01-01T00:00:00.000Z';
+}
+
+export function prepareDataset(
+  definition: DatasetDefinition,
+  seed: number,
+  version: number,
+  tenantId: string,
+): PreparedDataset {
+  const datasetId = computeDatasetId(
+    definition.metadata.code,
+    version,
+    seed,
+    definition.metadata.schema_version,
+  );
+  const traceId = `trace_${datasetId.slice(0, 16)}`;
+  const context: GenerationContext = {
+    dataset_code: definition.metadata.code,
+    version,
+    seed,
+    dataset_id: datasetId,
+    schema_version: definition.metadata.schema_version,
+    tenant_id: tenantId,
+    trace_id: traceId,
+    recorded_at: deterministicRecordedAt(),
+    rng: createRng(seed),
+  };
+
+  const items = definition.generate(context);
+  const labels = items.map((item, index) => definition.label(item, index, context));
+
+  return {
+    definition,
+    context,
+    items,
+    labels,
+  };
 }

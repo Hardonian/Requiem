@@ -1,15 +1,8 @@
 import { NextRequest } from 'next/server';
 import { withTenantContext } from '@/lib/big4-http';
 import { createFoundryRepository } from '@/lib/foundry-repository';
-import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
-
-// Query parameter schema
-const fetchArtifactsQuerySchema = z.object({
-  run_id: z.string().min(1),
-  artifact_type: z.enum(['dataset', 'report', 'log', 'manifest', 'checkpoint']).optional(),
-});
 
 // GET /api/foundry/artifacts - Fetch artifacts
 export async function GET(request: NextRequest): Promise<Response> {

@@ -33,12 +33,6 @@ export function createSeededRandom(seed: number): () => number {
 // SAMPLE DATA TEMPLATES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-interface SampleDataTemplates {
-  simple: Record<string, unknown>[];
-  complex: Record<string, unknown>[];
-  edge_cases: Record<string, unknown>[];
-}
-
 const SIMPLE_TEMPLATES: Record<string, unknown>[] = [
   { category: 'greeting', text: 'Hello, how are you?', sentiment: 'positive', priority: 1 },
   { category: 'question', text: 'What time is the meeting?', sentiment: 'neutral', priority: 2 },

@@ -13,6 +13,7 @@
 import { ReactNode } from 'react';
 
 interface StitchFeatureCardProps {
+  key?: string;
   title: string;
   description: string;
   icon: ReactNode;

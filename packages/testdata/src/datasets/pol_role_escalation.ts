@@ -1,130 +1,92 @@
-/**
- * Dataset: POL-ROLE-ESCALATION
- * Goal: viewer attempting admin tasks (10 scenarios).
- * Items: {actor_role:"viewer", action:"create_api_key|delete_dataset|set_policy|invite_user", expected: denied}
- */
+import type { DatasetDefinition, DatasetItem } from '../registry.js';
+import { defaultValidationResult, fail, labelFromSchema } from './common.js';
 
-import type { SeededRNG } from '../rng.js';
-import type { DatasetGenerator, DatasetMetadata, RegisteredDataset } from '../registry.js';
-
-const VERSION = 1;
-const SCHEMA_VERSION = '1.0.0';
-
-const ACTIONS = [
-  'create_api_key',
-  'delete_dataset',
-  'set_policy',
-  'invite_user',
-  'delete_policy',
-  'modify_roles',
-  'access_admin_panel',
-  'delete_user',
-  'create_dataset',
-  'export_data',
-];
-
-const EXPECTED_DENIAL_CODES = [
-  'INSUFFICIENT_PERMISSIONS',
-  'FORBIDDEN',
-  'ACCESS_DENIED',
-  'ROLE_PERMISSION_DENIED',
-];
-
-export const metadata: DatasetMetadata = {
+const METADATA = {
   code: 'POL-ROLE-ESCALATION',
-  name: 'Role Escalation Policy Test',
-  description: 'Viewer role attempting elevated privilege actions to verify RBAC enforcement',
-  version: VERSION,
-  schemaVersion: SCHEMA_VERSION,
-  itemCount: 10,
-  labels: {
-    violates_rbac: 'true',
+  name: 'Policy Role Escalation',
+  description: 'Viewer attempts elevated admin actions',
+  version: 1,
+  schema_version: '1.0.0',
+  item_count: 10,
+  labels_schema: {
+    violates_rbac: true,
     category: 'policy',
     subtype: 'role_escalation',
   },
-};
+} as const;
 
-/**
- * Generate role escalation test cases.
- */
-export function* generate(rng: SeededRNG, _seed: number, _version: number): Generator<{
-  scenario_id: string;
-  actor_role: string;
-  action: string;
-  target_resource?: string;
-  expected_denied: boolean;
-  expected_error_code: string;
-}> {
-  for (let i = 0; i < 10; i++) {
-    const action = rng.pick(ACTIONS);
-    const expectedDenialCode = rng.pick(EXPECTED_DENIAL_CODES);
+const ACTIONS = ['create_api_key', 'delete_dataset', 'set_policy', 'invite_user'] as const;
 
-    yield {
-      scenario_id: `escalation-${i.toString().padStart(3, '0')}`,
-      actor_role: 'viewer',
-      action,
-      target_resource: `resource-${rng.nextHex(8)}`,
-      expected_denied: true,
-      expected_error_code: expectedDenialCode,
+function authorize(action: string, role: string): { denied: boolean; error_code: string; audit_event: string } {
+  if (role === 'viewer' && ACTIONS.includes(action as (typeof ACTIONS)[number])) {
+    return {
+      denied: true,
+      error_code: 'RBAC_ROLE_ESCALATION_DENIED',
+      audit_event: `audit.rbac.denied.${action}`,
     };
   }
-}
-
-/**
- * Validator for role escalation dataset.
- */
-export function validate(
-  items: Record<string, unknown>[],
-  _labels: Record<string, unknown>[]
-): { valid: boolean; errors: { itemIndex: number; field: string; message: string }[]; warnings: { itemIndex: number; field: string; message: string }[] } {
-  const errors: { itemIndex: number; field: string; message: string }[] = [];
-  const warnings: { itemIndex: number; field: string; message: string }[] = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-
-    // Validate required fields
-    if (!item.scenario_id) {
-      errors.push({ itemIndex: i, field: 'scenario_id', message: 'Missing required field: scenario_id' });
-    }
-    if (!item.actor_role) {
-      errors.push({ itemIndex: i, field: 'actor_role', message: 'Missing required field: actor_role' });
-    }
-    if (!item.action) {
-      errors.push({ itemIndex: i, field: 'action', message: 'Missing required field: action' });
-    }
-
-    // Validate actor role is viewer (non-elevated)
-    if (item.actor_role !== 'viewer') {
-      errors.push({
-        itemIndex: i,
-        field: 'actor_role',
-        message: 'Actor role should be viewer for escalation test',
-      });
-    }
-
-    // Validate expected_denied is true
-    if (item.expected_denied !== true) {
-      errors.push({
-        itemIndex: i,
-        field: 'expected_denied',
-        message: 'Expected denied should be true for role escalation scenarios',
-      });
-    }
-  }
-
   return {
-    valid: errors.length === 0,
-    errors,
-    warnings,
+    denied: false,
+    error_code: 'OK',
+    audit_event: `audit.rbac.allowed.${action}`,
   };
 }
 
-/**
- * Registered dataset.
- */
-export const dataset: RegisteredDataset = {
-  metadata,
-  generate,
-  validate,
+export const dataset: DatasetDefinition = {
+  metadata: METADATA,
+  generate: (ctx) => {
+    const items: DatasetItem[] = [];
+    for (let i = 0; i < METADATA.item_count; i += 1) {
+      const action = ACTIONS[i % ACTIONS.length];
+      const simulated = authorize(action, 'viewer');
+      items.push({
+        scenario_id: `role-escalation-${String(i).padStart(3, '0')}`,
+        actor_role: 'viewer',
+        action,
+        expected: 'denied',
+        expected_error_code: simulated.error_code,
+        expected_audit_event: simulated.audit_event,
+      });
+    }
+    return items;
+  },
+  label: () => labelFromSchema(METADATA.labels_schema),
+  validate: (items, _labels) => {
+    const result = defaultValidationResult([
+      {
+        name: 'viewer_denied_admin_actions',
+        passed: true,
+        details: { scenarios: items.length },
+      },
+    ]);
+
+    items.forEach((item, index) => {
+      const action = item.action as string;
+      const auth = authorize(action, item.actor_role as string);
+      if (!auth.denied || item.expected !== 'denied') {
+        fail(result, {
+          item_index: index,
+          field: 'expected',
+          message: 'Viewer escalation scenario must be denied',
+        });
+      }
+      if (item.expected_error_code !== auth.error_code) {
+        fail(result, {
+          item_index: index,
+          field: 'expected_error_code',
+          message: 'Mismatch error code',
+        });
+      }
+      if (item.expected_audit_event !== auth.audit_event) {
+        fail(result, {
+          item_index: index,
+          field: 'expected_audit_event',
+          message: 'Missing or incorrect audit event',
+        });
+      }
+    });
+
+    result.checks[0].passed = result.valid;
+    return result;
+  },
 };

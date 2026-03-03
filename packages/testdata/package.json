@@ -22,6 +22,10 @@
       "types": "./src/canonical.ts",
       "import": "./src/canonical.ts"
     },
+    "./canonical_json": {
+      "types": "./src/canonical_json.ts",
+      "import": "./src/canonical_json.ts"
+    },
     "./hash": {
       "types": "./src/hash.ts",
       "import": "./src/hash.ts"
@@ -29,12 +33,27 @@
     "./writer": {
       "types": "./src/writer.ts",
       "import": "./src/writer.ts"
+    },
+    "./artifact_writer": {
+      "types": "./src/artifact_writer.ts",
+      "import": "./src/artifact_writer.ts"
+    },
+    "./runners/validate": {
+      "types": "./src/runners/validate.ts",
+      "import": "./src/runners/validate.ts"
+    },
+    "./runners/replay": {
+      "types": "./src/runners/replay.ts",
+      "import": "./src/runners/replay.ts"
+    },
+    "./runners/generate": {
+      "types": "./src/runners/generate.ts",
+      "import": "./src/runners/generate.ts"
     }
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "lint": "echo 'No lint configured for testdata'",
-    "test": "node --test src/**/*.test.ts"
+    "lint": "echo 'No lint configured for testdata'"
   },
   "dependencies": {
     "zod": "^4.3.5"

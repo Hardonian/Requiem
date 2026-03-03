@@ -66,7 +66,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
           </p>
         </div>
 
-        <DiffProofCard {...proofData} />
+        <DiffProofCard {...proofData as NonNullable<typeof proofData>} />
 
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">

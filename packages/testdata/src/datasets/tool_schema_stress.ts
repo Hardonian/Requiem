@@ -1,275 +1,118 @@
-/**
- * Dataset: TOOL-SCHEMA-STRESS
- * Goal: 50 tool calls with fuzzed argument types.
- */
+import type { DatasetDefinition, DatasetItem } from '../registry.js';
+import { defaultValidationResult, fail, labelFromSchema } from './common.js';
 
-import type { SeededRNG } from '../rng.js';
-import type { DatasetGenerator, DatasetMetadata, RegisteredDataset } from '../registry.js';
-
-const VERSION = 1;
-const SCHEMA_VERSION = '1.0.0';
-
-/**
- * Mock tool schemas for testing.
- */
-const TOOL_SCHEMAS: Record<string, { name: string; parameters: { type: string; required?: string[]; properties: Record<string, unknown> } }> = {
-  'create_dataset': {
-    name: 'create_dataset',
-    parameters: {
-      type: 'object',
-      required: ['name', 'description'],
-      properties: {
-        name: { type: 'string', minLength: 1 },
-        description: { type: 'string' },
-        tags: { type: 'array', items: { type: 'string' } },
-      },
-    },
-  },
-  'delete_dataset': {
-    name: 'delete_dataset',
-    parameters: {
-      type: 'object',
-      required: ['dataset_id'],
-      properties: {
-        dataset_id: { type: 'string' },
-        force: { type: 'boolean' },
-      },
-    },
-  },
-  'update_policy': {
-    name: 'update_policy',
-    parameters: {
-      type: 'object',
-      required: ['policy_id', 'rules'],
-      properties: {
-        policy_id: { type: 'string' },
-        rules: { type: 'array' },
-        priority: { type: 'number' },
-      },
-    },
-  },
-  'invite_user': {
-    name: 'invite_user',
-    parameters: {
-      type: 'object',
-      required: ['email', 'role'],
-      properties: {
-        email: { type: 'string' },
-        role: { type: 'string' },
-        teams: { type: 'array' },
-      },
-    },
-  },
-  'create_api_key': {
-    name: 'create_api_key',
-    parameters: {
-      type: 'object',
-      required: ['name', 'scopes'],
-      properties: {
-        name: { type: 'string' },
-        scopes: { type: 'array' },
-        expires_at: { type: 'string' },
-      },
-    },
-  },
-};
-
-const TOOL_NAMES = Object.keys(TOOL_SCHEMAS);
-
-const FUZZ_CASES = [
-  'wrong_type',
-  'missing_required',
-  'extra_field',
-  'nested_array',
-  'null_value',
-  'empty_string',
-  'invalid_enum',
-  'wrong_nested_type',
-];
-
-const EXPECTED_ERRORS = [
-  'VALIDATION_ERROR',
-  'INVALID_TYPE',
-  'MISSING_REQUIRED_FIELD',
-  'UNKNOWN_FIELD',
-  'INVALID_VALUE',
-];
-
-export const metadata: DatasetMetadata = {
+const METADATA = {
   code: 'TOOL-SCHEMA-STRESS',
-  name: 'Tool Schema Stress Test',
-  description: '50 tool calls with fuzzed argument types to stress test validation',
-  version: VERSION,
-  schemaVersion: SCHEMA_VERSION,
-  itemCount: 50,
-  labels: {
+  name: 'Tool Schema Stress',
+  description: 'Fuzzed payloads over tool schemas with deterministic failures',
+  version: 1,
+  schema_version: '1.0.0',
+  item_count: 50,
+  labels_schema: {
     category: 'validation',
     subtype: 'schema_stress',
+    expected_outcome: 'validation_error',
   },
-};
+} as const;
 
-/**
- * Generate fuzz case based on tool schema and fuzz case type.
- */
-function generateFuzzPayload(
-  toolName: string,
-  fuzzCase: string
-): Record<string, unknown> {
-  const schema = TOOL_SCHEMAS[toolName];
-  if (!schema) {
-    return { name: toolName, payload: {} };
-  }
-  const props = schema.parameters.properties;
+const TOOLS = [
+  {
+    tool_name: 'create_dataset',
+    schema: { required: ['name', 'description'], properties: { name: 'string', description: 'string', tags: 'array' } },
+  },
+  {
+    tool_name: 'delete_dataset',
+    schema: { required: ['dataset_id'], properties: { dataset_id: 'string', force: 'boolean' } },
+  },
+  {
+    tool_name: 'set_policy',
+    schema: { required: ['policy_id', 'rules'], properties: { policy_id: 'string', rules: 'array', dry_run: 'boolean' } },
+  },
+] as const;
 
+const FUZZ_CASES = ['wrong_types', 'missing_required', 'extra_field', 'nested_arrays', 'nulls'] as const;
+
+function buildPayload(fuzzCase: string, index: number): Record<string, unknown> {
   switch (fuzzCase) {
-    case 'wrong_type':
-      return {
-        name: toolName,
-        payload: Object.fromEntries(
-          Object.keys(props).map((k) => [k, 'wrong_type_string'])
-        ),
-      };
-
+    case 'wrong_types':
+      return { name: 123, description: false, tags: 'not-array' };
     case 'missing_required':
-      return {
-        name: toolName,
-        payload: { optional_field: 'present' },
-      };
-
+      return { optional: 'present' };
     case 'extra_field':
-      return {
-        name: toolName,
-        payload: {
-          ...Object.fromEntries(Object.keys(props).map((k) => [k, 'value'])),
-          unknown_extra_field: 'should cause validation error',
-          another_unknown: 123,
-        },
-      };
-
-    case 'nested_array':
-      return {
-        name: toolName,
-        payload: Object.fromEntries(
-          Object.keys(props).map((k) => [k, ['nested', 'array']])
-        ),
-      };
-
-    case 'null_value': {
-      const nullPayload: Record<string, unknown> = {};
-      for (const key of Object.keys(props)) {
-        nullPayload[key] = null;
-      }
-      return { name: toolName, payload: nullPayload };
-    }
-
-    case 'empty_string': {
-      const emptyPayload: Record<string, unknown> = {};
-      for (const key of Object.keys(props)) {
-        emptyPayload[key] = '';
-      }
-      return { name: toolName, payload: emptyPayload };
-    }
-
-    case 'invalid_enum':
-      return {
-        name: toolName,
-        payload: {
-          ...Object.fromEntries(Object.keys(props).map((k) => [k, 'invalid_value'])),
-          role: 'super_admin',
-        },
-      };
-
-    case 'wrong_nested_type':
-      return {
-        name: toolName,
-        payload: Object.fromEntries(
-          Object.keys(props).map((k) => [k, { nested: 'object' }])
-        ),
-      };
-
+      return { dataset_id: 'ds_abc', force: false, injected: 'x', unknown: index };
+    case 'nested_arrays':
+      return { policy_id: 'p1', rules: [[['bad']]], dry_run: null };
+    case 'nulls':
+      return { name: null, description: null, tags: null };
     default:
-      return { name: toolName, payload: {} };
+      return { unsupported: true };
   }
 }
 
-/**
- * Generate tool schema stress test cases.
- */
-export function* generate(rng: SeededRNG, _seed: number, _version: number): Generator<{
-  case_id: string;
-  tool_name: string;
-  schema: typeof TOOL_SCHEMAS[string];
-  fuzz_case: string;
-  payload: Record<string, unknown>;
-  expected_validation_error: string;
-}> {
-  for (let i = 0; i < 50; i++) {
-    const toolName = rng.pick(TOOL_NAMES);
-    const fuzzCase = rng.pick(FUZZ_CASES);
-    const fuzzPayload = generateFuzzPayload(toolName, fuzzCase);
-    const expectedError = rng.pick(EXPECTED_ERRORS);
-
-    yield {
-      case_id: `stress-${i.toString().padStart(3, '0')}`,
-      tool_name: toolName,
-      schema: TOOL_SCHEMAS[toolName],
-      fuzz_case: fuzzCase,
-      payload: fuzzPayload.payload as Record<string, unknown>,
-      expected_validation_error: expectedError,
-    };
-  }
-}
-
-/**
- * Validator for tool schema stress dataset.
- */
-export function validate(
-  items: Record<string, unknown>[],
-  _labels: Record<string, unknown>[]
-): { valid: boolean; errors: { itemIndex: number; field: string; message: string }[]; warnings: { itemIndex: number; field: string; message: string }[] } {
-  const errors: { itemIndex: number; field: string; message: string }[] = [];
-  const warnings: { itemIndex: number; field: string; message: string }[] = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-
-    if (!item.case_id) {
-      errors.push({ itemIndex: i, field: 'case_id', message: 'Missing required field: case_id' });
-    }
-    if (!item.tool_name) {
-      errors.push({ itemIndex: i, field: 'tool_name', message: 'Missing required field: tool_name' });
-    }
-    if (!item.schema) {
-      errors.push({ itemIndex: i, field: 'schema', message: 'Missing required field: schema' });
-    }
-    if (!item.fuzz_case) {
-      errors.push({ itemIndex: i, field: 'fuzz_case', message: 'Missing required field: fuzz_case' });
-    }
-    if (!item.payload) {
-      errors.push({ itemIndex: i, field: 'payload', message: 'Missing required field: payload' });
-    }
-
-    if (item.tool_name && !TOOL_NAMES.includes(item.tool_name as string)) {
-      errors.push({
-        itemIndex: i,
-        field: 'tool_name',
-        message: `Unknown tool: ${item.tool_name}`,
-      });
-    }
-  }
-
+function materializeSchema(tool: (typeof TOOLS)[number]): Record<string, unknown> {
   return {
-    valid: errors.length === 0,
-    errors,
-    warnings,
+    required: [...tool.schema.required],
+    properties: { ...tool.schema.properties },
   };
 }
 
-/**
- * Registered dataset.
- */
-export const dataset: RegisteredDataset = {
-  metadata,
-  generate,
-  validate,
+function validatePayload(payload: Record<string, unknown>): string {
+  if (Object.values(payload).some((v) => v === null)) {
+    return 'NULL_NOT_ALLOWED';
+  }
+  if (Array.isArray(payload.rules) && Array.isArray((payload.rules as unknown[])[0])) {
+    return 'NESTED_ARRAY_NOT_ALLOWED';
+  }
+  if ('optional' in payload) {
+    return 'MISSING_REQUIRED';
+  }
+  if ('injected' in payload || 'unknown' in payload) {
+    return 'UNKNOWN_FIELD';
+  }
+  return 'TYPE_MISMATCH';
+}
+
+export const dataset: DatasetDefinition = {
+  metadata: METADATA,
+  generate: (_ctx) => {
+    const items: DatasetItem[] = [];
+    for (let i = 0; i < METADATA.item_count; i += 1) {
+      const tool = TOOLS[i % TOOLS.length];
+      const fuzzCase = FUZZ_CASES[i % FUZZ_CASES.length];
+      const payload = buildPayload(fuzzCase, i);
+      items.push({
+        case_id: `tool-stress-${String(i).padStart(3, '0')}`,
+        tool_name: tool.tool_name,
+        schema: materializeSchema(tool) as never,
+        fuzz_case: fuzzCase,
+        payload: payload as never,
+        expected_validation_error: validatePayload(payload),
+      });
+    }
+    return items;
+  },
+  label: () => labelFromSchema(METADATA.labels_schema),
+  validate: (items, _labels) => {
+    const result = defaultValidationResult([
+      {
+        name: 'schema_rejects_invalid_payloads',
+        passed: true,
+        details: { cases: items.length },
+      },
+    ]);
+
+    items.forEach((item, index) => {
+      const actualError = validatePayload(item.payload as Record<string, unknown>);
+      if (actualError !== item.expected_validation_error) {
+        fail(result, {
+          item_index: index,
+          field: 'expected_validation_error',
+          message: `Expected ${item.expected_validation_error as string} got ${actualError}`,
+        });
+      }
+    });
+
+    result.checks[0].passed = result.valid;
+    return result;
+  },
 };

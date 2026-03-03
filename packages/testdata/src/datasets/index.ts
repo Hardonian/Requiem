@@ -1,11 +1,4 @@
-/**
- * Test Data Foundry - All Datasets
- * Register all available datasets here.
- */
-
 import { registerDataset } from '../registry.js';
-
-// Import all datasets
 import { dataset as polTenantIsolation } from './pol_tenant_isolation.js';
 import { dataset as polRoleEscalation } from './pol_role_escalation.js';
 import { dataset as toolSchemaStress } from './tool_schema_stress.js';
@@ -17,24 +10,7 @@ import { dataset as perfColdStart } from './perf_cold_start.js';
 import { dataset as faultOomScenario } from './fault_oom_scenario.js';
 import { dataset as traceRoundtrip } from './trace_roundtrip.js';
 
-/**
- * Register all datasets with the registry.
- */
-export function registerAllDatasets(): void {
-  registerDataset(polTenantIsolation);
-  registerDataset(polRoleEscalation);
-  registerDataset(toolSchemaStress);
-  registerDataset(advInjectBasic);
-  registerDataset(advPathTraversal);
-  registerDataset(repoDagCircular);
-  registerDataset(cliPipePressure);
-  registerDataset(perfColdStart);
-  registerDataset(faultOomScenario);
-  registerDataset(traceRoundtrip);
-}
-
-// Export all datasets
-export {
+export const BUILTIN_DATASETS = [
   polTenantIsolation,
   polRoleEscalation,
   toolSchemaStress,
@@ -45,4 +21,16 @@ export {
   perfColdStart,
   faultOomScenario,
   traceRoundtrip,
-};
+] as const;
+
+let registered = false;
+
+export function registerBuiltInDatasets(): void {
+  if (registered) {
+    return;
+  }
+  for (const dataset of BUILTIN_DATASETS) {
+    registerDataset(dataset);
+  }
+  registered = true;
+}

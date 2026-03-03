@@ -1,40 +1,12 @@
-/**
- * Test Data Foundry - Deterministic dataset generation framework.
- *
- * Provides:
- * - Stable hashing utilities
- * - Canonical JSON serialization
- * - Seeded RNG for reproducible generation
- * - Dataset registry
- * - Artifact writer
- */
-
-// Core utilities
+export * from './canonical_json.js';
 export * from './hash.js';
-export * from './canonical.js';
 export * from './rng.js';
 export * from './registry.js';
-export * from './writer.js';
+export * from './repository.js';
+export * from './artifact_writer.js';
 
-// Datasets
+export * from './runners/generate.js';
+export * from './runners/validate.js';
+export * from './runners/replay.js';
+
 export * from './datasets/index.js';
-
-// Re-export types
-export type { CanonicalValue } from './canonical.js';
-export type {
-  DatasetMetadata,
-  DatasetItem,
-  ItemLabel,
-  ValidationResult,
-  ValidationError,
-  ValidationWarning,
-  RegisteredDataset,
-  DatasetGenerator,
-  DatasetValidator,
-} from './registry.js';
-export type {
-  RunMetadata,
-  Manifest,
-  ArtifactFile,
-  CheckResult,
-} from './writer.js';

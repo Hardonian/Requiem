@@ -2,7 +2,7 @@
 // Test Data Foundry repository functions with strict tenant isolation
 
 import { createClient } from '@supabase/supabase-js';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type {
   Dataset,
   DatasetItem,
@@ -47,9 +47,7 @@ export function computeStableHash(input: {
     content: sortKeys(content),
     version,
   });
-  // Simple hash using crypto (available in Node.js)
-  const crypto = require('node:crypto');
-  return crypto.createHash('sha256').update(normalized).digest('hex');
+  return createHash('sha256').update(normalized).digest('hex');
 }
 
 /**

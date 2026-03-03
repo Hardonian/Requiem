@@ -5,6 +5,7 @@
 // INVARIANT: No direct engine calls here. Auth checked in middleware.
 
 import type { Metadata, Viewport } from 'next';
+import type { ReactNode } from 'react';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
@@ -65,7 +66,7 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning className="antialiased">

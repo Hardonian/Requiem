@@ -21,8 +21,6 @@ export async function GET(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
     async (ctx) => {
-      const repo = createFoundryRepository(ctx);
-
       // For now, return a simple list (could add pagination later)
       // Since we don't have a listGenerators method in repo, we'll use raw query or return empty
       return Response.json(

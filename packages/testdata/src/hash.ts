@@ -1,60 +1,28 @@
-/**
- * Stable hashing utilities for deterministic dataset IDs.
- * Uses SHA-256 over canonical JSON for stable, reproducible hashes.
- */
-
 import { createHash } from 'crypto';
-import type { CanonicalValue } from './canonical.js';
+import { canonicalJsonStringify } from './canonical_json.js';
+import type { CanonicalValue } from './registry.js';
 
-/**
- * Compute a stable SHA-256 hash of canonical JSON.
- * This ensures the same data always produces the same hash.
- */
-export function stableHash(data: CanonicalValue): string {
-  const canonical = JSON.stringify(data);
-  return sha256(canonical);
-}
-
-/**
- * Compute SHA-256 hash of a string.
- */
 export function sha256(input: string): string {
   return createHash('sha256').update(input, 'utf8').digest('hex');
 }
 
-/**
- * Compute a short hash (first 16 characters) for use as IDs.
- */
-export function shortHash(data: CanonicalValue): string {
-  return stableHash(data).substring(0, 16);
+export function stableHash(value: CanonicalValue): string {
+  return sha256(canonicalJsonStringify(value));
 }
 
-/**
- * Compute dataset ID from dataset code, version, and seed.
- */
+export function shortStableHash(value: CanonicalValue, length = 16): string {
+  return stableHash(value).slice(0, length);
+}
+
 export function computeDatasetId(
   datasetCode: string,
   version: number,
-  seed: number
+  seed: number,
+  schemaVersion: string,
 ): string {
-  return shortHash({
-    datasetCode,
-    version,
-    seed,
-  });
+  return `ds_${shortStableHash({ datasetCode, version, seed, schemaVersion })}`;
 }
 
-/**
- * Compute a run ID from dataset ID, timestamp, and trace ID.
- */
-export function computeRunId(
-  datasetId: string,
-  timestamp: string,
-  traceId: string
-): string {
-  return shortHash({
-    datasetId,
-    timestamp,
-    traceId,
-  });
+export function computeRunId(datasetId: string, tenantId: string): string {
+  return `run_${shortStableHash({ datasetId, tenantId })}`;
 }

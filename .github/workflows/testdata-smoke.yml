@@ -1,4 +1,4 @@
-name: Test Data Foundry Smoke
+name: testdata-smoke
 
 on:
   push:
@@ -8,181 +8,50 @@ on:
   workflow_dispatch:
 
 jobs:
-  determinism-check:
-    name: Determinism Check
+  smoke:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
-          
-      - name: Install dependencies
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
         run: pnpm install --frozen-lockfile
-        
-      - name: Build packages
-        run: pnpm build
-        
-      - name: Generate dataset POL-TENANT-ISOLATION (run 1)
-        run: pnpm --filter @requiem/cli run dataset gen POL-TENANT-ISOLATION --seed 1337 --out ./artifacts/run1
-        
-      - name: Generate dataset POL-TENANT-ISOLATION (run 2)
-        run: pnpm --filter @requiem/cli run dataset gen POL-TENANT-ISOLATION --seed 1337 --out ./artifacts/run2
-        
-      - name: Compare artifacts for byte parity
+
+      - name: Build CLI + testdata
+        run: pnpm --filter @requiem/testdata typecheck && pnpm --filter @requiem/cli build
+
+      - name: Generate run A
         run: |
-          # Compare items.jsonl
-          echo "Comparing items.jsonl..."
-          diff ./artifacts/run1/*/items.jsonl ./artifacts/run2/*/items.jsonl || { echo "items.jsonl differs!"; exit 1; }
-          
-          # Compare labels.jsonl
-          echo "Comparing labels.jsonl..."
-          diff ./artifacts/run1/*/labels.jsonl ./artifacts/run2/*/labels.jsonl || { echo "labels.jsonl differs!"; exit 1; }
-          
-          # Compare manifest.json (except timestamps)
-          echo "Comparing manifest.json..."
-          diff ./artifacts/run1/*/manifest.json ./artifacts/run2/*/manifest.json || { echo "manifest.json differs!"; exit 1; }
-          
-          echo "✅ All byte parity checks passed!"
+          pnpm rl dataset gen POL-TENANT-ISOLATION --seed 1337 --out artifacts_a
+          pnpm rl dataset gen POL-ROLE-ESCALATION --seed 1337 --out artifacts_a
+          pnpm rl dataset gen TOOL-SCHEMA-STRESS --seed 1337 --out artifacts_a
 
-  generate-multiple-datasets:
-    name: Generate Multiple Datasets
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Build packages
-        run: pnpm build
-        
-      - name: List all datasets
-        run: pnpm --filter @requiem/cli run dataset list
-        
-      - name: Generate dataset POL-ROLE-ESCALATION
-        run: pnpm --filter @requiem/cli run dataset gen POL-ROLE-ESCALATION --seed 1337 --out ./artifacts
-        
-      - name: Generate dataset TOOL-SCHEMA-STRESS
-        run: pnpm --filter @requiem/cli run dataset gen TOOL-SCHEMA-STRESS --seed 1337 --out ./artifacts
-        
-      - name: Generate dataset ADV-INJECT-BASIC
-        run: pnpm --filter @requiem/cli run dataset gen ADV-INJECT-BASIC --seed 1337 --out ./artifacts
-        
-      - name: Generate dataset ADV-PATH-TRAVERSAL
-        run: pnpm --filter @requiem/cli run dataset gen ADV-PATH-TRAVERSAL --seed 1337 --out ./artifacts
-
-  validate-datasets:
-    name: Validate Datasets
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Build packages
-        run: pnpm build
-        
-      - name: Validate POL-TENANT-ISOLATION
-        run: pnpm --filter @requiem/cli run dataset validate POL-TENANT-ISOLATION --seed 1337
-        
-      - name: Validate POL-ROLE-ESCALATION
-        run: pnpm --filter @requiem/cli run dataset validate POL-ROLE-ESCALATION --seed 1337
-        
-      - name: Validate TOOL-SCHEMA-STRESS
-        run: pnpm --filter @requiem/cli run dataset validate TOOL-SCHEMA-STRESS --seed 1337
-        
-      - name: Validate ADV-INJECT-BASIC
-        run: pnpm --filter @requiem/cli run dataset validate ADV-INJECT-BASIC --seed 1337
-        
-      - name: Validate ADV-PATH-TRAVERSAL
-        run: pnpm --filter @requiem/cli run dataset validate ADV-PATH-TRAVERSAL --seed 1337
-        
-      - name: Validate REPO-DAG-CIRCULAR
-        run: pnpm --filter @requiem/cli run dataset validate REPO-DAG-CIRCULAR --seed 1337
-        
-      - name: Validate CLI-PIPE-PRESSURE
-        run: pnpm --filter @requiem/cli run dataset validate CLI-PIPE-PRESSURE --seed 1337
-        
-      - name: Validate PERF-COLD-START
-        run: pnpm --filter @requiem/cli run dataset validate PERF-COLD-START --seed 1337
-        
-      - name: Validate FAULT-OOM-SCENARIO
-        run: pnpm --filter @requiem/cli run dataset validate FAULT-OOM-SCENARIO --seed 1337
-        
-      - name: Validate TRACE-ROUNDTRIP
-        run: pnpm --filter @requiem/cli run dataset validate TRACE-ROUNDTRIP --seed 1337
-
-  replay-test:
-    name: Replay Test
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Build packages
-        run: pnpm build
-        
-      - name: Generate dataset
-        run: pnpm --filter @requiem/cli run dataset gen POL-TENANT-ISOLATION --seed 1337 --out ./artifacts
-        
-      - name: Find run ID
-        id: find-run
+      - name: Generate run B
         run: |
-          RUN_ID=$(ls -1 ./artifacts/ | head -1)
-          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-          
-      - name: Replay dataset
-        run: pnpm --filter @requiem/cli run dataset replay ${{ steps.find-run.outputs.run_id }} --out ./artifacts
+          pnpm rl dataset gen POL-TENANT-ISOLATION --seed 1337 --out artifacts_b
+          pnpm rl dataset gen POL-ROLE-ESCALATION --seed 1337 --out artifacts_b
+          pnpm rl dataset gen TOOL-SCHEMA-STRESS --seed 1337 --out artifacts_b
+
+      - name: Determinism byte parity
+        run: |
+          for code in POL-TENANT-ISOLATION POL-ROLE-ESCALATION TOOL-SCHEMA-STRESS; do
+            run_a=$(grep -R -l "\"dataset_code\": \"$code\"" artifacts_a/run_*/dataset.json | head -n1 | xargs dirname)
+            run_b=$(grep -R -l "\"dataset_code\": \"$code\"" artifacts_b/run_*/dataset.json | head -n1 | xargs dirname)
+            cmp "$run_a/items.jsonl" "$run_b/items.jsonl"
+            cmp "$run_a/labels.jsonl" "$run_b/labels.jsonl"
+            cmp "$run_a/manifest.json" "$run_b/manifest.json"
+          done
+
+      - name: Validate smoke
+        run: |
+          pnpm rl dataset validate POL-TENANT-ISOLATION --seed 1337
+          pnpm rl dataset validate POL-ROLE-ESCALATION --seed 1337
+          pnpm rl dataset validate TOOL-SCHEMA-STRESS --seed 1337

@@ -10,8 +10,10 @@
  * - error: Red accent
  */
 
+import type { ReactNode } from 'react';
+
 interface StitchBadgeProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
   variant?: 'default' | 'success' | 'warning' | 'error';
   pulse?: boolean;
   className?: string;

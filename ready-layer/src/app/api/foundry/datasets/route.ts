@@ -74,7 +74,6 @@ export async function POST(request: NextRequest): Promise<Response> {
     request,
     async (ctx) => {
       // Check if this is a sample dataset request
-      const contentType = request.headers.get('content-type') ?? '';
       const rawBody = await request.clone().json();
 
       // If the body has 'seed', treat it as a sample dataset request

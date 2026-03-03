@@ -13,6 +13,7 @@
 import { ReactNode } from 'react';
 
 interface StitchCardProps {
+  key?: string;
   children?: ReactNode;
   className?: string;
   hoverable?: boolean;

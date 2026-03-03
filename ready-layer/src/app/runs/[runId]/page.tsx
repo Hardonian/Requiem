@@ -35,14 +35,15 @@ async function fetchRunData(runId: string) {
 export default async function RunPage({ params }: RunPageProps) {
   const { runId } = await params;
   const run = await fetchRunData(runId);
-  const predictions = getPredictions(run?.tenantId ?? 'public', runId);
-  const outcomes = getOutcomes(run?.tenantId ?? 'public', runId);
-  const signals = getSignals(run?.tenantId ?? 'public').slice(0, 5);
-  const similarCases = getCases(run?.tenantId ?? 'public').slice(0, 3);
 
   if (!run) {
     notFound();
   }
+
+  const predictions = getPredictions(run.tenantId, runId);
+  const outcomes = getOutcomes(run.tenantId, runId);
+  const signals = getSignals(run.tenantId).slice(0, 5);
+  const similarCases = getCases(run.tenantId).slice(0, 3);
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">

@@ -3,11 +3,12 @@
 // Product Hunt-optimized landing page
 // Focus: 0-10 second impact, clear value prop, trust signals
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 // Components imported as needed
 
 // Trust badge component
-function TrustBadge({ children }: { children: React.ReactNode }) {
+function TrustBadge({ children }: { children: ReactNode }) {
   return (
     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
       <svg className="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">

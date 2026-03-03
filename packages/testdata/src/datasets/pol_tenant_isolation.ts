@@ -1,170 +1,101 @@
-/**
- * Dataset: POL-TENANT-ISOLATION
- * Goal: capture 10 cross-tenant read attempts.
- * Generator: create 10 request scenarios attempting to read tenant B resources from tenant A session.
- */
+import type { DatasetDefinition, DatasetItem } from '../registry.js';
+import { defaultValidationResult, ensureProblemJsonShape, fail, labelFromSchema } from './common.js';
 
-import type { SeededRNG } from '../rng.js';
-import type { DatasetGenerator, DatasetMetadata, RegisteredDataset, ItemLabel } from '../registry.js';
-
-const VERSION = 1;
-const SCHEMA_VERSION = '1.0.0';
-
-const TENANTS = ['public-hardonian', 'acme-corp', 'globex-inc'];
-const RESOURCE_TYPES = ['dataset', 'model', 'policy', 'artifact', 'user'];
-const METHODS = ['GET', 'HEAD'];
-const PATHS = [
-  '/api/v1/datasets',
-  '/api/v1/models',
-  '/api/v1/policies',
-  '/api/v1/artifacts',
-  '/api/v1/users',
-];
-
-const HEADERS = [
-  { 'Content-Type': 'application/json', Accept: 'application/json' },
-  { 'Content-Type': 'application/json' },
-  { Accept: 'application/json' },
-  {},
-];
-
-const EXPECTED_STATUSES = [403, 404];
-
-const ERROR_CODES = [
-  'TENANT_ISOLATION_VIOLATION',
-  'RESOURCE_NOT_FOUND',
-  'FORBIDDEN',
-  'ACCESS_DENIED',
-];
-
-export const metadata: DatasetMetadata = {
+const METADATA = {
   code: 'POL-TENANT-ISOLATION',
-  name: 'Tenant Isolation Policy Test',
-  description: 'Cross-tenant read attempt scenarios to verify tenant isolation enforcement',
-  version: VERSION,
-  schemaVersion: SCHEMA_VERSION,
-  itemCount: 10,
-  labels: {
-    violates_tenant_isolation: 'true',
+  name: 'Policy Tenant Isolation',
+  description: 'Cross-tenant read attempts from tenant A to tenant B',
+  version: 1,
+  schema_version: '1.0.0',
+  item_count: 10,
+  labels_schema: {
+    violates_tenant_isolation: true,
     category: 'policy',
     subtype: 'cross_tenant_read',
   },
-};
+} as const;
 
-/**
- * Generate tenant isolation test cases.
- */
-export function* generate(rng: SeededRNG, _seed: number, _version: number): Generator<{
-  attempt_id: string;
-  actor_tenant: string;
-  target_tenant: string;
-  resource_type: string;
-  method: string;
-  path: string;
-  headers: Record<string, string>;
-  expected_status: number;
-  expected_error_code: string;
-}> {
-  for (let i = 0; i < 10; i++) {
-    const actorTenant = rng.pick(TENANTS);
-    let targetTenant = rng.pick(TENANTS);
-    // Ensure target is different from actor
-    while (targetTenant === actorTenant) {
-      targetTenant = rng.pick(TENANTS);
-    }
+const TARGET_TENANTS = ['tenant-b', 'tenant-c', 'tenant-d'] as const;
+const RESOURCE_TYPES = ['dataset', 'artifact', 'policy', 'receipt', 'run'] as const;
+const METHODS = ['GET', 'HEAD'] as const;
 
-    const resourceType = rng.pick(RESOURCE_TYPES);
-    const method = rng.pick(METHODS);
-    const basePath = rng.pick(PATHS);
-    const path = `${basePath}/${rng.nextUUID()}`;
-    const headers = rng.pick(HEADERS);
-    const expectedStatus = rng.pick(EXPECTED_STATUSES);
-    const expectedErrorCode = rng.pick(ERROR_CODES);
-
-    yield {
-      attempt_id: `attempt-${i.toString().padStart(3, '0')}`,
-      actor_tenant: actorTenant,
-      target_tenant: targetTenant,
-      resource_type: resourceType,
-      method,
-      path,
-      headers,
-      expected_status: expectedStatus,
-      expected_error_code: expectedErrorCode,
-    };
-  }
-}
-
-/**
- * Generate labels for each item.
- */
-export function generateLabels(rng: SeededRNG, itemCount: number): ItemLabel[] {
-  const labels: ItemLabel[] = [];
-  for (let i = 0; i < itemCount; i++) {
-    labels.push({
-      violates_tenant_isolation: true,
-      category: 'policy',
-      subtype: 'cross_tenant_read',
-    });
-  }
-  return labels;
-}
-
-/**
- * Validator for tenant isolation dataset.
- */
-export function validate(
-  items: Record<string, unknown>[],
-  _labels: Record<string, unknown>[]
-): { valid: boolean; errors: { itemIndex: number; field: string; message: string }[]; warnings: { itemIndex: number; field: string; message: string }[] } {
-  const errors: { itemIndex: number; field: string; message: string }[] = [];
-  const warnings: { itemIndex: number; field: string; message: string }[] = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-
-    // Validate required fields
-    if (!item.attempt_id) {
-      errors.push({ itemIndex: i, field: 'attempt_id', message: 'Missing required field: attempt_id' });
-    }
-    if (!item.actor_tenant) {
-      errors.push({ itemIndex: i, field: 'actor_tenant', message: 'Missing required field: actor_tenant' });
-    }
-    if (!item.target_tenant) {
-      errors.push({ itemIndex: i, field: 'target_tenant', message: 'Missing required field: target_tenant' });
-    }
-
-    // Validate tenant isolation: actor and target should be different
-    if (item.actor_tenant === item.target_tenant) {
-      errors.push({
-        itemIndex: i,
-        field: 'actor_tenant/target_tenant',
-        message: 'Actor and target tenants should be different for isolation test',
-      });
-    }
-
-    // Validate expected status is in allowed list
-    if (item.expected_status && ![403, 404].includes(item.expected_status as number)) {
-      warnings.push({
-        itemIndex: i,
-        field: 'expected_status',
-        message: 'Expected status should be 403 or 404 for tenant isolation violations',
-      });
-    }
-  }
-
+function simulateCrossTenantRead(item: DatasetItem): { status: number; problem: Record<string, string | number> } {
+  const denied = item.actor_tenant !== item.target_tenant;
+  const status = denied ? ((item.attempt_index as number) % 2 === 0 ? 403 : 404) : 200;
   return {
-    valid: errors.length === 0,
-    errors,
-    warnings,
+    status,
+    problem: {
+      type: 'https://example.com/problems/tenant-isolation',
+      title: 'Tenant isolation violation',
+      status,
+      code: status === 403 ? 'TENANT_ISOLATION_DENIED' : 'TENANT_RESOURCE_NOT_FOUND',
+      trace_id: item.expected_trace_id as string,
+    },
   };
 }
 
-/**
- * Registered dataset.
- */
-export const dataset: RegisteredDataset = {
-  metadata,
-  generate,
-  validate,
+export const dataset: DatasetDefinition = {
+  metadata: METADATA,
+  generate: (ctx) => {
+    const items: DatasetItem[] = [];
+    for (let i = 0; i < METADATA.item_count; i += 1) {
+      const targetTenant = TARGET_TENANTS[i % TARGET_TENANTS.length];
+      const status = i % 2 === 0 ? 403 : 404;
+      items.push({
+        attempt_id: `attempt-${String(i).padStart(3, '0')}`,
+        attempt_index: i,
+        actor_tenant: 'public-hardonian',
+        target_tenant: targetTenant,
+        resource_type: RESOURCE_TYPES[i % RESOURCE_TYPES.length],
+        method: METHODS[i % METHODS.length],
+        path: `/api/v1/${RESOURCE_TYPES[i % RESOURCE_TYPES.length]}/${ctx.rng.hex(12)}`,
+        headers: {
+          authorization: `Bearer ${ctx.rng.hex(16)}`,
+          'x-session-tenant': 'public-hardonian',
+        },
+        expected_status: status,
+        expected_error_code: status === 403 ? 'TENANT_ISOLATION_DENIED' : 'TENANT_RESOURCE_NOT_FOUND',
+        expected_trace_id: `${ctx.trace_id}_tenant_${i}`,
+      });
+    }
+    return items;
+  },
+  label: () => labelFromSchema(METADATA.labels_schema),
+  validate: (items, _labels) => {
+    const result = defaultValidationResult([
+      {
+        name: 'tenant_isolation_denied',
+        passed: true,
+        details: { scenarios: items.length },
+      },
+    ]);
+
+    items.forEach((item, index) => {
+      const simulation = simulateCrossTenantRead(item);
+      if ((item.expected_status as number) !== simulation.status) {
+        fail(result, {
+          item_index: index,
+          field: 'expected_status',
+          message: `Expected ${(item.expected_status as number)} got ${simulation.status}`,
+        });
+      }
+      if ((item.expected_error_code as string) !== simulation.problem.code) {
+        fail(result, {
+          item_index: index,
+          field: 'expected_error_code',
+          message: 'Unexpected policy error code',
+        });
+      }
+      if (!ensureProblemJsonShape(simulation.problem as never)) {
+        fail(result, {
+          item_index: index,
+          field: 'problem+json',
+          message: 'Problem+JSON shape invalid',
+        });
+      }
+    });
+
+    result.checks[0].passed = result.valid;
+    return result;
+  },
 };

@@ -11,6 +11,7 @@
  */
 
 interface StitchStatCardProps {
+  key?: string;
   label: string;
   value: string | number;
   trend?: {

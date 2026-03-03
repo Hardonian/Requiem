@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
@@ -7,7 +8,7 @@ import { ThemeToggle } from '@/components/theme/ThemeToggle';
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 // Platform/Overview section (Stitch pages)
