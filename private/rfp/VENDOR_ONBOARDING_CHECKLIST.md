@@ -6,7 +6,7 @@
 ## 1. Required Legal Documents
 
 - [ ] **Master Service Agreement (MSA)**: Governing the relationship and IP ownership.
-- [ ] **Data Processing Agreement (DPA)**: Outlining GDPR and SOC 2 requirements.
+- [ ] **Data Processing Agreement (DPA)**: Outlining GDPR and SOC 2 compliance requirements.
 - [ ] **Security Addendum**: Detailed requirements for key management and isolation.
 
 ## 2. Onboarding Workflow

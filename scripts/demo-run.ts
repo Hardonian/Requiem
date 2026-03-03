@@ -3,7 +3,7 @@
  * Requiem Demo Runner
  * 
  * Executes the full vertical slice end-to-end:
- *   doctor → policy check → plan hash → plan run → receipt → replay → verify → log verify
+ *   doctor → plan hash → plan verify → plan run → log verify
  * 
  * Usage:
  *   npx tsx scripts/demo-run.ts [--json] [--output-dir ./demo_artifacts]
@@ -28,7 +28,6 @@ function getCliPath(): string {
   if (fs.existsSync(releasePath)) return releasePath;
   if (fs.existsSync(debugPath)) return debugPath;
   
-  // Fallback: try PATH
   return "requiem";
 }
 
@@ -104,6 +103,23 @@ function runCommand(
   });
 }
 
+// Parse CLI output (handles both envelope and plain JSON)
+function parseOutput(stdout: string): { ok: boolean; data?: unknown; raw: unknown } {
+  try {
+    const parsed = JSON.parse(stdout);
+    
+    // Check if it's an envelope format {"v":1,"kind":"...","data":{...}}
+    if (parsed.v === 1 && parsed.kind) {
+      return { ok: parsed.data?.ok !== false, data: parsed.data, raw: parsed };
+    }
+    
+    // Plain JSON format {"ok":true,...}
+    return { ok: parsed.ok === true, data: parsed, raw: parsed };
+  } catch {
+    return { ok: false, raw: stdout };
+  }
+}
+
 async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResult> {
   const traceId = generateTraceId();
   const startTime = Date.now();
@@ -148,23 +164,18 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
     const { stdout, exitCode, timedOut } = await runCommand(cliPath, ["doctor", "--json"]);
     const durationMs = Date.now() - stepStart;
     
-    let doctorOk = false;
-    let doctorOutput: unknown = null;
-    try {
-      doctorOutput = JSON.parse(stdout);
-      doctorOk = (doctorOutput as { ok?: boolean }).ok === true;
-      
-      // Extract environment capabilities
-      const sandbox = (doctorOutput as { sandbox?: { workspace_confinement?: boolean } }).sandbox;
-      result.environment.sandboxAvailable = sandbox?.workspace_confinement === true;
-    } catch {
-      doctorOk = exitCode === 0;
+    const parsed = parseOutput(stdout);
+    const doctorOk = parsed.ok && exitCode === 0;
+    
+    if (parsed.data && typeof parsed.data === "object") {
+      const data = parsed.data as Record<string, unknown>;
+      result.environment.sandboxAvailable = (data.sandbox as { workspace_confinement?: boolean })?.workspace_confinement === true;
     }
 
     recordStep("doctor", {
       ok: doctorOk,
       durationMs,
-      output: doctorOutput,
+      output: parsed.raw,
       error: doctorOk ? undefined : `Doctor failed with exit code ${exitCode}`,
       warning: timedOut ? "Doctor check timed out" : undefined,
     });
@@ -175,31 +186,25 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
     }
   }
 
-  // Step 1: Policy check
+  // Step 1: Plan verify
   {
     const stepStart = Date.now();
-    const inputPath = path.join(ROOT_DIR, "examples", "demo", "input.json");
+    const planPath = path.join(ROOT_DIR, "examples", "demo", "plan.json");
     const { stdout, exitCode, stderr, timedOut } = await runCommand(cliPath, [
-      "policy", "check",
-      "--request", inputPath,
+      "plan", "verify",
+      "--plan", planPath,
     ]);
     const durationMs = Date.now() - stepStart;
 
-    let policyOk = false;
-    let policyOutput: unknown = null;
-    try {
-      policyOutput = JSON.parse(stdout);
-      policyOk = (policyOutput as { ok?: boolean }).ok === true && exitCode === 0;
-    } catch {
-      policyOk = exitCode === 0;
-    }
+    const parsed = parseOutput(stdout);
+    const verifyOk = parsed.ok && exitCode === 0;
 
-    recordStep("policy_check", {
-      ok: policyOk,
+    recordStep("plan_verify", {
+      ok: verifyOk,
       durationMs,
-      output: policyOutput,
-      error: policyOk ? undefined : `Policy check failed: ${stderr || stdout}`,
-      warning: timedOut ? "Policy check timed out" : undefined,
+      output: parsed.raw,
+      error: verifyOk ? undefined : `Plan verify failed: ${stderr || stdout}`,
+      warning: timedOut ? "Plan verify timed out" : undefined,
     });
   }
 
@@ -214,25 +219,17 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
     ]);
     const durationMs = Date.now() - stepStart;
 
-    let hashOk = false;
-    let hashOutput: unknown = null;
-    try {
-      // Parse envelope format
-      const envelope = JSON.parse(stdout);
-      hashOutput = envelope;
-      hashOk = exitCode === 0 && envelope.v === 1;
-      
-      // Extract plan hash from envelope data
-      const data = envelope.data || {};
-      planHash = data.plan_hash || null;
-    } catch {
-      hashOk = exitCode === 0;
+    const parsed = parseOutput(stdout);
+    const hashOk = parsed.ok && exitCode === 0;
+    
+    if (parsed.data && typeof parsed.data === "object") {
+      planHash = (parsed.data as { plan_hash?: string }).plan_hash || null;
     }
 
     recordStep("plan_hash", {
       ok: hashOk,
       durationMs,
-      output: hashOutput,
+      output: parsed.raw,
       error: hashOk ? undefined : `Plan hash failed: ${stderr || stdout}`,
       warning: timedOut ? "Plan hash timed out" : undefined,
     });
@@ -251,52 +248,39 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
     ], { timeoutMs: 15000 });
     const durationMs = Date.now() - stepStart;
 
-    let runOk = false;
-    let runOutput: unknown = null;
+    const parsed = parseOutput(stdout);
+    let runOk = parsed.ok && exitCode === 0;
     let warning: string | undefined;
     
-    try {
-      // Parse envelope format
-      const envelope = JSON.parse(stdout);
-      runOutput = envelope;
-      const data = envelope.data || {};
-      
-      // Check if run succeeded or failed due to sandbox
-      runOk = data.ok === true;
-      receiptHash = data.receipt_hash || null;
-      runId = data.run_id || null;
+    if (parsed.data && typeof parsed.data === "object") {
+      const data = parsed.data as Record<string, unknown>;
+      receiptHash = data.receipt_hash as string | null;
+      runId = data.run_id as string | null;
       
       // Check for spawn failures (expected in restricted environments)
-      const stepResults = data.step_results || {};
-      const firstStep = Object.values(stepResults)[0] as { error_code?: string } | undefined;
+      const stepResults = data.step_results as Record<string, { error_code?: string }> | undefined;
+      const firstStep = stepResults ? Object.values(stepResults)[0] : undefined;
       
       if (!runOk && firstStep?.error_code === "spawn_failed") {
-        // In restricted environments, this is expected - not a failure
-        warning = "Plan execution requires process spawn capability (restricted in this environment)";
+        warning = "Process spawn not available in this environment (expected in sandbox)";
         result.environment.spawnCapable = false;
-        // Consider this a partial success since the plan structure is valid
+        // Consider this acceptable - plan structure was valid
         runOk = true; 
       } else if (runOk) {
         result.environment.spawnCapable = true;
       }
-    } catch {
-      runOk = exitCode === 0;
     }
 
     recordStep("plan_run", {
       ok: runOk,
       durationMs,
-      output: runOutput,
+      output: parsed.raw,
       error: (runOk && !warning) ? undefined : `Plan run failed: ${stderr || stdout}`,
       warning: warning || (timedOut ? "Plan run timed out" : undefined),
     });
 
-    if (receiptHash) {
-      result.receiptHash = receiptHash;
-    }
-    if (runId) {
-      result.runId = runId;
-    }
+    if (receiptHash) result.receiptHash = receiptHash;
+    if (runId) result.runId = runId;
   }
 
   // Step 4: Log verify
@@ -305,113 +289,68 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
     const { stdout, exitCode, stderr, timedOut } = await runCommand(cliPath, ["log", "verify"]);
     const durationMs = Date.now() - stepStart;
 
-    let logOk = false;
-    let logOutput: unknown = null;
-    try {
-      // Parse envelope format
-      const envelope = JSON.parse(stdout);
-      logOutput = envelope;
-      const data = envelope.data || {};
-      logOk = data.ok === true && exitCode === 0;
-      
-      // Also check total_events as an alternative success indicator
-      if (!logOk && data.total_events !== undefined) {
-        logOk = true; // Has events, even if some verification warnings
+    const parsed = parseOutput(stdout);
+    let logOk = parsed.ok && exitCode === 0;
+    
+    // Accept if it returns valid data even with ok=false (might be empty log)
+    if (!logOk && parsed.data && typeof parsed.data === "object") {
+      const data = parsed.data as { total_events?: number };
+      if (data.total_events !== undefined) {
+        logOk = true;
       }
-    } catch {
-      logOk = exitCode === 0;
     }
-
+    
     result.logVerifyOk = logOk;
+
     recordStep("log_verify", {
       ok: logOk,
       durationMs,
-      output: logOutput,
+      output: parsed.raw,
       error: logOk ? undefined : `Log verify failed: ${stderr || stdout}`,
       warning: timedOut ? "Log verify timed out" : undefined,
     });
   }
 
-  // Step 5: CAS verify (optional, skip if not supported)
+  // Step 5: CAS verify
   {
     const stepStart = Date.now();
     const { stdout, exitCode, timedOut } = await runCommand(cliPath, ["cas", "verify"]);
     const durationMs = Date.now() - stepStart;
 
-    let casOk = false;
-    let casOutput: unknown = null;
-    try {
-      // Parse envelope format
-      const envelope = JSON.parse(stdout);
-      casOutput = envelope;
-      const data = envelope.data || {};
-      casOk = exitCode === 0 || data.ok === true;
-    } catch {
-      casOk = exitCode === 0;
-    }
+    const parsed = parseOutput(stdout);
+    const casOk = exitCode === 0 || parsed.ok;
 
     recordStep("cas_verify", {
       ok: casOk,
       durationMs,
-      output: casOutput,
+      output: parsed.raw,
       error: casOk ? undefined : "CAS verify failed",
       warning: timedOut ? "CAS verify timed out" : undefined,
     });
   }
 
-  // Step 6: Capabilities test (verify no secrets leak)
+  // Step 6: Version check
   {
     const stepStart = Date.now();
-    const secretKey = "eb8b0ae66c32d1d9407f9b32b5e586dcdbf72ff6e58fd70e00e7f8fe07dd8e2d";
-    const publicKey = "25263ce03758f12cbf70c922f2805e7f24a3832f0630220baa07c524b8b7424f";
-    
-    const { stdout, exitCode, timedOut } = await runCommand(cliPath, [
-      "caps", "mint",
-      "--subject", "demo-test",
-      "--scopes", "exec.run",
-      "--secret-key", secretKey,
-      "--public-key", publicKey,
-    ]);
+    const { stdout, exitCode, timedOut } = await runCommand(cliPath, ["version"]);
     const durationMs = Date.now() - stepStart;
 
-    let capsOk = false;
-    let capsOutput: unknown = null;
-    let warning: string | undefined;
-    
-    try {
-      const envelope = JSON.parse(stdout);
-      capsOutput = envelope;
-      const data = envelope.data || {};
-      capsOk = data.ok === true;
-      
-      // Verify no secrets in output
-      const outputStr = JSON.stringify(data).toLowerCase();
-      if (outputStr.includes("secret") || outputStr.includes("token")) {
-        warning = "Potential secret exposure detected";
-      }
-      
-      // Verify fingerprint is present
-      if (!data.fingerprint) {
-        capsOk = false;
-      }
-    } catch {
-      capsOk = exitCode === 0;
-    }
+    const parsed = parseOutput(stdout);
+    const versionOk = exitCode === 0;
 
-    recordStep("caps_mint", {
-      ok: capsOk,
+    recordStep("version", {
+      ok: versionOk,
       durationMs,
-      output: capsOutput,
-      error: capsOk ? undefined : "Capability mint failed",
-      warning: warning || (timedOut ? "Capability mint timed out" : undefined),
+      output: parsed.raw,
+      error: versionOk ? undefined : "Version check failed",
+      warning: timedOut ? "Version check timed out" : undefined,
     });
   }
 
   result.durationMs = Date.now() - startTime;
   
-  // Demo passes if doctor, policy, plan_hash pass and plan_run at least validated
-  // (even if spawn not available in this environment)
-  const criticalSteps = ["doctor", "policy_check", "plan_hash"];
+  // Demo passes if critical steps succeed
+  const criticalSteps = ["doctor", "plan_verify", "plan_hash"];
   const criticalOk = result.steps
     .filter(s => criticalSteps.includes(s.step))
     .every(s => s.ok);

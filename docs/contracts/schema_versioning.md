@@ -164,7 +164,7 @@ Fails if:
 Before releasing:
 
 - [ ] No breaking changes in PATCH release
-- [ ] Deprecation warnings for sunsetting features
+- [ ] Deprecation warnings for sunset features
 - [ ] Contract snapshots updated
 - [ ] CHANGELOG.md documents changes
 - [ ] Migration guide for MAJOR changes

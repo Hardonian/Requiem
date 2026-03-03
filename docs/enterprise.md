@@ -83,7 +83,7 @@ All features map to one of these layers:
 | Replay storage     | 1 GB      | 50 GB      | Unlimited  |
 | Policy events      | 10,000/mo | 500,000/mo | Unlimited  |
 | Cost accounting    | —         | ✅         | ✅         |
-| Chargeback reports | —         | ✅         | ✅         |
+| Billing/Cost allocation reports | —         | ✅         | ✅         |
 
 ### Observability Layer
 

@@ -732,6 +732,6 @@ If they differ, the execution was non-deterministic — this is a FAIL condition
 5. **INV-METER**: Budget check occurs BEFORE the operation. Over-budget = hard deny, no partial work.
 6. **INV-REPLAY**: `replay(same_inputs) → identical receipt_hash`. Any deviation is a FAIL.
 7. **INV-ENVELOPE**: All CLI/API output is wrapped in the versioned envelope. Raw output is a spec violation.
-8. **INV-NO-WALLCLOCK**: The kernel uses logical time only. Wall-clock timestamps are metadata, not inputs to hashing or decisions.
+8. **INV-NO-WALL-CLOCK**: The kernel uses logical time only. Wall-clock timestamps are metadata, not inputs to hashing or decisions.
 9. **INV-DETERMINISTIC-SCHEDULE**: Plan steps execute in topological+lexicographic order. No randomness in scheduling.
 10. **INV-NO-AMBIENT**: Ambient authority (global state, env vars, implicit credentials) is never used for authorization. Explicit tokens only.
