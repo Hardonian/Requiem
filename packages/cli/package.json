@@ -48,6 +48,7 @@
     "verify:all": "node ../../scripts/run-tsx.mjs src/verify-all.ts"
   },
   "dependencies": {
+    "@requiem/testdata": "workspace:*",
     "better-sqlite3": "^11.8.1",
     "blake3": "^2.1.7",
     "cbor": "^10.0.3",

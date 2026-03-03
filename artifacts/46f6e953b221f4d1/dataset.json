@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "code": "POL-TENANT-ISOLATION",
+    "name": "Tenant Isolation Policy Test",
+    "description": "Cross-tenant read attempts",
+    "version": 1,
+    "schemaVersion": "1.0.0",
+    "itemCount": 10,
+    "labels": {
+      "violates_tenant_isolation": true,
+      "category": "policy",
+      "subtype": "cross_tenant_read"
+    }
+  },
+  "itemCount": 10
+}

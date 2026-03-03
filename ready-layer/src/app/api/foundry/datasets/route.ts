@@ -30,7 +30,7 @@ const createSampleDatasetBodySchema = z.object({
   item_count: z.number().int().min(1).max(10000).default(100),
   schema: z.enum(['simple', 'complex', 'edge_cases']).default('simple'),
   include_labels: z.boolean().default(true),
-  label_distribution: z.record(z.number(), z.string()).optional(),
+  label_distribution: z.record(z.string(), z.number()).optional(),
 });
 
 // GET /api/foundry/datasets - List datasets

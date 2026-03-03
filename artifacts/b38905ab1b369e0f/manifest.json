@@ -1,0 +1,39 @@
+{
+  "run": {
+    "runId": "b38905ab1b369e0f",
+    "datasetId": "48a4667d4c9e201a",
+    "datasetCode": "POL-TENANT-ISOLATION",
+    "version": 1,
+    "seed": 1337,
+    "timestamp": "2026-03-03T14:56:08.781Z",
+    "traceId": "trace-1772549768781-tq2n6shr",
+    "tenantId": "public-hardonian"
+  },
+  "dataset": {
+    "code": "POL-TENANT-ISOLATION",
+    "name": "Tenant Isolation Policy Test",
+    "description": "Cross-tenant read attempts",
+    "version": 1,
+    "schemaVersion": "1.0.0",
+    "itemCount": 10,
+    "labels": {
+      "violates_tenant_isolation": true,
+      "category": "policy",
+      "subtype": "cross_tenant_read"
+    }
+  },
+  "files": [
+    {
+      "name": "items.jsonl",
+      "size": 2389
+    },
+    {
+      "name": "labels.jsonl",
+      "size": 850
+    },
+    {
+      "name": "checks.json",
+      "size": 18
+    }
+  ]
+}

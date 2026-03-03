@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { withTenantContext, parseJsonWithSchema } from '@/lib/big4-http';
 import { createFoundryRepository } from '@/lib/foundry-repository';
+import type { DatasetItem } from '@/types/foundry';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -9,16 +10,16 @@ const updateDatasetBodySchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional(),
   labels_enabled: z.boolean().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.any().optional(),
 });
 
 const addItemsBodySchema = z.object({
   items: z
     .array(
       z.object({
-        content: z.record(z.unknown()),
+        content: z.any(),
         content_type: z.string().optional(),
-        metadata: z.record(z.unknown()).optional(),
+        metadata: z.any().optional(),
       })
     )
     .min(1)
@@ -211,7 +212,7 @@ export async function POST(
       let nextIndex = total;
 
       // Add items
-      const addedItems = [];
+      const addedItems: DatasetItem[] = [];
       for (const item of body.items) {
         const added = await repo.addDatasetItem({
           dataset_id: id,

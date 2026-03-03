@@ -97,7 +97,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const run = await repo.createGeneratorRun({
         generator_id: body.generator_id,
         source_dataset_id: body.source_dataset_id,
-        config_override: body.config_override,
+        config_snapshot: body.config_override,
         seed_value: body.seed_value,
       });
 

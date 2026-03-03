@@ -159,6 +159,7 @@ DASHBOARD & SETUP:
   init                                Initialize configuration
 
 ADMIN COMMANDS:
+  ingest lineage --tenant <id>        Deterministic GitHub repo lineage ingestion
   backup                              Dump database to JSON
   restore                             Restore database from JSON
   import                              Ingest decision logs from CSV
@@ -703,6 +704,12 @@ async function main(): Promise<number> {
         const { provenance } = await loadCommand('./commands/provenance.js') as { provenance: { parseAsync: (args: string[]) => Promise<void> } };
         await provenance.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
+        break;
+      }
+
+      case 'ingest': {
+        const { runIngestCommand } = await loadCommand('./commands/ingest.js') as { runIngestCommand: (args: string[]) => Promise<number> };
+        result = await runIngestCommand(subArgs);
         break;
       }
 

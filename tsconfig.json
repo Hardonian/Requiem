@@ -14,5 +14,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
+  "include": ["packages/testdata/**/*"],
   "exclude": ["node_modules", "packages/ui", "ready-layer", "e2e", "playwright.config.ts"]
 }

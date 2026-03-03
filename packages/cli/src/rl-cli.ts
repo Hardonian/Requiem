@@ -11,6 +11,7 @@
  *   rl prompt (list/get/add/run) with deterministic prompt IDs (hash)
  *   rl run (start/replay/inspect) with run_id + trace_id and artifact export
  *   rl graph (show repo lineage graph / run graph)
+ *   rl dataset (list/gen/validate/replay deterministic datasets)
  *
  * INVARIANT: Graceful degradation - no crashes if optional deps missing.
  * INVARIANT: Print actionable errors with run_id/trace_id.
@@ -106,6 +107,12 @@ GRAPH COMMANDS:
   graph repo                          Show repository lineage graph
   graph run <run_id>                  Show run dependency graph
   graph trace <trace_id>              Show trace execution graph
+
+DATASET COMMANDS:
+  dataset list [--json]               List all registered datasets
+  dataset gen <CODE> --seed <n>       Generate dataset artifacts
+  dataset validate <CODE> --seed <n> Validate dataset
+  dataset replay <run_id>             Replay a dataset run
 
 OPTIONS:
   --json                              Output in JSON format
@@ -327,6 +334,17 @@ async function main(): Promise<number> {
           runGraph: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
         };
         result = await runGraph(subArgs[0] ?? 'repo', subArgs.slice(1), { json });
+        break;
+      }
+
+      // Dataset commands (Test Data Foundry)
+      case 'dataset':
+      case 'ds': {
+        const { runDataset } = await loadCommand('./commands/dataset.js') as {
+          runDataset: (subcommand: string, args: string[], opts: { json?: boolean }) => Promise<void>;
+        };
+        await runDataset(subArgs[0] ?? 'list', subArgs.slice(1), { json });
+        result = 0;
         break;
       }
 
