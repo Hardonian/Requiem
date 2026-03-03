@@ -308,3 +308,252 @@ model EconomicAlert {
   @@index([tenantId, createdAt])
   @@map("economic_alerts")
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEST DATA FOUNDRY MODELS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Datasets ───────────────────────────────────────────────────────────────────
+model Dataset {
+  id                String         @id @default(uuid())
+  tenantId          String         @map("tenant_id")
+  stableHash        String         @map("stable_hash")
+  name              String
+  description       String?
+  datasetType       String         @default("test") @map("dataset_type")
+  schemaJson        Json?          @map("schema_json")
+  itemCount         Int            @default(0) @map("item_count")
+  sizeBytes         Int            @default(0) @map("size_bytes")
+  version           Int            @default(1)
+  parentDatasetId   String?        @map("parent_dataset_id")
+  labelsEnabled     Boolean        @default(true) @map("labels_enabled")
+  metadata          Json?
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  createdBy         String         @map("created_by")
+
+  // Relations
+  parentDataset     Dataset?       @relation("DatasetVersions", fields: [parentDatasetId], references: [id], onDelete: SetNull)
+  childDatasets     Dataset[]      @relation("DatasetVersions")
+  items             DatasetItem[]
+  labels            Label[]
+  generatorRunsAsSource GeneratorRun[] @relation("GeneratorRunSource")
+  generatorRunsAsOutput GeneratorRun[] @relation("GeneratorRunOutput")
+  evalRuns          EvalRun[]
+  driftBaselines    DriftVector[]  @relation("DriftBaseline")
+  driftComparisons  DriftVector[]  @relation("DriftComparison")
+
+  @@unique([tenantId, stableHash])
+  @@index([tenantId])
+  @@index([tenantId, datasetType])
+  @@index([tenantId, createdAt])
+  @@map("datasets")
+}
+
+// ─── Dataset Items ──────────────────────────────────────────────────────────────
+model DatasetItem {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  datasetId     String    @map("dataset_id")
+  stableHash    String    @map("stable_hash")
+  itemIndex     Int       @map("item_index")
+  content       Json
+  contentType   String    @default("json") @map("content_type")
+  sizeBytes     Int       @default(0) @map("size_bytes")
+  metadata      Json?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  dataset       Dataset   @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  labels        Label[]
+
+  @@unique([tenantId, stableHash])
+  @@unique([datasetId, itemIndex])
+  @@index([tenantId])
+  @@index([datasetId])
+  @@map("dataset_items")
+}
+
+// ─── Labels ─────────────────────────────────────────────────────────────────────
+model Label {
+  id                String        @id @default(uuid())
+  tenantId          String        @map("tenant_id")
+  datasetId         String        @map("dataset_id")
+  datasetItemId     String        @map("dataset_item_id")
+  labelType         String        @default("manual") @map("label_type")
+  labelKey          String        @map("label_key")
+  labelValue        Json          @map("label_value")
+  confidence        Float?
+  labeledBy         String?       @map("labeled_by")
+  sourceGeneratorId String?       @map("source_generator_id")
+  metadata          Json?
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  dataset           Dataset       @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  datasetItem       DatasetItem   @relation(fields: [datasetItemId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([datasetId])
+  @@index([datasetItemId])
+  @@index([tenantId, labelKey])
+  @@map("labels")
+}
+
+// ─── Generators ─────────────────────────────────────────────────────────────────
+model Generator {
+  id                String         @id @default(uuid())
+  tenantId          String         @map("tenant_id")
+  stableHash        String         @map("stable_hash")
+  name              String
+  description       String?
+  generatorType     String         @map("generator_type")
+  configJson        Json           @map("config_json")
+  seedValue         BigInt?        @map("seed_value")
+  deterministic     Boolean        @default(true)
+  version           Int            @default(1)
+  parentGeneratorId String?        @map("parent_generator_id")
+  metadata          Json?
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  createdBy         String         @map("created_by")
+
+  // Relations
+  parentGenerator   Generator?     @relation("GeneratorVersions", fields: [parentGeneratorId], references: [id], onDelete: SetNull)
+  childGenerators   Generator[]    @relation("GeneratorVersions")
+  runs              GeneratorRun[]
+
+  @@unique([tenantId, stableHash])
+  @@index([tenantId])
+  @@index([tenantId, generatorType])
+  @@map("generators")
+}
+
+// ─── Generator Runs ─────────────────────────────────────────────────────────────
+model GeneratorRun {
+  id                String      @id @default(uuid())
+  tenantId          String      @map("tenant_id")
+  runId             String      @unique @map("run_id")
+  generatorId       String      @map("generator_id")
+  sourceDatasetId   String?     @map("source_dataset_id")
+  outputDatasetId   String?     @map("output_dataset_id")
+  status            String      @default("pending")
+  configSnapshot    Json        @map("config_snapshot")
+  seedValue         BigInt?     @map("seed_value")
+  itemCount         Int?        @map("item_count")
+  durationMs        Int?        @map("duration_ms")
+  traceId           String      @map("trace_id")
+  errorMessage      String?     @map("error_message")
+  errorCode         String?     @map("error_code")
+  metadata          Json?
+  createdAt         DateTime    @default(now()) @map("created_at")
+  startedAt         DateTime?   @map("started_at")
+  completedAt       DateTime?   @map("completed_at")
+  createdBy         String      @map("created_by")
+
+  // Relations
+  generator         Generator   @relation(fields: [generatorId], references: [id], onDelete: Restrict)
+  sourceDataset     Dataset?    @relation("GeneratorRunSource", fields: [sourceDatasetId], references: [id], onDelete: SetNull)
+  outputDataset     Dataset?    @relation("GeneratorRunOutput", fields: [outputDatasetId], references: [id], onDelete: SetNull)
+  artifacts         RunArtifact[]
+
+  @@index([tenantId])
+  @@index([generatorId])
+  @@index([tenantId, status])
+  @@index([traceId])
+  @@map("generator_runs")
+}
+
+// ─── Eval Runs ──────────────────────────────────────────────────────────────────
+model EvalRun {
+  id                String      @id @default(uuid())
+  tenantId          String      @map("tenant_id")
+  runId             String      @unique @map("run_id")
+  datasetId         String      @map("dataset_id")
+  targetType        String      @map("target_type")
+  targetId          String      @map("target_id")
+  targetVersion     String?     @map("target_version")
+  status            String      @default("pending")
+  metricsJson       Json?       @map("metrics_json")
+  scoreSummary      Json?       @map("score_summary")
+  itemResultsCount  Int         @default(0) @map("item_results_count")
+  durationMs        Int?        @map("duration_ms")
+  traceId           String      @map("trace_id")
+  errorMessage      String?     @map("error_message")
+  errorCode         String?     @map("error_code")
+  metadata          Json?
+  createdAt         DateTime    @default(now()) @map("created_at")
+  startedAt         DateTime?   @map("started_at")
+  completedAt       DateTime?   @map("completed_at")
+  createdBy         String      @map("created_by")
+
+  // Relations
+  dataset           Dataset     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  artifacts         RunArtifact[]
+
+  @@index([tenantId])
+  @@index([datasetId])
+  @@index([tenantId, status])
+  @@index([traceId])
+  @@index([tenantId, targetType, targetId])
+  @@map("eval_runs")
+}
+
+// ─── Drift Vectors ──────────────────────────────────────────────────────────────
+model DriftVector {
+  id                    String      @id @default(uuid())
+  tenantId              String      @map("tenant_id")
+  vectorName            String      @map("vector_name")
+  vectorType            String      @map("vector_type")
+  sourceType            String      @map("source_type")
+  sourceId              String      @map("source_id")
+  baselineDatasetId     String?     @map("baseline_dataset_id")
+  comparisonDatasetId   String?     @map("comparison_dataset_id")
+  driftScore            Float?      @map("drift_score")
+  threshold             Float       @default(0.05)
+  isDriftDetected       Boolean     @default(false) @map("is_drift_detected")
+  featuresJson          Json?       @map("features_json")
+  distributionComparison Json?      @map("distribution_comparison")
+  traceId               String      @map("trace_id")
+  metadata              Json?
+  createdAt             DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  baselineDataset       Dataset?    @relation("DriftBaseline", fields: [baselineDatasetId], references: [id], onDelete: SetNull)
+  comparisonDataset     Dataset?    @relation("DriftComparison", fields: [comparisonDatasetId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, sourceType, sourceId])
+  @@index([tenantId, vectorType])
+  @@index([tenantId, isDriftDetected])
+  @@map("drift_vectors")
+}
+
+// ─── Run Artifacts ──────────────────────────────────────────────────────────────
+model RunArtifact {
+  id                String      @id @default(uuid())
+  tenantId          String      @map("tenant_id")
+  runId             String      @map("run_id")
+  runType           String      @map("run_type")
+  artifactType      String      @map("artifact_type")
+  artifactName      String      @map("artifact_name")
+  contentHash       String      @map("content_hash")
+  storagePath       String      @map("storage_path")
+  sizeBytes         Int         @default(0) @map("size_bytes")
+  mimeType          String?     @map("mime_type")
+  metadata          Json?
+  createdAt         DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  generatorRun      GeneratorRun? @relation(fields: [runId], references: [runId], onDelete: Cascade)
+  evalRun           EvalRun?      @relation(fields: [runId], references: [runId], onDelete: Cascade)
+
+  @@unique([tenantId, runId, artifactName])
+  @@index([tenantId])
+  @@index([runId])
+  @@index([tenantId, artifactType])
+  @@index([tenantId, contentHash])
+  @@map("run_artifacts")
+}
