@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -69,7 +69,8 @@
     "verify:invariants": "node scripts/run-tsx.mjs tests/invariants/index.ts",
     "verify:no-any-core": "node scripts/run-tsx.mjs scripts/verify-no-any-core.ts",
     "selftest": "node scripts/run-tsx.mjs packages/cli/src/commands/selftest.ts",
-    "verify:mcp-routes": "pnpm --filter ready-layer test:mcp-routes"
+    "verify:mcp-routes": "pnpm --filter ready-layer test:mcp-routes",
+    "verify:intelligence": "node scripts/run-tsx.mjs scripts/verify-intelligence.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

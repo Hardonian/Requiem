@@ -120,6 +120,14 @@ AUDIT & GOVERNANCE (Differentiators):
 
 GOVERNANCE COMMANDS:
   learn [--window=7d] [--format]      Show learning signals and diagnoses
+
+  predict list --run <id>             List run predictions
+  predict score --run <id>            Record outcomes + scores for run predictions
+  calibrate show --claim <type>       Show calibration aggregates
+  calibrate export --format <fmt>     Export calibration bins (json/csv)
+  cases suggest --error-log <path>    Suggest similar solved cases
+  signals compute --last <window>     Compute perception signals
+  risk score --paths <a,b>            Compute deterministic risk score
   realign <patch-id>                  Apply patch in new branch and verify
   pivot plan <name>                   Plan a strategic pivot
   rollback <sha|release> [--force]    Rollback to previous release
@@ -601,6 +609,37 @@ async function main(): Promise<number> {
       }
 
       // Governance and Learning
+
+      case 'predict': {
+        const { runPredictCommand } = await loadCommand('./commands/intelligence.js') as { runPredictCommand: (args: string[]) => Promise<number> };
+        result = await runPredictCommand(subArgs);
+        break;
+      }
+
+      case 'calibrate': {
+        const { runCalibrateCommand } = await loadCommand('./commands/intelligence.js') as { runCalibrateCommand: (args: string[]) => Promise<number> };
+        result = await runCalibrateCommand(subArgs);
+        break;
+      }
+
+      case 'cases': {
+        const { runCasesCommand } = await loadCommand('./commands/intelligence.js') as { runCasesCommand: (args: string[]) => Promise<number> };
+        result = await runCasesCommand(subArgs);
+        break;
+      }
+
+      case 'signals': {
+        const { runSignalsCommand } = await loadCommand('./commands/intelligence.js') as { runSignalsCommand: (args: string[]) => Promise<number> };
+        result = await runSignalsCommand(subArgs);
+        break;
+      }
+
+      case 'risk': {
+        const { runRiskCommand } = await loadCommand('./commands/intelligence.js') as { runRiskCommand: (args: string[]) => Promise<number> };
+        result = await runRiskCommand(subArgs);
+        break;
+      }
+
       case 'learn': {
         const { runLearnCommand } = await loadCommand('./commands/learn.js') as { runLearnCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runLearnCommand(subArgs, ctx);
