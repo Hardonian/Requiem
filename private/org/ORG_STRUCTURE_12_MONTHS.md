@@ -33,7 +33,7 @@ We prioritize high-density talent over head-count. Every team member must be abl
 ## 4. Compensation Framework
 
 - **Salary**: Competitive with Series-A / Tier-1 Tech.
-- **Equity**: Meaningful ownership via ESOP (Employee Stock Option Plan).
+- **Equity**: Meaningful ownership via Employee Stock Option Plan (ESOP).
 - **Incentives**: Quarterly "Determinism Bonus" for significant reductions in system variance.
 
 ## 5. Culture Invariants
