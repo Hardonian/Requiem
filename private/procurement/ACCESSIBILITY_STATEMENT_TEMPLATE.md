@@ -6,7 +6,7 @@ Zeo is committed to ensuring that the **ReadyLayer UI** and **Microfracture Suit
 
 ## Core Accessibility Standards
 
-**Designed to Support**:
+### Designed to Support
 
 - **WCAG 2.1 Level AA**: All UI components are verified for AA compliance using automated and manual testing.
 - **Section 508**: US government accessibility standards.

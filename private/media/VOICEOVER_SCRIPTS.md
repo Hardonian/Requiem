@@ -2,7 +2,7 @@
 
 ## 🎙️ Tone: Technical, Calm, Deterministic
 
-Characters:
+### Characters
 
 - **NARRATOR**: Professional, authoritative.
 - **ENGINEER**: Practical, clear.
@@ -23,7 +23,7 @@ Characters:
 
 > "Stop guessing what your AI actually did. Start proving it. This is Requiem. Built for the mission-critical AI runtime."
 
-## Technical Pronunciation Guide
+### Technical Pronunciation Guide
 
 - **Requiem**: /'rekwiəm/
 - **BLAKE3**: /bleɪk θriː/

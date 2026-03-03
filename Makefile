@@ -114,9 +114,21 @@ test:web: ## Run web tests
 # ============================================================================
 
 demo: build:cpp ## Run deterministic demo
-	@echo "Running deterministic execution demo..."
-	./build/Release/requiem.exe run -- echo "Hello, Requiem"
-	@echo "Demo complete. Verify deterministic output above."
+	@npx tsx scripts/demo-doctor.ts
+	@npx tsx scripts/demo-run.ts
+
+demo\:verify: build:cpp ## Run demo with replay verification
+	@npx tsx scripts/demo-doctor.ts
+	@npx tsx scripts/demo-run.ts
+	@echo ""
+	@echo "Verifying replay exactness..."
+	@./build/Release/requiem.exe log verify --json
+
+demo\:clean: ## Clean demo artifacts
+	@echo "Cleaning demo artifacts..."
+	@rm -rf demo_artifacts
+	@mkdir -p demo_artifacts
+	@echo "Demo artifacts cleaned."
 
 doctor: ## Run system health check
 	pnpm run doctor
