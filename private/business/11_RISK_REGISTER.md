@@ -11,9 +11,13 @@
 | **Open Source Fragmentation**| Strategic| Low | Med | Maintain clear governance; Strong documentation; Responsive core maintainer team. |
 
 ## Detailed Technical Risk: Sandbox Escape
+
 **Problem**: An untrusted tool execution might escape the local sandbox and compromise the host machine.
+
 **Mitigation**: Use hardened containerization or lightweight VMs (e.g., Firecracker) where necessary; Enforce strict syscall filtering in the Native Engine.
 
 ## Detailed Market Risk: Competition from Cloud Providers
+
 **Problem**: AWS/OpenAI might build native "Deterministic Logging" or "Safety Gates."
+
 **Mitigation**: Maintain a "Provider-Agnostic" stance; Focus on the *Proof* rather than just the *Action*. A receipt that works across all models is more valuable than a siloed one.
