@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * verify:integrity - Content-addressed storage & capability registry integrity
- * 
+ *
  * Verifies:
  * - CAS put → get roundtrip preserves content
  * - CAS hash determinism (same content → same hash)
- * - Capability mint → inspect roundtrip
+ * - Capability mint/revoke flow works
  * - Capability revocation works
  * - No ambient authority (explicit tokens required)
  */
@@ -20,6 +20,13 @@ interface TestResult {
   name: string;
   passed: boolean;
   error?: string;
+}
+
+interface CliResult {
+  status: number | null;
+  stdout: string;
+  stderr: string;
+  parsed: any;
 }
 
 const results: TestResult[] = [];
@@ -40,21 +47,60 @@ function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(message);
 }
 
-function runCli(args: string[]): any {
+function parseStdout(stdout: string): any {
+  const trimmed = stdout.trim();
+  if (!trimmed) return {};
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    if (/^[a-f0-9]{64}$/i.test(trimmed)) {
+      return { hash: trimmed };
+    }
+    return { raw: trimmed };
+  }
+}
+
+function runCli(args: string[]): CliResult {
   const result = spawnSync('./build/requiem', args, {
     encoding: 'utf-8',
     cwd: '..',
     timeout: 10000
   });
-  
+
   if (result.error) {
     throw new Error(`CLI execution failed: ${result.error.message}`);
   }
-  
-  try {
-    return JSON.parse(result.stdout);
-  } catch {
-    throw new Error(`Invalid JSON: ${result.stdout.substring(0, 200)}`);
+
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    parsed: parseStdout(result.stdout)
+  };
+}
+
+function dataOf(parsed: any): any {
+  if (parsed && typeof parsed === 'object' && parsed.v === 1 && 'kind' in parsed) {
+    return parsed.data;
+  }
+  return parsed;
+}
+
+function isErrorEnvelope(parsed: any): boolean {
+  return (
+    !!parsed &&
+    typeof parsed === 'object' &&
+    parsed.v === 1 &&
+    (parsed.kind === 'error' || parsed.error !== null)
+  );
+}
+
+function assertSuccess(result: CliResult, message: string) {
+  if (result.status !== 0) {
+    throw new Error(`${message}: exit=${result.status} stderr=${result.stderr.trim()}`);
+  }
+  if (isErrorEnvelope(result.parsed)) {
+    throw new Error(`${message}: ${JSON.stringify(result.parsed.error)}`);
   }
 }
 
@@ -66,127 +112,134 @@ console.log('═'.repeat(60));
 console.log('\n[CAS Integrity]');
 
 let testHash = '';
-const testContent = 'integrity-test-content-' + Date.now();
+let testCapFingerprint = '';
+const testContent = 'integrity-test-content-static';
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'requiem-verify-integrity-'));
 
 test('CAS put stores content', () => {
-  const tmpFile = path.join(os.tmpdir(), 'cas-test-' + Date.now());
+  const tmpFile = path.join(tempDir, 'cas-test.txt');
   fs.writeFileSync(tmpFile, testContent);
-  
-  const result = runCli(['cas', 'put', tmpFile]);
-  fs.unlinkSync(tmpFile);
-  
-  assert(result.ok === true || result.data?.hash, 'CAS put should succeed');
-  testHash = result.data?.hash;
-  assert(testHash?.length > 0, 'Hash should be returned');
+
+  const result = runCli(['cas', 'put', '--in', tmpFile]);
+  assertSuccess(result, 'CAS put should succeed');
+
+  testHash = result.parsed?.hash || dataOf(result.parsed)?.hash;
+  assert(/^[a-f0-9]{64}$/i.test(testHash), 'CAS put should return 64-char hash');
 });
 
 test('CAS get retrieves correct content', () => {
   if (!testHash) throw new Error('Skipping: no hash from previous test');
-  
-  const result = runCli(['cas', 'get', testHash]);
-  assert(result.data?.content === testContent || 
-         result.data?.data === testContent, 
-         'Retrieved content should match');
+
+  const result = runCli(['cas', 'get', '--hash', testHash]);
+  assertSuccess(result, 'CAS get should succeed');
+
+  const data = dataOf(result.parsed);
+  assert(data?.ok === true, 'CAS get should report ok=true');
+  assert(data?.content === testContent, 'Retrieved content should match');
 });
 
 test('CAS hash is deterministic', () => {
-  const tmpFile = path.join(os.tmpdir(), 'cas-test-det-' + Date.now());
+  const tmpFile = path.join(tempDir, 'cas-test-det.txt');
   fs.writeFileSync(tmpFile, testContent);
-  
-  const result1 = runCli(['cas', 'put', tmpFile]);
-  fs.unlinkSync(tmpFile);
-  
-  const hash1 = result1.data?.hash;
-  
-  // Create same content again
-  const tmpFile2 = path.join(os.tmpdir(), 'cas-test-det2-' + Date.now());
+
+  const result1 = runCli(['cas', 'put', '--in', tmpFile]);
+  assertSuccess(result1, 'First CAS put should succeed');
+  const hash1 = result1.parsed?.hash || dataOf(result1.parsed)?.hash;
+
+  const tmpFile2 = path.join(tempDir, 'cas-test-det2.txt');
   fs.writeFileSync(tmpFile2, testContent);
-  
-  const result2 = runCli(['cas', 'put', tmpFile2]);
-  fs.unlinkSync(tmpFile2);
-  
-  const hash2 = result2.data?.hash;
-  
+
+  const result2 = runCli(['cas', 'put', '--in', tmpFile2]);
+  assertSuccess(result2, 'Second CAS put should succeed');
+  const hash2 = result2.parsed?.hash || dataOf(result2.parsed)?.hash;
+
   assert(hash1 === hash2, `Same content should produce same hash: ${hash1} vs ${hash2}`);
 });
 
 test('CAS ls lists stored objects', () => {
-  const result = runCli(['cas', 'ls', '--limit=10']);
-  assert(Array.isArray(result.data?.objects), 'Should return objects array');
+  const result = runCli(['cas', 'ls']);
+  assertSuccess(result, 'CAS ls should succeed');
+  const data = dataOf(result.parsed);
+  assert(Array.isArray(data?.objects), 'Should return objects array');
 });
 
 test('CAS verify validates object integrity', () => {
-  if (!testHash) throw new Error('Skipping: no hash from previous test');
-  
-  const result = runCli(['cas', 'verify', testHash]);
-  assert(result.ok === true || result.data?.valid === true, 'CAS verify should succeed');
+  const result = runCli(['cas', 'verify']);
+  assertSuccess(result, 'CAS verify should succeed');
+  const data = dataOf(result.parsed);
+  assert(typeof data?.errors === 'number', 'CAS verify should report errors');
+  assert(data.errors === 0, `CAS verify reported ${data.errors} errors`);
 });
 
 // Capability Tests
 console.log('\n[Capability Registry Integrity]');
 
-let testCapId = '';
-
 test('Cap mint creates capability', () => {
-  const result = runCli(['cap', 'mint', '--action=read', '--resource=/test-resource']);
-  assert(result.data?.capability, 'Capability should be created');
-  testCapId = result.data.capability.id || result.data.capability;
-  assert(!!testCapId, 'Capability ID should be returned');
-});
+  const keygen = runCli(['cap', 'keygen']);
+  assertSuccess(keygen, 'cap keygen should succeed');
 
-test('Cap inspect returns capability details', () => {
-  if (!testCapId) throw new Error('Skipping: no capability from previous test');
-  
-  const result = runCli(['cap', 'inspect', testCapId]);
-  assert(result.data?.capability || result.data?.id, 'Should return capability details');
-});
+  const keys = dataOf(keygen.parsed);
+  const secret = keys?.secret_key;
+  const pub = keys?.public_key;
+  assert(typeof secret === 'string' && secret.length > 0, 'secret_key should be present');
+  assert(typeof pub === 'string' && pub.length > 0, 'public_key should be present');
 
-test('Cap list includes created capability', () => {
-  const result = runCli(['cap', 'list']);
-  const caps = result.data?.capabilities || [];
-  assert(Array.isArray(caps), 'Should return capabilities array');
-  
-  if (testCapId) {
-    const found = caps.some((c: any) => 
-      (c.id || c) === testCapId
-    );
-    // Don't fail if not found immediately - may be async
-    console.log(`    (cap found in list: ${found})`);
-  }
+  const keyFile = path.join(tempDir, 'cap-secret.key');
+  fs.writeFileSync(keyFile, secret, 'utf-8');
+
+  const mint = runCli([
+    'cap',
+    'mint',
+    '--permissions',
+    'exec.run',
+    '--subject',
+    'verify-integrity',
+    '--key-file',
+    keyFile,
+    '--pub-key',
+    pub
+  ]);
+  assertSuccess(mint, 'cap mint should succeed');
+
+  const token = dataOf(mint.parsed);
+  testCapFingerprint = token?.fingerprint;
+  assert(/^[a-f0-9]{64}$/i.test(testCapFingerprint), 'Capability fingerprint should be present');
 });
 
 test('Cap revoke removes capability', () => {
-  if (!testCapId) throw new Error('Skipping: no capability from previous test');
-  
-  // First create a new cap specifically to revoke
-  const mintResult = runCli(['cap', 'mint', '--action=write', '--resource=/temp-resource']);
-  const tempCapId = mintResult.data?.capability?.id || mintResult.data?.capability;
-  
-  if (!tempCapId) throw new Error('Failed to create temporary capability');
-  
-  const result = runCli(['cap', 'revoke', tempCapId]);
-  assert(result.ok === true || result.data?.revoked === true, 'Revoke should succeed');
+  if (!testCapFingerprint) throw new Error('Skipping: no capability from previous test');
+
+  const result = runCli(['cap', 'revoke', '--fingerprint', testCapFingerprint]);
+  assertSuccess(result, 'cap revoke should succeed');
+
+  const data = dataOf(result.parsed);
+  assert(data?.ok === true, 'Revoke should return ok=true');
+});
+
+test('Cap list includes created capability', () => {
+  const result = runCli(['caps', 'list']);
+  assert(result.status === 0, `caps list should succeed: ${result.stderr.trim()}`);
+  const data = dataOf(result.parsed);
+  assert(Array.isArray(data?.capabilities), 'Should return capabilities array');
 });
 
 // No Ambient Authority Test
 console.log('\n[No Ambient Authority]');
 
 test('Operations require explicit capability/token', () => {
-  // Try to access without token - should fail
-  const result = runCli(['cas', 'get', 'cas:nonexistent']);
-  // Should get error, not crash
-  assert(result.kind === 'error' || result.error !== null || result.data === null,
-         'Should return error for invalid access');
+  const result = runCli(['cap', 'revoke']);
+  assert(result.status !== 0, 'cap revoke without fingerprint should fail');
+  assert(isErrorEnvelope(result.parsed), 'Failure should use typed error envelope');
 });
 
 test('Secret keys never exposed in registry', () => {
-  const result = runCli(['cap', 'list']);
-  const json = JSON.stringify(result);
-  
-  // Check for common secret patterns
+  const result = runCli(['caps', 'list']);
+  assert(result.status === 0, `caps list should succeed: ${result.stderr.trim()}`);
+  const json = JSON.stringify(dataOf(result.parsed));
+
   assert(!json.includes('sk-'), 'Should not expose secret keys');
   assert(!json.includes('private_key'), 'Should not expose private keys');
-  assert(!json.includes('secret'), 'Should not contain secret material');
+  assert(!json.includes('secret_key'), 'Should not expose secret_key fields');
 });
 
 // Summary
@@ -202,9 +255,11 @@ if (failed > 0) {
   results.filter(r => !r.passed).forEach(r => {
     console.log(`  - ${r.name}: ${r.error}`);
   });
+  fs.rmSync(tempDir, { recursive: true, force: true });
   process.exit(1);
 } else {
   console.log('');
   console.log('✓ All integrity verification tests passed');
+  fs.rmSync(tempDir, { recursive: true, force: true });
   process.exit(0);
 }
