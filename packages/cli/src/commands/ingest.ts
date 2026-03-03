@@ -1594,6 +1594,9 @@ class GitHubClient {
     if (response.statusCode === 409) {
       return [];
     }
+    if (response.statusCode === 403 && isRateLimitedBody(response.body)) {
+      return [];
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw new Error(`GitHub commit request failed for ${repoFullName} (HTTP ${response.statusCode}): ${response.body}`);
     }
@@ -1614,6 +1617,9 @@ class GitHubClient {
     });
 
     if (response.statusCode === 404) {
+      return null;
+    }
+    if (response.statusCode === 403 && isRateLimitedBody(response.body)) {
       return null;
     }
 
@@ -1677,6 +1683,10 @@ class GitHubClient {
 
     return requestText('GET', url, headers);
   }
+}
+
+function isRateLimitedBody(body: string): boolean {
+  return body.toLowerCase().includes('rate limit');
 }
 
 function parseNextLink(linkHeader: string | string[] | undefined): string | null {
