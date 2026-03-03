@@ -1,4 +1,36 @@
  WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
 packages/cli                             |  WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
 Scope: all 5 workspace projects
-[?25l[?25l[?25l[?25l[?25l[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/ai/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/cli/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/ui/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/ready-layer/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D
+[?25l[?25l[?25l[?25l[?25l[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/ai/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/cli/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/ui/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[36m?[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/ready-layer/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D[2K[F[2K[1G[32m✔[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m·[22m [32mtrue[39m[3D[2K[F[2K[1G[32m✔[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/ai/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m·[22m [32mtrue[39m[3D[2K[F[2K[1G[32m✔[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/cli/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m·[22m [32mtrue[39m[3D[2K[F[2K[1G[32m✔[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/packages/ui/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m·[22m [32mtrue[39m[3D[2K[F[2K[1G[32m✔[39m [1mThe modules directory at "/mnt/c/Users/scott/GitHub/Requiem/ready-layer/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m·[22m [32mtrue[39m[3D
+
+[?25h
+
+[?25h
+
+[?25h
+
+[?25h
+
+[?25hRecreating /mnt/c/Users/scott/GitHub/Requiem/node_modules
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +783
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 783, reused 82, downloaded 0, added 0
+Progress: resolved 783, reused 247, downloaded 0, added 0
+ WARN  GET https://registry.npmjs.org/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-14.0.0.tgz error (ERR_PNPM_TARBALL_EXTRACT). Will retry in 10 seconds. 2 retries left.
+Progress: resolved 783, reused 311, downloaded 10, added 0
+Progress: resolved 783, reused 314, downloaded 15, added 21
+Progress: resolved 783, reused 314, downloaded 15, added 51
+Progress: resolved 783, reused 315, downloaded 15, added 99
+Progress: resolved 783, reused 315, downloaded 15, added 163
+Progress: resolved 783, reused 315, downloaded 15, added 241
+Progress: resolved 783, reused 315, downloaded 16, added 310
+Progress: resolved 783, reused 316, downloaded 27, added 324
+Progress: resolved 783, reused 316, downloaded 38, added 335
+Progress: resolved 783, reused 316, downloaded 49, added 343
+Progress: resolved 783, reused 316, downloaded 58, added 360
+Progress: resolved 783, reused 316, downloaded 76, added 376
+Progress: resolved 783, reused 316, downloaded 89, added 388
+Progress: resolved 783, reused 316, downloaded 97, added 398
+ ERR_PNPM_LINKING_FAILED  Error: EACCES: permission denied, rename '/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/use-sidecar@1.1.3_@types+react@19.2.14_react@19.2.4/node_modules/use-sidecar_tmp_2389' -> '/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/use-sidecar@1.1.3_@types+react@19.2.14_react@19.2.4/node_modules/use-sidecar'

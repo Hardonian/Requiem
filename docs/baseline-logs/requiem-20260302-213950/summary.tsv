@@ -1,1 +1,3 @@
 command	exit_code	log_file
+install	1	docs/baseline-logs/requiem-20260302-213950/install.log
+lint	1	docs/baseline-logs/requiem-20260302-213950/lint.log
