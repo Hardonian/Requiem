@@ -1,0 +1,13 @@
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 verify:boundaries /mnt/c/Users/scott/GitHub/Requiem
+> node scripts/verify-ui-boundaries.mjs
+
+Verifying UI package boundaries...
+
+Found 23 TypeScript files
+
+=== Verification Results ===
+
+✓ All checks passed!
+

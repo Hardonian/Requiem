@@ -1,26 +1,37 @@
-# Pull Request Template
+# Pull Request
 
-## Description
+## 🏁 Summary
 
-Please include a summary of the change and which issue is fixed.
+**Type**: [e.g., Bug Fix, Feature, Performance, Refactor]
+**Core Invariant Impact**: [Describe how this affects `Provable Execution`, `Enforced Governance`, or `Replayable Outcomes`]
 
-Fixes # (issue)
+## ⚙️ Changes
 
-## Type of Change
+- [ ] List significant change 1
+- [ ] List significant change 2
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
+## 🛡️ Verification Results (REQUIRED)
 
-## Checklist
+PRs will **not** be merged without a passing result from the following commands:
 
-- [ ] My code follows the style guidelines of this project (`.editorconfig`)
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with `npm run verify`
-- [ ] **Determinism**: I have verified that this change does not introduce non-deterministic behavior
-- [ ] **Security**: I have verified that this change does not break sandbox boundaries
+- [ ] `pnpm run verify`: Passed (Lint, Typecheck, Boundaries)
+- [ ] `pnpm run verify:ci`: Passed (Determinism, Integration, Drift)
+- [ ] `pnpm reach chaos --quick`: Passed (Survival)
+
+---
+
+## 📈 Performance & Drift
+
+- [ ] `pnpm run verify:ratchet`: No regression detected.
+- [ ] `pnpm reach drift`: 0 drift on baseline executions.
+
+## 📄 Documentation Truth
+
+- [ ] `npx tsx scripts/docs-truth-gate.ts`: Passed (README command sync).
+- [ ] `npx tsx scripts/claims-linter.ts`: Passed (No aspirational claims).
+
+---
+
+## 🧐 Rationale (Determinism First)
+
+*Why is this change necessary? How does it reduce entropy?*

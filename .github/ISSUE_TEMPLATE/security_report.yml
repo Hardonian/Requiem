@@ -1,0 +1,18 @@
+name: Security Report
+description: Report a security vulnerability in the Requiem runtime.
+title: "[SEC] <Short description>"
+labels: ["type:security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 🚨 IMPORTANT 🚨
+        If you have discovered a security vulnerability, please do **NOT** open a public issue. Instead, please follow the disclosure instructions in [SECURITY.md](https://github.com/reachhq/requiem/blob/main/SECURITY.md).
+  - type: textarea
+    id: overview
+    attributes:
+      label: Overview
+      description: Provide a brief summary of the potential security concern.
+      placeholder: "Tenant isolation bypass detected via `env-drift` manipulation."
+    validations:
+      required: true
