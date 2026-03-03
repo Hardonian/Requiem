@@ -92,8 +92,18 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
 
 // Convenience: return a structured 401/400 response on auth failure
 export function authErrorResponse(result: AuthResult): NextResponse {
-  return NextResponse.json(
-    { ok: false, error: result.error ?? 'auth_failed' },
-    { status: result.status ?? 401 },
+  const status = result.status ?? 401;
+  return new NextResponse(
+    JSON.stringify({
+      type: `https://httpstatuses.com/${status}`,
+      title: 'Authentication Failed',
+      status,
+      detail: result.error ?? 'auth_failed',
+      trace_id: 'auth-failure',
+    }),
+    {
+      status,
+      headers: { 'content-type': 'application/problem+json' },
+    },
   );
 }

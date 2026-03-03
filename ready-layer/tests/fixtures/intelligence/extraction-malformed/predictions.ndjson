@@ -1,0 +1,2 @@
+{"prediction_id":"11111111-1111-4111-a111-111111111111","run_id":"run-fixture-bad","tenant_id":"tenant-fixture","claim_type":"TESTS_PASS","subject":"pnpm test src/module.ts","rationale":"tests expected to pass","created_at":"2026-01-01T00:00:00.000Z"}
+{"prediction_id":"22222222-2222-4222-a222-222222222222","run_id":"run-fixture-bad","tenant_id":"tenant-fixture","claim_type":"BUILD_PASS","subject":"pnpm build src/module.ts","rationale":"build expected to pass","created_at":"2026-01-01T00:00:01.000Z"}
