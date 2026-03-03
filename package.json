@@ -74,8 +74,8 @@
     "verify:metamorphic": "node scripts/run-tsx.mjs scripts/verify-metamorphic-intelligence.ts",
     "verify:drift-suite": "node scripts/run-tsx.mjs scripts/verify-drift-suite-intelligence.ts",
     "intelligence:extract-cases": "node scripts/run-tsx.mjs scripts/extract-intelligence-cases.ts",
-    "verify:calibration-window": "node scripts/run-tsx.mjs scripts/verify-calibration-window-format.ts"
-    "verify:calibration": "node scripts/run-tsx.mjs scripts/verify-calibration.ts"
+    "verify:calibration-window": "node scripts/run-tsx.mjs scripts/verify-calibration-window-format.ts",
+    "verify:calibration": "node scripts/run-tsx.mjs scripts/verify-calibration.ts",
     "verify:foundry": "node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry vectors run --seeds 1",
     "verify:foundry:metamorphic": "node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry generate && node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry metamorphic generate --base-suite core_vectors --per 1 --seed 1",
     "verify:foundry:faults": "FOUNDRY_FAULTS=1 node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry faults run --dataset fault_injection_suite",

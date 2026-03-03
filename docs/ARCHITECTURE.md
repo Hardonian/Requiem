@@ -1,106 +1,87 @@
-# Requiem Architecture
+# Requiem Architecture & Determinism
 
-> **Version:** 1.4.0  
-> **Last Updated:** 2026-03-01  
-> **Status:** Production
+> **Status:** Production-bound.  
+> **Target:** Zero-entropy execution.
 
-## Overview
-
-Requiem is a deterministic execution engine and provable AI runtime designed for reproducible builds, test isolation, and cryptographic verification of computation. It provides a multi-layered architecture that separates concerns between native execution, control-plane logic, and AI reasoning.
-
-### Core Principles
-
-1. **Determinism First**: Same inputs always produce identical outputs.
-2. **Provable AI**: Every AI decision produces a cryptographic fingerprint and verifiable trace.
-3. **Defense in Depth**: Multiple layers of validation and enforcement (Native Sandbox + Policy Gate).
-4. **Server-Side Authority**: Tenant resolution and access control are server-side only.
+Requiem is built on a multi-layered architecture that separates concerns between native execution truth and higher-level AI orchestration. This document outlines how we achieve determinism, isolation, and cryptographic auditability.
 
 ---
 
-## Layer Architecture
+## 1. High-Level Layers
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  UI Layer (ready-layer)                                     │
-│  - React/Next.js dashboard                                  │
-│  - Proof visualization and drift analysis                   │
-├─────────────────────────────────────────────────────────────┤
-│  AI Control Plane (packages/ai)                             │
-│  - MCP Server / Tool Registry                               │
-│  - Policy Gate (deny-by-default)                            │
-│  - Skill Runner / Model Arbitrator                          │
-├─────────────────────────────────────────────────────────────┤
-│  Control Plane (packages/cli)                               │
-│  - Tenant Resolution / DB Integration                       │
-│  - Structured Error Envelopes                               │
-├─────────────────────────────────────────────────────────────┤
-│  Native Engine (src/*.cpp)                                  │
-│  - BLAKE3 Hashing / CAS v2 Storage                          │
-│  - Sandbox Isolation / Replay Validation                    │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│ ReadyLayer Web Console (Next.js)        │ <── Visualization, Cost, Drift
+├──────────────────────────────────────────┤
+│ AI Control Plane (packages/ai)           │ <── MCP Server, Tool Registry
+├──────────────────────────────────────────┤
+│ Control Plane (packages/cli)             │ <── Tenant Resolution, Errors
+├──────────────────────────────────────────┤
+│ Native Kernel (src/*.cpp)                │ <── Hashing, CAS, Sandbox, Replay
+└──────────────────────────────────────────┘
 ```
 
----
-
-## Module Boundaries
-
-### Import Rules (Enforced by ESLint)
-
-| From ↓ \ To → | Native        | Core (TS) | AI       | UI  |
-| ------------- | ------------- | --------- | -------- | --- |
-| **Native**    | ✅            | ❌        | ❌       | ❌  |
-| **Core (TS)** | ✅ (Adapter)  | ✅        | ❌       | ❌  |
-| **AI**        | ✅ (via Core) | ✅        | ✅       | ❌  |
-| **UI**        | ❌            | ✅ (API)  | ✅ (API) | ✅  |
+### The Kernel Boundary
+Truth resides in the C++ kernel. The TypeScript layers are responsible for orchestration, but any state that must be verified (plans, receipts, logs) is processed by the native engine using **BLAKE3** hashing with domain separation.
 
 ---
 
-## Key Components
+## 2. Core Components
 
-### 1. Native Engine (C++17)
+### A. Deterministic Kernel (C++17)
+The kernel ensures that given the same input, you get the exact same byte-for-byte output.
+- **Environment Sanitization**: Prior to hashing, we strip process-specific metadata (timestamps, PIDs, environment variables).
+- **BLAKE3 Domain Separation**: Different data types (plans, receipts, audit logs) use unique hash domains to prevent collision.
+- **Replay Engine**: Allows loading a past execution bundle and re-running it to verify the result hasn't drifted.
 
-The performance-critical layer providing cryptographic primitives and execution sandboxing.
+### B. Content-Addressable Storage (CAS v2)
+Requiem does not use traditional file paths for state. Everything is stored by its BLAKE3 hash.
+- **Dual-Hash Verification**: We store objects with BLAKE3 and SHA-256 digests.
+- **Integrity Checks**: Every read operation re-verifies the digest. Bit-rot is identified immediately.
 
-- **BLAKE3**: Domain-separated hashing (`req:`, `res:`, `cas:`, `audit:`).
-- **CAS v2**: Content-addressable storage optimized for large execution logs.
-- **Sandbox**: Seccomp-BPF (Linux) and Job Objects (Windows) for process isolation.
-
-### 2. Policy Gate (`packages/ai/src/policy/`)
-
-The security boundary between untrusted agent reasoning and trusted system tools.
-
-- **Deny-by-default**: Every tool invocation must be explicitly allowed.
-- **RBAC**: Capability-based access control.
-- **Budgets**: Resource and token limits enforced at the tool boundary.
-
-### 3. MCP Server & Tool Registry (`packages/ai/src/mcp/`)
-
-Standardized interface for exposing system capabilities to AI agents.
-
-- **Registry**: Versioned tool definitions with JSON Schema validation.
-- **Invoke**: Unified entry point that handles policy, validation, and auditing.
-
-### 4. Structured Error Envelope (`packages/cli/src/lib/errors.ts`)
-
-Unified error handling with stable identifiers used across all layers.
+### C. Policy Gate (`packages/ai/src/policy/`)
+A deny-by-default boundary between agent reasoning and system tools.
+- **Guardrails**: Content and behavioral filters.
+- **Budgets**: Resource limit enforcement (tokens, cost, time).
+- **Capability RBAC**: Fine-grained tool access controlled by tenant context.
 
 ---
 
-## Data Flow (The Decision Path)
+## 3. Data Flow: The Path of an Execution
 
-1. **Request**: A tool call or AI decision request enters the system.
-2. **Auth**: Tenant context is derived server-side from JWT/API Key.
-3. **Registry**: The requested tool/skill is looked up in the registry.
-4. **Policy**: The Policy Gate evaluates the request against active constraints.
-5. **Execution**: If allowed, the Native Engine executes the task in a sandbox.
-6. **Proof**: A BLAKE3 result digest is computed and stored in CAS.
-7. **Audit**: The transaction is recorded in the tamper-evident Merkle audit chain.
+1.  **Request**: An agent requests a tool invocation.
+2.  **Context**: The system identifies the tenant and loads their policy.
+3.  **Gate**: The Policy Gate evaluates the request. If it violates a guardrail or exceeds a budget, it is rejected with a structured `E_POL_VIOLATION` envelope.
+4.  **Sandbox**: If allowed, the kernel executes the task in a confined workspace (Job Objects on Windows, rlimits on Linux).
+5.  **Proof**: The kernel computes a result digest.
+6.  **Ledger**: The transaction, including the proof, is committed to the Merkle-linked event log.
+
+---
+
+## 4. Isolation & Security Guarantees
+
+We distinguish between **Guaranteed** and **In-Memory** isolation:
+
+| Guarantee | Mechanism | Scope |
+| :--- | :--- | :--- |
+| **Path Confinement** | Sandbox Workspace | Guaranteed |
+| **Resource Limits** | rlimits / Job Objects | Guaranteed |
+| **Determinism** | BLAKE3 / Canonical JSON | Guaranteed (Verified by 200x CI gate) |
+| **Tenant Budget** | In-memory counters | **Limited** (Resets on restart) |
+| **Syscall Filter** | Seccomp-BPF | In Progress (Linux only) |
+
+---
+
+## 5. Merkle Audit Chain
+
+Requiem maintains a tamper-evident audit trail of all core decisions. Each record in the event log contains a link to the previous record's hash. A single root hash can be used to verify the entire history of the system.
+
+- **Storage**: NDJSON append-only logs.
+- **Verification**: `pnpm req log verify` walks the chain and re-computes all hashes.
 
 ---
 
 ## References
-
-- [INVARIANTS.md](./INVARIANTS.md) — Hard system constraints
-- [SECURITY.md](./SECURITY.md) — Security and Cryptography
-- [DETERMINISM.md](./DETERMINISM.md) — Determinism guarantees
-- [cli.md](./cli.md) — CLI Reference (Reach / Requiem)
+- [INVARIANTS.md](./INVARIANTS.md) — System-wide constraints.
+- [DETERMINISM.md](./DETERMINISM.md) — Technical spec for reproducibility.
+- [THEATRE_AUDIT.md](./THEATRE_AUDIT.md) — Implementation status of security features.
