@@ -440,12 +440,13 @@ void test_cas_compact() {
 
     fs::remove_all(tmp);
   }
+}
 
-  // ============================================================================
-  // Execution & Replay
-  // ============================================================================
+// ============================================================================
+// Execution & Replay
+// ============================================================================
 
-  void test_determinism_repeat() {
+void test_determinism_repeat() {
     const fs::path tmp = fs::temp_directory_path() / "requiem_det_test";
     fs::create_directories(tmp);
 
@@ -1200,15 +1201,16 @@ void test_cas_repair() {
     // 3. Call repair and verify it restores the object.
     expect(primary->repair(digest, replicator), "repair should succeed");
     expect(primary->get(digest).has_value(), "primary is repaired");
-    fs::remove_all(tmp);
   }
+  fs::remove_all(tmp);
+}
 
 // ============================================================================
 // Phase 5: C ABI
 // ============================================================================
 #ifndef REQUIEM_NO_C_API
 
-  void test_c_api_lifecycle() {
+void test_c_api_lifecycle() {
     requiem_ctx_t *ctx = requiem_init("{}", REQUIEM_ABI_VERSION);
     expect(ctx != nullptr, "requiem_init must return non-null ctx");
 

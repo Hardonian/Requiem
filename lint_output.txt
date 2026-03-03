@@ -1,8 +1,0 @@
- WARN  Unsupported engine: wanted: {"node":"20.11.0"} (current: {"node":"v24.12.0","pnpm":"8.15.0"})
-
-> requiem@1.0.0 lint C:\Users\scott\GitHub\Requiem
-> pnpm --filter @requiem/web lint
-
-.                                        |  WARN  Unsupported engine: wanted: {"node":"20.11.0"} (current: {"node":"v24.12.0","pnpm":"8.15.0"})
-packages/cli                             |  WARN  Unsupported engine: wanted: {"node":"20.11.0"} (current: {"node":"v24.12.0","pnpm":"8.15.0"})
-No projects matched the filters in "C:\Users\scott\GitHub\Requiem"
