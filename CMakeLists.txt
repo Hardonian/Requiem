@@ -32,7 +32,20 @@ if(REQUIEM_REPRODUCIBLE)
   if(MSVC)
     add_compile_options(/Brepro) # cspell:disable-line
   else()
-    add_compile_options(-fno-build-timestamp -fno-debug-macro)
+    include(CheckCCompilerFlag)
+    include(CheckCXXCompilerFlag)
+
+    check_c_compiler_flag("-fno-build-timestamp" REQUIEM_C_HAS_FNO_BUILD_TIMESTAMP)
+    check_cxx_compiler_flag("-fno-build-timestamp" REQUIEM_CXX_HAS_FNO_BUILD_TIMESTAMP)
+    if(REQUIEM_C_HAS_FNO_BUILD_TIMESTAMP AND REQUIEM_CXX_HAS_FNO_BUILD_TIMESTAMP)
+      add_compile_options(-fno-build-timestamp)
+    endif()
+
+    check_c_compiler_flag("-fno-debug-macro" REQUIEM_C_HAS_FNO_DEBUG_MACRO)
+    check_cxx_compiler_flag("-fno-debug-macro" REQUIEM_CXX_HAS_FNO_DEBUG_MACRO)
+    if(REQUIEM_C_HAS_FNO_DEBUG_MACRO AND REQUIEM_CXX_HAS_FNO_DEBUG_MACRO)
+      add_compile_options(-fno-debug-macro)
+    endif()
   endif()
   add_compile_definitions(REQUIEM_REPRODUCIBLE_BUILD=1)
 endif()
@@ -66,7 +79,27 @@ find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 
 if(REQUIEM_WITH_ZSTD)
-  find_package(zstd CONFIG REQUIRED)
+  find_package(zstd CONFIG QUIET)
+  if(TARGET zstd::libzstd_shared)
+    set(REQUIEM_ZSTD_TARGET zstd::libzstd_shared)
+    set(REQUIEM_ZSTD_ENABLED ON)
+  elseif(TARGET zstd::libzstd_static)
+    set(REQUIEM_ZSTD_TARGET zstd::libzstd_static)
+    set(REQUIEM_ZSTD_ENABLED ON)
+  else()
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+      pkg_check_modules(ZSTD QUIET IMPORTED_TARGET libzstd)
+      if(TARGET PkgConfig::ZSTD)
+        set(REQUIEM_ZSTD_TARGET PkgConfig::ZSTD)
+        set(REQUIEM_ZSTD_ENABLED ON)
+      endif()
+    endif()
+  endif()
+
+  if(NOT REQUIEM_ZSTD_ENABLED)
+    message(WARNING "zstd not found; building without zstd support")
+  endif()
 endif()
 
 # Add vendored BLAKE3
@@ -86,6 +119,7 @@ add_library(requiem
   src/replay.cpp
   src/sandbox_posix.cpp
   src/sandbox_win.cpp
+  src/sandbox_config.cpp
   src/metering.cpp
   src/observability.cpp       # Phase 4: Observability authority layer
   src/version.cpp             # Phase G: Version evolution strategy
@@ -122,8 +156,8 @@ if(WIN32)
   target_link_libraries(requiem PUBLIC ws2_32)
 endif()
 
-if(REQUIEM_WITH_ZSTD)
-  target_link_libraries(requiem PUBLIC zstd::libzstd_shared)
+if(REQUIEM_WITH_ZSTD AND REQUIEM_ZSTD_ENABLED)
+  target_link_libraries(requiem PUBLIC ${REQUIEM_ZSTD_TARGET})
   target_compile_definitions(requiem PUBLIC REQUIEM_WITH_ZSTD=1)
 endif()
 

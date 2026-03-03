@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include <chrono>
+#include <cstddef>
 #include <cstring>
 #include <thread>
 
@@ -20,18 +21,6 @@
 #include <linux/seccomp.h>
 #include <linux/filter.h>
 #include <sys/syscall.h>
-
-// Helper to convert seccomp action enum to libseccomp action
-static inline uint32_t seccomp_action_to_scmp(SeccompAction action) {
-  switch (action) {
-    case SeccompAction::allow: return SCMP_ACT_ALLOW;
-    case SeccompAction::errno_code: return SCMP_ACT_ERRNO(EPERM);
-    case SeccompAction::kill: return SCMP_ACT_KILL;
-    case SeccompAction::trap: return SCMP_ACT_TRAP;
-    case SeccompAction::trace: return SCMP_ACT_TRACE(0);
-    default: return SCMP_ACT_KILL;
-  }
-}
 #endif
 
 namespace requiem {
@@ -58,7 +47,7 @@ bool install_seccomp_filter(const std::vector<SeccompRule> &rules) {
   // Default allowlist - common syscalls needed for most tools
   struct sock_filter default_allow[] = {
     // Read allowed
-    BPF_STMT(BPF_LD | BPF_W | BPF_ABS, off_syscall),
+    BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, nr)),
     BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_read, 0, 1),
     BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
     // Write allowed
