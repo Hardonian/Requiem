@@ -6,6 +6,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Fingerprint, GitCompare, Share2, Activity } from 'lucide-react';
+import { getPredictions, getOutcomes, getSignals, getCases } from '@/lib/intelligence-store';
 
 interface RunPageProps {
   params: Promise<{ runId: string }>;
@@ -34,6 +35,10 @@ async function fetchRunData(runId: string) {
 export default async function RunPage({ params }: RunPageProps) {
   const { runId } = await params;
   const run = await fetchRunData(runId);
+  const predictions = getPredictions(run?.tenantId ?? 'public', runId);
+  const outcomes = getOutcomes(run?.tenantId ?? 'public', runId);
+  const signals = getSignals(run?.tenantId ?? 'public').slice(0, 5);
+  const similarCases = getCases(run?.tenantId ?? 'public').slice(0, 3);
 
   if (!run) {
     notFound();
@@ -144,6 +149,31 @@ export default async function RunPage({ params }: RunPageProps) {
 
           {/* Sidebar */}
           <div className="space-y-6">
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold mb-4">Predictions & Outcomes</h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded"><div className="text-gray-500">Predictions</div><div className="font-semibold">{predictions.length}</div></div>
+                <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded"><div className="text-gray-500">Outcomes</div><div className="font-semibold">{outcomes.length}</div></div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold mb-4">Similar Solved Cases</h3>
+              <ul className="space-y-2 text-sm">
+                {similarCases.length === 0 && <li className="text-gray-500">No case matches for this tenant.</li>}
+                {similarCases.map((item) => <li key={item.case_id} className="border rounded p-2"><p className="font-medium">{item.summary}</p><p className="text-xs text-gray-500">{item.failing_command}</p></li>)}
+              </ul>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold mb-4">Risk & Signals</h3>
+              <ul className="space-y-2 text-sm">
+                {signals.length === 0 && <li className="text-gray-500">No recent signals.</li>}
+                {signals.map((item) => <li key={item.signal_id} className="flex justify-between border-b pb-1"><span>{item.signal_type}</span><span className="font-mono text-xs">{item.severity}</span></li>)}
+              </ul>
+            </div>
+
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <h3 className="text-lg font-semibold mb-4">Run Info</h3>
               <div className="space-y-3 text-sm">
