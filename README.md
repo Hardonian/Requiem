@@ -70,3 +70,23 @@ private/              internal business/ops artifacts
 
 - Current CI/runtime warnings in this environment are primarily Node engine warnings (`project targets Node >=20.11`, current runtime observed during verification was Node 18.19).
 - All commands listed above were executed and captured in `docs/FINAL_QA_SUMMARY.md`.
+
+## UI Override (Stitch Integration)
+
+The Stitch-aligned console routes are available by default in this branch.
+
+To run locally and preview key pages in light/dark mode:
+
+```bash
+pnpm install
+pnpm --filter ready-layer dev
+```
+
+Then open:
+
+- `http://localhost:3000/registry`
+- `http://localhost:3000/spend`
+- `http://localhost:3000/drift`
+- `http://localhost:3000/settings`
+
+Use the **Theme** toggle in the left navigation to verify both light and dark rendering.
