@@ -11,6 +11,17 @@
 #include "requiem/c_api.h"
 #endif
 #include "requiem/audit.hpp"
+
+#ifdef _WIN32
+const std::string kCmdShell = "cmd.exe";
+const std::string kCmdArg = "/c";
+const std::string kCmdTrue = "cmd.exe";
+#else
+const std::string kCmdShell = "/bin/sh";
+const std::string kCmdArg = "-c";
+const std::string kCmdTrue = "/bin/true";
+#endif
+
 #include "requiem/autotune.hpp"
 #include "requiem/cas.hpp"
 #include "requiem/cluster.hpp"
@@ -69,8 +80,8 @@ void test_canonical_request_digest() {
   // Canonical request with known fields → expected digest must be stable.
   requiem::ExecutionRequest req;
   req.request_id = "test-vec-1";
-  req.command = "/bin/echo";
-  req.argv = {"hello"};
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "echo hello"};
   req.workspace_root = ".";
   req.policy.scheduler_mode = "turbo";
   req.nonce = 0;
@@ -202,7 +213,8 @@ void test_no_float_in_digest_path() {
   // Ensure canonicalize_request uses integer nonce, not float.
   requiem::ExecutionRequest req;
   req.request_id = "fp-test";
-  req.command = "/bin/true";
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "exit 0"};
   req.nonce = 12345;
   req.workspace_root = ".";
   req.policy.scheduler_mode = "turbo";
@@ -225,8 +237,8 @@ void test_path_escape_blocked() {
   requiem::ExecutionRequest request;
   request.request_id = "escape-test";
   request.workspace_root = tmp.string();
-  request.command = "/bin/sh";
-  request.argv = {"-c", "echo nope"};
+  request.command = kCmdShell;
+  request.argv = {kCmdArg, "echo nope"};
   request.cwd = "../../etc"; // Attempted escape
 
   const auto result = requiem::execute(request);
@@ -243,8 +255,8 @@ void test_secret_env_stripping() {
   requiem::ExecutionRequest request;
   request.request_id = "secret-test";
   request.workspace_root = tmp.string();
-  request.command = "/bin/sh";
-  request.argv = {"-c", "echo ok"};
+  request.command = kCmdShell;
+  request.argv = {kCmdArg, "echo ok"};
   request.env["SAFE_VAR"] = "ok";
   request.env["MY_SECRET_TOKEN"] = "should-be-stripped";
   request.env["REACH_ENCRYPTION_KEY"] = "should-be-stripped";
@@ -393,9 +405,11 @@ void test_cas_bulk_insert() {
 
 void test_cas_compact() {
   const fs::path tmp = fs::temp_directory_path() / "requiem_cas_compact_test";
+  }
   fs::remove_all(tmp);
   fs::create_directories(tmp);
 
+  {
   requiem::CasStore cas(tmp.string());
   std::string d1 = cas.put("obj1");
   std::string d2 = cas.put("obj2");
@@ -439,8 +453,8 @@ void test_determinism_repeat() {
   requiem::ExecutionRequest request;
   request.request_id = "det-test";
   request.workspace_root = tmp.string();
-  request.command = "/bin/sh";
-  request.argv = {"-c", "echo deterministic_output"};
+  request.command = kCmdShell;
+  request.argv = {kCmdArg, "echo deterministic_output"};
   request.policy.deterministic = true;
 
   const int N = 20;
@@ -471,8 +485,8 @@ void test_stdout_truncation() {
   requiem::ExecutionRequest request;
   request.request_id = "trunc-test";
   request.workspace_root = tmp.string();
-  request.command = "/bin/sh";
-  request.argv = {"-c", "printf 'ABCDEFGHIJ'"};
+  request.command = kCmdShell;
+  request.argv = {kCmdArg, "printf 'ABCDEFGHIJ'"};
   request.max_output_bytes = 4;
 
   const auto result = requiem::execute(request);
@@ -488,8 +502,8 @@ void test_timeout() {
   requiem::ExecutionRequest request;
   request.request_id = "timeout-test";
   request.workspace_root = tmp.string();
-  request.command = "/bin/sh";
-  request.argv = {"-c", "sleep 10"};
+  request.command = kCmdShell;
+  request.argv = {kCmdArg, "sleep 10"};
   request.timeout_ms = 50;
 
   const auto result = requiem::execute(request);
@@ -509,8 +523,8 @@ void test_replay_validation() {
   requiem::ExecutionRequest request;
   request.request_id = "replay-test";
   request.workspace_root = tmp.string();
-  request.command = "/bin/sh";
-  request.argv = {"-c", "echo ok > out.txt"};
+  request.command = kCmdShell;
+  request.argv = {kCmdArg, "echo ok > out.txt"};
   request.outputs = {"out.txt"};
 
   const auto result = requiem::execute(request);
@@ -561,8 +575,8 @@ void test_multitenant_fingerprint_determinism() {
   req_a.request_id = "mt-fp-001";
   req_a.tenant_id = "tenant-alpha";
   req_a.workspace_root = tmp.string();
-  req_a.command = "/bin/sh";
-  req_a.argv = {"-c", "echo deterministic"};
+  req_a.command = kCmdShell;
+  req_a.argv = {kCmdArg, "echo deterministic"};
   req_a.policy.deterministic = true;
   req_a.nonce = 42;
 
@@ -601,8 +615,8 @@ void test_multitenant_concurrent_isolation() {
       std::string tpath = (tmp / ("t_" + std::to_string(i))).string();
       fs::create_directories(tpath);
       req.workspace_root = tpath;
-      req.command = "/bin/sh";
-      req.argv = {"-c", "echo tenant_" + std::to_string(i)};
+      req.command = kCmdShell;
+      req.argv = {kCmdArg, "echo tenant_" + std::to_string(i)};
       req.policy.deterministic = true;
 
       const auto result = requiem::execute(req);
@@ -721,8 +735,8 @@ void test_determinism_concurrent_20_threads() {
   requiem::ExecutionRequest req;
   req.request_id = "det-conc-001";
   req.workspace_root = tmp.string();
-  req.command = "/bin/sh";
-  req.argv = {"-c", "echo concurrent_determinism_check"};
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "echo concurrent_determinism_check"};
   req.policy.deterministic = true;
   req.nonce = 0;
 
@@ -856,8 +870,8 @@ void test_execution_metrics_populated() {
   requiem::ExecutionRequest req;
   req.request_id = "metrics-test";
   req.workspace_root = tmp.string();
-  req.command = "/bin/sh";
-  req.argv = {"-c", "echo hello"};
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "echo hello"};
 
   const auto result = requiem::execute(req);
   expect(result.ok, "execution must succeed");
@@ -1086,9 +1100,11 @@ void test_cas_garbage_collector() {
 void test_cas_put_stream_compression() {
 #if defined(REQUIEM_WITH_ZSTD)
   const fs::path tmp = fs::temp_directory_path() / "requiem_cas_zstd_test";
+  }
   fs::remove_all(tmp);
   fs::create_directories(tmp);
 
+  {
   requiem::CasStore cas(tmp.string());
 
   // Highly compressible data
@@ -1153,11 +1169,13 @@ void test_s3_backend_put_stream() {
 
 void test_cas_repair() {
   const fs::path tmp = fs::temp_directory_path() / "requiem_cas_repair_test";
+  }
   fs::remove_all(tmp);
   fs::create_directories(tmp);
 
   auto primary =
-      std::make_shared<requiem::CasStore>((tmp / "primary").string());
+      std::make_shared<{
+  requiem::CasStore>((tmp / "primary").string());
   auto secondary =
       std::make_shared<requiem::CasStore>((tmp / "secondary").string());
   requiem::ReplicatingBackend replicator(primary, secondary);
@@ -1314,7 +1332,8 @@ void test_format_double_determinism() {
 void test_tenant_id_excluded_from_digest() {
   requiem::ExecutionRequest req;
   req.request_id = "boundary-test";
-  req.command = "/bin/true";
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "exit 0"};
   req.workspace_root = ".";
   req.policy.scheduler_mode = "turbo";
   req.nonce = 0;
@@ -1422,8 +1441,8 @@ void test_cas_failure_mode_corruption() {
 void test_replay_failure_mode_mismatch() {
   requiem::ExecutionRequest req;
   req.request_id = "replay-mismatch-test";
-  req.command = "/bin/sh";
-  req.argv = {"-c", "echo replay-test"};
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "echo replay-test"};
   req.workspace_root = "/tmp";
   req.policy.scheduler_mode = "turbo";
   req.nonce = 0;
@@ -2345,8 +2364,8 @@ void test_enforce_runtime_domain_hashes() {
 
   requiem::ExecutionRequest req;
   req.request_id = "domain-hash-test";
-  req.command = "/bin/sh";
-  req.argv = {"-c", "echo domain-test"};
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "echo domain-test"};
   req.workspace_root = tmp.string();
   req.policy.scheduler_mode = "turbo";
   req.nonce = 0;
@@ -2376,8 +2395,8 @@ void test_enforce_replay_domain_consistency() {
 
   requiem::ExecutionRequest req;
   req.request_id = "replay-domain-test";
-  req.command = "/bin/sh";
-  req.argv = {"-c", "echo replay-domain"};
+  req.command = kCmdShell;
+  req.argv = {kCmdArg, "echo replay-domain"};
   req.workspace_root = tmp.string();
   req.policy.scheduler_mode = "turbo";
   req.nonce = 0;
