@@ -35,7 +35,7 @@ jobs:
           node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry export --dataset core_vectors --format csv
       - name: upload foundry artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: foundry-artifacts
           path: |
