@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -30,7 +30,7 @@
     "verify:no-stack-leaks": "node scripts/run-tsx.mjs scripts/verify-no-stack-leaks.ts",
     "verify:demo": "node scripts/run-tsx.mjs scripts/demo-doctor.ts && node scripts/run-tsx.mjs scripts/demo-run.ts",
     "verify": "npm-run-all --parallel lint typecheck verify:boundaries",
-    "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:nosecrets verify:no-stack-leaks verify:demo verify:ratchet verify:entropy",
+    "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:nosecrets verify:no-stack-leaks verify:demo verify:ratchet verify:entropy verify:mcp-routes",
     "verify:entropy": "node scripts/run-tsx.mjs scripts/final-enforcement.ts",
     "verify:deps-graph": "node scripts/run-tsx.mjs scripts/verify-dependency-graph.ts",
     "verify:sbom": "node scripts/run-tsx.mjs scripts/generate-sbom.ts",
@@ -69,7 +69,7 @@
     "verify:invariants": "node scripts/run-tsx.mjs tests/invariants/index.ts",
     "verify:no-any-core": "node scripts/run-tsx.mjs scripts/verify-no-any-core.ts",
     "selftest": "node scripts/run-tsx.mjs packages/cli/src/commands/selftest.ts",
-    "verify:big4": "node --import tsx --test packages/core/tests/*.test.ts packages/audit/tests/*.test.ts"
+    "verify:mcp-routes": "pnpm --filter ready-layer test:mcp-routes"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
