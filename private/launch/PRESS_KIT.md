@@ -4,7 +4,7 @@
 
 ## 1. Company Overview
 
-Requiem is the first **Provable AI Runtime**. We solve the "Black Box" problem of autonomous agents by providing a secure, deterministic execution layer that generates cryptographic receipts for every AI decision. 
+Requiem is the first **Provable AI Runtime**. We solve the "Black Box" problem of autonomous agents by providing a secure, deterministic execution layer that generates cryptographic receipts for every AI decision.
 
 ## 2. Fast Facts
 
@@ -16,9 +16,11 @@ Requiem is the first **Provable AI Runtime**. We solve the "Black Box" problem o
 ## 3. Key Messaging
 
 ### The Problem
+
 AI agents are currently "unreliable black boxes." Companies are afraid to give them access to tools because they can't audit or control the execution flow in real-time.
 
 ### The Solution
+
 Requiem creates a "Flight Recorder" for AI. It doesn't just log what the AI said; it proves what the AI did. By enforcing policy at the runtime layer, it ensures agents stay within safe boundaries.
 
 ## 4. Logo & Assets (Internal Reference)
@@ -36,5 +38,5 @@ Please direct all press inquiries to <press@requiem.sh>.
 ## 6. Quotes
 
 > "Requiem is not just a framework; it's a foundation for trust. We are moving AI from probabilistic hope to deterministic proof." — *Founding Architect*
-
+>
 > "The industry has focused too long on what the model says. Requiem focuses on what the system does." — *Lead Systems Engineer*
