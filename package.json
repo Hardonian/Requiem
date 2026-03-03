@@ -22,7 +22,7 @@
     "format:check": "cd ready-layer && npx prettier --check .",
     "web:dev": "pnpm --filter ready-layer dev",
     "test:e2e": "pnpm --filter ready-layer test:e2e",
-    "doctor": "bash scripts/doctor.sh",
+    "doctor": "powershell -ExecutionPolicy Bypass -File scripts/doctor.ps1",
     "verify:full": "npm-run-all lint typecheck verify:boundaries build:web",
     "verify:perf-maint": "tsx scripts/verify-perf-maintainability.ts",
     "verify:no-console": "tsx scripts/verify-no-console.ts packages/cli/src",

@@ -2,3 +2,8 @@ command	exit_code	log_file
 verify:ai-safety	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_ai-safety.log
 verify:boundaries	0	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_boundaries.log
 verify:ci	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_ci.log
+verify:contracts	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_contracts.log
+verify:cost-accounting	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_cost-accounting.log
+verify:cpp	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_cpp.log
+verify:dead-code	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_dead-code.log
+verify:dependencies	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_dependencies.log
