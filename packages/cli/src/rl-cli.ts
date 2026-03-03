@@ -48,6 +48,8 @@ export interface CommandContext {
   traceId: string;
   json: boolean;
   minimal: boolean;
+  explain: boolean;
+  trace: boolean;
 }
 
 function generateTraceId(): string {
@@ -239,6 +241,8 @@ async function main(): Promise<number> {
     traceId,
     json,
     minimal,
+    explain: false,
+    trace: false,
   };
 
   try {

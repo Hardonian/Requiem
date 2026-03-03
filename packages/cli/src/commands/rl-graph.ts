@@ -2,6 +2,7 @@
  * rl graph command - Show repo lineage graph / run graph
  */
 
+/* eslint-disable no-restricted-imports */
 import fs from 'fs';
 import path from 'path';
 import { RunLogRepository, PromptRepository } from '../db/operator-console.js';

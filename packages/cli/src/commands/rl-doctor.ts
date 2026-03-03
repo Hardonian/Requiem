@@ -225,7 +225,7 @@ async function checkModeSettings(): Promise<DoctorCheck> {
 }
 
 function printDoctor(result: DoctorResult, showFixes: boolean): void {
-  const icons = { ok: '●', warn: '●', fail: '○' };
+  const icons: Record<string, string> = { ok: '●', warn: '●', fail: '○', healthy: '●', degraded: '●', unhealthy: '○' };
   const colors = {
     ok: '\x1b[32m',   // green
     warn: '\x1b[33m', // yellow

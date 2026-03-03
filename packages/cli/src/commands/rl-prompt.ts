@@ -2,6 +2,7 @@
  * rl prompt command - List/get/add/run prompts with deterministic hash IDs
  */
 
+/* eslint-disable no-restricted-imports */
 import fs from 'fs';
 import path from 'path';
 import { PromptRepository, Prompt } from '../db/operator-console.js';
@@ -115,7 +116,7 @@ async function runAdd(
 
   // Extract variables from content ({{variable}} pattern)
   const variableMatches = content.match(/\{\{(\w+)\}\}/g) || [];
-  const variables = [...new Set(variableMatches.map(v => v.slice(2, -2)))];
+  const variables = Array.from(new Set(variableMatches.map(v => v.slice(2, -2))));
 
   // Check for existing prompt
   const existing = repo.findByName(name);

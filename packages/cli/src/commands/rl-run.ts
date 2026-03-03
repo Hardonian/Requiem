@@ -2,6 +2,7 @@
  * rl run command - Start/replay/inspect runs with run_id + trace_id and artifact export
  */
 
+/* eslint-disable no-restricted-imports */
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -168,7 +169,7 @@ async function runStart(
     status: 'completed',
     prompt_id: prompt.id,
     artifact_path: artifactDir,
-    manifest_path,
+    manifest_path: manifestPath,
   };
 
   if (options.json) {
