@@ -238,6 +238,8 @@ jobs:
         run: pnpm run typecheck
       - name: boundaries
         run: pnpm run verify:boundaries
+      - name: mcp routes
+        run: pnpm run verify:mcp-routes
       - name: build web
         run: pnpm run build:web
       - name: secrets scan
