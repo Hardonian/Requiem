@@ -1,6 +1,7 @@
 // ready-layer/tailwind.config.ts
 //
 // Tailwind CSS configuration for the Requiem enterprise dashboard.
+// Extended with Stitch design system tokens for unified theming.
 
 import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
@@ -34,12 +35,26 @@ const config: Config = {
           700: '#2c45b0',
           900: '#1a2a6e',
         },
+        // Stitch design system tokens - ReadyLayer brand
+        stitch: {
+          primary: '#137fec',
+          'primary-dark': '#0b5cb5',
+          'background-light': '#f6f7f8',
+          'background-dark': '#101922',
+          'surface-dark': '#1c252e',
+          'surface-darker': '#151e27',
+          'border-dark': '#2a3441',
+          'text-secondary': '#94a3b8',
+        },
       },
       fontFamily: {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        body: ['Noto Sans', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.15s ease-in',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
