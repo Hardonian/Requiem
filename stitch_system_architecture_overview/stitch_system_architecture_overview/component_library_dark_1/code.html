@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ready Layer AI - Control Plane UI Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen pb-24">
+<!-- Header / Branding -->
+<header class="sticky top-0 z-50 border-b border-primary/10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="text-primary size-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">terminal</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight">READY LAYER AI</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">Control Plane v2.4.0</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded text-xs text-primary font-medium">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                SYSTEM OPERATIONAL
+            </div>
+<button class="material-symbols-outlined text-slate-400 hover:text-white transition-colors">notifications</button>
+<button class="material-symbols-outlined text-slate-400 hover:text-white transition-colors">account_circle</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto p-6 space-y-12">
+<!-- 1. Typography & Colors -->
+<section>
+<h2 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-l-2 border-primary pl-4">01. Design Foundation</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4 bg-primary/5 p-6 rounded-lg border border-primary/10">
+<p class="text-xs font-bold text-slate-500 uppercase">Typography</p>
+<div class="space-y-2">
+<p class="text-3xl font-display font-bold">Space Grotesk - UI Heading</p>
+<p class="text-lg font-display">Interface interactions and primary labels.</p>
+<p class="mono text-primary text-sm">JetBrains Mono - System logs &amp; CLI outputs</p>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="space-y-2">
+<div class="h-16 w-full bg-primary rounded-lg"></div>
+<p class="text-[10px] mono uppercase">Primary #137FEC</p>
+</div>
+<div class="space-y-2">
+<div class="h-16 w-full bg-background-dark border border-slate-700 rounded-lg"></div>
+<p class="text-[10px] mono uppercase">Surface #101922</p>
+</div>
+<div class="space-y-2">
+<div class="h-16 w-full bg-slate-100 rounded-lg"></div>
+<p class="text-[10px] mono uppercase">Text #F1F5F9</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Action Elements -->
+<section>
+<h2 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-l-2 border-primary pl-4">02. Infrastructure Actions</h2>
+<div class="flex flex-wrap gap-4 items-center">
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded font-bold text-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-lg">download</span>
+                    INSTALL CLI
+                </button>
+<button class="border border-slate-700 hover:border-primary/50 text-slate-300 px-6 py-2.5 rounded font-bold text-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-lg">description</span>
+                    VIEW DOCS
+                </button>
+<button class="text-primary hover:bg-primary/10 px-4 py-2 rounded text-sm font-bold transition-all">
+                    SECONDARY GHOST
+                </button>
+<div class="flex gap-2">
+<button class="p-2 border border-slate-800 rounded hover:bg-slate-800 text-slate-400 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 border border-slate-800 rounded hover:bg-slate-800 text-slate-400 transition-all">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 3. Status & Badges -->
+<section>
+<h2 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-l-2 border-primary pl-4">03. Status Indicators</h2>
+<div class="flex flex-wrap gap-6 items-center">
+<div class="flex gap-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-500/10 text-green-500 border border-green-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-2"></span> OPERATIONAL
+                    </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2"></span> SYNCING
+                    </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+<span class="material-symbols-outlined text-sm mr-1">verified</span> VERIFIED
+                    </span>
+</div>
+<div class="h-8 w-[1px] bg-slate-800"></div>
+<div class="flex gap-3">
+<span class="mono text-[10px] font-bold px-2 py-0.5 bg-red-950 text-red-500 border border-red-900 rounded">CHOKE POINT</span>
+<span class="mono text-[10px] font-bold px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-900 rounded">COMPLIANCE CHECK</span>
+<span class="mono text-[10px] font-bold px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded">READ-ONLY</span>
+</div>
+</div>
+</section>
+<!-- 4. CLI Component -->
+<section>
+<h2 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-l-2 border-primary pl-4">04. Terminal Interface</h2>
+<div class="rounded-lg overflow-hidden border border-slate-800 bg-black/50 shadow-2xl">
+<div class="bg-slate-900/80 px-4 py-2 border-b border-slate-800 flex items-center justify-between">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-green-500/20 border border-green-500/40"></div>
+</div>
+<span class="mono text-[10px] text-slate-500">rlai-control — zsh — 80x24</span>
+<div class="w-12"></div>
+</div>
+<div class="p-6 mono text-sm leading-relaxed min-h-[160px]">
+<div class="flex gap-3">
+<span class="text-green-500">➜</span>
+<span class="text-slate-100">replicate export <span class="text-primary">--node</span> alpha-01 <span class="text-primary">--force</span></span>
+</div>
+<p class="text-slate-500 mt-1">Exporting layer weights to persistent storage... [OK]</p>
+<div class="flex gap-3 mt-4">
+<span class="text-green-500">➜</span>
+<span class="text-slate-100">entitlement show <span class="text-primary">--user</span> "node-admin"</span>
+</div>
+<div class="mt-2 text-slate-400">
+                        { "access": "full", "expiry": "2024-12-31", "verified": true }
+                    </div>
+<div class="flex gap-3 mt-4">
+<span class="text-green-500">➜</span>
+<span class="w-2 h-5 bg-primary animate-pulse inline-block"></span>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. Metrics & Progress -->
+<section>
+<h2 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-l-2 border-primary pl-4">05. Live Metrics</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-slate-900/50 p-6 rounded-lg border border-slate-800">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-400 text-sm font-medium">Latency</p>
+<span class="text-red-400 text-xs font-bold">-2ms</span>
+</div>
+<div class="flex items-end gap-2">
+<h3 class="text-4xl font-bold tracking-tight">14ms</h3>
+<div class="flex gap-0.5 pb-2">
+<div class="w-1 h-3 bg-primary/20 rounded-full"></div>
+<div class="w-1 h-5 bg-primary/40 rounded-full"></div>
+<div class="w-1 h-4 bg-primary/30 rounded-full"></div>
+<div class="w-1 h-6 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="bg-slate-900/50 p-6 rounded-lg border border-slate-800">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-400 text-sm font-medium">Throughput</p>
+<span class="text-green-400 text-xs font-bold">+1.2k</span>
+</div>
+<div class="flex items-end gap-2">
+<h3 class="text-4xl font-bold tracking-tight">45k<span class="text-lg text-slate-500 ml-1">ops/s</span></h3>
+</div>
+</div>
+<div class="bg-slate-900/50 p-6 rounded-lg border border-slate-800 flex flex-col justify-center">
+<div class="flex justify-between mb-2">
+<p class="text-slate-400 text-sm font-medium">Policy Enforcement</p>
+<p class="text-primary text-sm font-bold">88%</p>
+</div>
+<div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 88%"></div>
+</div>
+<p class="text-[10px] text-slate-500 mt-2 uppercase tracking-wider font-bold">Compliant with SEC-99-A</p>
+</div>
+</div>
+</section>
+<!-- 6. Infrastructure Cards -->
+<section>
+<h2 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-l-2 border-primary pl-4">06. Infrastructure Nodes</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="bg-slate-900/40 p-4 rounded-lg border border-slate-800 hover:border-primary/40 transition-colors group">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">dns</span>
+<span class="font-bold text-sm tracking-tight">NODE-ALPHA</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+</div>
+<div class="flex justify-between text-[10px] mono text-slate-500">
+<span>CPU: 42%</span>
+<span>MEM: 1.2GB</span>
+</div>
+</div>
+<div class="bg-slate-900/40 p-4 rounded-lg border border-slate-800 hover:border-primary/40 transition-colors">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500 text-sm">database</span>
+<span class="font-bold text-sm tracking-tight">DB Integrity</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+</div>
+<div class="flex justify-between text-[10px] mono text-slate-500">
+<span>READS: 12k</span>
+<span>HEALTH: 100%</span>
+</div>
+</div>
+<div class="bg-slate-900/40 p-4 rounded-lg border border-slate-800 hover:border-primary/40 transition-colors">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500 text-sm">security</span>
+<span class="font-bold text-sm tracking-tight">CAS Refs</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+</div>
+<div class="flex justify-between text-[10px] mono text-slate-500">
+<span>QUEUED: 14</span>
+<span>STATE: SYNC</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. Audit & Logs -->
+<section>
+<h2 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-l-2 border-primary pl-4">07. System Audit Logs</h2>
+<div class="bg-slate-900/30 border border-slate-800 rounded-lg overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-900/80 border-b border-slate-800">
+<th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Timestamp</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Identity</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Action</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
+</tr>
+</thead>
+<tbody class="mono text-xs">
+<tr class="border-b border-slate-800/50 hover:bg-primary/5 transition-colors">
+<td class="px-4 py-3 text-slate-500">2024-05-24 14:02:11</td>
+<td class="px-4 py-3 text-slate-300 font-medium">RL_SERVICE_PRINCIPAL</td>
+<td class="px-4 py-3">REPLICATE_EXPORT --ALL</td>
+<td class="px-4 py-3"><span class="text-green-500">SUCCESS</span></td>
+</tr>
+<tr class="border-b border-slate-800/50 hover:bg-primary/5 transition-colors">
+<td class="px-4 py-3 text-slate-500">2024-05-24 14:01:55</td>
+<td class="px-4 py-3 text-slate-300 font-medium">ADMIN_USER_09</td>
+<td class="px-4 py-3">SET_ENTITLEMENT_READONLY</td>
+<td class="px-4 py-3"><span class="text-green-500">SUCCESS</span></td>
+</tr>
+<tr class="border-b border-slate-800/50 hover:bg-primary/5 transition-colors">
+<td class="px-4 py-3 text-slate-500">2024-05-24 13:58:12</td>
+<td class="px-4 py-3 text-slate-300 font-medium">NODE_ALPHA</td>
+<td class="px-4 py-3">SYNC_BLOCK_COMMIT</td>
+<td class="px-4 py-3"><span class="text-amber-500">RETRY_PENDING</span></td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-4 py-3 text-slate-500">2024-05-24 13:44:01</td>
+<td class="px-4 py-3 text-slate-300 font-medium">SYSTEM_WATCHDOG</td>
+<td class="px-4 py-3">POL_CHECK_SEC_99A</td>
+<td class="px-4 py-3"><span class="text-green-500">SUCCESS</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- 8. Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-background-dark/90 backdrop-blur-xl border-t border-slate-800">
+<div class="max-w-md mx-auto flex justify-around p-3">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="p-2 rounded-full bg-primary/20 text-primary transition-all group-hover:bg-primary group-hover:text-white">
+<span class="material-symbols-outlined block">hard_drive</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">Nodes</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="p-2 rounded-full text-slate-500 transition-all group-hover:bg-slate-800 group-hover:text-slate-200">
+<span class="material-symbols-outlined block">format_list_bulleted</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Logs</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="p-2 rounded-full text-slate-500 transition-all group-hover:bg-slate-800 group-hover:text-slate-200">
+<span class="material-symbols-outlined block">terminal</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">CLI</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="p-2 rounded-full text-slate-500 transition-all group-hover:bg-slate-800 group-hover:text-slate-200">
+<span class="material-symbols-outlined block">settings</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

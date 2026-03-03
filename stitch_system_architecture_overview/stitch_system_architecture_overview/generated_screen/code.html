@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ready Layer | Final Build Manifest</title>
+<!-- Load Tailwind CSS v3 with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Configure Tailwind with Space Grotesk font and custom colors -->
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'ready-blue': '#007AFF',
+            'dark-bg': '#0B0F17',
+            'dark-card': '#161B22',
+            'dark-border': '#30363D',
+          },
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+<!-- Google Fonts: Space Grotesk -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-dark-bg text-gray-100 font-sans selection:bg-ready-blue selection:text-white">
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-50 bg-dark-bg/80 backdrop-blur-md border-b border-dark-border" data-purpose="sticky-navigation">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-ready-blue rounded flex items-center justify-center">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-xl font-bold tracking-tight">READY LAYER</span>
+</div>
+<div class="flex items-center gap-4 text-xs font-mono text-gray-400">
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span> BUILD: SUCCESS</span>
+<span class="hidden sm:inline">v1.0.0-STABLE</span>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: ContentArea -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<!-- BEGIN: HeroSection -->
+<section class="mb-16" data-purpose="manifest-intro">
+<h1 class="text-4xl sm:text-5xl font-bold mb-4">Ready Layer: Final Build Manifest</h1>
+<p class="text-xl text-gray-400 max-w-3xl leading-relaxed">
+        Deterministic AI execution infrastructure for technical founders and platform engineers. 
+        This manifest consolidates all screens, themes, and technical specifications for final deployment.
+      </p>
+</section>
+<!-- END: HeroSection -->
+<!-- BEGIN: GridSpecifications -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+<!-- Design System Card -->
+<section class="bg-dark-card border border-dark-border rounded-xl p-8" data-purpose="design-system">
+<h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+<svg class="w-6 h-6 text-ready-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Design System
+        </h2>
+<div class="space-y-4">
+<div class="flex justify-between items-center py-2 border-b border-dark-border/50">
+<span class="text-gray-400">Theme (Dark)</span>
+<span class="font-mono text-ready-blue">THEME_2</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-dark-border/50">
+<span class="text-gray-400">Theme (Light)</span>
+<span class="font-mono text-ready-blue">THEME_6</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-dark-border/50">
+<span class="text-gray-400">Typography</span>
+<span class="font-semibold text-white">Space Grotesk</span>
+</div>
+<div class="flex justify-between items-center py-2">
+<span class="text-gray-400">Primary Color</span>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 bg-ready-blue rounded-full"></div>
+<span class="font-mono">#007AFF</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Build Context Card -->
+<section class="bg-dark-card border border-dark-border rounded-xl p-8" data-purpose="deployment-meta">
+<h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+<svg class="w-6 h-6 text-ready-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Project Overview
+        </h2>
+<div class="space-y-6">
+<div>
+<span class="text-xs font-mono text-ready-blue uppercase tracking-widest block mb-1">Status</span>
+<p class="text-gray-300">Ready for Launch</p>
+</div>
+<div>
+<span class="text-xs font-mono text-ready-blue uppercase tracking-widest block mb-1">Infrastructure Grade</span>
+<p class="text-gray-300">Enterprise High-Availability</p>
+</div>
+<div class="pt-4">
+<div class="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
+<div class="h-full bg-ready-blue w-[100%]"></div>
+</div>
+<p class="text-[10px] text-gray-500 mt-2 font-mono">ALL SYSTEMS VERIFIED | 100% COVERAGE</p>
+</div>
+</div>
+</section>
+</div>
+<!-- END: GridSpecifications -->
+<!-- BEGIN: ScreenInventoryTable -->
+<section class="mb-16" data-purpose="screen-registry">
+<h2 class="text-2xl font-bold mb-6">Screen Inventory</h2>
+<div class="overflow-x-auto rounded-xl border border-dark-border">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-dark-card text-gray-400 text-xs font-mono uppercase tracking-wider">
+<th class="px-6 py-4 border-b border-dark-border font-medium">Module</th>
+<th class="px-6 py-4 border-b border-dark-border font-medium">Dark Mode Reference</th>
+<th class="px-6 py-4 border-b border-dark-border font-medium">Light Mode Reference</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-dark-border text-sm">
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Home</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_38</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_60</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Architecture</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_73</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_16</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Guarantees</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_85</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_29</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Replication</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_48</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_10</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Entitlements</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_83</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_84</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Entitlements API</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_63</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_70</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Observability</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_15</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_43</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">API User Guide</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_56</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_39</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Onboarding</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_25</td>
+<td class="px-6 py-4 text-gray-600">—</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Component Library</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_61</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_44</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-white">Differentiators</td>
+<td class="px-6 py-4 font-mono text-gray-400">SCREEN_66</td>
+<td class="px-6 py-4 text-gray-600">—</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- END: ScreenInventoryTable -->
+<!-- BEGIN: JSONPayload -->
+<section class="mb-16" data-purpose="build-insert-prompt">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold">Build-Insert Prompt (Antigravity JSON)</h2>
+<div class="text-[10px] bg-dark-card px-2 py-1 rounded border border-dark-border font-mono text-gray-500 uppercase">application/json</div>
+</div>
+<div class="relative group">
+<!-- Syntax highlighted looking code block -->
+<pre class="bg-[#050505] text-gray-300 p-6 rounded-xl border border-dark-border overflow-x-auto font-mono text-sm leading-relaxed">{
+  <span class="text-ready-blue">"project"</span>: <span class="text-green-400">"Ready Layer AI Control Plane"</span>,
+  <span class="text-ready-blue">"version"</span>: <span class="text-green-400">"1.0.0"</span>,
+  <span class="text-ready-blue">"deployment"</span>: <span class="text-green-400">"infrastructure-grade"</span>,
+  <span class="text-ready-blue">"screens"</span>: {
+    <span class="text-ready-blue">"home"</span>: [<span class="text-gray-500">"SCREEN_38"</span>, <span class="text-gray-500">"SCREEN_60"</span>],
+    <span class="text-ready-blue">"architecture"</span>: [<span class="text-gray-500">"SCREEN_73"</span>, <span class="text-gray-500">"SCREEN_16"</span>],
+    <span class="text-ready-blue">"guarantees"</span>: [<span class="text-gray-500">"SCREEN_85"</span>, <span class="text-gray-500">"SCREEN_29"</span>],
+    <span class="text-ready-blue">"replication"</span>: [<span class="text-gray-500">"SCREEN_48"</span>, <span class="text-gray-500">"SCREEN_10"</span>],
+    <span class="text-ready-blue">"entitlements"</span>: [<span class="text-gray-500">"SCREEN_83"</span>, <span class="text-gray-500">"SCREEN_84"</span>],
+    <span class="text-ready-blue">"entitlements_api"</span>: [<span class="text-gray-500">"SCREEN_63"</span>, <span class="text-gray-500">"SCREEN_70"</span>],
+    <span class="text-ready-blue">"observability"</span>: [<span class="text-gray-500">"SCREEN_15"</span>, <span class="text-gray-500">"SCREEN_43"</span>],
+    <span class="text-ready-blue">"guides"</span>: [<span class="text-gray-500">"SCREEN_56"</span>, <span class="text-gray-500">"SCREEN_39"</span>],
+    <span class="text-ready-blue">"onboarding"</span>: [<span class="text-gray-500">"SCREEN_25"</span>],
+    <span class="text-ready-blue">"components"</span>: [<span class="text-gray-500">"SCREEN_61"</span>, <span class="text-gray-500">"SCREEN_44"</span>]
+  },
+  <span class="text-ready-blue">"metadata"</span>: {
+    <span class="text-ready-blue">"seo"</span>: <span class="text-green-400">"optimized"</span>,
+    <span class="text-ready-blue">"json-ld"</span>: <span class="text-green-400">"SoftwareApplication"</span>,
+    <span class="text-ready-blue">"status"</span>: <span class="text-green-400">"ready-for-launch"</span>
+  }
+}</pre>
+<button class="absolute top-4 right-4 bg-dark-card hover:bg-ready-blue/20 p-2 rounded-lg border border-dark-border transition-colors group-active:scale-95">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</section>
+<!-- END: JSONPayload -->
+</main>
+<!-- END: ContentArea -->
+<!-- BEGIN: Footer -->
+<footer class="bg-dark-card border-t border-dark-border py-12" data-purpose="site-footer">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 bg-ready-blue rounded flex items-center justify-center">
+<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-sm font-bold tracking-tight text-gray-400 uppercase">Ready Layer Infrastructure Co.</span>
+</div>
+<div class="flex gap-8 text-xs font-mono text-gray-500">
+<a class="hover:text-ready-blue transition-colors" href="#">SECURITY.SPEC</a>
+<a class="hover:text-ready-blue transition-colors" href="#">PROTOCOL.SPEC</a>
+<a class="hover:text-ready-blue transition-colors" href="#">NODE_CLUSTER.AUTH</a>
+</div>
+<div class="text-xs text-gray-600">
+          © 2024 Ready Layer Protocol. All rights reserved.
+        </div>
+</div>
+</div>
+</footer>
+<!-- END: Footer -->
+</body></html>

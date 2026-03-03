@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .code-block { font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 border-b border-slate-200 dark:border-white/10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 justify-between max-w-5xl mx-auto w-full">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">terminal</span>
+</div>
+<div>
+<h1 class="text-sm font-bold uppercase tracking-wider text-primary">Ready Layer Engine</h1>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Entitlements API Specification</h2>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-xl">share</span>
+</button>
+<button class="flex h-10 px-4 items-center justify-center rounded-lg bg-primary text-white font-semibold text-sm transition-opacity hover:opacity-90">
+                    v1.4.2 Stable
+                </button>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-5xl mx-auto w-full p-4 md:p-8 space-y-12">
+<section class="space-y-4">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">security</span>
+<h3 class="text-sm font-bold uppercase tracking-widest">Authentication &amp; Request Headers</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-4 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-primary font-bold">X-Ready-Layer-Signature</span>
+<p class="text-sm text-slate-600 dark:text-slate-400">HMAC-SHA256 signature calculated using your private project key. Required for all production traffic.</p>
+</div>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-primary font-bold">X-Ready-Layer-Entitlement-ID</span>
+<p class="text-sm text-slate-600 dark:text-slate-400">Unique identifier for tracking specific entitlement sessions across high-concurrency instances.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<h3 class="text-sm font-bold uppercase tracking-widest">Check Entitlement</h3>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold border border-emerald-500/20">
+<span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    ACTIVE ENDPOINT
+                </div>
+</div>
+<div class="flex items-center gap-3 p-4 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
+<span class="px-2 py-1 bg-emerald-600 text-white text-xs font-bold rounded">POST</span>
+<span class="text-sm font-mono tracking-tight text-slate-700 dark:text-slate-300">/v1/entitlements/verify</span>
+<div class="ml-auto flex gap-2">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">content_copy</span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 space-y-4">
+<h4 class="text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary size-5">attach_money</span> Request Body
+                    </h4>
+<div class="code-block p-6 rounded-xl bg-[#0d0d0d] text-slate-300 text-sm overflow-x-auto border border-white/10">
+<pre><code>{
+  <span class="text-sky-400">"feature_id"</span>: <span class="text-emerald-400">"advanced_analytics_v2"</span>,
+  <span class="text-sky-400">"user_context"</span>: {
+    <span class="text-sky-400">"id"</span>: <span class="text-emerald-400">"usr_88219"</span>,
+    <span class="text-sky-400">"org"</span>: <span class="text-emerald-400">"enterprise_acme"</span>,
+    <span class="text-sky-400">"region"</span>: <span class="text-emerald-400">"us-east-1"</span>
+  },
+  <span class="text-sky-400">"quota_request"</span>: {
+    <span class="text-sky-400">"tokens"</span>: <span class="text-orange-400">150</span>,
+    <span class="text-sky-400">"priority"</span>: <span class="text-orange-400">1</span>
+  }
+}</code></pre>
+</div>
+</div>
+<div class="space-y-4">
+<h4 class="text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary size-5">rule</span> Response Codes
+                    </h4>
+<div class="space-y-3">
+<div class="flex items-start gap-3 p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
+<span class="text-xs font-bold text-emerald-500 mt-1">200</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-emerald-500">Authorized</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Access granted. Quota decremented.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
+<span class="text-xs font-bold text-amber-500 mt-1">403</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-amber-500">Limit Exceeded</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Insufficient balance for request.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-3 rounded-lg border border-rose-500/20 bg-rose-500/5">
+<span class="text-xs font-bold text-rose-500 mt-1">429</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-rose-500">Too Many Requests</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Global rate limit triggered.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="pt-8 border-t border-slate-200 dark:border-white/10">
+<div class="bg-primary/5 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 border border-primary/20">
+<div class="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-3xl">info</span>
+</div>
+<div class="space-y-1">
+<h4 class="font-bold text-lg">Real-time Verification Required</h4>
+<p class="text-slate-600 dark:text-slate-400 text-sm max-w-2xl">
+                        Ready Layer operates a zero-trust infrastructure. Every entitlement check must be signed at the edge to prevent spoofing. Local caching is supported for read-only flags with a max TTL of 300s.
+                    </p>
+</div>
+<button class="ml-auto px-6 py-2 bg-primary text-white font-bold rounded-lg whitespace-nowrap">
+                    View SDKs
+                </button>
+</div>
+</section>
+</main>
+<footer class="mt-auto border-t border-slate-200 dark:border-white/10 bg-white dark:bg-background-dark/50">
+<div class="max-w-5xl mx-auto flex gap-2 px-4 py-4 overflow-x-auto sm:justify-center">
+<a class="flex flex-1 sm:flex-none sm:min-w-[100px] flex-col items-center justify-center gap-1 p-2 rounded-xl text-primary" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<p class="text-[10px] font-bold uppercase tracking-tighter">Docs</p>
+</a>
+<a class="flex flex-1 sm:flex-none sm:min-w-[100px] flex-col items-center justify-center gap-1 p-2 rounded-xl text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<p class="text-[10px] font-bold uppercase tracking-tighter">Logs</p>
+</a>
+<a class="flex flex-1 sm:flex-none sm:min-w-[100px] flex-col items-center justify-center gap-1 p-2 rounded-xl text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">api</span>
+<p class="text-[10px] font-bold uppercase tracking-tighter">Endpoints</p>
+</a>
+<a class="flex flex-1 sm:flex-none sm:min-w-[100px] flex-col items-center justify-center gap-1 p-2 rounded-xl text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-[10px] font-bold uppercase tracking-tighter">Settings</p>
+</a>
+</div>
+</footer>
+</body></html>

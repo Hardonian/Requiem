@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ready Layer Control Plane</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#137fec",
+                        "primary-dark": "#0b5cb5",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1c252e",
+                        "surface-darker": "#151e27",
+                        "border-dark": "#2a3441",
+                        "text-secondary": "#94a3b8",
+                    },
+                    fontFamily: {
+                        display: ["Space Grotesk", "sans-serif"],
+                        body: ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Ready Layer Control Plane",
+  "operatingSystem": "Cloud-native",
+  "applicationCategory": "Infrastructure",
+  "description": "Deterministic AI Execution Infrastructure. A policy-enforced, verifiable control plane for modern AI workloads, providing cryptographic proof of origin and automated budget enforcement across distributed provider endpoints.",
+  "featureList": [
+    "Deterministic Replay",
+    "Policy Enforcement",
+    "Provider Arbitration",
+    "Artifact Signing",
+    "Multi-region Replication",
+    "Entitlements",
+    "Provenance Export",
+    "Divergence Sentinel",
+    "Selftest Diagnostics",
+    "Economic Ledger Enforcement"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script></head>
+<body class="bg-background-light dark:bg-background-dark font-body antialiased min-h-screen flex flex-col pb-20">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-background-dark/95 backdrop-blur border-b border-border-dark px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-xl">layers</span>
+</div>
+<h1 class="text-white text-lg font-bold font-display tracking-tight">Ready Layer</h1>
+</div>
+<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-dark transition-colors text-white">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</header>
+<main class="flex-1 w-full max-w-md mx-auto">
+<!-- Hero Section -->
+<section class="px-5 py-8 flex flex-col gap-4">
+<div class="inline-flex items-center gap-2 self-start rounded-full bg-primary/10 px-3 py-1 border border-primary/20">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-xs font-medium text-primary uppercase tracking-wider">v2.4.0 Stable</span>
+</div>
+<h2 class="text-white text-3xl font-bold font-display leading-tight">Deterministic AI Execution Infrastructure</h2>
+<p class="text-text-secondary text-base font-normal leading-relaxed">Policy-enforced. Signed. Replayable. Verifiable. The control plane for modern AI workloads.</p>
+<div class="flex flex-col gap-3 pt-2">
+<button class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary hover:bg-primary-dark h-12 px-6 text-white text-sm font-bold transition-colors">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+                    View Execution Guarantees
+                </button>
+<button class="flex w-full items-center justify-center gap-2 rounded-lg bg-surface-dark border border-border-dark hover:bg-surface-darker h-12 px-6 text-white text-sm font-bold transition-colors">
+<span class="material-symbols-outlined text-[20px]">schema</span>
+                    Explore Architecture
+                </button>
+</div>
+</section>
+<!-- Stats / Quick Overview -->
+<section class="px-5 pb-8">
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-dark border border-border-dark rounded-xl p-4 flex flex-col gap-1">
+<span class="text-text-secondary text-xs font-medium uppercase">Active Policies</span>
+<div class="text-white text-2xl font-bold font-display">128</div>
+<div class="flex items-center gap-1 text-emerald-500 text-xs">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+12% this week</span>
+</div>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-xl p-4 flex flex-col gap-1">
+<span class="text-text-secondary text-xs font-medium uppercase">Total Executions</span>
+<div class="text-white text-2xl font-bold font-display">8.4M</div>
+<div class="flex items-center gap-1 text-primary text-xs">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span>99.99% Uptime</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Control Plane Features -->
+<section class="px-5 pb-8">
+<div class="relative group overflow-hidden rounded-2xl border border-border-dark bg-surface-darker/50">
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
+<div class="p-4 flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="text-white text-sm font-bold font-display uppercase tracking-widest">Distributed Control Plane</h3>
+<span class="text-primary text-[10px] font-mono bg-primary/10 px-2 py-0.5 rounded">ACTIVE_TOPOLOGY_V4</span>
+</div>
+<div class="aspect-square w-full rounded-lg overflow-hidden border border-border-dark/50 shadow-2xl shadow-primary/10">
+<img alt="Technical architecture diagram of a distributed AI control plane" class="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaPWrcNvOKnzM-0aEjFX2Vio3vh3DJGXb-suzi7R3Z6tGKtxuMj-Q9U7jkzxoxuLv1LYm-t9yIBtAVcNUbSOe8QVI1qaLpz1nODuus2uinX1jxxqeOA-4ONEeg6kOZctwvJ2yqe3Jsdqbx1ot_I2bSNESBWUgvPoM7RNTLFM4xJVfaQCg_M-YvKp0R4m_mNoE4SEnRvX4wkvBcrcmi3cFBuofQ3YZPfkntn_4PjDBr-C8mpGHh_NhVvudV5k7ADnoAPQXveJe03CX5"/>
+</div>
+<div class="flex justify-between items-center gap-2">
+<div class="flex -space-x-2">
+<div class="w-5 h-5 rounded-full border border-background-dark bg-emerald-500/20 flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+</div>
+<div class="w-5 h-5 rounded-full border border-background-dark bg-primary/20 flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</div>
+<div class="w-5 h-5 rounded-full border border-background-dark bg-purple-500/20 flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+</div>
+</div>
+<p class="text-text-secondary text-[10px] font-medium italic italic">Live architectural sync enabled</p>
+</div>
+</div>
+</div>
+</section><section class="px-5 pb-8">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-white text-lg font-bold font-display">Control Plane Core</h3>
+<button class="text-primary text-xs font-bold uppercase tracking-wider hover:text-primary-dark">View All</button>
+</div>
+<div class="grid gap-3">
+<!-- Feature 1 -->
+<div class="group bg-surface-dark hover:bg-surface-darker border border-border-dark rounded-xl p-4 transition-all cursor-pointer">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+<span class="material-symbols-outlined">gavel</span>
+</div>
+<div class="flex-1">
+<h4 class="text-white font-bold font-display text-base mb-1">Policy Enforcement</h4>
+<p class="text-text-secondary text-xs leading-relaxed">
+                                Strict adherence to pre-defined constraints before any LLM call is dispatched.
+                            </p>
+</div>
+<span class="material-symbols-outlined text-border-dark group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="group bg-surface-dark hover:bg-surface-darker border border-border-dark rounded-xl p-4 transition-all cursor-pointer">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+<span class="material-symbols-outlined">hub</span>
+</div>
+<div class="flex-1">
+<h4 class="text-white font-bold font-display text-base mb-1">Provider Decisions</h4>
+<p class="text-text-secondary text-xs leading-relaxed">
+                                Dynamic routing based on latency, cost, and availability metrics in real-time.
+                            </p>
+</div>
+<span class="material-symbols-outlined text-border-dark group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="group bg-surface-dark hover:bg-surface-darker border border-border-dark rounded-xl p-4 transition-all cursor-pointer">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+<span class="material-symbols-outlined">fingerprint</span>
+</div>
+<div class="flex-1">
+<h4 class="text-white font-bold font-display text-base mb-1">Artifact Signing</h4>
+<p class="text-text-secondary text-xs leading-relaxed">
+                                Cryptographic proof of origin for every generated output and intermediate step.
+                            </p>
+</div>
+<span class="material-symbols-outlined text-border-dark group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Feature 4 -->
+<div class="group bg-surface-dark hover:bg-surface-darker border border-border-dark rounded-xl p-4 transition-all cursor-pointer">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 shrink-0">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<div class="flex-1">
+<h4 class="text-white font-bold font-display text-base mb-1">Cost Ledger</h4>
+<p class="text-text-secondary text-xs leading-relaxed">
+                                Granular token accounting and budget enforcement across all provider endpoints.
+                            </p>
+</div>
+<span class="material-symbols-outlined text-border-dark group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works -->
+<section class="px-5 pb-8">
+<h3 class="text-white text-lg font-bold font-display mb-4">Execution Flow</h3>
+<div class="relative pl-4 border-l border-border-dark space-y-8">
+<!-- Step 1 -->
+<div class="relative">
+<div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-surface-dark border-2 border-primary"></div>
+<div class="bg-surface-darker border border-border-dark p-3 rounded-lg">
+<div class="flex justify-between items-center mb-2">
+<h4 class="text-white text-sm font-bold">Request to Policy</h4>
+<span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">0ms</span>
+</div>
+<p class="text-text-secondary text-xs">Incoming requests are validated against active policy constraints.</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative">
+<div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-surface-dark border-2 border-primary"></div>
+<div class="bg-surface-darker border border-border-dark p-3 rounded-lg">
+<div class="flex justify-between items-center mb-2">
+<h4 class="text-white text-sm font-bold">Execution to Manifest</h4>
+<span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">120ms</span>
+</div>
+<p class="text-text-secondary text-xs">LLM interaction occurs, capturing inputs, outputs, and metadata into a manifest.</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative">
+<div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-surface-dark border-2 border-primary"></div>
+<div class="bg-surface-darker border border-border-dark p-3 rounded-lg">
+<div class="flex justify-between items-center mb-2">
+<h4 class="text-white text-sm font-bold">Ledger to Replay</h4>
+<span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Done</span>
+</div>
+<p class="text-text-secondary text-xs">Transaction is committed to the immutable ledger, enabling exact replay.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Guarantees Grid -->
+<section class="px-5 pb-8">
+<h3 class="text-white text-lg font-bold font-display mb-4">System Guarantees</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-dark border border-border-dark rounded-lg p-3 text-center">
+<span class="material-symbols-outlined text-green-400 mb-2">lock</span>
+<h5 class="text-white text-sm font-bold">Type Safe</h5>
+<p class="text-text-secondary text-[10px] mt-1">Schema validation</p>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-3 text-center">
+<span class="material-symbols-outlined text-blue-400 mb-2">history</span>
+<h5 class="text-white text-sm font-bold">Immutable</h5>
+<p class="text-text-secondary text-[10px] mt-1">Write-once logs</p>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-3 text-center">
+<span class="material-symbols-outlined text-purple-400 mb-2">psychology</span>
+<h5 class="text-white text-sm font-bold">Deterministic</h5>
+<p class="text-text-secondary text-[10px] mt-1">Same input/output</p>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-3 text-center">
+<span class="material-symbols-outlined text-orange-400 mb-2">visibility</span>
+<h5 class="text-white text-sm font-bold">Auditable</h5>
+<p class="text-text-secondary text-[10px] mt-1">Full traceability</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav -->
+<nav class="fixed bottom-0 left-0 right-0 bg-background-dark/95 backdrop-blur border-t border-border-dark flex justify-around items-end pb-5 pt-2 z-50">
+<a class="flex flex-col items-center gap-1 group w-16" href="#">
+<span class="material-symbols-outlined text-white text-[24px]">home</span>
+<span class="text-[10px] font-medium text-white">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 group w-16" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-white transition-colors text-[24px]">description</span>
+<span class="text-[10px] font-medium text-text-secondary group-hover:text-white transition-colors">Policies</span>
+</a>
+<a class="flex flex-col items-center gap-1 group w-16" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-white transition-colors text-[24px]">segment</span>
+<span class="text-[10px] font-medium text-text-secondary group-hover:text-white transition-colors">Logs</span>
+</a>
+<a class="flex flex-col items-center gap-1 group w-16" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-white transition-colors text-[24px]">settings</span>
+<span class="text-[10px] font-medium text-text-secondary group-hover:text-white transition-colors">Settings</span>
+</a>
+</nav>
+</body></html>

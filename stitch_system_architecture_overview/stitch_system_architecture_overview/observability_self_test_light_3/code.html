@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#007AFF",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }</script>
+<title>System Diagnostics - Observability</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<!-- Top Navigation / Header -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#007AFF]/10">
+<div class="flex items-center p-4 justify-between max-w-5xl mx-auto w-full">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-[#007AFF]/10 text-primary">
+<span class="material-symbols-outlined text-2xl">analytics</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">System Diagnostics</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-primary/5 text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary/5 text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-5xl mx-auto pb-24">
+<!-- Status Overview Section -->
+<section class="p-4 pt-6">
+<div class="flex items-center justify-between mb-4 px-1">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Live Status</h2>
+<span class="flex items-center gap-2 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+                    Operational
+                </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- DB Integrity Card -->
+<div class="flex flex-col gap-3 rounded-xl p-6 bg-white dark:bg-slate-900 border border-[#007AFF]/10 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 text-sm font-medium">DB Integrity</p>
+<span class="material-symbols-outlined text-[#007AFF]/40">database</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">Healthy</p>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-emerald-500 text-sm font-bold">trending_up</span>
+<p class="text-emerald-600 text-sm font-semibold">+0.0% jitter</p>
+</div>
+</div>
+<!-- CAS Refs Card -->
+<div class="flex flex-col gap-3 rounded-xl p-6 bg-white dark:bg-slate-900 border border-[#007AFF]/10 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 text-sm font-medium">CAS Refs</p>
+<span class="material-symbols-outlined text-[#007AFF]/40">link</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">Valid</p>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-emerald-500 text-sm font-bold">check_circle</span>
+<p class="text-emerald-600 text-sm font-semibold">100% Match</p>
+</div>
+</div>
+<!-- Replay Log Card -->
+<div class="flex flex-col gap-3 rounded-xl p-6 bg-white dark:bg-slate-900 border border-[#007AFF]/10 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 text-sm font-medium">Replay Log</p>
+<span class="material-symbols-outlined text-[#007AFF]/40">history</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">Synced</p>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-emerald-500 text-sm font-bold">sync</span>
+<p class="text-emerald-600 text-sm font-semibold">Live Offset</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Selftest JSON Section -->
+<section class="p-4">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-[#007AFF]/10 overflow-hidden shadow-sm">
+<div class="flex items-center justify-between px-6 py-4 border-b border-[#007AFF]/5 bg-slate-50/50 dark:bg-slate-800/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">data_object</span>
+<h3 class="text-slate-900 dark:text-slate-100 font-bold tracking-tight">selftest_results.json</h3>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#007AFF] text-white text-xs font-bold hover:bg-[#007AFF]/90 transition-colors">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+                            Copy
+                        </button>
+<button class="p-1.5 rounded-lg border border-[#007AFF]/20 text-slate-500 hover:bg-[#007AFF]/5 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+</div>
+</div>
+<div class="p-6 overflow-x-auto">
+<div class="rounded-lg bg-slate-950 p-6 font-mono text-sm leading-relaxed shadow-inner">
+<div class="flex gap-4">
+<div class="text-slate-600 select-none text-right">
+                                01<br/>02<br/>03<br/>04<br/>05<br/>06<br/>07<br/>08<br/>09<br/>10<br/>11
+                            </div>
+<div class="flex-1">
+<span class="text-emerald-400">{</span><br/>
+                                  <span class="text-primary">"status"</span>: <span class="text-orange-300">"success"</span>,<br/>
+                                  <span class="text-primary">"latency"</span>: <span class="text-orange-300">"14ms"</span>,<br/>
+                                  <span class="text-primary">"integrity_check"</span>: <span class="text-purple-400">true</span>,<br/>
+                                  <span class="text-primary">"cas_sync"</span>: <span class="text-orange-300">"verified"</span>,<br/>
+                                  <span class="text-primary">"replay_offset"</span>: <span class="text-purple-400">4092</span>,<br/>
+                                  <span class="text-primary">"nodes"</span>: <span class="text-purple-400">5</span>,<br/>
+                                  <span class="text-primary">"environment"</span>: <span class="text-orange-300">"production-cluster-01"</span>,<br/>
+                                  <span class="text-primary">"timestamp"</span>: <span class="text-orange-300">"2023-11-20T10:45:00Z"</span>,<br/>
+                                  <span class="text-primary">"uptime"</span>: <span class="text-purple-400">345600</span><br/>
+<span class="text-emerald-400">}</span>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 pb-6 pt-2">
+<div class="flex flex-col gap-3 rounded-xl p-6 bg-white dark:bg-slate-900 border border-[#007AFF]/10 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-primary">info</span>
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            Last automated self-test completed 4 minutes ago. All core systems reporting nominal latency and consistency benchmarks.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Nodes / Infrastructure Section -->
+<section class="p-4">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4 px-1">Infrastructure Topology</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+<div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/30 flex flex-col items-center text-center gap-2">
+<span class="material-symbols-outlined text-emerald-500">dns</span>
+<span class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tighter">Node-Alpha</span>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/30 flex flex-col items-center text-center gap-2">
+<span class="material-symbols-outlined text-emerald-500">dns</span>
+<span class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tighter">Node-Bravo</span>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/30 flex flex-col items-center text-center gap-2">
+<span class="material-symbols-outlined text-emerald-500">dns</span>
+<span class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tighter">Node-Charlie</span>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/30 flex flex-col items-center text-center gap-2">
+<span class="material-symbols-outlined text-emerald-500">dns</span>
+<span class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tighter">Node-Delta</span>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/30 flex flex-col items-center text-center gap-2">
+<span class="material-symbols-outlined text-emerald-500">dns</span>
+<span class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tighter">Node-Echo</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-[#007AFF]/10 pb-safe z-50">
+<div class="flex items-center justify-around p-2 max-w-5xl mx-auto">
+<a class="flex flex-col items-center gap-1 p-2 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl font-variation-fill">dashboard</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Overview</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">terminal</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Logs</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">insights</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Metrics</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,53 @@
+# Ready Layer: Technical Documentation & Infrastructure Architecture
+
+## 1. Information Architecture
+The documentation is structured into five primary technical pillars, ensuring clear navigation for platform engineers and technical founders.
+
+### Pillar 1: Core Concepts (Positioning)
+*   **Ready Layer Home:** High-level overview of deterministic AI execution.
+*   **Technical Differentiators:** Direct comparison between ad-hoc AI implementations and enforced infrastructure.
+
+### Pillar 2: Execution & Safety
+*   **Execution Guarantees:** Deep dive into deterministic replay, artifact signing, and policy enforcement.
+*   **Policy Engine Architecture:** Visualizing the single-choke-point for resource and safety constraints.
+
+### Pillar 3: Data & Durability
+*   **Multi-Region Replication:** Protocol specs for append-only streams, import/export, and signature verification.
+*   **Ledger & CAS Store:** Technical details on the SQLite ledger and Content-Addressable Storage.
+
+### Pillar 4: Access & Economics
+*   **Entitlements & Economic Control:** Feature gating, concurrency limits, and token-based enforcement.
+*   **Single Choke Point Policy:** Ensuring no bypass paths for execution or cost.
+
+### Pillar 5: Operations & Reliability
+*   **Observability & Self-Test:** Structured diagnostics (`selftest`) and system health monitoring.
+*   **Architecture Overview:** Full-stack topology from CLI entry to execution kernel.
+
+---
+
+## 2. Onboarding Flow (The "How-To")
+1.  **Environment Setup:** CLI installation and authentication.
+2.  **Policy Initialization:** Defining the initial constraint manifest.
+3.  **Execution Run:** Triggering an auditable, deterministic inference task.
+4.  **Verification:** Replaying the run to verify bit-level parity.
+5.  **Provenance:** Exporting the signed proof for external auditing.
+
+---
+
+## 3. Design System Standards
+*   **Typography:** Space Grotesk (Technical/Modern).
+*   **Color Mode:** Native support for System Dark/Light.
+*   **Syntax Highlighting:** Refined infrastructure-grade palette (Blue: Commands, Teal: Flags, Green: Success).
+*   **SEO/Metadata:** Full JSON-LD SoftwareApplication schemas for search visibility.
+
+---
+
+## 4. Screen Inventory (Mapping)
+*   **Home:** `{{DATA:SCREEN:SCREEN_14}}` (Dark), `{{DATA:SCREEN:SCREEN_24}}` (Light)
+*   **Architecture:** `{{DATA:SCREEN:SCREEN_18}}` (Dark), `{{DATA:SCREEN:SCREEN_6}}` (Light)
+*   **Guarantees:** `{{DATA:SCREEN:SCREEN_31}}` (Dark), `{{DATA:SCREEN:SCREEN_23}}` (Light)
+*   **Replication:** `{{DATA:SCREEN:SCREEN_21}}` (Dark), `{{DATA:SCREEN:SCREEN_34}}` (Light)
+*   **Entitlements:** `{{DATA:SCREEN:SCREEN_3}}` (Dark), `{{DATA:SCREEN:SCREEN_29}}` (Light)
+*   **Observability:** `{{DATA:SCREEN:SCREEN_13}}` (Dark), `{{DATA:SCREEN:SCREEN_33}}` (Light)
+*   **Onboarding:** `{{DATA:SCREEN:SCREEN_15}}`
+*   **Component Library:** `{{DATA:SCREEN:SCREEN_40}}` (Dark), `{{DATA:SCREEN:SCREEN_19}}` (Light)

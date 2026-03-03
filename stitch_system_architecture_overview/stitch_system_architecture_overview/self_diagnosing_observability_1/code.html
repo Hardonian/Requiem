@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Self-Diagnosing Observability</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1c2630",
+                        "border-dark": "#2a3642",
+                        "text-secondary": "#94a3b8",
+                        "success": "#22c55e",
+                        "warning": "#eab308",
+                        "error": "#ef4444",
+                    },
+                    fontFamily: {
+                        display: ["Space Grotesk", "sans-serif"],
+                        mono: ["Space Mono", "monospace"], // implied for code
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px",
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for code block */
+        .code-scroll::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .code-scroll::-webkit-scrollbar-track {
+            background: #1c2630;
+        }
+        .code-scroll::-webkit-scrollbar-thumb {
+            background: #2a3642;
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex flex-col antialiased selection:bg-primary/30">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-border-dark px-4 py-3">
+<div class="flex items-center justify-between">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-200 dark:hover:bg-surface-dark transition-colors text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<h2 class="text-base font-semibold tracking-wide">Observability</h2>
+<button class="flex items-center justify-center px-4 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold rounded-full transition-colors">
+                Run
+            </button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto pb-24">
+<div class="px-5 pt-6 pb-2">
+<h1 class="text-2xl font-bold leading-tight mb-3">Self-Diagnosing Execution Engine</h1>
+<p class="text-slate-500 dark:text-text-secondary text-sm leading-relaxed">
+                The <code class="bg-slate-200 dark:bg-surface-dark px-1.5 py-0.5 rounded text-primary font-mono text-xs">selftest</code> command verifies the integrity of the execution engine by running internal consistency checks against the database, content-addressable storage (CAS), and replay log determinism.
+            </p>
+</div>
+<!-- System Status Summary -->
+<div class="px-5 py-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-text-secondary mb-3">System Status</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500 dark:text-text-secondary">DB Integrity</span>
+<span class="material-symbols-outlined text-success text-[18px]">check_circle</span>
+</div>
+<span class="text-lg font-bold">100%</span>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500 dark:text-text-secondary">CAS Refs</span>
+<span class="material-symbols-outlined text-success text-[18px]">check_circle</span>
+</div>
+<span class="text-lg font-bold">Valid</span>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Replay Log</span>
+<span class="material-symbols-outlined text-success text-[18px]">check_circle</span>
+</div>
+<span class="text-lg font-bold">Synced</span>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Latency</span>
+<span class="material-symbols-outlined text-success text-[18px]">check_circle</span>
+</div>
+<span class="text-lg font-bold">12ms</span>
+</div>
+</div>
+</div>
+<!-- Terminal Output -->
+<div class="px-5">
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-text-secondary">Output Log</h3>
+<span class="text-xs text-slate-400 dark:text-slate-500 font-mono">T: +0.024s</span>
+</div>
+<div class="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-border-dark bg-[#0d1117]">
+<!-- Terminal Header -->
+<div class="flex items-center px-4 py-2 bg-[#161b22] border-b border-border-dark gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+<span class="ml-2 text-xs text-slate-500 font-mono">selftest_result.json</span>
+</div>
+<!-- Code Block -->
+<div class="p-4 overflow-x-auto code-scroll">
+<pre class="font-mono text-xs leading-relaxed text-slate-300"><span class="text-[#7ee787]">{</span>
+  <span class="text-[#79c0ff]">"execution_id"</span>: <span class="text-[#a5d6ff]">"exec-9928-alpha"</span>,
+  <span class="text-[#79c0ff]">"timestamp"</span>: <span class="text-[#a5d6ff]">"2023-10-27T14:32:01Z"</span>,
+  <span class="text-[#79c0ff]">"checks"</span>: <span class="text-[#7ee787]">[</span>
+    <span class="text-[#7ee787]">{</span>
+      <span class="text-[#79c0ff]">"component"</span>: <span class="text-[#a5d6ff]">"postgres_primary"</span>,
+      <span class="text-[#79c0ff]">"test"</span>: <span class="text-[#a5d6ff]">"consistency_check"</span>,
+      <span class="text-[#79c0ff]">"status"</span>: <span class="text-[#7ee787]">"pass"</span>,
+      <span class="text-[#79c0ff]">"latency_ms"</span>: <span class="text-[#79c0ff]">4.2</span>
+    <span class="text-[#7ee787]">}</span>,
+    <span class="text-[#7ee787]">{</span>
+      <span class="text-[#79c0ff]">"component"</span>: <span class="text-[#a5d6ff]">"cas_storage"</span>,
+      <span class="text-[#79c0ff]">"test"</span>: <span class="text-[#a5d6ff]">"blob_integrity"</span>,
+      <span class="text-[#79c0ff]">"status"</span>: <span class="text-[#7ee787]">"pass"</span>,
+      <span class="text-[#79c0ff]">"latency_ms"</span>: <span class="text-[#79c0ff]">12.8</span>
+    <span class="text-[#7ee787]">}</span>,
+    <span class="text-[#7ee787]">{</span>
+      <span class="text-[#79c0ff]">"component"</span>: <span class="text-[#a5d6ff]">"event_bus"</span>,
+      <span class="text-[#79c0ff]">"test"</span>: <span class="text-[#a5d6ff]">"replay_determinism"</span>,
+      <span class="text-[#79c0ff]">"status"</span>: <span class="text-[#7ee787]">"pass"</span>,
+      <span class="text-[#79c0ff]">"details"</span>: <span class="text-[#7ee787]">{</span>
+        <span class="text-[#79c0ff]">"events_replayed"</span>: <span class="text-[#79c0ff]">1540</span>,
+        <span class="text-[#79c0ff]">"hash_mismatch"</span>: <span class="text-[#79c0ff]">0</span>
+      <span class="text-[#7ee787]">}</span>
+    <span class="text-[#7ee787]">}</span>
+  <span class="text-[#7ee787]">]</span>,
+  <span class="text-[#79c0ff]">"overall_status"</span>: <span class="text-[#7ee787]">"HEALTHY"</span>
+<span class="text-[#7ee787]">}</span></pre>
+</div>
+</div>
+<div class="mt-4 flex gap-2">
+<button class="flex-1 bg-surface-dark border border-border-dark rounded-lg py-3 text-sm font-medium hover:bg-border-dark transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                    Export Log
+                </button>
+<button class="flex-1 bg-surface-dark border border-border-dark rounded-lg py-3 text-sm font-medium hover:bg-border-dark transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">history</span>
+                    History
+                </button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-border-dark bg-background-light dark:bg-surface-dark pb-safe">
+<div class="flex items-center justify-around px-2 pt-2 pb-4">
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-[24px] text-slate-400 group-hover:text-primary transition-colors">analytics</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Dashboard</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-[24px] text-slate-400 group-hover:text-primary transition-colors">dns</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Clusters</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<div class="bg-primary/10 rounded-full px-4 py-1 flex flex-col items-center">
+<span class="material-symbols-outlined text-[24px] text-primary">visibility</span>
+</div>
+<span class="text-[10px] font-bold text-primary">Observability</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-[24px] text-slate-400 group-hover:text-primary transition-colors">settings</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Get Started - AI Control Plane</title><meta content="Step-by-step technical onboarding for Ready Layer AI Control Plane. Learn to install the CLI, initialize policies, and verify deterministic executions." name="description"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": ["SoftwareApplication", "HowTo"],
+  "name": "Ready Layer AI Control Plane",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web, CLI",
+  "description": "Step-by-step technical onboarding for Ready Layer AI Control Plane.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Install CLI",
+      "text": "Install the ready-cli tool via brew or curl.",
+      "itemListElement": [{
+        "@type": "HowToDirection",
+        "text": "brew install ready-cli"
+      }]
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Initialize Policy",
+      "text": "Create a default policy configuration file in your repo.",
+      "itemListElement": [{
+        "@type": "HowToDirection",
+        "text": "ready policy init --template=guardrails-v1"
+      }]
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Run Execution",
+      "text": "Execute a dry-run against the local LLM proxy.",
+      "itemListElement": [{
+        "@type": "HowToDirection",
+        "text": "ready run --dry-run --model=gpt-4-turbo"
+      }]
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Verify Replay",
+      "text": "Ensure deterministic outputs by replaying the execution ID.",
+      "itemListElement": [{
+        "@type": "HowToDirection",
+        "text": "ready replay --id=exec_8a92b --assert=exact"
+      }]
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Export Provenance",
+      "text": "Generate a cryptographic proof of the execution chain.",
+      "itemListElement": [{
+        "@type": "HowToDirection",
+        "text": "ready provenance export --format=json"
+      }]
+    }
+  ]
+}
+</script></head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased selection:bg-primary/30">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header -->
+<div class="sticky top-0 z-20 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-slate-200 dark:border-slate-800">
+<button class="text-slate-900 dark:text-white flex size-12 shrink-0 items-center justify-start hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>
+</button>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Get Started</h2>
+<!-- Spacer to balance the back button -->
+</div>
+<main class="flex-1 flex flex-col px-4 pb-24 pt-4">
+<div class="mb-6">
+<h1 class="text-slate-900 dark:text-white tracking-tight text-[28px] font-bold leading-tight text-left">Quick Start Guide</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal pt-2">Initialize your local environment to interact with the Control Plane.</p>
+</div>
+<!-- Progress Indicator -->
+<div class="flex w-full flex-row items-center gap-2 mb-8 px-1">
+<div class="h-1 flex-1 rounded-full bg-primary"></div>
+<div class="h-1 flex-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+<div class="h-1 flex-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+<div class="h-1 flex-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+<div class="h-1 flex-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+</div>
+<!-- Steps Container -->
+<div class="flex flex-col gap-6">
+<!-- Step 1 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white font-bold text-sm">1</div>
+<div class="w-px h-full bg-slate-200 dark:bg-slate-800 my-2"></div>
+</div>
+<div class="flex-1 pb-6">
+<h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Install CLI</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Install the `ready-cli` tool via brew or curl.</p>
+<div class="relative group rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+<div class="flex items-center justify-between px-3 py-2 bg-slate-800/50 border-b border-slate-700">
+<span class="text-[10px] font-mono text-slate-400">bash</span>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+</button>
+</div>
+<div class="p-3 overflow-x-auto">
+<code class="text-xs font-mono text-emerald-400 whitespace-nowrap mono-text">brew install ready-cli</code>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-sm">2</div>
+<div class="w-px h-full bg-slate-200 dark:bg-slate-800 my-2"></div>
+</div>
+<div class="flex-1 pb-6">
+<h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Initialize Policy</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Create a default policy configuration file in your repo.</p>
+<div class="relative group rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+<div class="flex items-center justify-between px-3 py-2 bg-slate-800/50 border-b border-slate-700">
+<span class="text-[10px] font-mono text-slate-400">bash</span>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+</button>
+</div>
+<div class="p-3 overflow-x-auto">
+<code class="text-xs font-mono text-emerald-400 whitespace-nowrap mono-text">ready policy init --template=guardrails-v1</code>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-sm">3</div>
+<div class="w-px h-full bg-slate-200 dark:bg-slate-800 my-2"></div>
+</div>
+<div class="flex-1 pb-6">
+<h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Run Execution</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Execute a dry-run against the local LLM proxy.</p>
+<div class="relative group rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+<div class="flex items-center justify-between px-3 py-2 bg-slate-800/50 border-b border-slate-700">
+<span class="text-[10px] font-mono text-slate-400">bash</span>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+</button>
+</div>
+<div class="p-3 overflow-x-auto">
+<code class="text-xs font-mono text-emerald-400 whitespace-nowrap mono-text">ready run --dry-run --model=gpt-4-turbo</code>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-sm">4</div>
+<div class="w-px h-full bg-slate-200 dark:bg-slate-800 my-2"></div>
+</div>
+<div class="flex-1 pb-6">
+<h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Verify Replay</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Ensure deterministic outputs by replaying the execution ID.</p>
+<div class="relative group rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+<div class="flex items-center justify-between px-3 py-2 bg-slate-800/50 border-b border-slate-700">
+<span class="text-[10px] font-mono text-slate-400">bash</span>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+</button>
+</div>
+<div class="p-3 overflow-x-auto">
+<code class="text-xs font-mono text-emerald-400 whitespace-nowrap mono-text">ready replay --id=exec_8a92b --assert=exact</code>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-sm">5</div>
+</div>
+<div class="flex-1 pb-6">
+<h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Export Provenance</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Generate a cryptographic proof of the execution chain.</p>
+<div class="relative group rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+<div class="flex items-center justify-between px-3 py-2 bg-slate-800/50 border-b border-slate-700">
+<span class="text-[10px] font-mono text-slate-400">bash</span>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+</button>
+</div>
+<div class="p-3 overflow-x-auto">
+<code class="text-xs font-mono text-emerald-400 whitespace-nowrap mono-text">ready provenance export --format=json</code>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Help Box -->
+<div class="mt-4 rounded-xl bg-slate-100 dark:bg-slate-800/50 p-4 border border-slate-200 dark:border-slate-800">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-0.5" style="font-size: 20px;">info</span>
+<div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Need detailed docs?</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Check out the full API reference for advanced configuration options regarding CI/CD integration.</p>
+<a class="inline-flex items-center text-primary text-xs font-bold mt-2 hover:underline" href="#">
+                            View Documentation 
+                            <span class="material-symbols-outlined ml-1" style="font-size: 14px;">open_in_new</span>
+</a>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-background-light dark:bg-background-dark px-4 pb-6 pt-2">
+<div class="flex gap-2 justify-around">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors group" href="#">
+<div class="flex h-8 items-center justify-center transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined filled-icon" style="font-size: 24px;">home</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors group" href="#">
+<div class="flex h-8 items-center justify-center transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined" style="font-size: 24px;">security</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Policies</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined fill-current" style="font-variation-settings: 'FILL' 1; font-size: 24px;">rocket_launch</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Start</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors group" href="#">
+<div class="flex h-8 items-center justify-center transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined" style="font-size: 24px;">terminal</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Executions</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors group" href="#">
+<div class="flex h-8 items-center justify-center transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined" style="font-size: 24px;">settings</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Settings</p>
+</a>
+</div>
+</div>
+</div>
+</body></html>

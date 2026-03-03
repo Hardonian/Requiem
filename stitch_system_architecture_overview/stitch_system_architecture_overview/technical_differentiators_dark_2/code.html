@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="Compare Ready Layer's enforced AI infrastructure standards against legacy ad-hoc implementations. Features deterministic replay, crypto-signed signing, and zero-trust security." name="description"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#137fec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Ready Layer AI Control Plane",
+  "operatingSystem": "Cross-platform",
+  "applicationCategory": "DeveloperApplication",
+  "description": "A centralized control plane for enforcing standards, security, and determinism in AI implementations.",
+  "featureList": [
+    "Deterministic Replay",
+    "Policy Enforcement",
+    "Crypto-signed Manifests",
+    "Immutable Ledgers",
+    "Zero Trust Security Model"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "availability": "https://schema.org/InStock",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script></head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-screen flex flex-col">
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center p-4 justify-between max-w-2xl mx-auto w-full">
+<div class="flex items-center gap-4">
+<button class="text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-800 p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Technical Differentiators</h1>
+</div>
+<button class="text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-800 p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+</header>
+<main class="flex-1 max-w-2xl mx-auto w-full pb-24">
+<section class="px-4 py-8">
+<h2 class="text-3xl font-bold tracking-tight mb-2">Technical Infrastructure</h2>
+<p class="text-slate-600 dark:text-slate-400 text-base mb-8">
+                A direct comparison between legacy ad-hoc implementations and Ready Layer's enforced standards.
+            </p>
+<div class="flex border-b border-slate-200 dark:border-slate-800 mb-6">
+<div class="flex-1 text-center py-3 text-sm font-bold border-b-2 border-transparent text-slate-500">
+                    Standard Ad-hoc
+                </div>
+<div class="flex-1 text-center py-3 text-sm font-bold border-b-2 border-primary text-primary">
+                    Ready Layer
+                </div>
+</div>
+<div class="space-y-4">
+<div class="group">
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Replayability</div>
+<div class="comparison-grid bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="bg-background-light dark:bg-background-dark p-4 flex flex-col justify-center">
+<span class="text-sm font-medium text-slate-500">None</span>
+</div>
+<div class="bg-primary/10 p-4 border-l border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span class="text-sm font-bold text-primary">Enforced</span>
+</div>
+</div>
+</div>
+<div class="group">
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Signing</div>
+<div class="comparison-grid bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="bg-background-light dark:bg-background-dark p-4 flex flex-col justify-center">
+<span class="text-sm font-medium text-slate-500">Unsigned</span>
+</div>
+<div class="bg-primary/10 p-4 border-l border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">lock</span>
+<span class="text-sm font-bold text-primary">Crypto-signed</span>
+</div>
+</div>
+</div>
+<div class="group">
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Manifests</div>
+<div class="comparison-grid bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="bg-background-light dark:bg-background-dark p-4 flex flex-col justify-center">
+<span class="text-sm font-medium text-slate-500">Ad-hoc JSON</span>
+</div>
+<div class="bg-primary/10 p-4 border-l border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">account_tree</span>
+<span class="text-sm font-bold text-primary">Strict Schema</span>
+</div>
+</div>
+</div>
+<div class="group">
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Ledger</div>
+<div class="comparison-grid bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="bg-background-light dark:bg-background-dark p-4 flex flex-col justify-center">
+<span class="text-sm font-medium text-slate-500">None</span>
+</div>
+<div class="bg-primary/10 p-4 border-l border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">history_edu</span>
+<span class="text-sm font-bold text-primary">Immutable</span>
+</div>
+</div>
+</div>
+<div class="group">
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Determinism</div>
+<div class="comparison-grid bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="bg-background-light dark:bg-background-dark p-4 flex flex-col justify-center">
+<span class="text-sm font-medium text-slate-500">No</span>
+</div>
+<div class="bg-primary/10 p-4 border-l border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">fingerprint</span>
+<span class="text-sm font-bold text-primary">Yes / Fingerprint</span>
+</div>
+</div>
+</div>
+<div class="group">
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Security Model</div>
+<div class="comparison-grid bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="bg-background-light dark:bg-background-dark p-4 flex flex-col justify-center">
+<span class="text-sm font-medium text-slate-500">Perimeter</span>
+</div>
+<div class="bg-primary/10 p-4 border-l border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">shield</span>
+<span class="text-sm font-bold text-primary">Zero Trust</span>
+</div>
+</div>
+</div>
+<div class="group">
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Audit Trail</div>
+<div class="comparison-grid bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="bg-background-light dark:bg-background-dark p-4 flex flex-col justify-center">
+<span class="text-sm font-medium text-slate-500">Manual CSV</span>
+</div>
+<div class="bg-primary/10 p-4 border-l border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">auto_mode</span>
+<span class="text-sm font-bold text-primary">Automated</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4 py-8">
+<div class="bg-slate-100 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+<h3 class="text-xl font-bold mb-2">Ready to upgrade?</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm mb-6">Transition your existing AI implementation to the Ready Layer standard in minutes.</p>
+<div class="flex flex-col sm:flex-row gap-3">
+<button class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">terminal</span>
+                        Install CLI
+                    </button>
+<button class="border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2">
+                        View Docs
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 z-20">
+<div class="max-w-2xl mx-auto flex items-center justify-between px-4 py-2">
+<a class="flex flex-1 flex-col items-center gap-1 py-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 py-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Network</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 py-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">shield</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Compare</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 py-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

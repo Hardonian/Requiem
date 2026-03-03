@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#007AFF",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }</script>
+<title>API Implementation Guide | Infrastructure Engine</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<!-- Top Navigation Header -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center px-4 py-3 justify-between">
+<div class="flex items-center gap-3">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</div>
+<div>
+<h1 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">API Implementation Guide</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">v2.4.0-stable</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex size-10 items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">search</span>
+</button>
+<button class="flex size-10 items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Sub-navigation Tabs -->
+<nav class="flex border-b border-slate-200 dark:border-slate-800 px-4 gap-6 overflow-x-auto no-scrollbar">
+<a class="flex flex-col items-center justify-center border-b-2 border-primary text-primary pb-3 pt-4 whitespace-nowrap" href="#">
+<p class="text-sm font-bold tracking-wide">Overview</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 pb-3 pt-4 whitespace-nowrap" href="#auth">
+<p class="text-sm font-bold tracking-wide">Authentication</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 pb-3 pt-4 whitespace-nowrap" href="#entitlements">
+<p class="text-sm font-bold tracking-wide">Entitlements</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 pb-3 pt-4 whitespace-nowrap" href="#replication">
+<p class="text-sm font-bold tracking-wide">Replication</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 pb-3 pt-4 whitespace-nowrap" href="#errors">
+<p class="text-sm font-bold tracking-wide">Errors</p>
+</a>
+</nav>
+</header>
+<main class="max-w-4xl mx-auto px-4 pb-32">
+<!-- Architecture Section -->
+<section class="py-8 border-b border-slate-200 dark:border-slate-800">
+<h2 class="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">account_tree</span>
+                Architecture Overview
+            </h2>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
+                The core API engine is designed for high-concurrency data processing and distributed replication. It utilizes a stateless REST architecture with binary-encoded payload support for maximum throughput.
+            </p>
+<div class="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary mt-1">info</span>
+<p class="text-sm text-slate-700 dark:text-slate-300 leading-normal">
+<strong>Critical:</strong> All production endpoints require TLS 1.3 or higher. Non-encrypted requests are automatically dropped at the edge gateway.
+                </p>
+</div>
+</section>
+<!-- Authentication Section -->
+<section class="py-8 border-b border-slate-200 dark:border-slate-800" id="auth">
+<h2 class="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">key</span>
+                Authentication (HMAC-SHA256)
+            </h2>
+<p class="text-slate-600 dark:text-slate-400 mb-4">
+                Requests are signed using the HMAC-SHA256 algorithm. The signature must be included in the <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded text-primary text-sm">X-Signature</code> header.
+            </p>
+<div class="bg-slate-900 rounded-lg overflow-hidden my-4 shadow-xl">
+<div class="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+<span class="text-xs text-slate-400 font-mono">CLI Signature Generation</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">content_copy</span>
+</div>
+<div class="p-4 font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre">
+<span class="text-emerald-400"># Generate signature for payload</span>
+<span class="text-slate-300">echo -n "payload_body" | \</span>
+<span class="text-slate-300">openssl dgst -sha256 -hmac "YOUR_SECRET_KEY" -hex</span>
+<span class="text-slate-500"># Output: 3f78a...</span></div>
+</div>
+</section>
+<!-- Entitlements Section -->
+<section class="py-8 border-b border-slate-200 dark:border-slate-800" id="entitlements">
+<h2 class="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+                Entitlements Engine
+            </h2>
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-bold rounded uppercase tracking-wider">POST</span>
+<code class="text-sm font-mono text-slate-700 dark:text-slate-300">/v1/entitlements/verify</code>
+</div>
+<p class="text-slate-600 dark:text-slate-400 mb-6">
+                Validate resource access levels against the global identity mesh. Real-time verification for low-latency permission checks.
+            </p>
+<table class="w-full text-left text-sm mb-6 border-collapse">
+<thead>
+<tr class="border-b border-slate-200 dark:border-slate-800">
+<th class="py-3 font-bold text-slate-500 uppercase tracking-tight">Param</th>
+<th class="py-3 font-bold text-slate-500 uppercase tracking-tight">Type</th>
+<th class="py-3 font-bold text-slate-500 uppercase tracking-tight">Requirement</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-900">
+<tr>
+<td class="py-4 font-mono text-primary">resource_id</td>
+<td class="py-4 text-slate-600 dark:text-slate-400">UUID</td>
+<td class="py-4 font-medium text-slate-500 italic">Required</td>
+</tr>
+<tr>
+<td class="py-4 font-mono text-primary">scope</td>
+<td class="py-4 text-slate-600 dark:text-slate-400">String</td>
+<td class="py-4 font-medium text-slate-500 italic">Optional</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- Replication Section -->
+<section class="py-8 border-b border-slate-200 dark:border-slate-800" id="replication">
+<h2 class="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">sync_alt</span>
+                Replication Protocol
+            </h2>
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] font-bold rounded uppercase tracking-wider">PUT</span>
+<code class="text-sm font-mono text-slate-700 dark:text-slate-300">/v1/replicate</code>
+</div>
+<p class="text-slate-600 dark:text-slate-400 mb-6">
+                Initiate high-density data synchronization between clusters. Supports partial differential updates and automatic conflict resolution.
+            </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+<h4 class="font-bold text-sm mb-2 text-slate-900 dark:text-slate-100">Differential Sync</h4>
+<p class="text-xs text-slate-500 leading-relaxed">Only modified bits are transferred. Reduces bandwidth usage by up to 80% on large datasets.</p>
+</div>
+<div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+<h4 class="font-bold text-sm mb-2 text-slate-900 dark:text-slate-100">Atomic Commitment</h4>
+<p class="text-xs text-slate-500 leading-relaxed">Transactions are fully committed only after all secondary nodes acknowledge receipt.</p>
+</div>
+</div>
+</section>
+<!-- Errors Section -->
+<section class="py-8" id="errors">
+<h2 class="text-2xl font-bold tracking-tight mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">error</span>
+                Error Handling
+            </h2>
+<div class="space-y-3">
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border-l-4 border-amber-500 rounded-r-lg">
+<div class="w-16 font-bold text-slate-900 dark:text-slate-100">401</div>
+<div class="flex-1">
+<div class="text-sm font-bold">Unauthorized</div>
+<div class="text-xs text-slate-500">Missing or invalid X-Signature header.</div>
+</div>
+</div>
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border-l-4 border-red-500 rounded-r-lg">
+<div class="w-16 font-bold text-slate-900 dark:text-slate-100">403</div>
+<div class="flex-1">
+<div class="text-sm font-bold">Forbidden</div>
+<div class="text-xs text-slate-500">Token valid, but lacks scope for this resource.</div>
+</div>
+</div>
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border-l-4 border-purple-500 rounded-r-lg">
+<div class="w-16 font-bold text-slate-900 dark:text-slate-100">429</div>
+<div class="flex-1">
+<div class="text-sm font-bold">Rate Limit</div>
+<div class="text-xs text-slate-500">Exceeded burst threshold (1,000 req/sec).</div>
+</div>
+</div>
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border-l-4 border-slate-400 rounded-r-lg">
+<div class="w-16 font-bold text-slate-900 dark:text-slate-100">503</div>
+<div class="flex-1">
+<div class="text-sm font-bold">Maintenance</div>
+<div class="text-xs text-slate-500">The specific cluster is undergoing scheduled backup.</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<footer class="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-lg">
+<div class="flex gap-2 px-4 pb-6 pt-2 max-w-lg mx-auto">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<span class="material-symbols-outlined">book</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Docs</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" href="#">
+<span class="material-symbols-outlined">api</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Endpoints</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" href="#">
+<span class="material-symbols-outlined">terminal</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Logs</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Settings</p>
+</a>
+</div>
+</footer>
+</body></html>

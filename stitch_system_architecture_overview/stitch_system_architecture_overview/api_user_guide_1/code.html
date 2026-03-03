@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ready Layer API Implementation Guide</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .code-block {
+            background-color: rgba(19, 127, 236, 0.05);
+            border-left: 2px solid #137fec;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="max-w-7xl mx-auto flex items-center justify-between p-4">
+<div class="flex items-center gap-4">
+<div class="text-primary cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">API Implementation Guide</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="bg-primary text-white px-4 py-1.5 rounded text-sm font-medium">
+                    v1.4.2-stable
+                </button>
+</div>
+</div>
+</header>
+<main class="max-w-5xl mx-auto p-6 md:p-10 space-y-12">
+<!-- Intro Section -->
+<section class="space-y-4" id="overview">
+<h2 class="text-3xl font-bold tracking-tighter border-l-4 border-primary pl-4">Architecture Overview</h2>
+<p class="text-slate-600 dark:text-slate-400 text-lg leading-relaxed max-w-3xl">
+                Ready Layer operates as a deterministic control plane utilizing signature-based authentication and manifest-level integrity for replication protocol consistency. The architecture ensures atomicity across distributed nodes by enforcing strict sequence validation and cryptographic proofs for every state transition.
+            </p>
+</section>
+<!-- Section 1: Authentication -->
+<section class="space-y-6" id="authentication">
+<div class="flex items-center gap-3">
+<span class="text-primary font-mono text-sm">01</span>
+<h3 class="text-xl font-bold tracking-tight uppercase">Authentication</h3>
+</div>
+<p class="text-slate-600 dark:text-slate-400">
+                All requests must be authenticated using the HMAC-SHA256 signing algorithm. Required headers include <code class="bg-primary/10 px-1 rounded text-primary">X-Ready-Layer-Signature</code> and <code class="bg-primary/10 px-1 rounded text-primary">X-Ready-Layer-Timestamp</code>. Signatures are valid for a 30-second window.
+            </p>
+<div class="code-block p-4 rounded-lg overflow-x-auto font-mono text-sm leading-relaxed text-slate-300">
+<div class="flex justify-between mb-2 text-slate-500 text-xs uppercase tracking-widest">
+<span>Signing Logic (Node.js)</span>
+<span>Copy</span>
+</div>
+<pre><code>const crypto = require('crypto');
+const secret = process.env.READY_LAYER_SECRET;
+const timestamp = Date.now().toString();
+const payload = `${method}:${path}:${timestamp}`;
+
+const signature = crypto
+  .createHmac('sha256', secret)
+  .update(payload)
+  .digest('hex');
+
+// Headers:
+// X-Ready-Layer-Signature: ${signature}
+// X-Ready-Layer-Timestamp: ${timestamp}</code></pre>
+</div>
+</section>
+<!-- Section 2: Entitlements Engine -->
+<section class="space-y-6" id="entitlements">
+<div class="flex items-center gap-3">
+<span class="text-primary font-mono text-sm">02</span>
+<h3 class="text-xl font-bold tracking-tight uppercase">Entitlements Engine</h3>
+</div>
+<p class="text-slate-600 dark:text-slate-400">
+                The <code class="text-primary">/v1/entitlements/verify</code> endpoint performs deterministic validation of resource access rights against the global manifest state.
+            </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="code-block p-4 rounded-lg font-mono text-xs">
+<p class="text-primary mb-2 text-xs font-bold tracking-widest uppercase">Request [POST]</p>
+<pre class="text-slate-300"><code>{
+  "resource_urn": "urn:rl:obj:8829",
+  "action": "READ_REPLICATION",
+  "context": {
+    "node_id": "us-east-1a",
+    "priority": 1
+  }
+}</code></pre>
+</div>
+<div class="code-block p-4 rounded-lg font-mono text-xs">
+<p class="text-emerald-500 mb-2 text-xs font-bold tracking-widest uppercase">Response [200 OK]</p>
+<pre class="text-slate-300"><code>{
+  "authorized": true,
+  "token": "rl_auth_v1_f8e2...",
+  "ttl": 3600,
+  "integrity_hash": "6b2a...91f"
+}</code></pre>
+</div>
+</div>
+</section>
+<!-- Section 3: Replication Protocol -->
+<section class="space-y-6" id="replication">
+<div class="flex items-center gap-3">
+<span class="text-primary font-mono text-sm">03</span>
+<h3 class="text-xl font-bold tracking-tight uppercase">Replication Protocol</h3>
+</div>
+<div class="space-y-4">
+<p class="text-slate-600 dark:text-slate-400">
+                    The protocol uses a strict monotonic sequence counter. Any deviation in sequence numbers results in immediate rejection to prevent state bifurcation.
+                </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="border border-primary/20 p-5 rounded-lg bg-primary/5">
+<h4 class="font-bold text-primary mb-2 text-sm uppercase tracking-wider">Export [GET]</h4>
+<p class="text-xs text-slate-500 mb-3 font-mono">/v1/replicate/export?seq={last_known}</p>
+<p class="text-sm">Retrieves the delta-manifest since the last known sequence ID. Includes Merkle proofs for verification.</p>
+</div>
+<div class="border border-primary/20 p-5 rounded-lg bg-primary/5">
+<h4 class="font-bold text-primary mb-2 text-sm uppercase tracking-wider">Import [POST]</h4>
+<p class="text-xs text-slate-500 mb-3 font-mono">/v1/replicate/import</p>
+<p class="text-sm">Submits a signed manifest block for global synchronization. Atomic commit-or-rollback behavior.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Error Handling -->
+<section class="space-y-6 pb-12" id="errors">
+<div class="flex items-center gap-3">
+<span class="text-primary font-mono text-sm">04</span>
+<h3 class="text-xl font-bold tracking-tight uppercase">Error Handling</h3>
+</div>
+<div class="overflow-hidden border border-primary/10 rounded-lg">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-primary/10">
+<th class="p-4 text-xs font-bold uppercase tracking-wider text-primary">Code</th>
+<th class="p-4 text-xs font-bold uppercase tracking-wider text-primary">Status</th>
+<th class="p-4 text-xs font-bold uppercase tracking-wider text-primary">Definition &amp; Resolution</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr>
+<td class="p-4 font-mono text-sm">401</td>
+<td class="p-4 text-sm font-medium">Unauthorized</td>
+<td class="p-4 text-sm text-slate-500">Signature mismatch or expired timestamp. Verify system clock synchronization (NTP).</td>
+</tr>
+<tr>
+<td class="p-4 font-mono text-sm">403</td>
+<td class="p-4 text-sm font-medium">Forbidden</td>
+<td class="p-4 text-sm text-slate-500">Insufficient entitlements for the requested resource URN or sequence window locked.</td>
+</tr>
+<tr>
+<td class="p-4 font-mono text-sm">429</td>
+<td class="p-4 text-sm font-medium">Rate Limit</td>
+<td class="p-4 text-sm text-slate-500">Control plane congestion. Implement exponential backoff with jitter.</td>
+</tr>
+<tr>
+<td class="p-4 font-mono text-sm">503</td>
+<td class="p-4 text-sm font-medium">Out of Sync</td>
+<td class="p-4 text-sm text-slate-500">Local node sequence exceeds control plane consensus. Forced resync required.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-primary/5 border-t border-primary/10 mt-20">
+<div class="max-w-7xl mx-auto px-6 py-12">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+<div class="col-span-1 md:col-span-2 space-y-4">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined">layers</span>
+                        Ready Layer Technical Documentation
+                    </div>
+<p class="text-sm text-slate-500 max-w-sm">
+                        Deterministic control plane for high-availability replication protocols and decentralized integrity verification.
+                    </p>
+</div>
+<div>
+<h5 class="text-xs font-bold uppercase tracking-widest text-primary mb-4">SDKs &amp; Tooling</h5>
+<ul class="text-sm space-y-2 text-slate-400">
+<li><a class="hover:text-primary" href="#">Rust SDK (Native)</a></li>
+<li><a class="hover:text-primary" href="#">Go Implementation</a></li>
+<li><a class="hover:text-primary" href="#">CLI Control Tool</a></li>
+</ul>
+</div>
+<div>
+<h5 class="text-xs font-bold uppercase tracking-widest text-primary mb-4">Resources</h5>
+<ul class="text-sm space-y-2 text-slate-400">
+<li><a class="hover:text-primary" href="#">Architecture Whitepaper</a></li>
+<li><a class="hover:text-primary" href="#">Sequence Diagrams</a></li>
+<li><a class="hover:text-primary" href="#">Status Dashboard</a></li>
+</ul>
+</div>
+</div>
+<div class="mt-12 pt-8 border-t border-primary/5 flex flex-col md:flex-row justify-between gap-4 text-xs text-slate-500">
+<p>© 2024 Ready Layer Protocol. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary" href="#">Security Policy</a>
+<a class="hover:text-primary" href="#">Protocol Spec</a>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

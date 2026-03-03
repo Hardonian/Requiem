@@ -116,3 +116,10 @@ A PR touching files in ≥2 layers must:
 | Remove `export const dynamic = 'force-dynamic'` from API routes             | Violates INV-7                |
 | Introduce a new dependency without updating `contracts/deps.allowlist.json` | Violates INV-8                |
 | Change CAS shard depth without a version bump                               | Violates INV-2 + INV-4        |
+
+---
+
+## Internal Business Documentation
+
+- **Business & Launch Docs**: [private/business/](file:///c:/Users/scott/GitHub/Requiem/private/business/) (restricted access/internal only)
+

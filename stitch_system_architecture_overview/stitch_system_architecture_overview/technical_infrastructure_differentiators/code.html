@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Technical Differentiators</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#137fec",
+                        "primary-dark": "#0b5cb5",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1c2630",
+                        "surface-dark-alt": "#24303b",
+                        "text-main": "#e2e8f0",
+                        "text-muted": "#94a3b8",
+                        "border-dark": "#2d3748",
+                    },
+                    fontFamily: {
+                        display: ["Space Grotesk", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Custom scrollbar for comparison table */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-text-main flex flex-col min-h-screen overflow-x-hidden">
+<!-- Header / Navigation Top -->
+<header class="sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-background-light dark:bg-background-dark/95 backdrop-blur border-b border-border-dark">
+<div class="flex items-center gap-3">
+<button class="p-2 -ml-2 rounded-full hover:bg-slate-200 dark:hover:bg-surface-dark transition-colors text-slate-900 dark:text-white">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Technical Differentiators</h1>
+</div>
+<button class="text-primary font-semibold text-sm px-3 py-1.5 rounded bg-primary/10 hover:bg-primary/20 transition-colors">
+            Docs
+        </button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 pb-24">
+<!-- Hero / Introduction -->
+<div class="px-5 pt-6 pb-4">
+<h2 class="text-3xl font-bold leading-tight tracking-tight mb-2 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Architecture Comparison</h2>
+<p class="text-text-muted text-sm leading-relaxed">
+                Contrast between standard ad-hoc AI implementations and the deterministic guarantees of the Ready Layer infrastructure.
+            </p>
+</div>
+<!-- Sticky Header for Comparison Columns -->
+<div class="sticky top-[61px] z-10 grid grid-cols-2 gap-4 px-5 py-3 bg-surface-dark border-y border-border-dark shadow-lg">
+<div class="flex flex-col">
+<span class="text-xs uppercase tracking-wider text-text-muted font-semibold mb-1">Standard</span>
+<span class="text-sm font-bold text-red-400">Ad-hoc Impl.</span>
+</div>
+<div class="flex flex-col border-l border-border-dark pl-4">
+<span class="text-xs uppercase tracking-wider text-primary font-semibold mb-1">Ready Layer</span>
+<span class="text-sm font-bold text-white">Infrastructure</span>
+</div>
+</div>
+<!-- Comparison List -->
+<div class="px-5">
+<!-- Row 1: Replayability -->
+<div class="grid grid-cols-2 gap-4 py-5 border-b border-border-dark group">
+<div class="flex flex-col gap-1 pr-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs text-text-muted font-medium uppercase tracking-wide">Replayability</span>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-lg text-red-400">close</span>
+<span class="text-sm font-medium">None</span>
+</div>
+<p class="text-[10px] text-text-muted leading-tight mt-1">Runs are transient and lost after execution.</p>
+</div>
+<div class="flex flex-col gap-1 pl-4 border-l border-border-dark relative">
+<div class="absolute -left-[1px] top-4 bottom-4 w-[2px] bg-primary rounded-full"></div>
+<span class="text-xs text-primary font-medium uppercase tracking-wide">Replayability</span>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-lg text-primary">check_circle</span>
+<span class="text-sm font-bold">Enforced</span>
+</div>
+<p class="text-[10px] text-text-muted leading-tight mt-1">Full state reconstruction from genesis block.</p>
+</div>
+</div>
+<!-- Row 2: Signing -->
+<div class="grid grid-cols-2 gap-4 py-5 border-b border-border-dark group">
+<div class="flex flex-col gap-1 pr-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs text-text-muted font-medium uppercase tracking-wide">Signing</span>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-lg text-red-400">warning</span>
+<span class="text-sm font-medium">Unsigned</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 pl-4 border-l border-border-dark relative">
+<div class="absolute -left-[1px] top-4 bottom-4 w-[2px] bg-primary rounded-full"></div>
+<span class="text-xs text-primary font-medium uppercase tracking-wide">Signing</span>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-lg text-primary">verified_user</span>
+<span class="text-sm font-bold">Crypto-signed</span>
+</div>
+</div>
+</div>
+<!-- Row 3: Manifests -->
+<div class="grid grid-cols-2 gap-4 py-5 border-b border-border-dark group">
+<div class="flex flex-col gap-1 pr-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs text-text-muted font-medium uppercase tracking-wide">Manifests</span>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-lg text-slate-500">description</span>
+<span class="text-sm font-medium">Ad-hoc JSON</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 pl-4 border-l border-border-dark relative">
+<div class="absolute -left-[1px] top-4 bottom-4 w-[2px] bg-primary rounded-full"></div>
+<span class="text-xs text-primary font-medium uppercase tracking-wide">Manifests</span>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-lg text-primary">fact_check</span>
+<span class="text-sm font-bold">Strict Schema</span>
+</div>
+</div>
+</div>
+<!-- Row 4: Ledger -->
+<div class="grid grid-cols-2 gap-4 py-5 border-b border-border-dark group">
+<div class="flex flex-col gap-1 pr-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs text-text-muted font-medium uppercase tracking-wide">Ledger</span>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-lg text-red-400">do_not_disturb_on</span>
+<span class="text-sm font-medium">None</span>
+</div>
+<p class="text-[10px] text-text-muted leading-tight mt-1">Logs are scattered across cloud providers.</p>
+</div>
+<div class="flex flex-col gap-1 pl-4 border-l border-border-dark relative">
+<div class="absolute -left-[1px] top-4 bottom-4 w-[2px] bg-primary rounded-full"></div>
+<span class="text-xs text-primary font-medium uppercase tracking-wide">Ledger</span>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-lg text-primary">view_timeline</span>
+<span class="text-sm font-bold">Immutable</span>
+</div>
+<p class="text-[10px] text-text-muted leading-tight mt-1">Every inference is a transaction on the chain.</p>
+</div>
+</div>
+<!-- Row 5: Determinism -->
+<div class="grid grid-cols-2 gap-4 py-5 border-b border-border-dark group">
+<div class="flex flex-col gap-1 pr-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs text-text-muted font-medium uppercase tracking-wide">Deterministic?</span>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-lg text-red-400">shuffle</span>
+<span class="text-sm font-medium">No (Stochastic)</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 pl-4 border-l border-border-dark relative">
+<div class="absolute -left-[1px] top-4 bottom-4 w-[2px] bg-primary rounded-full"></div>
+<span class="text-xs text-primary font-medium uppercase tracking-wide">Deterministic?</span>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-lg text-primary">fingerprint</span>
+<span class="text-sm font-bold">Yes (Fingerprint)</span>
+</div>
+</div>
+</div>
+<!-- Row 6: Security -->
+<div class="grid grid-cols-2 gap-4 py-5 border-b border-border-dark group">
+<div class="flex flex-col gap-1 pr-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs text-text-muted font-medium uppercase tracking-wide">Security Model</span>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-lg text-slate-500">lock_open</span>
+<span class="text-sm font-medium">Perimeter</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 pl-4 border-l border-border-dark relative">
+<div class="absolute -left-[1px] top-4 bottom-4 w-[2px] bg-primary rounded-full"></div>
+<span class="text-xs text-primary font-medium uppercase tracking-wide">Security Model</span>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-lg text-primary">encrypted</span>
+<span class="text-sm font-bold">Zero Trust</span>
+</div>
+</div>
+</div>
+<!-- Row 7: Audit Trail -->
+<div class="grid grid-cols-2 gap-4 py-5 group">
+<div class="flex flex-col gap-1 pr-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<span class="text-xs text-text-muted font-medium uppercase tracking-wide">Audit Trail</span>
+<div class="flex items-center gap-2 text-slate-300">
+<span class="material-symbols-outlined text-lg text-slate-500">history</span>
+<span class="text-sm font-medium">Manual CSV</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 pl-4 border-l border-border-dark relative">
+<div class="absolute -left-[1px] top-4 bottom-4 w-[2px] bg-primary rounded-full"></div>
+<span class="text-xs text-primary font-medium uppercase tracking-wide">Audit Trail</span>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-lg text-primary">auto_awesome</span>
+<span class="text-sm font-bold">Automated</span>
+</div>
+</div>
+</div>
+<!-- Call to Action Area -->
+<div class="mt-8 mb-4 p-5 rounded-xl bg-surface-dark border border-border-dark bg-gradient-to-br from-surface-dark to-surface-dark-alt">
+<div class="flex items-start gap-4">
+<div class="p-3 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-2xl">terminal</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-base mb-1">Ready to upgrade?</h3>
+<p class="text-text-muted text-xs mb-3">Migrate your existing manifests to the Ready Layer infrastructure using our CLI tool.</p>
+<button class="bg-primary hover:bg-primary-dark text-white text-sm font-bold py-2.5 px-4 rounded w-full transition-colors flex items-center justify-center gap-2">
+<span>Install CLI</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="sticky bottom-0 z-50 w-full border-t border-border-dark bg-surface-dark px-4 pb-safe pt-2">
+<div class="flex items-center justify-around gap-2 pb-2">
+<!-- Item 1: Overview -->
+<a class="group flex flex-1 flex-col items-center justify-center gap-1 p-1" href="#">
+<div class="flex h-8 w-12 items-center justify-center rounded-full transition-colors group-hover:bg-primary/10">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors text-[24px]">grid_view</span>
+</div>
+<span class="text-[10px] font-medium text-text-muted group-hover:text-primary transition-colors">Overview</span>
+</a>
+<!-- Item 2: Specs (Active) -->
+<a class="group flex flex-1 flex-col items-center justify-center gap-1 p-1" href="#">
+<div class="flex h-8 w-12 items-center justify-center rounded-full bg-primary/20">
+<span class="material-symbols-outlined text-primary text-[24px]">settings_suggest</span>
+</div>
+<span class="text-[10px] font-bold text-white">Specs</span>
+</a>
+<!-- Item 3: Network -->
+<a class="group flex flex-1 flex-col items-center justify-center gap-1 p-1" href="#">
+<div class="flex h-8 w-12 items-center justify-center rounded-full transition-colors group-hover:bg-primary/10">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors text-[24px]">hub</span>
+</div>
+<span class="text-[10px] font-medium text-text-muted group-hover:text-primary transition-colors">Network</span>
+</a>
+<!-- Item 4: Profile -->
+<a class="group flex flex-1 flex-col items-center justify-center gap-1 p-1" href="#">
+<div class="flex h-8 w-12 items-center justify-center rounded-full transition-colors group-hover:bg-primary/10">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors text-[24px]">person</span>
+</div>
+<span class="text-[10px] font-medium text-text-muted group-hover:text-primary transition-colors">Profile</span>
+</a>
+</div>
+<!-- Safe area spacer for mobile -->
+<div class="h-4 w-full"></div>
+</nav>
+</body></html>

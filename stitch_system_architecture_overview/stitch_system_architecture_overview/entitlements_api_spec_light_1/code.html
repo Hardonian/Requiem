@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0c81ed",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<title>Ready Layer | Entitlements API Spec</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Navigation -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center p-4 justify-between max-w-5xl mx-auto w-full">
+<div class="flex items-center gap-3">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<div>
+<h1 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Entitlements API Spec</h1>
+<p class="text-xs text-slate-500 font-medium uppercase tracking-widest">Ready Layer v1.4.2</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex size-10 items-center justify-center rounded-lg bg-transparent text-slate-600 hover:bg-primary/5">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="flex size-10 items-center justify-center rounded-lg bg-transparent text-slate-600 hover:bg-primary/5">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-5xl mx-auto w-full p-4 pb-24">
+<!-- Authentication Section -->
+<section class="mb-8">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-xl">shield_lock</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">Authentication &amp; Headers</h2>
+</div>
+<div class="bg-white dark:bg-slate-900/50 rounded-xl border border-primary/10 overflow-hidden">
+<div class="divide-y divide-primary/5">
+<div class="flex flex-col sm:flex-row justify-between gap-2 p-4">
+<div class="flex flex-col">
+<span class="text-primary font-mono text-sm font-semibold">X-Ready-Layer-Signature</span>
+<span class="text-slate-500 text-xs">Security Header</span>
+</div>
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium">HMAC-SHA256 signature generated using workspace secret</p>
+</div>
+<div class="flex flex-col sm:flex-row justify-between gap-2 p-4">
+<div class="flex flex-col">
+<span class="text-primary font-mono text-sm font-semibold">X-Ready-Layer-Entitlement-ID</span>
+<span class="text-slate-500 text-xs">Traceability</span>
+</div>
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium">Unique RFC4122 UUID for the specific entitlement policy</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Endpoint Details -->
+<section class="mb-8">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-xl">api</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">Verify Entitlement</h2>
+</div>
+<div class="flex items-center gap-3 mb-4 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-primary/5">
+<span class="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded uppercase">POST</span>
+<code class="text-sm font-mono text-slate-700 dark:text-slate-300">/v1/entitlements/verify</code>
+<span class="ml-auto material-symbols-outlined text-slate-400 text-sm cursor-pointer hover:text-primary">content_copy</span>
+</div>
+<!-- CLI/JSON Body -->
+<div class="bg-[#0b1219] rounded-xl overflow-hidden shadow-xl mb-6">
+<div class="flex items-center justify-between px-4 py-2 bg-slate-800/50 border-b border-white/5">
+<span class="text-xs text-slate-400 font-mono">REQUEST_BODY.JSON</span>
+<div class="flex gap-1.5">
+<div class="size-2.5 rounded-full bg-red-500/20"></div>
+<div class="size-2.5 rounded-full bg-amber-500/20"></div>
+<div class="size-2.5 rounded-full bg-emerald-500/20"></div>
+</div>
+</div>
+<div class="p-5 font-mono text-sm leading-relaxed overflow-x-auto">
+<pre><code>{
+  <span class="text-primary">"feature_id"</span>: <span class="text-[#2dd4bf]">"llm_inference_v4"</span>,
+  <span class="text-primary">"user_context"</span>: {
+    <span class="text-primary">"id"</span>: <span class="text-[#2dd4bf]">"usr_92834"</span>,
+    <span class="text-primary">"org"</span>: <span class="text-[#2dd4bf]">"acme_corp"</span>,
+    <span class="text-primary">"region"</span>: <span class="text-[#2dd4bf]">"us-east-1"</span>
+  },
+  <span class="text-primary">"quota_request"</span>: {
+    <span class="text-primary">"tokens"</span>: <span class="text-[#4ade80]">1024</span>,
+    <span class="text-primary">"priority"</span>: <span class="text-[#4ade80]">1</span>
+  }
+}</code></pre>
+</div>
+</div>
+</section>
+<!-- Response Codes -->
+<section class="mb-8">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-xl">output</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">Response Codes</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/30 rounded-xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-emerald-600 font-bold">200</span>
+<span class="text-xs font-bold uppercase text-emerald-700/60">Authorized</span>
+</div>
+<p class="text-xs text-emerald-800 dark:text-emerald-300">Request granted. Quota decremented successfully.</p>
+</div>
+<div class="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-amber-600 font-bold">403</span>
+<span class="text-xs font-bold uppercase text-amber-700/60">Limit Exceeded</span>
+</div>
+<p class="text-xs text-amber-800 dark:text-amber-300">Feature disabled or hard limit reached for this org.</p>
+</div>
+<div class="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/30 rounded-xl">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-rose-600 font-bold">429</span>
+<span class="text-xs font-bold uppercase text-rose-700/60">Too Many Requests</span>
+</div>
+<p class="text-xs text-rose-800 dark:text-rose-300">Rate limit triggered. Retry after specified header interval.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-lg border-t border-primary/10 pb-safe-area">
+<div class="max-w-5xl mx-auto flex gap-2 px-4 pb-3 pt-2">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-1 text-primary" href="#">
+<span class="material-symbols-outlined text-[24px]">description</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Docs</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px]">terminal</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Logs</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px]">hub</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Endpoints</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px]">settings_input_component</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Settings</p>
+</a>
+</div>
+</nav>
+</body></html>

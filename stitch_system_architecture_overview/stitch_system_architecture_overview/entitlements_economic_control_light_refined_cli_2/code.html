@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="Ready Layer AI Control Plane: Manage feature gating, concurrency limits, and economic ledger enforcement across your AI infrastructure with deterministic replay and policy enforcement." name="description"/>
+<title>Ready Layer AI Control Plane | Platform Governance</title><link href="https://readylayer.ai/control-plane" rel="canonical"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0c81ed",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .code-block {
+            font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Ready Layer AI Control Plane",
+  "operatingSystem": "Cloud/Agnostic",
+  "applicationCategory": "DeveloperApplication",
+  "description": "Manage feature gating, concurrency limits, and economic ledger enforcement across your AI infrastructure.",
+  "featureList": [
+    "Deterministic Replay",
+    "Policy Enforcement",
+    "Feature Gating",
+    "Concurrency Limits",
+    "Economic Ledger Accounting"
+  ]
+}
+</script></head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<header class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center px-4 py-3 justify-between max-w-7xl mx-auto w-full">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">terminal</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Entitlements &amp; Economic Control</h2>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8">
+<section class="space-y-4">
+<h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Platform Governance</h1>
+<p class="text-slate-600 dark:text-slate-400 max-w-3xl text-lg">
+                Manage feature gating, concurrency limits, and economic ledger enforcement across your AI infrastructure. Ensure compliance and resource optimization at scale.
+            </p>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">toggle_on</span>
+</div>
+<h3 class="text-lg font-bold mb-2">Feature Gating</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Granular control over specific model capabilities and API endpoints based on tier or user role.</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">speed</span>
+</div>
+<h3 class="text-lg font-bold mb-2">Concurrency Limits</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Hard and soft limits on simultaneous inference requests to protect infrastructure health.</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<h3 class="text-lg font-bold mb-2">Economic Ledger</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Real-time token accounting and cost enforcement tied directly to execution kernels.</p>
+</div>
+</div>
+<section class="space-y-4">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">code</span>
+                CLI Interface
+            </h3>
+<div class="bg-slate-900 rounded-xl overflow-hidden shadow-xl border border-slate-800">
+<div class="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border-b border-slate-800">
+<div class="flex gap-1.5">
+<div class="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+</div>
+<span class="text-xs text-slate-400 font-mono ml-4">bash — infrastructure-cli</span>
+</div>
+<div class="p-6 code-block text-sm leading-relaxed overflow-x-auto">
+<div class="mb-6">
+<div class="flex gap-2 mb-1"><span class="text-primary">$</span><span class="text-slate-100"><span class="text-[#0c81ed]">entitlement show</span> <span class="text-cyan-400">--id</span> org_8a2f9k</span></div>
+<div class="text-slate-400 pl-4 space-y-1">
+<div>{</div>
+<div class="pl-4">"organization": "Nexus AI Corp",</div>
+<div class="pl-4">"tier": "Enterprise_Pro",</div>
+<div class="pl-4">"capabilities": ["multi-modal", "fine-tuning", "rag-pipelines"],</div>
+<div class="pl-4">"limits": { "concurrency": 250, "tpm": 2000000 },</div>
+<div class="pl-4">"economic_status": "active"</div>
+<div>}</div>
+</div>
+</div>
+<div class="mb-2">
+<div class="flex gap-2 mb-1"><span class="text-primary">$</span><span class="text-slate-100"><span class="text-[#0c81ed]">entitlement verify</span> <span class="text-cyan-400">--feature</span> <span class="text-green-400">"h100_cluster_access"</span></span></div>
+<div class="text-green-400 pl-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>VERIFICATION SUCCESSFUL: Access granted for 12,000 token request.</span>
+</div>
+<div class="text-slate-400 pl-4 text-xs mt-1">Remaining Ledger Balance: $4,291.40 USD</div>
+</div>
+</div>
+</div>
+</section>
+<section class="space-y-4 pb-20">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Active Enforcement Logs</h3>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase text-xs font-semibold tracking-wider">
+<tr>
+<th class="px-6 py-4">Timestamp</th>
+<th class="px-6 py-4">Entitlement</th>
+<th class="px-6 py-4">Action</th>
+<th class="px-6 py-4">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr>
+<td class="px-6 py-4 text-slate-500">2023-11-24 14:22:01</td>
+<td class="px-6 py-4 font-medium">concurrency_limit</td>
+<td class="px-6 py-4">Request #req_9921 queueing</td>
+<td class="px-6 py-4"><span class="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-bold">DEFERRED</span></td>
+</tr>
+<tr>
+<td class="px-6 py-4 text-slate-500">2023-11-24 14:21:58</td>
+<td class="px-6 py-4 font-medium">economic_gate</td>
+<td class="px-6 py-4">Ledger debit: $0.042</td>
+<td class="px-6 py-4"><span class="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold">SUCCESS</span></td>
+</tr>
+<tr>
+<td class="px-6 py-4 text-slate-500">2023-11-24 14:21:45</td>
+<td class="px-6 py-4 font-medium">feature_lock</td>
+<td class="px-6 py-4">Attempted access to 'alpha-v3'</td>
+<td class="px-6 py-4"><span class="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-bold">DENIED</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50">
+<div class="max-w-7xl mx-auto flex items-stretch h-16">
+<a class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Dashboard</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center gap-1 text-primary bg-primary/5" href="#">
+<span class="material-symbols-outlined">key</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Entitlements</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">memory</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Compute</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

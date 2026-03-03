@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>System Architecture Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007AFF",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "System Architecture Control Plane",
+  "operatingSystem": "Cloud Native / Distributed Systems",
+  "applicationCategory": "Infrastructure",
+  "description": "A high-integrity control plane topology for visualizing data flow and policy enforcement. Engineered for deterministic infrastructure management, providing a unified choke point for security arbitration and multi-region state synchronization.",
+  "featureList": [
+    "Deterministic Replay",
+    "Policy Enforcement",
+    "Provider Arbitration",
+    "Artifact Signing",
+    "Multi-region Replication",
+    "Entitlements",
+    "Provenance Export",
+    "Divergence Sentinel",
+    "Selftest Diagnostics",
+    "Economic Ledger Enforcement"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script></head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col overflow-x-hidden antialiased">
+<!-- Header / Top Navigation -->
+<header class="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between px-4 py-3">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-white" style="font-size: 24px;">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-center flex-1">System Architecture</h1>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-primary" style="font-size: 24px;">article</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 w-full max-w-md mx-auto p-4 pb-24">
+<!-- Intro Section -->
+<div class="mb-6">
+<h2 class="text-2xl font-bold mb-2">Control Plane Topology</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                Visualizing high-level data flow and enforcement chokepoints within the infrastructure.
+            </p>
+</div>
+<!-- Diagram Container -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm mb-6">
+<img alt="Distributed AI Control Plane Architectural Diagram" class="w-full h-auto block" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaPWrcNvOKnzM-0aEjFX2Vio3vh3DJGXb-suzi7R3Z6tGKtxuMj-Q9U7jkzxoxuLv1LYm-t9yIBtAVcNUbSOe8QVI1qaLpz1nODuus2uinX1jxxqeOA-4ONEeg6kOZctwvJ2yqe3Jsdqbx1ot_I2bSNESBWUgvPoM7RNTLFM4xJVfaQCg_M-YvKp0R4m_mNoE4SEnRvX4wkvBcrcmi3cFBuofQ3YZPfkntn_4PjDBr-C8mpGHh_NhVvudV5k7ADnoAPQXveJe03CX5"/>
+</div>
+<!-- Metrics Cards Section -->
+<h3 class="text-lg font-bold mb-3 px-1">System Health</h3>
+<div class="grid grid-cols-2 gap-3 mb-6">
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-2 mb-2">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-xs text-slate-500 font-medium">Policy Engine</span>
+</div>
+<div class="text-2xl font-bold">99.9%</div>
+<div class="text-xs text-slate-400 mt-1">Uptime</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-2 mb-2">
+<div class="w-2 h-2 rounded-full bg-blue-500"></div>
+<span class="text-xs text-slate-500 font-medium">Replication</span>
+</div>
+<div class="text-2xl font-bold">12ms</div>
+<div class="text-xs text-slate-400 mt-1">Latency</div>
+</div>
+</div>
+<!-- Recent Logs Section -->
+<h3 class="text-lg font-bold mb-3 px-1">Recent Activity</h3>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-medium">Policy Update Success</div>
+<div class="text-xs text-slate-500">Deployed to 14 nodes</div>
+</div>
+<span class="text-xs text-slate-400">2m ago</span>
+</div>
+<div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-yellow-500 text-sm">warning</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-medium">Replication Lag</div>
+<div class="text-xs text-slate-500">us-east-1 region sync delay</div>
+</div>
+<span class="text-xs text-slate-400">15m ago</span>
+</div>
+<div class="p-3 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-500 text-sm">info</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-medium">Ledger Snapshot</div>
+<div class="text-xs text-slate-500">Daily backup completed</div>
+</div>
+<span class="text-xs text-slate-400">1h ago</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-50">
+<div class="flex justify-between items-center px-6 py-2 pb-5 md:pb-2 max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-primary transition-colors group-hover:text-primary/80" style="font-size: 24px; font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="text-[10px] font-medium text-primary">Overview</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300" style="font-size: 24px;">shield</span>
+<span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300">Policies</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300" style="font-size: 24px;">article</span>
+<span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300">Logs</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300" style="font-size: 24px;">settings</span>
+<span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>
