@@ -9,7 +9,8 @@
   "types": "./dist/index.d.ts",
   "bin": {
     "requiem": "./dist/cli/src/cli.js",
-    "reach": "./dist/cli/src/cli.js"
+    "reach": "./dist/cli/src/cli.js",
+    "rl": "./dist/cli/src/rl-cli.js"
   },
   "exports": {
     ".": {
@@ -31,7 +32,8 @@
   ],
   "scripts": {
     "build": "tsc && npm run make-executable",
-    "make-executable": "node -e \"const fs=require('fs'); fs.chmodSync('dist/cli/src/cli.js', 0o755)\"",
+    "make-executable": "node -e \"const fs=require('fs'); fs.chmodSync('dist/cli/src/cli.js', 0o755); fs.chmodSync('dist/cli/src/rl-cli.js', 0o755)\"&& node -e \"try { fs.chmodSync('dist/cli/src/commands/rl-*.js', 0o755); } catch(e) {}\"",
+    "test": "node --test dist/**/*.test.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "verify": "npm run typecheck && npm run lint && npm run build",
