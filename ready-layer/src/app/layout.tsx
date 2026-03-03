@@ -6,6 +6,7 @@
 
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 export const metadata: Metadata = {
   title: {
@@ -68,7 +69,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className="antialiased">
-      <body className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
+      <body className="min-h-screen bg-background text-foreground font-sans selection:bg-blue-100 selection:text-blue-900">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -87,7 +88,7 @@ export default function RootLayout({
             }),
           }}
         />
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
