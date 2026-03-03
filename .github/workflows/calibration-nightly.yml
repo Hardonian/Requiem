@@ -1,0 +1,27 @@
+name: calibration-nightly
+
+on:
+  schedule:
+    - cron: '15 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  calibration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify:calibration
+      - name: upload calibration artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-nightly
+          path: artifacts/calibration/*
+          if-no-files-found: error
