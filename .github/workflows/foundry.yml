@@ -1,0 +1,44 @@
+name: foundry
+
+on:
+  schedule:
+    - cron: '15 4 * * *'
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  foundry-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: install deps
+        run: pnpm install --frozen-lockfile
+      - name: verify foundry core
+        run: pnpm run verify:foundry
+      - name: verify foundry metamorphic
+        run: pnpm run verify:foundry:metamorphic
+      - name: verify foundry faults
+        if: github.event_name != 'pull_request'
+        run: pnpm run verify:foundry:faults
+      - name: export foundry artifacts
+        run: |
+          node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry report --last 5
+          node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry export --dataset core_vectors --format json
+          node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry export --dataset core_vectors --format csv
+      - name: upload foundry artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundry-artifacts
+          path: |
+            artifacts/foundry/**
+            .requiem/foundry/**
+          if-no-files-found: warn

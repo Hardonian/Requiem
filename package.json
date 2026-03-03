@@ -69,7 +69,11 @@
     "verify:invariants": "node scripts/run-tsx.mjs tests/invariants/index.ts",
     "verify:no-any-core": "node scripts/run-tsx.mjs scripts/verify-no-any-core.ts",
     "selftest": "node scripts/run-tsx.mjs packages/cli/src/commands/selftest.ts",
-    "verify:mcp-routes": "pnpm --filter ready-layer test:mcp-routes"
+    "verify:mcp-routes": "pnpm --filter ready-layer test:mcp-routes",
+    "verify:foundry": "node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry vectors run --seeds 1",
+    "verify:foundry:metamorphic": "node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry generate && node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry metamorphic generate --base-suite core_vectors --per 1 --seed 1",
+    "verify:foundry:faults": "FOUNDRY_FAULTS=1 node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry faults run --dataset fault_injection_suite",
+    "verify:foundry:models": "node scripts/run-tsx.mjs scripts/verify-foundry.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
