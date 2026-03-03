@@ -263,7 +263,7 @@ int protocol_main(int argc, char **argv) {
     }
 
     // Re-compute independently.
-    const std::string recomputed = requiem::deterministic_digest(
+    const std::string recomputed = requiem::result_json_hash(
         requiem::canonicalize_result(result));
 
     const bool digest_match = !streamed_digest.empty() && (streamed_digest == recomputed);

@@ -49,7 +49,7 @@ Every tier — OSS, Pro, Enterprise — enforces the same core guarantees:
 All features map to one of these layers:
 
 | Layer                                         | OSS   | Pro  | Enterprise        |
-| --------------------------------------------- | ----- | ---- | ----------------- |
+| :-------------------------------------------- | :---- | :--- | :---------------- |
 | **Control** (Determinism, Replay, Provenance) | ✅    | ✅   | ✅                |
 | **Governance** (Policy Gate, RBAC, Budgets)   | ✅    | ✅   | ✅                |
 | **Economic** (Metering, Quotas, Chargeback)   | —     | ✅   | ✅                |
@@ -59,7 +59,7 @@ All features map to one of these layers:
 ### Control Layer
 
 | Feature                      | OSS | Pro | Enterprise |
-| ---------------------------- | --- | --- | ---------- |
+| :--------------------------- | :-- | :-- | :--------- |
 | Deterministic execution      | ✅  | ✅  | ✅         |
 | CAS (dual-hash verification) | ✅  | ✅  | ✅         |
 | Replay verification          | ✅  | ✅  | ✅         |
@@ -68,7 +68,7 @@ All features map to one of these layers:
 ### Governance Layer
 
 | Feature                       | OSS | Pro | Enterprise |
-| ----------------------------- | --- | --- | ---------- |
+| :---------------------------- | :-- | :-- | :--------- |
 | Policy gate (deny-by-default) | ✅  | ✅  | ✅         |
 | RBAC capabilities             | ✅  | ✅  | ✅         |
 | Budget enforcement            | ✅  | ✅  | ✅         |
@@ -78,7 +78,7 @@ All features map to one of these layers:
 ### Economic Layer
 
 | Feature            | OSS       | Pro        | Enterprise |
-| ------------------ | --------- | ---------- | ---------- |
+| :----------------- | :-------- | :--------- | :--------- |
 | Execution credits  | 1,000/mo  | 50,000/mo  | Unlimited  |
 | Replay storage     | 1 GB      | 50 GB      | Unlimited  |
 | Policy events      | 10,000/mo | 500,000/mo | Unlimited  |
@@ -88,7 +88,7 @@ All features map to one of these layers:
 ### Observability Layer
 
 | Feature                       | OSS | Pro | Enterprise |
-| ----------------------------- | --- | --- | ---------- |
+| :---------------------------- | :-- | :-- | :--------- |
 | CLI + Dashboard               | ✅  | ✅  | ✅         |
 | Execution traces              | ✅  | ✅  | ✅         |
 | Determinism metrics           | ✅  | ✅  | ✅         |
@@ -99,7 +99,7 @@ All features map to one of these layers:
 ### Enterprise Extensions
 
 | Feature                | OSS | Pro | Enterprise |
-| ---------------------- | --- | --- | ---------- |
+| :--------------------- | :-- | :-- | :--------- |
 | Multi-tenant isolation | —   | ✅  | ✅         |
 | Signed artifact chain  | —   | —   | ✅         |
 | Cluster coordination   | —   | —   | ✅         |
@@ -119,7 +119,7 @@ The OSS build never imports enterprise-only modules. This is enforced by CI.
 ## Deployment Options
 
 | Mode          | Description                            |
-| ------------- | -------------------------------------- |
+| :------------ | :------------------------------------- |
 | Cloud-managed | Hosted at readylayer.com               |
 | On-premises   | Self-hosted with license key           |
 | Hybrid        | Cloud control plane, on-prem execution |

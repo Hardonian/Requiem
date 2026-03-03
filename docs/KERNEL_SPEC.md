@@ -23,7 +23,7 @@ The kernel explicitly EXCLUDES:
 - AI model inference (model runners are external processes invoked by plan steps)
 - Network transport (the kernel operates on local state; replication is an extension)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                     CLI / API Surface                     │
 │  (typed envelope in, typed envelope out)                 │
@@ -51,7 +51,7 @@ The kernel explicitly EXCLUDES:
 
 All kernel data structures are encoded as **canonical JSON** using the existing `jsonlite` library. Canonical JSON is defined as:
 
-- Keys sorted lexicographically (guaranteed by `std::map` iteration)
+- Keys sorted lexicographically (guaranteed by invariant `std::map` iteration ordering)
 - No whitespace between tokens
 - Strings escaped per RFC 8259
 - Integers as decimal (`uint64_t`) — never floating-point
@@ -71,7 +71,7 @@ The existing codebase uses canonical JSON throughout (canonicalize_request, cano
 
 ### 1.3 Encoding Version
 
-```
+```cpp
 CANONICAL_ENCODING_VERSION = 1
 ```
 
@@ -108,7 +108,7 @@ Domain separation prevents cross-context hash collisions. Each domain tag is pre
 
 ### 2.3 Hash Formula
 
-```
+```text
 H(domain, payload) = BLAKE3( domain_tag_bytes || payload_bytes )
 ```
 
@@ -238,7 +238,7 @@ The EventLog is the immutable, append-only audit trail. Each entry is a JSON lin
 
 Each record's `prev` field contains:
 
-```
+```text
 prev = H("evt:", canonical_json(previous_record))
 ```
 
@@ -275,7 +275,7 @@ The `ts_logical` field is a monotonically increasing uint64, incremented by 1 pe
 
 ### 5.1 ObjectRef Format
 
-```
+```text
 ObjectRef = H("cas:", raw_bytes)
 ```
 
@@ -325,7 +325,7 @@ On every `get()`, the CAS re-computes `H("cas:", data)` and compares with the re
 
 ### 5.4 Storage Layout
 
-```
+```text
 .requiem/cas/v2/
 ├── objects/
 │   └── AB/
@@ -408,7 +408,7 @@ A capability token grants specific permissions. Tokens are ed25519-signed JSON s
 
 The Policy VM evaluates rules against a context and produces a deterministic decision:
 
-```
+```text
 eval(policy_rules, context) → PolicyDecision
 ```
 
@@ -457,7 +457,7 @@ Supported operators: `eq`, `neq`, `in`, `not_in`, `exists`, `gt`, `lt`, `gte`, `
 
 ### 7.5 Proof Hash Formula
 
-```
+```text
 proof_hash = H("pol:", canonical_json({
     "context_hash": H("pol:", canonical_json(context)),
     "rules_hash": H("pol:", canonical_json(rules)),
@@ -620,7 +620,7 @@ A plan is a directed acyclic graph (DAG) of steps:
 
 **Algorithm**:
 
-```
+```text
 ready = { s | s.depends_on == [] }
 while ready is not empty:
     step = min(ready, key=step_id)  // lexicographic
@@ -681,7 +681,7 @@ Given a receipt:
 
 ### 11.3 Replay Proof
 
-```
+```text
 run_original → receipt_hash_A
 replay(same plan, same inputs) → receipt_hash_B
 ASSERT receipt_hash_A == receipt_hash_B

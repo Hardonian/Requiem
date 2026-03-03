@@ -17,6 +17,7 @@ Requiem follows [Semantic Versioning 2.0.0](https://semver.org/) (SemVer) for al
 ### CLI Contracts (`cli_contract.md`)
 
 **Breaking:**
+
 - Removing or renaming a command
 - Removing or renaming a flag
 - Changing exit code meanings
@@ -25,6 +26,7 @@ Requiem follows [Semantic Versioning 2.0.0](https://semver.org/) (SemVer) for al
 - Making optional flags required
 
 **Non-Breaking:**
+
 - Adding new commands
 - Adding new optional flags
 - Adding new fields to JSON output
@@ -33,12 +35,14 @@ Requiem follows [Semantic Versioning 2.0.0](https://semver.org/) (SemVer) for al
 ### API Envelopes (`api_envelope_contract.md`)
 
 **Breaking:**
+
 - Changing envelope structure
 - Removing required fields
 - Changing field types
 - Removing error codes
 
 **Non-Breaking:**
+
 - Adding new optional fields
 - Adding new error codes
 - Extending enum values (with fallback handling)
@@ -46,12 +50,14 @@ Requiem follows [Semantic Versioning 2.0.0](https://semver.org/) (SemVer) for al
 ### JSON Schemas
 
 **Breaking:**
+
 - Removing properties
 - Changing property types
 - Adding properties to `required` array
 - Tightening validation (e.g., reducing maxLength)
 
 **Non-Breaking:**
+
 - Adding optional properties
 - Adding to `enum` with default handling
 - Loosening validation
@@ -70,6 +76,7 @@ console.warn("[DEPRECATED] Command 'old-cmd' will be removed in v2.0.0. Use 'new
 ```
 
 Document in:
+
 - Code comments
 - CLI help text
 - CHANGELOG.md
@@ -88,6 +95,7 @@ if (cmd === 'old-cmd') {
 ### Step 3: Sunset Period (Full Major Cycle)
 
 Deprecated features remain functional through the entire major version:
+
 - v1.5.0: Feature deprecated
 - v1.6.0: Still works with warning
 - v1.99.0: Still works with warning
@@ -96,12 +104,13 @@ Deprecated features remain functional through the entire major version:
 ### Step 4: Removal (Next Major)
 
 Remove in first minor of new major:
+
 - v2.0.0: Deprecated features removed
 
 ## Version Bump Rules
 
 | Change Type | Version Bump | Example |
-|-------------|--------------|---------|
+| :--- | :--- | :--- |
 | Bug fix, no contract change | PATCH | 1.2.3 → 1.2.4 |
 | New optional feature | MINOR | 1.2.3 → 1.3.0 |
 | Deprecation notice only | MINOR | 1.2.3 → 1.3.0 |
@@ -112,18 +121,19 @@ Remove in first minor of new major:
 ### Forward Compatibility (Old Client → New Server)
 
 A client built against v1.2.0 should work with a v1.5.0 server:
+
 - Server adds new fields → Client ignores unknown fields
 - Server adds new commands → Client unaffected
 - Server adds new error codes → Client falls back to generic handling
 
 ### Backward Compatibility (New Client → Old Server)
 
-Not guaranteed. New clients may depend on new features.
+Not guaranteed by default validation. New clients may depend on new features.
 
 ## Compatibility Matrix
 
 | Client \ Server | v1.2.x | v1.3.x | v2.0.x |
-|-----------------|--------|--------|--------|
+| :--- | :--- | :--- | :--- |
 | v1.2.x | ✅ Full | ✅ Forward | ❌ Breaking |
 | v1.3.x | ⚠️ Partial | ✅ Full | ❌ Breaking |
 | v2.0.x | ❌ Breaking | ❌ Breaking | ✅ Full |
@@ -133,6 +143,7 @@ Not guaranteed. New clients may depend on new features.
 ### Contract Snapshots
 
 Committed snapshots at `tests/contracts/`:
+
 - `cli-help.snapshot.txt` — CLI help output
 - `api-envelope.snapshot.json` — API response shapes
 
@@ -144,6 +155,7 @@ make verify:contracts
 ```
 
 Fails if:
+
 - Breaking changes detected
 - Snapshots don't match
 - New fields not following naming conventions
@@ -170,7 +182,7 @@ In exceptional circumstances (security, data loss), breaking changes may be intr
 ## Current Contract Versions
 
 | Contract | Current Version | Frozen Until |
-|----------|-----------------|--------------|
+| :--- | :--- | :--- |
 | CLI Commands | v1.x | v2.0.0 |
 | API Envelope | v1.x | v2.0.0 |
 | CAS Format | v2 | v3.0.0 |
@@ -184,6 +196,7 @@ In exceptional circumstances (security, data loss), breaking changes may be intr
 *This section will be populated when v2.0 planning begins.*
 
 Key considerations for v2.0:
+
 - CLI command reorganization (flatter structure)
 - Policy schema simplification
 - CAS compression default change

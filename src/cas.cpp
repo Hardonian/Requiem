@@ -413,15 +413,26 @@ std::optional<CasObjectInfo> CasStore::info(const std::string &digest) const {
   if (!valid_digest(digest))
     return std::nullopt;
 
-  if (!index_loaded_)
-    load_index();
+  auto sidecar = load_meta_sidecar(meta_path(digest));
+  if (!sidecar)
+    return std::nullopt;
 
-  std::lock_guard<std::mutex> lk(index_mu_);
-  auto it = index_.find(digest);
-  if (it != index_.end())
-    return it->second;
+  if (sidecar->digest.empty()) {
+    sidecar->digest = digest;
+  }
+  if (sidecar->digest != digest) {
+    return std::nullopt;
+  }
+  if (sidecar->stored_blob_hash.empty()) {
+    return std::nullopt;
+  }
 
-  return std::nullopt;
+  {
+    std::lock_guard<std::mutex> lk(index_mu_);
+    index_[digest] = *sidecar;
+  }
+
+  return sidecar;
 }
 
 std::optional<std::string> CasStore::get(const std::string &digest) const {
@@ -575,7 +586,10 @@ bool CasStore::repair(const std::string &digest,
   if (!valid_data)
     return false; // Not available in replicator either.
 
-  // 3. Put the valid data back into this store.
+  // 3. Drop corrupted local artifacts, then re-store valid content.
+  remove(digest);
+
+  // 4. Put the valid data back into this store.
   return !put(*valid_data).empty();
 }
 
