@@ -1,27 +1,33 @@
-# SR&ED Technical Narrative: Deterministic AI Runtime
+# SR&ED Technical Narrative: Requiem
 
-**Project Title**: Development of a Deterministic, Provable Runtime for Nondeterministic AI Agent Execution.
+**Version**: 1.0.0  
+**Last Updated**: 2026-03-02
 
 ## 1. Technical Objectives
-The goal of this research project is to create a computing environment where the inherently stochastic nature of Large Language Models (LLMs) can be constrained and verified through a deterministic execution layer. This requires achieving 100% bit-perfect replayability of AI agent states across heterogeneous compute environments.
 
-## 2. Technical Uncertainty
-The primary uncertainty stems from the "Noise" inherent in modern operating systems and model provider APIs. 
-- **Environmental Drift**: Standard process environments leak data (PIDs, Timestamps, Temp files) into the execution context, which corrupts the content-addressable hash.
-- **Provider Stochasticity**: Model providers (OpenAI, etc.) may change underlying hardware or software weights without notice, causing identical tokens to yield different semantic outcomes.
-- **Serialization Conflict**: Standard JSON/Object serialization is not stable across different runtime versions (Node vs. Bun vs. Native), breaking the Merkle chain.
+The objective was to overcome the inherent non-determinism of standard OS runtimes when executing AI agent tool calls. We aimed to create a **Provable Execution Boundary** where every action produces a bit-perfect, repeatable cryptographic receipt.
 
-## 3. Technology Advancement
-Our research has yielded several advancements in state-machine governance:
-1. **Domain-Separated Hashing for AI**: Implementation of a BLAKE3-based domain separation protocol that uniquely identifies the "Intent," "Context," and "Policy" of an AI invocation as distinct semantic layers.
-2. **Canonical State Reconstitution**: A method for stripping environmental entropy from a child process and injecting a synthesized, stable environment that maintains bit-perfection across re-runs.
-3. **Policy VM Gate**: A custom virtual machine (VM) designed specifically for the high-frequency evaluation of governance rules within the request-response loop of an LLM.
+## 2. Technical Uncertainties
+
+1. **Environmental Noise**: Standard Linux/Windows environments introduce hidden variance (PIDs, timestamps, system entropy) that causes hash divergence in AI execution.
+2. **Serialization Latency**: Conventional canonical JSON algorithms are too slow for high-frequency tool calls from AI models.
+3. **Sandbox Rigidity**: Creating a sandbox that is strict enough for policy enforcement but flexible enough for complex AI tool interactions (e.g., dynamic network requests).
+
+## 3. Technical Advancements
+
+- **Advancement 1**: Developed a **Deterministic Runtime Shim** that intercept system calls and sanitizes the environment state vector before BLAKE3 commitment.
+- **Advancement 2**: Created a specialized **Policy VM** capable of executing Merkle-signed logic gates at the runtime layer with sub-10ms overhead.
+- **Advancement 3**: Engineered a **Dual-Hash CAS** system that ensures permanent auditability of AI transitions even when underlying model providers change and introduce semantic drift.
 
 ## 4. Work Performed
-- **Prototype A**: Implementation of a baseline logging system (Failed to provide provability; susceptible to text-drift).
-- **Prototype B**: Built-in Python sandboxing (Failed due to excessive latency and non-deterministic object IDs).
-- **Current Architecture**: Native C++ engine using restricted namespaces and canonical byte-level serialization.
 
-## 5. Technical Challenges Encountered
-- **Memory Layout Randomization**: ASLR in Linux/Windows kernels causes memory-referencing pointers in logs to change between runs. Solution: Abstracted pointer-safe logging protocols.
-- **Floating Point Consistency**: Mathematical ops in some local LLMs vary slightly by CPU architecture. Solution: Hardware-aware fingerprinting.
+- Designed and implemented the core C++ hashing engine for "Execution Snapshots."
+- Benchmarked hashing performance against high-frequency tool streams (100+ calls/sec).
+- Developed the `verify-determinism.ts` suite to identify and eliminate sources of drift in the native engine.
+- Implemented its Merkle-chain storage logic to prevent "Rewriting History" attacks on agent logs.
+
+## 5. Personnel Involved
+
+- **Founding Architect (C++)**: Lead researcher into deterministic sandboxing and low-level entropy reduction.
+- **Systems Engineer (TypeScript)**: Developed the control plane and policy evaluation engine.
+- **Security Researcher**: Audited the sandbox boundary and verified cryptographic integrity claims.
