@@ -10,10 +10,13 @@ Requiem ("we", "us", or "our") is committed to protecting your privacy. This pol
 ## 2. Data Collection & Use
 
 ### Reach CLI (Local Mode)
+
 When using the Reach CLI locally, Requiem does not collect your prompts, tool outputs, or sensitive data. All cryptographic fingerprints are generated and stored on your local machine.
 
 ### ReadyLayer (Cloud Mode)
+
 If you opt-in to use the ReadyLayer control plane, we collect:
+
 - **Metadata**: Run IDs, timestamps, and policy hashes.
 - **Diagnostics**: Error logs and engine version information to improve performance.
 - **Identity**: User information provided during SSO (Single Sign-On).

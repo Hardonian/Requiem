@@ -9,10 +9,10 @@ This document outlines the cryptographic and structural proofs used to ensure th
 
 ## 2. Cryptographic Isolation (Domain Separation)
 
-Requiem uses **BLAKE3 Keyed Hashing** for all artifact indexing. 
+Requiem uses **BLAKE3 Keyed Hashing** for all artifact indexing.
 
 - **Key Derivation**: For each tenant, we derive a unique `DomainKey` using `HKDF(MasterSecret, TenantID)`.
-- **Commitment**: All hashes generated for a tenant use their specific `DomainKey`. 
+- **Commitment**: All hashes generated for a tenant use their specific `DomainKey`.
 - **Proof**: Even if a tenant knows the hash of a file in another tenant's CAS, they cannot retrieve it because the storage lookup requires a matching `DomainKey` commitment.
 
 ## 3. Runtime Separation (Sandboxing)
