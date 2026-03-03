@@ -24,6 +24,7 @@ Requiem pricing is based on **Trust Integrity Metrics**. We charge for the *veri
 ## 3. Metering Units (The "Proof Credit")
 
 A "Proof Credit" covers:
+
 - 1x Policy Evaluation
 - 1x BLAKE3 Fingerprint Generation
 - 1x Entry into the Semantic Ledger

@@ -3,7 +3,8 @@
 **Project Name**: Requiem - The Provable AI Runtime
 
 ## 1. Tagline
-Every AI decision. Provable. Replayable. Enforced. 
+
+Every AI decision. Provable. Replayable. Enforced.
 
 ## 2. Maker Comment
 
@@ -12,6 +13,7 @@ Hey PH! 👋
 We built Requiem because we were tired of the "Black Box" problem in AI agents. You run a prompt, it works once, then it fails in production, and you have no idea why. Logs lie, but cryptographic hashes don't.
 
 Requiem is a native execution layer that treats AI as a semantic state machine.
+
 - **Deterministic**: 100% bit-perfect replay of any tool call.
 - **Governed**: Deny-by-default Policy VM stops rogue agents *before* they act.
 - **Provable**: Generates BLAKE3-signed "Receipts" for every decision.
