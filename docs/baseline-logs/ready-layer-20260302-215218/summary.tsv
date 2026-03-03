@@ -3,3 +3,5 @@ install	1	docs/baseline-logs/ready-layer-20260302-215218/install.log
 lint	0	docs/baseline-logs/ready-layer-20260302-215218/lint.log
 type-check	0	docs/baseline-logs/ready-layer-20260302-215218/type-check.log
 test	1	docs/baseline-logs/ready-layer-20260302-215218/test.log
+build	0	docs/baseline-logs/ready-layer-20260302-215218/build.log
+doctor	0	docs/baseline-logs/ready-layer-20260302-215218/doctor.log

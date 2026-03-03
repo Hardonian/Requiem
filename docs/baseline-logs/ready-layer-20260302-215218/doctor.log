@@ -1,0 +1,5 @@
+
+> ready-layer@1.0.0 doctor
+> echo 'Run doctor from root: pnpm doctor'
+
+Run doctor from root: pnpm doctor

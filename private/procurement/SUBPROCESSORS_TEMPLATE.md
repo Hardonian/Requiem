@@ -17,6 +17,6 @@ Enterprise customers can choose to host the **Native Engine** and/or the **CAS (
 
 ## Verification of Sub-Processor Boundaries
 
-- All sub-processors are required to provide **SOC 2 Type II** or equivalent audit reports to the Company annually.
+- All sub-processors are required to provide **SOC 2 Type II Compliance Controls** or equivalent audit reports to the Company annually.
 - Data sent to sub-processors is encrypted in transit and at rest using **AES-256** or current security standards.
 - Tenant data is cryptographically isolated using **mTLS-v1** gates before any external data transfer occurs.

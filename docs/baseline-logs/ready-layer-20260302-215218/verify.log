@@ -1,0 +1,8 @@
+
+> ready-layer@1.0.0 verify
+> npm run type-check && npm run lint
+
+
+> ready-layer@1.0.0 type-check
+> tsc --noEmit
+
