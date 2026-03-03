@@ -77,12 +77,12 @@ All features map to one of these layers:
 
 ### Economic Layer
 
-| Feature            | OSS       | Pro        | Enterprise |
-| :----------------- | :-------- | :--------- | :--------- |
-| Execution credits  | 1,000/mo  | 50,000/mo  | Unlimited  |
-| Replay storage     | 1 GB      | 50 GB      | Unlimited  |
-| Policy events      | 10,000/mo | 500,000/mo | Unlimited  |
-| Cost accounting    | —         | ✅         | ✅         |
+| Feature                         | OSS       | Pro        | Enterprise |
+| :------------------------------ | :-------- | :--------- | :--------- |
+| Execution credits               | 1,000/mo  | 50,000/mo  | Unlimited  |
+| Replay storage                  | 1 GB      | 50 GB      | Unlimited  |
+| Policy events                   | 10,000/mo | 500,000/mo | Unlimited  |
+| Cost accounting                 | —         | ✅         | ✅         |
 | Billing/Cost allocation reports | —         | ✅         | ✅         |
 
 ### Observability Layer
