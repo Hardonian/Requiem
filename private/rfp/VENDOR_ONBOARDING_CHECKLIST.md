@@ -19,6 +19,7 @@
 ## 3. Data Protection Impact Assessment (DPIA) Template
 
 Requiem simplifies DPIA by providing an automated **Traceability Matrix**:
+
 - **Source**: Where did the AI prompt originate?
 - **Transformation**: How was it governed by the Policy VM?
 - **Persistence**: Where is the signed receipt stored?

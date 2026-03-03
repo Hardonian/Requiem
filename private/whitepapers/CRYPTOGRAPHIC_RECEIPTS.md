@@ -18,6 +18,7 @@ Every interaction in Requiem proceeds through a three-stage commitment flow:
 ## 3. Dual-Hash CAS (v2)
 
 To ensure long-term auditability, artifacts are stored using two distinct primitives:
+
 - **BLAKE3**: Used for real-time integrity checks and high-frequency deduplication.
 - **SHA-256**: Used for secondary verification and compatibility with standard cryptographic toolsets.
 

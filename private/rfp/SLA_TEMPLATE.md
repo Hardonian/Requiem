@@ -34,6 +34,7 @@ If we fail to meet the 99.9% uptime commitment, customers are eligible for Servi
 ## 5. Exclusions
 
 This SLA does not apply to:
+
 - Scheduled maintenance windows (notified 48h in advance).
 - Failures caused by underlying model providers (e.g., OpenAI outage).
 - Alpha or Beta features tagged as "Experimental."
