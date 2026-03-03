@@ -102,19 +102,29 @@ if (-not $Json) { Write-Host "" }
 # Check C++ compiler
 if (-not $Json) { Write-Host "Checking C++ compiler..." -ForegroundColor Green }
 $hasCompiler = $false
-if (Test-Command "cl" "MSVC") {
+if (Get-Command cl -ErrorAction SilentlyContinue) {
+    if (-not $Json) { Write-Host "[INFO] MSVC found" -ForegroundColor Green }
+    $script:check_passed++
     $hasCompiler = $true
-} elseif (Test-Command "g++" "GCC/G++") {
+} elseif (Get-Command g++ -ErrorAction SilentlyContinue) {
     Test-Version "g++" "11.0.0" "GCC"
     $hasCompiler = $true
-} elseif (Test-Command "clang++" "Clang") {
+} elseif (Get-Command clang++ -ErrorAction SilentlyContinue) {
     Test-Version "clang++" "13.0.0" "Clang"
     $hasCompiler = $true
+} else {
+    # Check if cmake can find a compiler (handles VS Developer Prompt)
+    $cmakeCompiler = cmake --system-information 2>$null | Select-String "CMAKE_CXX_COMPILER" | Select-Object -First 1
+    if ($cmakeCompiler) {
+        if (-not $Json) { Write-Host "[INFO] C++ compiler found via CMake" -ForegroundColor Green }
+        $script:check_passed++
+        $hasCompiler = $true
+    }
 }
 
 if (-not $hasCompiler) {
     if (-not $Json) { Write-Host "[ERROR] No C++ compiler found" -ForegroundColor Red }
-    $check_failed++
+    $script:check_failed++
 }
 if (-not $Json) { Write-Host "" }
 

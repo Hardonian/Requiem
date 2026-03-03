@@ -1,13 +1,13 @@
  WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
 
-> requiem@1.0.0 verify:determinism /mnt/c/Users/scott/GitHub/Requiem
-> npx tsx scripts/verify_determinism.ts
+> requiem@1.0.0 verify:entropy /mnt/c/Users/scott/GitHub/Requiem
+> npx tsx scripts/final-enforcement.ts
 
 node:internal/errors:496
     ErrorCaptureStackTrace(err);
     ^
 
-Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/5213.pipe
+Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/5367.pipe
     at Server.setupListenHandle [as _listen2] (node:net:1794:21)
     at listenInCluster (node:net:1859:12)
     at Server.listen (node:net:1958:5)
@@ -18,7 +18,7 @@ Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppD
   code: 'ENOTSUP',
   errno: -95,
   syscall: 'listen',
-  address: '/mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/5213.pipe',
+  address: '/mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/5367.pipe',
   port: -1
 }
 

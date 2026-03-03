@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\scott\GitHub\Requiem\__cmake_systeminformation\CMakeFiles\ef3043dcf44135abb46fbea80c26e22b\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{9D100AEE-2531-3120-AAF8-E7DA4FE1CA6C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

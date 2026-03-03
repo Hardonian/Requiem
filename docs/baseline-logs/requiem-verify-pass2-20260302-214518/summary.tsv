@@ -8,3 +8,7 @@ verify:cpp	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_cpp.
 verify:dead-code	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_dead-code.log
 verify:dependencies	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_dependencies.log
 verify:deps-graph	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_deps-graph.log
+verify:determinism	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_determinism.log
+verify:economics	0	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_economics.log
+verify:entropy	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_entropy.log
+verify:final	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_final.log
