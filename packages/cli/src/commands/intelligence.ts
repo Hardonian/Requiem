@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { randomUUID } from 'crypto';
 import { IntelligenceRepository, ClaimTypeSchema, deriveContextHash, type Prediction, type PerceptionSignal, PerceptionSignalSchema, SignalTypeSchema } from '../lib/compounding-intelligence.js';
+import { evaluateCaseReusePolicy, evaluateConfidenceGate } from '../lib/intelligence-policy.js';
 
 function getFlag(args: string[], name: string): string | undefined {
   const idx = args.indexOf(name);
@@ -42,6 +43,17 @@ export async function runPredictCommand(args: string[]): Promise<number> {
     return 0;
   }
 
+
+  if (action === 'gate') {
+    const runId = getFlag(args, '--run') || 'manual-run';
+    const claim = parseClaim(getFlag(args, '--claim'));
+    const p = Number(getFlag(args, '--p') || '0.5');
+    const actionType = getFlag(args, '--action') || 'apply_patch';
+    const decision = evaluateConfidenceGate(actionType, claim, p);
+    print({ run_id: runId, claim_type: claim, p, action: actionType, decision });
+    return decision.allow ? 0 : 2;
+  }
+
   if (action === 'list') {
     const runId = getFlag(args, '--run');
     if (!runId) throw new Error('predict list requires --run <id>');
@@ -59,13 +71,15 @@ export async function runPredictCommand(args: string[]): Promise<number> {
     return 0;
   }
 
-  throw new Error('Usage: predict <record|list|score> [options]');
+  throw new Error('Usage: predict <record|gate|list|score> [options]');
 }
 
 export async function runCalibrateCommand(args: string[]): Promise<number> {
   const action = args[0];
   const claim = parseClaim(getFlag(args, '--claim'));
   const tenantId = defaultTenant();
+
+
   if (action === 'show') {
     print(IntelligenceRepository.buildCalibration(tenantId, claim));
     return 0;
@@ -104,6 +118,33 @@ export async function runCasesCommand(args: string[]): Promise<number> {
     print(scored);
     return 0;
   }
+
+  if (action === 'apply') {
+    const caseId = args[1];
+    const runId = getFlag(args, '--run') || 'case-reuse-run';
+    const testsVerified = (getFlag(args, '--verify-tests') || 'fail') === 'pass';
+    const buildVerified = (getFlag(args, '--verify-build') || 'fail') === 'pass';
+    const policy = evaluateCaseReusePolicy({ testsVerified, buildVerified });
+    const p = Number(getFlag(args, '--p') || '0.7');
+
+    const prediction = IntelligenceRepository.createPrediction({
+      run_id: runId,
+      tenant_id: defaultTenant(),
+      actor_id: process.env.USER || 'cli',
+      claim_type: 'TESTS_PASS',
+      subject: `case_reuse:${caseId}`,
+      p,
+      rationale: `case-reuse verification for ${caseId}`,
+      model_fingerprint: 'local-model',
+      promptset_version: 'v1',
+      context_hash: deriveContextHash({ caseId, runId, testsVerified, buildVerified }),
+    });
+
+    const output = { case_id: caseId, run_id: runId, policy, prediction_created: prediction.prediction_id };
+    print(output);
+    return policy.allow ? 0 : 2;
+  }
+
   if (action === 'show') {
     const id = args[1];
     print(rows.find((row) => (row as { case_id?: string }).case_id === id) ?? null);
@@ -138,6 +179,17 @@ export async function runSignalsCommand(args: string[]): Promise<number> {
     print(signal);
     return 0;
   }
+
+  if (action === 'gate') {
+    const runId = getFlag(args, '--run') || 'manual-run';
+    const claim = parseClaim(getFlag(args, '--claim'));
+    const p = Number(getFlag(args, '--p') || '0.5');
+    const actionType = getFlag(args, '--action') || 'apply_patch';
+    const decision = evaluateConfidenceGate(actionType, claim, p);
+    print({ run_id: runId, claim_type: claim, p, action: actionType, decision });
+    return decision.allow ? 0 : 2;
+  }
+
   if (action === 'list') {
     const severity = getFlag(args, '--severity');
     print(severity ? rows.filter((row) => row.severity === severity) : rows);

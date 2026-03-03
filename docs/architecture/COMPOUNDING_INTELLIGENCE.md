@@ -26,3 +26,16 @@ The compounding layer is a closed loop:
 - **Memory/DB path**: existing in-memory DB adapter is used for prediction table insertion.
 - **File path**: append-only NDJSON in `.requiem/intelligence/*.ndjson` for predictions/outcomes/calibration/cases/signals.
 - **Schema strategy**: zod-validated, versioned records (`v1`) for each dataset.
+
+
+## HTTP API + dashboards
+
+- API endpoints: `/api/intelligence/predictions`, `/api/intelligence/outcomes`, `/api/intelligence/calibration`, `/api/intelligence/cases`, `/api/intelligence/signals`.
+- Dashboard pages: `/intelligence/calibration`, `/intelligence/verification`, `/intelligence/cases`, `/intelligence/signals`.
+- Run details include panels for predictions/outcomes, similar cases, and risk signals.
+
+## CI + policy gates
+
+- Added verify scripts: `verify:metamorphic`, `verify:drift-suite` (fails on CRITICAL drift), `verify:intelligence`.
+- Added scheduled workflow `.github/workflows/intelligence-nightly.yml`.
+- Added confidence gate and case-reuse verification policy hooks with warn/deny behavior via env configuration.

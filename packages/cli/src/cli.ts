@@ -123,9 +123,11 @@ GOVERNANCE COMMANDS:
 
   predict list --run <id>             List run predictions
   predict score --run <id>            Record outcomes + scores for run predictions
+  predict gate --action <a> --claim    Evaluate confidence gate policy
   calibrate show --claim <type>       Show calibration aggregates
   calibrate export --format <fmt>     Export calibration bins (json/csv)
   cases suggest --error-log <path>    Suggest similar solved cases
+  cases apply <case_id> --run <id>     Enforce case-reuse verification policy
   signals compute --last <window>     Compute perception signals
   risk score --paths <a,b>            Compute deterministic risk score
   realign <patch-id>                  Apply patch in new branch and verify

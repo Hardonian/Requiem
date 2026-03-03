@@ -15,3 +15,13 @@ The Intelligence Layer adds prediction, scoring, calibration, case retrieval, an
 - No paid APIs or hosted model dependencies.
 - No automatic code application from cases.
 - No non-deterministic confidence blending.
+
+
+## ReadyLayer dashboards
+
+- `/intelligence/calibration`
+- `/intelligence/verification`
+- `/intelligence/cases`
+- `/intelligence/signals`
+
+Run pages now include panels for Predictions/Outcomes, Similar Cases, and Risk & Signals.

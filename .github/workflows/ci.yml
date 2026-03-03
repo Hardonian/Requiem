@@ -471,3 +471,26 @@ jobs:
           name: chaos-report-nightly
           path: artifacts/reports/chaos_report.json
           if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # Intelligence layer verify gates
+  # ---------------------------------------------------------------------------
+  intelligence-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: install
+        run: pnpm install --frozen-lockfile
+      - name: verify:intelligence
+        run: pnpm verify:intelligence
+      - name: verify:metamorphic
+        run: pnpm verify:metamorphic
+      - name: verify:drift-suite (CRITICAL gate)
+        run: pnpm verify:drift-suite

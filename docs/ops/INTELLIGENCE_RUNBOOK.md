@@ -19,3 +19,12 @@ requiem signals compute --last 30d
 requiem signals list --severity WARN
 requiem risk score --paths packages/cli/src/commands/intelligence.ts,ready-layer/src/app
 ```
+
+
+## HTTP endpoints (tenant-scoped via `x-tenant-id`)
+
+- `GET /api/intelligence/predictions?run_id=<id>`
+- `GET /api/intelligence/outcomes?run_id=<id>`
+- `GET /api/intelligence/calibration?claim_type=TESTS_PASS&window=30d`
+- `GET /api/intelligence/cases`
+- `GET /api/intelligence/signals?severity=WARN`

@@ -70,7 +70,9 @@
     "verify:no-any-core": "node scripts/run-tsx.mjs scripts/verify-no-any-core.ts",
     "selftest": "node scripts/run-tsx.mjs packages/cli/src/commands/selftest.ts",
     "verify:mcp-routes": "pnpm --filter ready-layer test:mcp-routes",
-    "verify:intelligence": "node scripts/run-tsx.mjs scripts/verify-intelligence.ts"
+    "verify:intelligence": "node scripts/run-tsx.mjs scripts/verify-intelligence.ts",
+    "verify:metamorphic": "node scripts/run-tsx.mjs scripts/verify-metamorphic-intelligence.ts",
+    "verify:drift-suite": "node scripts/run-tsx.mjs scripts/verify-drift-suite-intelligence.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

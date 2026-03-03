@@ -1,0 +1,34 @@
+name: intelligence-nightly
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'
+
+jobs:
+  intelligence-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: install
+        run: pnpm install --frozen-lockfile
+      - name: verify intelligence
+        run: pnpm verify:intelligence
+      - name: verify metamorphic
+        run: pnpm verify:metamorphic
+      - name: drift suite (CRITICAL gate)
+        run: pnpm verify:drift-suite
+      - name: upload intelligence reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intelligence-reports
+          path: artifacts/reports/intelligence_drift_report.json
+          if-no-files-found: warn
