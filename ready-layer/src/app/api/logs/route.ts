@@ -1,24 +1,20 @@
 // ready-layer/src/app/api/logs/route.ts
-//
-// Phase B: Event Logs API — /api/logs
-// Returns event log entries with pagination and search.
 
-import { NextResponse } from 'next/server';
-import type { EventLogEntry, TypedError } from '@/types/engine';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
+import type { EventLogEntry } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
-// Generate trace_id for correlation
-function generateTraceId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
+const querySchema = z.object({
+  from: z.coerce.number().int().min(0).optional(),
+  to: z.coerce.number().int().min(0).optional(),
+  q: z.string().optional(),
+  limit: z.coerce.number().int().positive().max(1000).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
 
-// Create typed error envelope
-function createError(code: string, message: string, retryable = false): TypedError {
-  return { code, message, details: {}, retryable };
-}
-
-// Create API response envelope
 function createResponse<T>(data: T, trace_id: string) {
   return {
     v: 1,
@@ -29,73 +25,67 @@ function createResponse<T>(data: T, trace_id: string) {
   };
 }
 
-export async function GET(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
-  
-  try {
-    const { searchParams } = new URL(request.url);
-    const from = parseInt(searchParams.get('from') || '0', 10);
-    const to = parseInt(searchParams.get('to') || '999999999', 10);
-    const _query = searchParams.get('q') || ''; // eslint-disable-line @typescript-eslint/no-unused-vars
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 1000);
-    const offset = parseInt(searchParams.get('offset') || '0', 10);
+export async function GET(request: NextRequest): Promise<Response> {
+  return withTenantContext(
+    request,
+    async (ctx) => {
+      const query = parseQueryWithSchema(request, querySchema);
+      const from = query.from ?? 0;
+      const to = query.to ?? 999999999;
+      const limit = query.limit ?? 100;
+      const offset = query.offset ?? 0;
+      void query.q;
 
-    // TODO: Replace with actual engine call when CLI is available
-    // For now, return mock data with proper envelope structure
-    const mockEvents: EventLogEntry[] = [];
-    
-    // Generate some mock events for demonstration
-    for (let i = 0; i < Math.min(limit, 10); i++) {
-      const seq = from + offset + i;
-      if (seq > to) break;
-      
-      mockEvents.push({
-        seq,
-        prev: seq === 1 ? '0000000000000000000000000000000000000000000000000000000000000000' : `hash_${seq - 1}`,
-        ts_logical: seq,
-        event_type: i % 3 === 0 ? 'exec.complete' : i % 3 === 1 ? 'cap.mint' : 'plan.run.complete',
-        actor: 'system',
-        data_hash: `data_hash_${seq}`,
-        execution_id: `exec_${seq}`,
-        tenant_id: 'default',
-        request_digest: `req_digest_${seq}`,
-        result_digest: `res_digest_${seq}`,
-        engine_semver: '1.0.0',
-        engine_abi_version: 2,
-        hash_algorithm_version: 1,
-        cas_format_version: 2,
-        replay_verified: true,
-        ok: true,
-        error_code: '',
-        duration_ns: 1000000 + (i * 100000),
-        worker_id: 'w-001',
-        node_id: 'n-001',
-      });
-    }
+      const mockEvents: EventLogEntry[] = [];
+      for (let i = 0; i < Math.min(limit, 10); i++) {
+        const seq = from + offset + i;
+        if (seq > to) break;
 
-    const response = createResponse({
-      ok: true,
-      data: mockEvents,
-      total: mockEvents.length,
-      page: Math.floor(offset / limit) + 1,
-      page_size: limit,
-      has_more: mockEvents.length === limit,
-      trace_id,
-    }, trace_id);
+        mockEvents.push({
+          seq,
+          prev: seq === 1
+            ? '0000000000000000000000000000000000000000000000000000000000000000'
+            : `hash_${seq - 1}`,
+          ts_logical: seq,
+          event_type: i % 3 === 0 ? 'exec.complete' : i % 3 === 1 ? 'cap.mint' : 'plan.run.complete',
+          actor: 'system',
+          data_hash: `data_hash_${seq}`,
+          execution_id: `exec_${seq}`,
+          tenant_id: ctx.tenant_id,
+          request_digest: `req_digest_${seq}`,
+          result_digest: `res_digest_${seq}`,
+          engine_semver: '1.0.0',
+          engine_abi_version: 2,
+          hash_algorithm_version: 1,
+          cas_format_version: 2,
+          replay_verified: true,
+          ok: true,
+          error_code: '',
+          duration_ns: 1000000 + (i * 100000),
+          worker_id: 'w-001',
+          node_id: 'n-001',
+        });
+      }
 
-    return NextResponse.json(response, { status: 200 });
-  } catch (error) {
-    const errorResponse = {
-      v: 1,
-      kind: 'error',
-      data: null,
-      error: createError(
-        'internal_error',
-        error instanceof Error ? error.message : 'Unknown error occurred',
-        false
-      ),
-      trace_id,
-    };
-    return NextResponse.json(errorResponse, { status: 500 });
-  }
+      const response = createResponse(
+        {
+          ok: true,
+          data: mockEvents,
+          total: mockEvents.length,
+          page: Math.floor(offset / limit) + 1,
+          page_size: limit,
+          has_more: mockEvents.length === limit,
+          trace_id: ctx.trace_id,
+        },
+        ctx.trace_id,
+      );
+
+      return NextResponse.json(response, { status: 200 });
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'logs.list',
+      cache: { ttlMs: 5_000, visibility: 'private', staleWhileRevalidateMs: 5_000 },
+    },
+  );
 }

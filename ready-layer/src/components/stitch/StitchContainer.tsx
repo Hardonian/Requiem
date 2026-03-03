@@ -13,7 +13,7 @@
 import { ReactNode } from 'react';
 
 interface StitchContainerProps {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   centered?: boolean;

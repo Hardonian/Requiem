@@ -1,29 +1,32 @@
-// ready-layer/src/app/api/engine/diagnostics/route.ts
-//
-// Phase B: Engine diagnostics endpoint — /api/engine/diagnostics
-// Returns full diagnostic report: version manifest, hash health, CAS summary,
-// sandbox capabilities, recent failure events.
-// INVARIANT: SRE/Security Auditor persona access only — requires elevated role claim.
-// INVARIANT: No direct engine call. Proxies through Node API boundary.
-
 import { NextRequest, NextResponse } from 'next/server';
-import { validateTenantAuth, authErrorResponse } from '@/lib/auth';
+import { withTenantContext } from '@/lib/big4-http';
+import { ProblemError } from '@/lib/problem-json';
 import { fetchEngineDiagnostics } from '@/lib/engine-client';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  const auth = await validateTenantAuth(req);
-  if (!auth.ok || !auth.tenant) return authErrorResponse(auth);
-
-  try {
-    const diag = await fetchEngineDiagnostics(auth.tenant);
-    return NextResponse.json(diag);
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'unknown error';
-    return NextResponse.json(
-      { ok: false, error: 'engine_diagnostics_unavailable', detail: msg },
-      { status: 502 },
-    );
-  }
+export async function GET(req: NextRequest): Promise<Response> {
+  return withTenantContext(
+    req,
+    async (ctx) => {
+      try {
+        const diag = await fetchEngineDiagnostics({ tenant_id: ctx.tenant_id, auth_token: ctx.auth_token });
+        return NextResponse.json(diag, { status: 200 });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'unknown error';
+        throw new ProblemError(502, 'Engine Diagnostics Unavailable', msg, { code: 'engine_diagnostics_unavailable' });
+      }
+    },
+    async () => {
+      const role = req.headers.get('x-requiem-role') ?? 'viewer';
+      const allowed = ['auditor', 'operator', 'admin'];
+      return {
+        allow: allowed.includes(role),
+        reasons: allowed.includes(role) ? [] : [`rbac_denied:${role}`],
+      };
+    },
+    {
+      routeId: 'engine.diagnostics',
+    },
+  );
 }

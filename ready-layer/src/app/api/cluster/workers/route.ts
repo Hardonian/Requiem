@@ -1,33 +1,27 @@
-// ready-layer/src/app/api/cluster/workers/route.ts
-//
-// GET /api/cluster/workers — Distributed cluster worker registry endpoint.
-//
-// Returns the list of all registered workers in the cluster including
-// per-worker health, shard assignment, and execution counters.
-//
-// INVARIANT (INV-7): All errors return structured JSON body.
-// INVARIANT (INV-6): No engine logic here — proxies via engine-client.
-// INVARIANT: export const dynamic = 'force-dynamic' required (INV-7).
-
 import { NextRequest, NextResponse } from 'next/server';
-import { validateTenantAuth, authErrorResponse } from '@/lib/auth';
+import { withTenantContext } from '@/lib/big4-http';
+import { ProblemError } from '@/lib/problem-json';
 import { fetchClusterWorkers } from '@/lib/engine-client';
 import type { ClusterWorkersResponse } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  const auth = await validateTenantAuth(req);
-  if (!auth.ok || !auth.tenant) return authErrorResponse(auth);
-
-  try {
-    const workers = await fetchClusterWorkers(auth.tenant);
-    return NextResponse.json(workers satisfies ClusterWorkersResponse);
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'unknown error';
-    return NextResponse.json(
-      { ok: false, error: 'cluster_workers_unavailable', detail: msg },
-      { status: 502 },
-    );
-  }
+export async function GET(req: NextRequest): Promise<Response> {
+  return withTenantContext(
+    req,
+    async (ctx) => {
+      try {
+        const workers = await fetchClusterWorkers({ tenant_id: ctx.tenant_id, auth_token: ctx.auth_token });
+        return NextResponse.json(workers satisfies ClusterWorkersResponse, { status: 200 });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'unknown error';
+        throw new ProblemError(502, 'Cluster Workers Unavailable', msg, { code: 'cluster_workers_unavailable' });
+      }
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'cluster.workers',
+      cache: { ttlMs: 3000, visibility: 'private', staleWhileRevalidateMs: 3000 },
+    },
+  );
 }

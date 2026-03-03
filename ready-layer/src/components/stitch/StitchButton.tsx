@@ -11,7 +11,7 @@
 import { ReactNode } from 'react';
 
 interface StitchButtonProps {
-  children: ReactNode;
+  children?: ReactNode;
   variant?: 'primary' | 'secondary';
   icon?: ReactNode;
   onClick?: () => void;

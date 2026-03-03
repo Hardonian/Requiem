@@ -240,6 +240,8 @@ jobs:
         run: pnpm run verify:boundaries
       - name: mcp routes
         run: pnpm run verify:mcp-routes
+      - name: api contract tests
+        run: cd ready-layer && pnpm run test:api
       - name: build web
         run: pnpm run build:web
       - name: secrets scan

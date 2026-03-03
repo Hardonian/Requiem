@@ -11,7 +11,7 @@
  */
 
 interface StitchBadgeProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: 'default' | 'success' | 'warning' | 'error';
   pulse?: boolean;
   className?: string;

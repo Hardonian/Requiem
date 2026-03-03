@@ -1,107 +1,80 @@
 // ready-layer/src/app/api/budgets/route.ts
-//
-// Phase B: Budgets API — /api/budgets
-// Budget management for tenant resource limits.
 
-import { NextResponse } from 'next/server';
-import type { BudgetSetRequest, BudgetSetResponse, BudgetShowResponse, BudgetResetResponse, TypedError, ApiResponse } from '@/types/engine';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { withTenantContext } from '@/lib/big4-http';
+import { ProblemError } from '@/lib/problem-json';
+import type {
+  BudgetSetResponse,
+  BudgetShowResponse,
+  BudgetResetResponse,
+  ApiResponse,
+} from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
-function generateTraceId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
+const postSchema = z.object({
+  action: z.enum(['set', 'reset-window']),
+  unit: z.string().min(1).optional(),
+  limit: z.number().positive().optional(),
+}).passthrough();
 
-function createError(code: string, message: string, retryable = false): TypedError {
-  return { code, message, details: {}, retryable };
-}
+export async function GET(request: NextRequest): Promise<Response> {
+  return withTenantContext(
+    request,
+    async (ctx) => {
+      const mockBudget = {
+        tenant_id: ctx.tenant_id,
+        budgets: {
+          exec: { limit: 1000, used: 42, remaining: 958 },
+          cas_put: { limit: 5000, used: 150, remaining: 4850 },
+          cas_get: { limit: 10000, used: 2300, remaining: 7700 },
+          policy_eval: { limit: 5000, used: 89, remaining: 4911 },
+          plan_step: { limit: 2000, used: 12, remaining: 1988 },
+        },
+        budget_hash: 'abc123def456',
+        version: 1,
+      };
 
-// GET - Show budget for a tenant
-export async function GET(request: Request): Promise<NextResponse> {
-  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
-  
-  try {
-    const { searchParams } = new URL(request.url);
-    const tenant_id = searchParams.get('tenant') || 'default';
-
-    // TODO: Replace with actual CLI call
-    const mockBudget = {
-      tenant_id,
-      budgets: {
-        exec: { limit: 1000, used: 42, remaining: 958 },
-        cas_put: { limit: 5000, used: 150, remaining: 4850 },
-        cas_get: { limit: 10000, used: 2300, remaining: 7700 },
-        policy_eval: { limit: 5000, used: 89, remaining: 4911 },
-        plan_step: { limit: 2000, used: 12, remaining: 1988 },
-      },
-      budget_hash: 'abc123def456',
-      version: 1,
-    };
-
-    const response: ApiResponse<BudgetShowResponse> = {
-      v: 1,
-      kind: 'budget.show',
-      data: { ok: true, budget: mockBudget },
-      error: null,
-    };
-
-    return NextResponse.json(response, { status: 200 });
-  } catch (error) {
-    const response: ApiResponse<null> = {
-      v: 1,
-      kind: 'error',
-      data: null,
-      error: createError('internal_error', error instanceof Error ? error.message : 'Unknown error', false),
-    };
-    return NextResponse.json(response, { status: 500 });
-  }
-}
-
-// POST - Set budget or reset window
-export async function POST(request: Request): Promise<NextResponse> {
-  const traceId = generateTraceId(); // eslint-disable-line @typescript-eslint/no-unused-vars
-  
-  try {
-    const body = await request.json();
-    const { action } = body;
-
-    if (action === 'set') {
-      const { tenant_id, unit, limit }: BudgetSetRequest = body;
-      
-      if (!tenant_id || !unit || !limit) {
-        const response: ApiResponse<null> = {
-          v: 1,
-          kind: 'error',
-          data: null,
-          error: createError('missing_argument', 'tenant_id, unit, and limit required', false),
-        };
-        return NextResponse.json(response, { status: 400 });
-      }
-
-      // TODO: Replace with actual CLI call
-      const response: ApiResponse<BudgetSetResponse> = {
+      const response: ApiResponse<BudgetShowResponse> = {
         v: 1,
-        kind: 'budget.set',
-        data: { ok: true },
+        kind: 'budget.show',
+        data: { ok: true, budget: mockBudget },
         error: null,
       };
-      return NextResponse.json(response, { status: 200 });
-    }
 
-    if (action === 'reset-window') {
-      const { tenant_id } = body;
-      
-      if (!tenant_id) {
-        const response: ApiResponse<null> = {
+      return NextResponse.json(response, { status: 200 });
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'budget.show',
+      cache: { ttlMs: 10_000, visibility: 'private', staleWhileRevalidateMs: 10_000 },
+    },
+  );
+}
+
+export async function POST(request: NextRequest): Promise<Response> {
+  return withTenantContext(
+    request,
+    async () => {
+      const body = postSchema.parse(await request.json());
+
+      if (body.action === 'set') {
+        if (!body.unit || body.limit === undefined) {
+          throw new ProblemError(400, 'Missing Argument', 'unit and limit required for action=set', {
+            code: 'missing_argument',
+          });
+        }
+
+        const response: ApiResponse<BudgetSetResponse> = {
           v: 1,
-          kind: 'error',
-          data: null,
-          error: createError('missing_argument', 'tenant_id required', false),
+          kind: 'budget.set',
+          data: { ok: true },
+          error: null,
         };
-        return NextResponse.json(response, { status: 400 });
+        return NextResponse.json(response, { status: 200 });
       }
 
-      // TODO: Replace with actual CLI call
       const response: ApiResponse<BudgetResetResponse> = {
         v: 1,
         kind: 'budget.reset_window',
@@ -109,22 +82,11 @@ export async function POST(request: Request): Promise<NextResponse> {
         error: null,
       };
       return NextResponse.json(response, { status: 200 });
-    }
-
-    const response: ApiResponse<null> = {
-      v: 1,
-      kind: 'error',
-      data: null,
-      error: createError('invalid_action', 'Action must be "set" or "reset-window"', false),
-    };
-    return NextResponse.json(response, { status: 400 });
-  } catch (error) {
-    const response: ApiResponse<null> = {
-      v: 1,
-      kind: 'error',
-      data: null,
-      error: createError('internal_error', error instanceof Error ? error.message : 'Unknown error', false),
-    };
-    return NextResponse.json(response, { status: 500 });
-  }
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'budget.mutate',
+      idempotency: { required: false },
+    },
+  );
 }

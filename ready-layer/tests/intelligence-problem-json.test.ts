@@ -8,6 +8,7 @@ describe('Problem+JSON contracts for denied policy/auth paths', () => {
     const req = new NextRequest('http://localhost/api/drift', {
       method: 'POST',
       headers: {
+        authorization: 'Bearer test-token',
         'x-tenant-id': 'tenant-test',
       },
     });

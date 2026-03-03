@@ -1,37 +1,45 @@
-// ready-layer/src/app/api/audit/logs/route.ts
-//
-// Phase F+E: Audit log export endpoint — /api/audit/logs
-// Returns recent execution provenance records from the immutable audit log.
-// Enterprise Operator persona: export audit logs, inspect provenance.
-// INVARIANT: No direct engine call. Proxies through Node API boundary.
-// INVARIANT: Audit logs are read-only — no DELETE or PUT methods on this route.
-
 import { NextRequest, NextResponse } from 'next/server';
-import { validateTenantAuth, authErrorResponse } from '@/lib/auth';
+import { z } from 'zod';
+import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
+import { ProblemError } from '@/lib/problem-json';
 import { fetchAuditLogs } from '@/lib/engine-client';
 import type { AuditLogEntry } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  const auth = await validateTenantAuth(req);
-  if (!auth.ok || !auth.tenant) return authErrorResponse(auth);
+const querySchema = z.object({
+  limit: z.coerce.number().int().positive().max(1000).optional(),
+});
 
-  const limitParam = req.nextUrl.searchParams.get('limit');
-  const limit = limitParam ? Math.min(parseInt(limitParam, 10), 1000) : 50;
+export async function GET(req: NextRequest): Promise<Response> {
+  return withTenantContext(
+    req,
+    async (ctx) => {
+      const query = parseQueryWithSchema(req, querySchema);
+      const limit = query.limit ?? 50;
 
-  try {
-    const entries = await fetchAuditLogs(auth.tenant, limit);
-    return NextResponse.json({
-      ok: true,
-      count: entries.length,
-      entries: entries satisfies AuditLogEntry[],
-    });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'unknown error';
-    return NextResponse.json(
-      { ok: false, error: 'audit_log_unavailable', detail: msg },
-      { status: 502 },
-    );
-  }
+      try {
+        const entries = await fetchAuditLogs(
+          { tenant_id: ctx.tenant_id, auth_token: ctx.auth_token },
+          limit,
+        );
+        return NextResponse.json(
+          {
+            ok: true,
+            count: entries.length,
+            entries: entries satisfies AuditLogEntry[],
+          },
+          { status: 200 },
+        );
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'unknown error';
+        throw new ProblemError(502, 'Audit Log Unavailable', msg, { code: 'audit_log_unavailable' });
+      }
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'audit.logs',
+      cache: { ttlMs: 5000, visibility: 'private', staleWhileRevalidateMs: 5000 },
+    },
+  );
 }

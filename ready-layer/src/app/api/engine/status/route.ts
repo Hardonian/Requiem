@@ -1,28 +1,27 @@
-// ready-layer/src/app/api/engine/status/route.ts
-//
-// Phase B: Engine status endpoint — /api/engine/status
-// Requires tenant auth. Returns runtime engine status + worker identity + metrics.
-// INVARIANT: No direct engine call. Proxies through Node API boundary via engine-client.
-
 import { NextRequest, NextResponse } from 'next/server';
-import { validateTenantAuth, authErrorResponse } from '@/lib/auth';
+import { withTenantContext } from '@/lib/big4-http';
+import { ProblemError } from '@/lib/problem-json';
 import { fetchEngineStatus } from '@/lib/engine-client';
 import type { EngineStatusResponse } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  const auth = await validateTenantAuth(req);
-  if (!auth.ok || !auth.tenant) return authErrorResponse(auth);
-
-  try {
-    const status = await fetchEngineStatus(auth.tenant);
-    return NextResponse.json(status satisfies EngineStatusResponse);
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'unknown error';
-    return NextResponse.json(
-      { ok: false, error: 'engine_status_unavailable', detail: msg },
-      { status: 502 },
-    );
-  }
+export async function GET(req: NextRequest): Promise<Response> {
+  return withTenantContext(
+    req,
+    async (ctx) => {
+      try {
+        const status = await fetchEngineStatus({ tenant_id: ctx.tenant_id, auth_token: ctx.auth_token });
+        return NextResponse.json(status satisfies EngineStatusResponse, { status: 200 });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'unknown error';
+        throw new ProblemError(502, 'Engine Status Unavailable', msg, { code: 'engine_status_unavailable' });
+      }
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'engine.status',
+      cache: { ttlMs: 5000, visibility: 'private', staleWhileRevalidateMs: 5000 },
+    },
+  );
 }

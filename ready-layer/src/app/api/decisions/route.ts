@@ -1,9 +1,7 @@
 // ready-layer/src/app/api/decisions/route.ts
-//
-// Phase B: Decisions API — /api/decisions
-// View policy decision history.
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { withTenantContext } from '@/lib/big4-http';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,20 +20,23 @@ interface DecisionsResponse {
   trace_id: string;
 }
 
-export async function GET(_request: Request): Promise<NextResponse<DecisionsResponse>> {
-  // const { searchParams } = new URL(_request.url);
-  // const limit = parseInt(searchParams.get('limit') || '100', 10);
-  // const offset = parseInt(searchParams.get('offset') || '0', 10);
+export async function GET(request: NextRequest): Promise<Response> {
+  return withTenantContext(
+    request,
+    async (ctx) => {
+      const response: DecisionsResponse = {
+        ok: true,
+        data: [],
+        total: 0,
+        trace_id: ctx.trace_id,
+      };
 
-  const trace_id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-
-  // TODO: Replace with actual CLI call
-  const response: DecisionsResponse = {
-    ok: true,
-    data: [],
-    total: 0,
-    trace_id,
-  };
-
-  return NextResponse.json(response, { status: 200 });
+      return NextResponse.json(response, { status: 200 });
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'decisions.list',
+      cache: { ttlMs: 10_000, visibility: 'private', staleWhileRevalidateMs: 10_000 },
+    },
+  );
 }

@@ -1,29 +1,27 @@
-// ready-layer/src/app/api/engine/metrics/route.ts
-//
-// Phase B+I: Engine metrics endpoint — /api/engine/metrics
-// Serves complete metrics (p50/p95/p99 ms, CAS hit rate, determinism score,
-// failure categories, memory, concurrency) for dashboard consumption.
-// INVARIANT: No direct engine call. Proxies through Node API boundary.
-
 import { NextRequest, NextResponse } from 'next/server';
-import { validateTenantAuth, authErrorResponse } from '@/lib/auth';
+import { withTenantContext } from '@/lib/big4-http';
+import { ProblemError } from '@/lib/problem-json';
 import { fetchEngineMetrics } from '@/lib/engine-client';
 import type { EngineStats } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  const auth = await validateTenantAuth(req);
-  if (!auth.ok || !auth.tenant) return authErrorResponse(auth);
-
-  try {
-    const metrics = await fetchEngineMetrics(auth.tenant);
-    return NextResponse.json(metrics satisfies EngineStats);
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'unknown error';
-    return NextResponse.json(
-      { ok: false, error: 'engine_metrics_unavailable', detail: msg },
-      { status: 502 },
-    );
-  }
+export async function GET(req: NextRequest): Promise<Response> {
+  return withTenantContext(
+    req,
+    async (ctx) => {
+      try {
+        const metrics = await fetchEngineMetrics({ tenant_id: ctx.tenant_id, auth_token: ctx.auth_token });
+        return NextResponse.json(metrics satisfies EngineStats, { status: 200 });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'unknown error';
+        throw new ProblemError(502, 'Engine Metrics Unavailable', msg, { code: 'engine_metrics_unavailable' });
+      }
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      routeId: 'engine.metrics',
+      cache: { ttlMs: 3000, visibility: 'private', staleWhileRevalidateMs: 3000 },
+    },
+  );
 }
