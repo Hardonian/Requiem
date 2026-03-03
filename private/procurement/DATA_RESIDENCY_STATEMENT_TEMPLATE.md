@@ -7,10 +7,12 @@
 **Sub-Processor**: [e.g., Amazon Web Services, Inc.]
 
 ## In-Transit Protection
+
 - **Protocol**: TLS 1.3 for all control plane communications.
 - **Verification**: Mutual TLS (mTLS) for all runtime-to-engine connections.
 
 ## At-Rest Protection
+
 - **Hashing**: All data is stored in the Content-Addressable Storage (CAS) v2.
 - **Verification**: BLAKE3 domain-separated hashing.
 - **Encryption**: AES-256 for all stored artifacts, with customer-managed keys (CMK) available for Enterprise.
@@ -25,4 +27,5 @@
 | **Audit Logs** | Control plane access logs. | 365 days (Enterprise) |
 
 ## Compliance & Right to be Forgotten
+
 Requiem supports the `nuke` command (`pnpm reach nuke <artifact_id>`) to permanently scrub specific execution payloads while maintaining the global ledger integrity for auditing.

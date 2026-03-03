@@ -13,11 +13,15 @@ The **Release Captain** is the DRI (Directly Responsible Individual) for a speci
 ## 2. Verification Loop
 
 Run the automated suite:
-`pnpm run verify:ci`
-`pnpm run verify:ratchet`
-`npx tsx scripts/docs-truth-gate.ts`
 
-**Wait for CI**
+```bash
+pnpm run verify:ci
+pnpm run verify:ratchet
+npx tsx scripts/docs-truth-gate.ts
+```
+
+### Wait for CI
+
 - Check the `CI / verify (push/pull_request)` dashboard on GitHub.
 - Do NOT proceed if any gate is fractional or amber.
 
@@ -36,6 +40,7 @@ Run the automated suite:
 ## 5. Artifact Verification
 
 After publishing (Internal/Public):
+
 1. Install the new version in a fresh sandbox.
 2. Run `pnpm reach run system.echo '{"test":true}'`.
 3. Verify that the `Execution Fingerprint` matches the baseline fingerprint from the previous RC.

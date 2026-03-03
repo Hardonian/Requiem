@@ -23,9 +23,10 @@
 ## Compliance Foundation
 
 **Designed to Support**:
-- SOC 2 Type II
-- GDPR (Data Residency and Right to be Forgotten)
-- HIPAA (Business Associate Agreement available for Enterprise)
-- FedRAMP (High) readiness
+
+- **SOC 2 Type II Compliance Controls**: Requiem implements the necessary boundaries for SOC 2 Type II audits.
+- **GDPR**: Data Residency and Right to be Forgotten.
+- **HIPAA**: Business Associate Agreement available for Enterprise.
+- **FedRAMP (High) readiness**.
 
 *Note: All compliance claims are subject to the active implementation of the Security Boundaries documented in `/docs/`. Internal audits and external certifications are [Placeholder - REPLACE WITH CURRENT STATUS].*
