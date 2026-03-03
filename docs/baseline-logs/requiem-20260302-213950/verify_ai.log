@@ -1,0 +1,137 @@
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 verify:ai /mnt/c/Users/scott/GitHub/Requiem
+> npm-run-all --parallel verify:mcp verify:ai-safety verify:agent-quality verify:cost-accounting verify:tenant-isolation
+
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 verify:ai-safety /mnt/c/Users/scott/GitHub/Requiem
+> npx tsx scripts/verify-ai-safety.ts
+
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 verify:mcp /mnt/c/Users/scott/GitHub/Requiem
+> npx tsx  scripts/verify-mcp.ts
+
+
+> requiem@1.0.0 verify:cost-accounting /mnt/c/Users/scott/GitHub/Requiem
+> npx tsx scripts/verify-cost-accounting.ts
+
+
+> requiem@1.0.0 verify:agent-quality /mnt/c/Users/scott/GitHub/Requiem
+> npx tsx scripts/verify-agent-quality.ts
+
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 verify:tenant-isolation /mnt/c/Users/scott/GitHub/Requiem
+> npx tsx scripts/verify-tenant-isolation.ts
+
+node:internal/errors:496
+    ErrorCaptureStackTrace(err);
+    ^
+
+Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3825.pipe
+    at Server.setupListenHandle [as _listen2] (node:net:1794:21)
+    at listenInCluster (node:net:1859:12)
+    at Server.listen (node:net:1958:5)
+    at file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31537
+    at new Promise (<anonymous>)
+    at createIpcServer (file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31515)
+    at async file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:55:459 {
+  code: 'ENOTSUP',
+  errno: -95,
+  syscall: 'listen',
+  address: '/mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3825.pipe',
+  port: -1
+}
+
+Node.js v18.19.1
+node:internal/errors:496
+    ErrorCaptureStackTrace(err);
+    ^
+
+Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3820.pipe
+    at Server.setupListenHandle [as _listen2] (node:net:1794:21)
+    at listenInCluster (node:net:1859:12)
+    at Server.listen (node:net:1958:5)
+    at file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31537
+    at new Promise (<anonymous>)
+    at createIpcServer (file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31515)
+    at async file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:55:459 {
+  code: 'ENOTSUP',
+  errno: -95,
+  syscall: 'listen',
+  address: '/mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3820.pipe',
+  port: -1
+}
+
+Node.js v18.19.1
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+node:internal/errors:496
+    ErrorCaptureStackTrace(err);
+    ^
+
+Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3827.pipe
+    at Server.setupListenHandle [as _listen2] (node:net:1794:21)
+    at listenInCluster (node:net:1859:12)
+    at Server.listen (node:net:1958:5)
+    at file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31537
+    at new Promise (<anonymous>)
+    at createIpcServer (file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31515)
+    at async file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:55:459 {
+  code: 'ENOTSUP',
+  errno: -95,
+  syscall: 'listen',
+  address: '/mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3827.pipe',
+  port: -1
+}
+
+Node.js v18.19.1
+node:internal/errors:496
+    ErrorCaptureStackTrace(err);
+    ^
+
+Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3845.pipe
+    at Server.setupListenHandle [as _listen2] (node:net:1794:21)
+    at listenInCluster (node:net:1859:12)
+    at Server.listen (node:net:1958:5)
+    at file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31537
+    at new Promise (<anonymous>)
+    at createIpcServer (file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31515)
+    at async file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:55:459 {
+  code: 'ENOTSUP',
+  errno: -95,
+  syscall: 'listen',
+  address: '/mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3845.pipe',
+  port: -1
+}
+
+Node.js v18.19.1
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+node:internal/errors:496
+    ErrorCaptureStackTrace(err);
+    ^
+
+Error: listen ENOTSUP: operation not supported on socket /mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3878.pipe
+    at Server.setupListenHandle [as _listen2] (node:net:1794:21)
+    at listenInCluster (node:net:1859:12)
+    at Server.listen (node:net:1958:5)
+    at file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31537
+    at new Promise (<anonymous>)
+    at createIpcServer (file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:53:31515)
+    at async file:///mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.mjs:55:459 {
+  code: 'ENOTSUP',
+  errno: -95,
+  syscall: 'listen',
+  address: '/mnt/c/Users/scott/AppData/Local/Temp/tsx-1000/3878.pipe',
+  port: -1
+}
+
+Node.js v18.19.1
+ ELIFECYCLE  Command failed with exit code 1.
+ERROR: "verify:ai-safety" exited with 1.
+ ELIFECYCLE  Command failed with exit code 1.

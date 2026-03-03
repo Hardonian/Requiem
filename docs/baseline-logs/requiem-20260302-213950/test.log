@@ -1,0 +1,59 @@
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 test /mnt/c/Users/scott/GitHub/Requiem
+> node -e "const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}" && ctest --test-dir build --output-on-failure
+
+Internal ctest changing into directory: /mnt/c/Users/scott/GitHub/Requiem/build
+Test project /mnt/c/Users/scott/GitHub/Requiem/build
+      Start  1: requiem_tests
+Test not available without configuration.  (Missing "-C <config>"?)
+ 1/11 Test  #1: requiem_tests ....................***Not Run   0.00 sec
+      Start  2: context_paging_test
+Test not available without configuration.  (Missing "-C <config>"?)
+ 2/11 Test  #2: context_paging_test ..............***Not Run   0.00 sec
+      Start  3: kernel_tests
+Test not available without configuration.  (Missing "-C <config>"?)
+ 3/11 Test  #3: kernel_tests .....................***Not Run   0.00 sec
+      Start  4: stress_harness
+Test not available without configuration.  (Missing "-C <config>"?)
+ 4/11 Test  #4: stress_harness ...................***Not Run   0.00 sec
+      Start  5: shadow_runner
+Test not available without configuration.  (Missing "-C <config>"?)
+ 5/11 Test  #5: shadow_runner ....................***Not Run   0.00 sec
+      Start  6: billing_harness
+Test not available without configuration.  (Missing "-C <config>"?)
+ 6/11 Test  #6: billing_harness ..................***Not Run   0.00 sec
+      Start  7: security_gauntlet
+Test not available without configuration.  (Missing "-C <config>"?)
+ 7/11 Test  #7: security_gauntlet ................***Not Run   0.00 sec
+      Start  8: recovery_harness
+Test not available without configuration.  (Missing "-C <config>"?)
+ 8/11 Test  #8: recovery_harness .................***Not Run   0.00 sec
+      Start  9: memory_harness
+Test not available without configuration.  (Missing "-C <config>"?)
+ 9/11 Test  #9: memory_harness ...................***Not Run   0.00 sec
+      Start 10: protocol_harness
+Test not available without configuration.  (Missing "-C <config>"?)
+10/11 Test #10: protocol_harness .................***Not Run   0.00 sec
+      Start 11: chaos_harness
+Test not available without configuration.  (Missing "-C <config>"?)
+11/11 Test #11: chaos_harness ....................***Not Run   0.00 sec
+
+0% tests passed, 11 tests failed out of 11
+
+Total Test time (real) =   0.08 sec
+
+The following tests FAILED:
+	  1 - requiem_tests (Not Run)
+	  2 - context_paging_test (Not Run)
+	  3 - kernel_tests (Not Run)
+	  4 - stress_harness (Not Run)
+	  5 - shadow_runner (Not Run)
+	  6 - billing_harness (Not Run)
+	  7 - security_gauntlet (Not Run)
+	  8 - recovery_harness (Not Run)
+	  9 - memory_harness (Not Run)
+	 10 - protocol_harness (Not Run)
+	 11 - chaos_harness (Not Run)
+Errors while running CTest
+ ELIFECYCLE  Test failed. See above for more details.

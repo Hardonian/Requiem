@@ -1,0 +1,108 @@
+
+Requiem CLI v0.2.0  ΓÇö  Control Plane for AI Systems
+
+USAGE:
+  requiem <command> [options]
+
+CONTROL COMMANDS (Deterministic Execution):
+  run <name> [input]                  Execute a tool with determinism proof
+  verify <hash>                       Verify execution determinism
+  replay run <id>                     Replay an execution with verification
+  replay diff <run1> <run2>           Deterministic diff between two runs
+  fingerprint <hash>                  Generate shareable execution proof
+
+OBSERVABILITY COMMANDS:
+  trace <id>                          Visualize decision trace
+  stats                               Determinism rate, policy events, replay state
+  status                              System health and enforcement state
+  telemetry                           Real-time usage stats
+
+PROOF SURFACE COMMANDS (Microfracture):
+  diff <runA> <runB> [--format]       Deterministic diff between runs
+  lineage <runId> [--depth=N]         Show run ancestry graph
+  simulate <runId> --policy=<name>    Simulate policy evaluation
+  drift --since=<runId> [--window]    Analyze behavior drift over time
+  explain <runId> [--format=md|json]  Generate deterministic explanation
+  share <runId> [--ttl] [--scope]     Create shareable proof link
+  chaos --quick [--format]            Run chaos verification checks
+
+SEMANTIC STATE MACHINE (New Primitive):
+  state list [filters]                List semantic states
+  state show <id>                     Show state details
+  state diff <idA> <idB>              Compare two states
+  state graph                         Generate lineage graph (DOT)
+  state export [--since]              Export semantic ledger
+  state import <file>                 Import semantic ledger
+  state genesis --descriptor <file>   Create genesis state
+  state transition --from <id>        Create state transition
+  state simulate upgrade --from --to  Simulate model migration impact
+
+AUDIT & GOVERNANCE (Differentiators):
+  audit report <state-id>             Generate audit narrative for state
+  audit transition <from> <to>        Generate audit narrative for transition
+  budget define --name <n> [rules]    Define change budget for drift categories
+  budget check <from> <to> --budget   Check if transition is within budget
+  budget list                         List available budget presets
+  budget show <name>                  Show budget rules
+  tool-schema lock <tool> [--state]   Lock tool IO schema to semantic state
+  tool-schema verify <tool> [--input] Verify IO against locked schema
+  tool-schema drift <tool>            Detect schema drift
+  tool-schema list                    List locked tool schemas
+  capsule export <state-id>           Export replay attestation capsule
+  capsule verify <file>               Verify capsule integrity
+  capsule info <file>                 Show capsule summary
+
+GOVERNANCE COMMANDS:
+  learn [--window=7d] [--format]      Show learning signals and diagnoses
+  realign <patch-id>                  Apply patch in new branch and verify
+  pivot plan <name>                   Plan a strategic pivot
+  rollback <sha|release> [--force]    Rollback to previous release
+  symmetry [--economics]              Show symmetry metrics
+  economics [--alerts|--forecast]    Show economic metrics
+  usage [--format]                    Show tenant usage summary
+  tenant-check [--format]            Verify tenant isolation
+
+ENTERPRISE COMMANDS:
+  decide evaluate --junction <id>     Evaluate a decision for a junction
+  decide explain --junction <id>      Explain why a decision was made
+  decide outcome --id <id>            Record an outcome for a decision
+  junctions scan --since <time>       Scan for junctions (e.g., 7d, 24h)
+  agent serve --tenant <id>           Start MCP stdio server
+  ai tools list                       List all registered AI tools
+  ai skills run <name>                Run an AI skill
+
+TOOL MANAGEMENT:
+  tool list [--json]                  List registered tools with determinism flags
+  tool exec <name> --input <json>     Execute a specific tool
+
+DASHBOARD & SETUP:
+  ui                                  Launch the web dashboard
+  quickstart                          10-minute proof: install, run, verify
+  init                                Initialize configuration
+
+ADMIN COMMANDS:
+  backup                              Dump database to JSON
+  restore                             Restore database from JSON
+  import                              Ingest decision logs from CSV
+  nuke                                Clear database state
+  doctor                              Validate environment setup
+  bugreport                           Generate diagnostic report
+  selftest                            Run comprehensive self-diagnostic checks
+  bench                               Sub-millisecond latency baseline
+  fast-start [--minimal]              Cached skip of engine/DB checks
+
+OPTIONS:
+  --json                              Output in JSON format
+  --minimal                           Quiet deterministic output
+  --explain                           Verbose structural reasoning
+  --trace                             Include trace ID in output
+  --help, -h                          Show help for a command
+  --version, -v                       Show version information
+
+EXAMPLES:
+  reach run system.echo "hello"       Execute with determinism proof
+  reach verify sha256abc123...        Verify execution fingerprint
+  reach replay diff run1 run2         Compare two executions
+  reach stats                         View determinism metrics
+  reach ui                            Launch dashboard
+  reach quickstart                    10-minute proof flow

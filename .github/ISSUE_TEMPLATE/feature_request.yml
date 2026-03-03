@@ -1,0 +1,29 @@
+name: Feature Request
+description: Propose a new capability for the Requiem runtime.
+title: "[FEAT] <Short description>"
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What problem does this feature solve?
+      placeholder: "This would allow us to verify drift across multiple workers."
+    validations:
+      required: true
+  - type: textarea
+    id: invariant-impact
+    attributes:
+      label: Invariant Impact
+      description: How does this change the core guarantees (Provable Execution, Enforced Governance, Replayable Outcomes)?
+      placeholder: "This should not break BLAKE3-v1 hashing."
+    validations:
+      required: true
+  - type: textarea
+    id: suggested-cli
+    attributes:
+      label: Suggested CLI / API
+      description: How would this command look in the `reach` CLI?
+      placeholder: "pnpm reach verify:drift --window=100"
+    validations:
+      required: true

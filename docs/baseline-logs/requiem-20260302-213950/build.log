@@ -1,0 +1,8 @@
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 build /mnt/c/Users/scott/GitHub/Requiem
+> cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
+
+CMake Error: The current CMakeCache.txt directory /mnt/c/Users/scott/GitHub/Requiem/build/CMakeCache.txt is different than the directory c:/Users/scott/GitHub/Requiem/build where CMakeCache.txt was created. This may result in binaries being created in the wrong place. If you are not sure, reedit the CMakeCache.txt
+CMake Error: The source "/mnt/c/Users/scott/GitHub/Requiem/CMakeLists.txt" does not match the source "C:/Users/scott/GitHub/Requiem/CMakeLists.txt" used to generate cache.  Re-run cmake with a different source directory.
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,3 +1,9 @@
 command	exit_code	log_file
 install	1	docs/baseline-logs/requiem-20260302-213950/install.log
 lint	1	docs/baseline-logs/requiem-20260302-213950/lint.log
+typecheck	1	docs/baseline-logs/requiem-20260302-213950/typecheck.log
+test	1	docs/baseline-logs/requiem-20260302-213950/test.log
+build	1	docs/baseline-logs/requiem-20260302-213950/build.log
+doctor	0	docs/baseline-logs/requiem-20260302-213950/doctor.log
+verify:agent-quality	1	docs/baseline-logs/requiem-20260302-213950/verify_agent-quality.log
+verify:ai	1	docs/baseline-logs/requiem-20260302-213950/verify_ai.log

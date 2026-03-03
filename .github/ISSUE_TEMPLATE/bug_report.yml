@@ -1,0 +1,53 @@
+name: Bug Report
+description: File a bug report for a deterministic execution failure or CLI issue.
+title: "[BUG] <Short description>"
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide as much information as possible to help us reproduce the issue.
+  - type: input
+    id: fingerprint
+    attributes:
+      label: Execution Fingerprint
+      description: The 64-character BLAKE3 hash provided by the CLI (if applicable).
+      placeholder: "a1b2c3d4e5f6..."
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of Requiem are you using? (Run `pnpm reach version`)
+      placeholder: "X.Y.Z"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Provide the exact CLI command or code snippet used.
+      placeholder: |
+        1. pnpm reach run system.echo '{"message":"hello"}'
+        2. pnpm reach verify <hash>
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened according to the invariants?
+      placeholder: "Determinism should have been verified with 0 drift."
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: "Invariant failure (exit code 3)."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Diagnostic Output
+      description: Run `pnpm reach doctor` and paste any relevant output here.
+      render: bash
