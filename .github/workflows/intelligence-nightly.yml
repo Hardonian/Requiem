@@ -21,6 +21,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: verify intelligence
         run: pnpm verify:intelligence
+      - name: extract cases from successful fix runs
+        run: pnpm intelligence:extract-cases
       - name: verify metamorphic
         run: pnpm verify:metamorphic
       - name: drift suite (CRITICAL gate)

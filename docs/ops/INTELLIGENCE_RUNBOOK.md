@@ -28,3 +28,13 @@ requiem risk score --paths packages/cli/src/commands/intelligence.ts,ready-layer
 - `GET /api/intelligence/calibration?claim_type=TESTS_PASS&window=30d`
 - `GET /api/intelligence/cases`
 - `GET /api/intelligence/signals?severity=WARN`
+
+
+## Case extraction job
+
+- Run manually: `pnpm intelligence:extract-cases`
+- Nightly workflow also runs extraction to keep `cases.ndjson` populated from successful fix runs.
+
+## Calibration windows
+
+`/api/intelligence/calibration` now applies real server-side time slicing from `window=<Nd|Nh>` against `last_updated_at` (for example `30d`, `72h`).

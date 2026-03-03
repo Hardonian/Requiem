@@ -39,3 +39,10 @@ The compounding layer is a closed loop:
 - Added verify scripts: `verify:metamorphic`, `verify:drift-suite` (fails on CRITICAL drift), `verify:intelligence`.
 - Added scheduled workflow `.github/workflows/intelligence-nightly.yml`.
 - Added confidence gate and case-reuse verification policy hooks with warn/deny behavior via env configuration.
+
+
+## Additional hardening
+
+- Added server-side calibration window filtering (`window=Nd|Nh`) based on `last_updated_at` cutoff.
+- Added Problem+JSON contract tests for denied policy/auth paths.
+- Added case extraction job (`pnpm intelligence:extract-cases`) and nightly workflow integration.

@@ -66,6 +66,15 @@ export type Prediction = z.infer<typeof predictionSchema>;
 export type Outcome = z.infer<typeof outcomeSchema>;
 export type Calibration = z.infer<typeof calibrationSchema>;
 
+function parseWindowToMs(window?: string): number | null {
+  if (!window) return null;
+  const match = window.match(/^(\d+)([dh])$/i);
+  if (!match) return null;
+  const value = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  return unit === 'd' ? value * 24 * 60 * 60 * 1000 : value * 60 * 60 * 1000;
+}
+
 function readNdjson<T>(fileName: string): T[] {
   const filePath = path.join(root, fileName);
   if (!fs.existsSync(filePath)) return [];
@@ -88,10 +97,19 @@ export function getOutcomes(tenantId: string, runId?: string): Outcome[] {
     .filter((item) => predictionIds.has(item.prediction_id));
 }
 
-export function getCalibration(tenantId: string, claimType?: string): Calibration[] {
+export function getCalibration(tenantId: string, claimType?: string, window?: string): Calibration[] {
+  const windowMs = parseWindowToMs(window);
+  const cutoff = windowMs ? Date.now() - windowMs : null;
+
   return readNdjson<Calibration>('calibration.ndjson')
     .map((item) => calibrationSchema.parse(item))
-    .filter((item) => item.tenant_id === tenantId && (!claimType || item.claim_type === claimType))
+    .filter((item) => {
+      if (item.tenant_id !== tenantId) return false;
+      if (claimType && item.claim_type !== claimType) return false;
+      if (!cutoff) return true;
+      const ts = Date.parse(item.last_updated_at);
+      return Number.isFinite(ts) && ts >= cutoff;
+    })
     .sort((a, b) => b.last_updated_at.localeCompare(a.last_updated_at));
 }
 

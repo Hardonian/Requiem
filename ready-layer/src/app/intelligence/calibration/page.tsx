@@ -1,18 +1,19 @@
 import { getCalibration } from '@/lib/intelligence-store';
 
 interface Props {
-  searchParams: Promise<{ tenant?: string; claim_type?: string }>;
+  searchParams: Promise<{ tenant?: string; claim_type?: string; window?: string }>;
 }
 
 export default async function CalibrationPage({ searchParams }: Props) {
   const params = await searchParams;
   const tenantId = params.tenant ?? 'public';
-  const rows = getCalibration(tenantId, params.claim_type);
+  const rows = getCalibration(tenantId, params.claim_type, params.window);
 
   return (
     <main className="p-8 space-y-6">
       <h1 className="text-2xl font-semibold">Intelligence / Calibration</h1>
       <p className="text-sm text-slate-600">Tenant: <span className="font-mono">{tenantId}</span></p>
+      <p className="text-sm text-slate-600">Window: <span className="font-mono">{params.window ?? "all"}</span></p>
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b">

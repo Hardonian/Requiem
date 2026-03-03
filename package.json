@@ -72,7 +72,8 @@
     "verify:mcp-routes": "pnpm --filter ready-layer test:mcp-routes",
     "verify:intelligence": "node scripts/run-tsx.mjs scripts/verify-intelligence.ts",
     "verify:metamorphic": "node scripts/run-tsx.mjs scripts/verify-metamorphic-intelligence.ts",
-    "verify:drift-suite": "node scripts/run-tsx.mjs scripts/verify-drift-suite-intelligence.ts"
+    "verify:drift-suite": "node scripts/run-tsx.mjs scripts/verify-drift-suite-intelligence.ts",
+    "intelligence:extract-cases": "node scripts/run-tsx.mjs scripts/extract-intelligence-cases.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
