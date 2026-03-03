@@ -413,26 +413,15 @@ std::optional<CasObjectInfo> CasStore::info(const std::string &digest) const {
   if (!valid_digest(digest))
     return std::nullopt;
 
-  auto sidecar = load_meta_sidecar(meta_path(digest));
-  if (!sidecar)
-    return std::nullopt;
+  if (!index_loaded_)
+    load_index();
 
-  if (sidecar->digest.empty()) {
-    sidecar->digest = digest;
-  }
-  if (sidecar->digest != digest) {
-    return std::nullopt;
-  }
-  if (sidecar->stored_blob_hash.empty()) {
-    return std::nullopt;
-  }
+  std::lock_guard<std::mutex> lk(index_mu_);
+  auto it = index_.find(digest);
+  if (it != index_.end())
+    return it->second;
 
-  {
-    std::lock_guard<std::mutex> lk(index_mu_);
-    index_[digest] = *sidecar;
-  }
-
-  return sidecar;
+  return std::nullopt;
 }
 
 std::optional<std::string> CasStore::get(const std::string &digest) const {
