@@ -66,8 +66,16 @@ export type Prediction = z.infer<typeof predictionSchema>;
 export type Outcome = z.infer<typeof outcomeSchema>;
 export type Calibration = z.infer<typeof calibrationSchema>;
 
+const calibrationWindowSchema = z.string().regex(/^(\d+)([dh])$/i, 'window must match <number><d|h>');
+
+export function assertValidCalibrationWindow(window?: string): void {
+  if (!window) return;
+  calibrationWindowSchema.parse(window);
+}
+
 function parseWindowToMs(window?: string): number | null {
   if (!window) return null;
+  assertValidCalibrationWindow(window);
   const match = window.match(/^(\d+)([dh])$/i);
   if (!match) return null;
   const value = Number(match[1]);

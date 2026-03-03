@@ -46,3 +46,7 @@ The compounding layer is a closed loop:
 - Added server-side calibration window filtering (`window=Nd|Nh`) based on `last_updated_at` cutoff.
 - Added Problem+JSON contract tests for denied policy/auth paths.
 - Added case extraction job (`pnpm intelligence:extract-cases`) and nightly workflow integration.
+
+- Added end-to-end handler tests for intelligence/auth routes using middleware-auth fixtures.
+- Case extraction now consumes economic and artifact pointers when available.
+- CI now asserts invalid calibration windows fail verification.

@@ -38,3 +38,9 @@ requiem risk score --paths packages/cli/src/commands/intelligence.ts,ready-layer
 ## Calibration windows
 
 `/api/intelligence/calibration` now applies real server-side time slicing from `window=<Nd|Nh>` against `last_updated_at` (for example `30d`, `72h`).
+
+
+## Verification gates
+
+- `pnpm verify:calibration-window` fails if invalid calibration window formats are accepted.
+- ReadyLayer e2e handler tests run with middleware-auth fixtures in `ready-layer/tests/intelligence-route-e2e.test.ts`.

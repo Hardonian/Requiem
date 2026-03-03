@@ -73,7 +73,8 @@
     "verify:intelligence": "node scripts/run-tsx.mjs scripts/verify-intelligence.ts",
     "verify:metamorphic": "node scripts/run-tsx.mjs scripts/verify-metamorphic-intelligence.ts",
     "verify:drift-suite": "node scripts/run-tsx.mjs scripts/verify-drift-suite-intelligence.ts",
-    "intelligence:extract-cases": "node scripts/run-tsx.mjs scripts/extract-intelligence-cases.ts"
+    "intelligence:extract-cases": "node scripts/run-tsx.mjs scripts/extract-intelligence-cases.ts",
+    "verify:calibration-window": "node scripts/run-tsx.mjs scripts/verify-calibration-window-format.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

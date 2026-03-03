@@ -25,6 +25,8 @@ jobs:
         run: pnpm intelligence:extract-cases
       - name: verify metamorphic
         run: pnpm verify:metamorphic
+      - name: verify calibration window format
+        run: pnpm verify:calibration-window
       - name: drift suite (CRITICAL gate)
         run: pnpm verify:drift-suite
       - name: upload intelligence reports

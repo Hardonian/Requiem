@@ -15,6 +15,20 @@ type Prediction = {
 type Outcome = {
   prediction_id: string;
   observed: 0 | 1;
+  evidence?: string[];
+};
+
+type EconomicEvent = {
+  run_id?: string;
+  tenant_id?: string;
+  cost_units?: number;
+};
+
+type ArtifactRecord = {
+  run_id?: string;
+  tenant_id?: string;
+  pointer?: string;
+  hash?: string;
 };
 
 type CaseRecord = {
@@ -43,6 +57,8 @@ const root = process.env.REQUIEM_INTELLIGENCE_STORE_DIR || '.requiem/intelligenc
 const predictionPath = path.join(root, 'predictions.ndjson');
 const outcomePath = path.join(root, 'outcomes.ndjson');
 const casePath = path.join(root, 'cases.ndjson');
+const economicPath = path.join(root, 'economic_events.ndjson');
+const artifactPath = path.join(root, 'artifacts.ndjson');
 
 function readNdjson<T>(file: string): T[] {
   if (!fs.existsSync(file)) return [];
@@ -66,7 +82,10 @@ function hashToUuid(input: string): string {
 
 const predictions = readNdjson<Prediction>(predictionPath);
 const outcomes = readNdjson<Outcome>(outcomePath);
+const economicEvents = readNdjson<EconomicEvent>(economicPath);
+const artifacts = readNdjson<ArtifactRecord>(artifactPath);
 const existingCases = readNdjson<CaseRecord>(casePath);
+
 const existingRunIds = new Set(existingCases.map((c) => c.run_id));
 const outcomeByPrediction = new Map(outcomes.map((o) => [o.prediction_id, o]));
 
@@ -100,6 +119,21 @@ for (const [runId, runPredictions] of byRun.entries()) {
       .slice(0, 20),
   ));
 
+  const runPredictionIds = new Set(runPredictions.map((p) => p.prediction_id));
+  const runOutcomeEvidence = outcomes
+    .filter((o) => runPredictionIds.has(o.prediction_id))
+    .flatMap((o) => o.evidence ?? []);
+  const runCost = economicEvents
+    .filter((e) => e.run_id === runId && e.tenant_id === tenantId)
+    .reduce((sum, e) => sum + (typeof e.cost_units === 'number' ? e.cost_units : 0), 0);
+
+  const artifactPointers = artifacts
+    .filter((a) => a.run_id === runId && a.tenant_id === tenantId)
+    .map((a) => a.pointer ?? (a.hash ? `artifact:${a.hash}` : null))
+    .filter((v): v is string => Boolean(v));
+
+  const pointers = Array.from(new Set([`run:${runId}`, ...runOutcomeEvidence, ...artifactPointers]));
+
   const caseRecord: CaseRecord = {
     case_id: hashToUuid(`${tenantId}:${runId}`),
     tenant_id: tenantId,
@@ -115,9 +149,9 @@ for (const [runId, runPredictions] of byRun.entries()) {
     tests_passed: true,
     build_passed: true,
     deploy_passed: false,
-    cost_units: 0,
+    cost_units: runCost,
     run_id: runId,
-    pointers: [`run:${runId}`],
+    pointers,
     tags: ['auto-extracted', 'successful-fix'],
     case_version: 'v1',
   };

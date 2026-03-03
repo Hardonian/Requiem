@@ -492,5 +492,7 @@ jobs:
         run: pnpm verify:intelligence
       - name: verify:metamorphic
         run: pnpm verify:metamorphic
+      - name: verify:calibration-window
+        run: pnpm verify:calibration-window
       - name: verify:drift-suite (CRITICAL gate)
         run: pnpm verify:drift-suite
