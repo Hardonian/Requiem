@@ -144,6 +144,7 @@ TOOL MANAGEMENT:
 DASHBOARD & SETUP:
   ui                                  Launch the web dashboard
   quickstart                          10-minute proof: install, run, verify
+  foundry <subcommand>                Build/run/export deterministic test datasets
   init                                Initialize configuration
 
 ADMIN COMMANDS:
@@ -569,6 +570,12 @@ async function main(): Promise<number> {
         const capsuleCmd = createCapsuleCommand();
         await capsuleCmd.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
         result = 0;
+        break;
+      }
+
+      case 'foundry': {
+        const { runFoundryCommand } = await loadCommand('./commands/foundry.js') as { runFoundryCommand: (args: string[]) => Promise<number> };
+        result = await runFoundryCommand(subArgs);
         break;
       }
 

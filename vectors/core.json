@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "suite": "core",
+  "vectors": [
+    {
+      "name": "routes_no_500",
+      "description": "Verify core routes fail gracefully and preserve problem+json contract",
+      "entrypoint": {
+        "command": "pnpm",
+        "args": [
+          "run",
+          "verify:routes"
+        ]
+      },
+      "assertions": [
+        "no_500",
+        "problem_json",
+        "trace_id",
+        "tenant_isolation"
+      ],
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "big4",
+        "routes",
+        "api"
+      ]
+    },
+    {
+      "name": "replay_pipeline",
+      "description": "Replay bundle verify and self-diff",
+      "entrypoint": {
+        "command": "pnpm",
+        "args": [
+          "run",
+          "verify:replay"
+        ]
+      },
+      "assertions": [
+        "replay_export_verifies",
+        "hashes_match"
+      ],
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "replay",
+        "determinism"
+      ]
+    },
+    {
+      "name": "spend_firewall",
+      "description": "Spend cap denial is enforced",
+      "entrypoint": {
+        "command": "pnpm",
+        "args": [
+          "run",
+          "verify:policy"
+        ]
+      },
+      "assertions": [
+        "cost_limit_tripped",
+        "problem_json",
+        "audit_event_emitted"
+      ],
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "spend",
+        "policy"
+      ]
+    },
+    {
+      "name": "drift_radar",
+      "description": "Drift report generation remains healthy",
+      "entrypoint": {
+        "command": "pnpm",
+        "args": [
+          "run",
+          "verify:routes"
+        ]
+      },
+      "assertions": [
+        "drift_report_created",
+        "severity_classified"
+      ],
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "drift",
+        "regression"
+      ]
+    }
+  ]
+}
