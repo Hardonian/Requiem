@@ -11,8 +11,8 @@ const BANNED_PATTERNS = [
     message: 'Avoid "perfectly". Use specific performance/invariant metrics.'
   },
   {
-    regex: /\bSOC\s*2\b(?!\s*compliant\s+design)/i,
-    message: 'Claims of "SOC 2" must specify "designed to support" or "compliance controls" unless audit is linked.'
+    regex: /\bSOC\s*2\b(?!\s*(?:(?:Type\s+[IV]+\s+)?(?:compliant\s+design|Compliance\s+Controls|audits|readiness|CC[0-9])))/i,
+    message: 'Claims of "SOC 2" must specify "designed to support", "Compliance Controls", "audits", "readiness", or a specific criteria (e.g., CC6.1).'
   },
   {
     regex: /\babsolute\s+security\b/i,

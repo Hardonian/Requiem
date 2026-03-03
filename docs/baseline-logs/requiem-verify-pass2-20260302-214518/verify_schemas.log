@@ -1,0 +1,8 @@
+ WARN  Unsupported engine: wanted: {"node":">=20.11.0"} (current: {"node":"v18.19.1","pnpm":"8.15.0"})
+
+> requiem@1.0.0 verify:schemas /mnt/c/Users/scott/GitHub/Requiem
+> node scripts/verify-schemas.mjs
+
+Verifying schemas...
+
+✅ Verified 1 schema(s)

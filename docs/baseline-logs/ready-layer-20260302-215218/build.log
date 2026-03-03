@@ -1,0 +1,8 @@
+
+> ready-layer@1.0.0 build
+> npm run lint && npm run type-check && next build
+
+
+> ready-layer@1.0.0 lint
+> eslint .
+

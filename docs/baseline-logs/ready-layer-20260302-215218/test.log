@@ -1,0 +1,38 @@
+
+> ready-layer@1.0.0 test
+> vitest run
+
+/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:115
+		throw new Error(
+		      ^
+
+Error: Cannot find module @rollup/rollup-linux-x64-gnu. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
+    at requireWithFriendlyError (/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:115:9)
+    at Object.<anonymous> (/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:124:76)
+    ... 3 lines matching cause stack trace ...
+    at Module._load (node:internal/modules/cjs/loader:1013:12)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:202:29)
+    at ModuleJob.run (node:internal/modules/esm/module_job:195:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:336:24)
+    at async loadESM (node:internal/process/esm_loader:34:7) {
+  [cause]: Error: Cannot find module '@rollup/rollup-linux-x64-gnu'
+  Require stack:
+  - /mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1134:15)
+      at Module._load (node:internal/modules/cjs/loader:975:27)
+      at Module.require (node:internal/modules/cjs/loader:1225:19)
+      at require (node:internal/modules/helpers:177:18)
+      at requireWithFriendlyError (/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:97:10)
+      at Object.<anonymous> (/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:124:76)
+      at Module._compile (node:internal/modules/cjs/loader:1356:14)
+      at Module._extensions..js (node:internal/modules/cjs/loader:1414:10)
+      at Module.load (node:internal/modules/cjs/loader:1197:32)
+      at Module._load (node:internal/modules/cjs/loader:1013:12) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [
+      '/mnt/c/Users/scott/GitHub/Requiem/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js'
+    ]
+  }
+}
+
+Node.js v18.19.1

@@ -1,0 +1,5 @@
+npm ERR! code EUNSUPPORTEDPROTOCOL
+npm ERR! Unsupported URL Type "workspace:": workspace:*
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /home/scott/.npm/_logs/2026-03-03T02_52_18_915Z-debug-0.log

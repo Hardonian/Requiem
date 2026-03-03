@@ -69,3 +69,89 @@ https://nextjs.org/telemetry
      · serverActions
 
    Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (133kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully in 28.9s
+   Linting and checking validity of types ...
+
+ ⚠ The Next.js plugin was not detected in your ESLint configuration. See https://nextjs.org/docs/app/api-reference/config/eslint#migrating-existing-config
+   Collecting page data ...
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+   Generating static pages (0/36) ...
+   Generating static pages (9/36) 
+   Generating static pages (18/36) 
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+   Generating static pages (27/36) 
+ ✓ Generating static pages (36/36)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      194 B         106 kB
+├ ○ /_not-found                            231 B         102 kB
+├ ƒ /api/audit/logs                        231 B         102 kB
+├ ƒ /api/budgets                           231 B         102 kB
+├ ƒ /api/caps                              231 B         102 kB
+├ ƒ /api/cas/integrity                     231 B         102 kB
+├ ƒ /api/cluster/drift                     231 B         102 kB
+├ ƒ /api/cluster/status                    231 B         102 kB
+├ ƒ /api/cluster/workers                   231 B         102 kB
+├ ƒ /api/decisions                         231 B         102 kB
+├ ƒ /api/engine/analyze                    231 B         102 kB
+├ ƒ /api/engine/autotune                   231 B         102 kB
+├ ƒ /api/engine/diagnostics                231 B         102 kB
+├ ƒ /api/engine/metrics                    231 B         102 kB
+├ ƒ /api/engine/status                     231 B         102 kB
+├ ƒ /api/health                            231 B         102 kB
+├ ƒ /api/logs                              231 B         102 kB
+├ ƒ /api/mcp/health                        231 B         102 kB
+├ ƒ /api/mcp/tool/call                     231 B         102 kB
+├ ƒ /api/mcp/tools                         231 B         102 kB
+├ ƒ /api/objects                           231 B         102 kB
+├ ƒ /api/plans                             231 B         102 kB
+├ ƒ /api/policies                          231 B         102 kB
+├ ƒ /api/replay/verify                     231 B         102 kB
+├ ƒ /api/runs                              231 B         102 kB
+├ ƒ /api/runs/[runId]/diff                 231 B         102 kB
+├ ƒ /api/snapshots                         231 B         102 kB
+├ ƒ /api/vector/search                     231 B         102 kB
+├ ○ /app/audit                             231 B         102 kB
+├ ○ /app/cas                               231 B         102 kB
+├ ○ /app/diagnostics                       231 B         102 kB
+├ ○ /app/executions                        231 B         102 kB
+├ ○ /app/metrics                           231 B         102 kB
+├ ○ /app/policy                            231 B         102 kB
+├ ○ /app/replay                            231 B         102 kB
+├ ○ /app/semantic-ledger                 3.76 kB         109 kB
+├ ○ /app/tenants                           231 B         102 kB
+├ ○ /console/capabilities                1.95 kB         108 kB
+├ ○ /console/decisions                     587 B         103 kB
+├ ○ /console/finops                      2.13 kB         108 kB
+├ ○ /console/logs                        2.38 kB         108 kB
+├ ○ /console/objects                       586 B         103 kB
+├ ○ /console/plans                       1.38 kB         107 kB
+├ ○ /console/policies                    1.79 kB         108 kB
+├ ○ /console/runs                         2.6 kB         108 kB
+├ ○ /console/snapshots                   1.85 kB         108 kB
+├ ○ /demo                                3.19 kB         112 kB
+├ ○ /enterprise                            194 B         106 kB
+├ ○ /library                               194 B         106 kB
+├ ○ /pricing                               194 B         106 kB
+├ ƒ /proof/diff/[token]                  2.79 kB         105 kB
+├ ƒ /runs/[runId]                          194 B         106 kB
+├ ○ /security                              194 B         106 kB
+├ ○ /support                               194 B         106 kB
+├ ○ /support/contact                       231 B         102 kB
+├ ○ /support/status                        231 B         102 kB
+├ ○ /templates                             194 B         106 kB
+└ ○ /transparency                          231 B         102 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/1063-2d5eb06d0beb967d.js        46 kB
+  ├ chunks/baeb86ce-d2e7d84d546ef923.js  54.2 kB
+  └ other shared chunks (total)          1.93 kB
+
+
+ƒ Middleware                             82.5 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
