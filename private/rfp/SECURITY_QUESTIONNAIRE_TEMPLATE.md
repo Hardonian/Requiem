@@ -1,29 +1,38 @@
-# Enterprise Security Questionnaire: Requiem
+# Security Questionnaire: Requiem Response Template
 
-**Note to Prospect**: Requiem is designed with a "Secure by Construction" philosophy. While we are currently in the process of auditing for formal certifications, our architecture is optimized for SOC 2, HIPAA, and GDPR compliance.
+**Note**: This document contains standardized responses for Enterprise Security Reviews.
 
-## 1. Governance & Access Control
-- **Q: How are tool permissions managed?**
-  - **A**: Requiem uses a "Deny-by-Default" Policy VM. No tool can be invoked unless explicitly granted via an RBAC policy rule. Every grant is logged with a BLAKE3 fingerprint for auditability.
-- **Q: Do you support multi-tenancy?**
-  - **A**: Yes. Requiem is designed to support strict tenant isolation. Each tenant has a domain-separated sandbox and storage volume.
+## 1. Governance & Oversight
 
-## 2. Infrastructure & Data Security
-- **Q: Where is data stored?**
-  - **A**: Requiem utilizes a Content-Addressable Storage (CAS) model. Data can be stored locally (Self-hosted) or in our Cloud (ReadyLayer), which utilizes encrypted-at-rest S3-compatible backends.
-- **Q: How is data integrity verified?**
-  - **A**: Every artifact is dual-hashed using BLAKE3 and SHA-256. Any modification to stored data will cause the cryptographic verification (`reach verify`) to fail, alerting the system to tampering.
+- **Q: How are security updates managed?**
+  - A: We follow a monthly patch cycle for the native engine and real-time updates for the ReadyLayer control plane.
+- **Q: Is there an Incident Response Plan?**
+  - A: Yes, we maintain a specific IR category for "Integrity Breaches" with automated containment protocols.
 
-## 3. Compliance & Auditing
-- **Q: Do you have a SOC 2 report?**
-  - **A**: We are currently "Designed to support SOC 2 Compliance." Our architecture provides automated evidentiary logging for all AI transitions, significantly reducing the burden of manual audit collection.
-- **Q: How are execution logs handled?**
-  - **A**: Logs are stored as an immutable Merkle chain. This ensures that the sequence of AI decisions cannot be altered or deleted without breaking the chain's integrity.
+## 2. Access Control
 
-## 4. Software Development Life Cycle (SDLC)
-- **Q: How do you handle vulnerabilities?**
-  - **A**: We utilize automated dependency scanning, linting, and a rigorous "Green Metric" CI/CD pipeline. Our core engine is formally specified using TLA+ to prevent logical race conditions.
+- **Q: Does the system support SSO?**
+  - A: Yes, Enterprise tier supports SAML 2.0 and OIDC.
+- **Q: How is least-privilege enforced?**
+  - A: Via the Policy VM, which treats all tool calls as "Deny-by-Default." Privileges must be explicitly granted per run.
 
-## 5. Privacy
-- **Q: Does Requiem see my LLM data?**
-  - **A**: In self-hosted mode, Requiem operates entirely within your perimeter. In Cloud mode, we only process metadata required for the Semantic Ledger, unless Full Trace logging is explicitly enabled by the customer.
+## 3. Data & Cryptography
+
+- **Q: What hashing algorithms are used?**
+  - A: BLAKE3 for performance and domain-separated integrity; SHA-256 for secondary verification in the CAS.
+- **Q: How are encryption keys managed?**
+  - A: We use AWS KMS or customer-managed Vault instances for key rotation.
+
+## 4. Compliance
+
+- **Q: Are you SOC 2 compliant?**
+  - A: We are currently in the audit window for SOC 2 Type II (Anticipated Q3 2026).
+- **Q: Is a DPA (Data Processing Agreement) available?**
+  - A: Yes, a standard DPA is included in our [Vendor Onboarding Pack](file:///c:/Users/scott/GitHub/Requiem/private/rfp/VENDOR_ONBOARDING_CHECKLIST.md).
+
+## 5. Software Development Life Cycle (SDLC)
+
+- **Q: Do you perform penetration testing?**
+  - A: Annual third-party penetration tests are conducted. Reports are available to Enterprise customers under NDA.
+- **Q: How is the supply chain secured?**
+  - A: We generate CycloneDX SBOMs for every release and use `verify-supplychain.ts` for build-time verification.

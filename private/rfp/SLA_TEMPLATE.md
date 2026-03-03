@@ -1,34 +1,39 @@
-# Service Level Agreement (SLA): Requiem Enterprise
+# Service Level Agreement (SLA) Template: Requiem
 
-**Draft Version**: 0.9.0  
+**Version**: 1.0.0  
 **Last Updated**: 2026-03-02
 
 ## 1. Service Commitment
-Requiem will use commercially reasonable efforts to make the ReadyLayer Cloud Control Plane available with a Monthly Uptime Percentage of at least **99.9%**.
+
+Requiem will provide the Cloud Control Plane (ReadyLayer) with a Monthly Uptime Percentage of at least **99.9%**.
 
 ## 2. Definitions
-- **Downtime**: When the Requiem API is unable to process policy evaluation requests or receive new execution receipts.
-- **Service Credit**: A dollar credit, calculated as a percentage of the monthly bill, that Requiem may issue to an eligible account.
 
-## 3. Service Credits
+- **"Down"**: When the ReadyLayer API returns 5xx errors or the CAS is inaccessible for more than 5 consecutive minutes.
+- **"Degraded"**: When p99 latency for policy evaluation exceeds 500ms for more than 15 minutes.
 
-| Monthly Uptime Percentage | Service Credit Percentage |
-|---------------------------|---------------------------|
-| < 99.9% but >= 99.0% | 10% |
-| < 99.0% but >= 95.0% | 25% |
+## 3. Support Response Times
+
+| Severity | Description | Response Time | Target Resolution |
+| :--- | :--- | :--- | :--- |
+| **P0** | Global outage, data loss risk. | 1 Hour | 4 Hours |
+| **P1** | Major degradation, single tenant down. | 4 Hours | 12 Hours |
+| **P2** | Minor bugs, feature requests. | 1 Business Day | Next Sprint |
+| **P3** | General questions, documentation. | 2 Business Days | Best Effort |
+
+## 4. Service Credits
+
+If we fail to meet the 99.9% uptime commitment, customers are eligible for Service Credits against their monthly bill:
+
+| Monthly Uptime % | Service Credit % |
+| :--- | :--- |
+| < 99.9% | 10% |
+| < 99.0% | 25% |
 | < 95.0% | 50% |
 
-## 4. Support Response Times (Enterprise Only)
-
-| Severity | Description | Initial Response |
-|----------|-------------|------------------|
-| **P0 - Critical** | System Down, total loss of service. | 1 Hour |
-| **P1 - Major** | Core feature unavailable, no workaround. | 4 Hours |
-| **P2 - Minor** | Partial degredation, workaround exists. | 8 Hours |
-| **P3 - General** | Documentation, guidance, features. | 2 Business Days |
-
 ## 5. Exclusions
+
 This SLA does not apply to:
-- Performance of the underlying Model Providers (e.g., OpenAI, Anthropic outages).
-- Issues caused by the customer's own network or "Reach" CLI local environment.
-- Scheduled maintenance (notified at least 48 hours in advance).
+- Scheduled maintenance windows (notified 48h in advance).
+- Failures caused by underlying model providers (e.g., OpenAI outage).
+- Alpha or Beta features tagged as "Experimental."

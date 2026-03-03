@@ -1,35 +1,30 @@
-# Enterprise Onboarding & Compliance Pack: Requiem
+# Vendor Onboarding & Compliance Pack: Requiem
 
-**Files Included**: DPA Structure, DPIA Template, Vendor Checklist.
+**Version**: 1.0.0  
+**Last Updated**: 2026-03-02
 
----
+## 1. Required Legal Documents
 
-## I. Data Processing Agreement (DPA) Structure
-*Required for GDPR/CCPA compliance when using ReadyLayer Cloud.*
+- [ ] **Master Service Agreement (MSA)**: Governing the relationship and IP ownership.
+- [ ] **Data Processing Agreement (DPA)**: Outlining GDPR and SOC 2 requirements.
+- [ ] **Security Addendum**: Detailed requirements for key management and isolation.
 
-1. **Definitions**: Controller (Customer) vs. Processor (Requiem).
-2. **Scope of Processing**: Execution metadata, audit logs, and content in CAS.
-3. **Security Measures**: AES-256 encryption, TLS 1.3, BLAKE3 verification.
-4. **Sub-processors**: List includes AWS/Azure for hosting.
-5. **Data Transfer**: Standard Contractual Clauses (SCC) for EU-to-US transfers.
+## 2. Onboarding Workflow
 
----
+1. **Environmental Audit**: Run `reach doctor` on the customer's VPC.
+2. **Policy Baseline**: Define the "Deny-by-Default" rule set for the initial 3 tools.
+3. **Identity Sync**: Connect ReadyLayer to the customer's SSO (Okta/Azure).
+4. **CAS Provisioning**: Setup the dedicated S3 buckets for artifact storage.
 
-## II. Data Protection Impact Assessment (DPIA) Template
-*Key highlights for the customer's legal team.*
+## 3. Data Protection Impact Assessment (DPIA) Template
 
-- **System Description**: Provable AI Runtime for agent governance.
-- **Data Minimization**: Requiem only stores what is necessary for the cryptographic receipt.
-- **Risk Mitigation**: The Policy VM prevents unauthorized tool calls, reducing the risk of accidental data exposure to 3rd party model providers.
-- **Impact on Individuals**: High transparency; users can see exactly why an AI decision was made via the `explain` command.
+Requiem simplifies DPIA by providing an automated **Traceability Matrix**:
+- **Source**: Where did the AI prompt originate?
+- **Transformation**: How was it governed by the Policy VM?
+- **Persistence**: Where is the signed receipt stored?
 
----
+## 4. Vendor Risk Assessment
 
-## III. Vendor Onboarding Checklist
-*For the Procurement/IT department.*
-
-- [ ] **Account Setup**: SSO/SAML integration verified.
-- [ ] **Policy Config**: Default budgets and tool RBAC applied.
-- [ ] **Reach Install**: CLI distributed to developer machines.
-- [ ] **Network**: Allow-list for Requiem Control Plane IPs.
-- [ ] **Audit**: Receipt storage location (Cloud vs. On-Prem) selected.
+- **Availability**: Multi-region failover configuration for ReadyLayer nodes.
+- **Portability**: All Merkle receipts are exportable in standard JSON/CBOR formats to prevent lock-in.
+- **Financial**: Requiem maintains a "Business Continuity Insurance" policy for Enterprise customers.
