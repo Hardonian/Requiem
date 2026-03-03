@@ -7,3 +7,4 @@ verify:cost-accounting	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518
 verify:cpp	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_cpp.log
 verify:dead-code	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_dead-code.log
 verify:dependencies	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_dependencies.log
+verify:deps-graph	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_deps-graph.log
