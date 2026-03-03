@@ -98,7 +98,20 @@
     "Virtualizes",
     "Wextra",
     "Wpedantic",
-    "zstd"
+    "zstd",
+    "CBOR",
+    "WCAG",
+    "SDLC",
+    "DPIA",
+    "libseccomp",
+    "prctl",
+    "ifdef",
+    "sandboxed",
+    "Sandboxed",
+    "syscalls",
+    "Checkpointed",
+    "WALLCLOCK",
+    "sunsetting"
   ],
   "ignorePaths": [
     "node_modules",
