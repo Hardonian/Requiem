@@ -10,6 +10,7 @@
 import { randomUUID } from 'crypto';
 import { DecisionRepository } from './decisions.js';
 import { hash } from '../lib/hash.js';
+import { appendAuditEvent, makeRunEnvelope } from '../lib/big4-contracts.js';
 
 export interface RequiemOptions {
   tenantId: string;
@@ -49,7 +50,7 @@ export class RequiemWrapper {
 
             // 3b. Persist to DecisionRepository (Audit)
             if (this.options.persist) {
-              DecisionRepository.create({
+              const decision = DecisionRepository.create({
                 tenant_id: this.options.tenantId,
                 source_type: 'llm_client',
                 source_ref: (params as any).model || 'unknown_model',
@@ -59,6 +60,38 @@ export class RequiemWrapper {
                 usage,
                 status: 'evaluated',
                 execution_latency: latencyMs,
+              });
+
+              const envelope = makeRunEnvelope({
+                run_id: decision.id,
+                tenant_id: this.options.tenantId,
+                actor_id: 'service:requiem-wrapper',
+                engine_version: 'cli-wrapper-v1',
+                policy_version: 'policy-v1',
+                promptset_version: 'promptset-v1',
+                provider_fingerprint: {
+                  model: String((params as any).model || 'unknown_model'),
+                  vendor: 'unknown_vendor',
+                  params: {},
+                },
+                run_input: params,
+                run_output: response,
+                transcript: response,
+                cost_units: {
+                  compute_units: Number(usage.total_tokens ?? 0),
+                  memory_units: 0,
+                  cas_io_units: 0,
+                },
+              });
+
+              void appendAuditEvent({
+                tenant_id: this.options.tenantId,
+                actor_id: 'service:requiem-wrapper',
+                event_type: 'RUN_FINALIZED',
+                payload: {
+                  run_envelope: envelope,
+                  correlation_id: correlationId,
+                },
               });
             }
 

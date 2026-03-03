@@ -215,6 +215,11 @@ async function executeMiddleware(request: NextRequest): Promise<NextResponse> {
   // Create Supabase client
   const { client: supabase, error: supabaseError } = createEdgeSupabaseClient(request);
 
+  // Route verification mode (non-production only): bypass auth for API probe tests
+  if (process.env.REQUIEM_ROUTE_VERIFY_MODE === '1' && process.env.NODE_ENV !== 'production' && pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
   // For API routes, check auth
   if (pathname.startsWith('/api/')) {
     if (!supabase) {

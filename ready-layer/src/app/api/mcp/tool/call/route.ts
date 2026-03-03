@@ -1,5 +1,5 @@
-// ready-layer/src/app/api/mcp/tool/call/route.ts
-import '@requiem/ai';
-import { POST_callTool } from '@requiem/ai/mcp';
-
-export const POST = POST_callTool;
+export async function POST(req: Request): Promise<Response> {
+  await import('@requiem/ai');
+  const { POST_callTool } = await import('@requiem/ai/mcp');
+  return POST_callTool(req);
+}

@@ -123,7 +123,7 @@ export async function writeSignedRunManifest(
 
   if (isSigningEnabled()) {
     try {
-      signature = await signRunManifest(manifest, manifest.runId);
+      signature = await signRunManifest(manifest as unknown as Record<string, unknown>, manifest.runId);
       
       // Write signature
       const sigData = JSON.stringify(signature, null, 2);
@@ -170,7 +170,7 @@ export async function readVerifiedRunManifest(
       signature = JSON.parse(sigData) as ManifestSignature;
       
       if (isSigningEnabled()) {
-        const result = await verifyRunManifest(manifest, signature);
+        const result = await verifyRunManifest(manifest as unknown as Record<string, unknown>, signature);
         verified = result.valid;
         
         if (!verified) {
@@ -238,7 +238,7 @@ export async function verifyRunManifestSignature(runId: string): Promise<Verific
   const manifestData = readFileSync(manifestPath, 'utf8');
   const manifest = JSON.parse(manifestData);
 
-  return verifyRunManifest(manifest, signature);
+  return verifyRunManifest(manifest as unknown as Record<string, unknown>, signature);
 }
 
 /**

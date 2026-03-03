@@ -10,7 +10,7 @@
     "reality-gate": "bash scripts/reality-gate.sh",
     "build": "bash scripts/cmake-build.sh",
     "build:ui": "pnpm --filter @requiem/ui build",
-    "build:web": "pnpm --filter ready-layer build",
+    "build:web": "pnpm --filter @requiem/ai build && pnpm --filter ready-layer build",
     "build:ai": "pnpm --filter @requiem/ai build",
     "test": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure",
     "build:cpp": "bash scripts/cmake-build.sh",
@@ -45,7 +45,7 @@
     "verify:cpp": "bash scripts/cmake-build.sh && ctest --test-dir build -C Release --output-on-failure",
     "verify:boundaries": "node scripts/verify-ui-boundaries.mjs",
     "verify:dependencies": "node scripts/run-tsx.mjs scripts/verify-dependency-graph.ts",
-    "verify:routes": "node scripts/run-tsx.mjs scripts/verify-routes.ts",
+    "verify:routes": "node scripts/run-tsx.mjs scripts/verify-routes.ts && node scripts/run-tsx.mjs scripts/verify-routes-runtime.ts",
     "verify:integrity": "pnpm --filter ready-layer verify:integrity",
     "verify:policy": "pnpm --filter ready-layer verify:policy",
     "verify:replay": "pnpm --filter ready-layer verify:replay",
@@ -68,7 +68,8 @@
     "verify:supplychain": "node scripts/run-tsx.mjs scripts/verify-supplychain.ts",
     "verify:invariants": "node scripts/run-tsx.mjs tests/invariants/index.ts",
     "verify:no-any-core": "node scripts/run-tsx.mjs scripts/verify-no-any-core.ts",
-    "selftest": "node scripts/run-tsx.mjs packages/cli/src/commands/selftest.ts"
+    "selftest": "node scripts/run-tsx.mjs packages/cli/src/commands/selftest.ts",
+    "verify:big4": "node --import tsx --test packages/core/tests/*.test.ts packages/audit/tests/*.test.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

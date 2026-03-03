@@ -12,7 +12,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Transpile workspace packages
-  transpilePackages: ['@requiem/ai', '@requiem/ui', '@requiem/cli'],
+  transpilePackages: ['@requiem/ai', '@requiem/ui', '@requiem/cli', '@requiem/http', '@requiem/core', '@requiem/audit'],
 
   // Output file tracing root for monorepo
   outputFileTracingRoot: process.cwd(),

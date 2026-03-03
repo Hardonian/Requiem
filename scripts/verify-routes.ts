@@ -139,6 +139,17 @@ function checkStaticGeneration(filePath: string): boolean {
 /**
  * Load and validate the route manifest
  */
+
+
+function routeUsesTenantContext(fullPath: string): boolean {
+  try {
+    const source = fs.readFileSync(fullPath, 'utf-8');
+    return source.includes("withTenantContext") && source.includes("@/lib/big4-http");
+  } catch {
+    return false;
+  }
+}
+
 function loadManifest(): RouteManifest | null {
   try {
     const content = fs.readFileSync(MANIFEST_PATH, 'utf-8');
@@ -249,12 +260,35 @@ async function verifyRoutes() {
     log('  ✓ No obvious hard-500 risks detected', 'success');
   }
 
+  // 7. Enforce tenant context middleware on external BIG4 routes
+  log('\nChecking tenant context middleware usage...', 'info');
+  const requiredContextRoutes = new Set([
+    'api/runs',
+    'api/runs/[runId]/diff',
+    'api/cluster/drift',
+    'api/registry',
+    'api/spend',
+    'api/drift',
+  ]);
+
+  let missingContext = 0;
+  for (const route of apiRoutes) {
+    if (!requiredContextRoutes.has(route.path)) continue;
+    const fullPath = path.join(ROOT_DIR, route.file);
+    if (routeUsesTenantContext(fullPath)) {
+      log(`  ✓ ${route.path} uses withTenantContext`, 'success');
+    } else {
+      log(`  ✗ ${route.path} missing withTenantContext`, 'error');
+      missingContext++;
+    }
+  }
+
   // 7. Summary
   log('\n==========================', 'info');
   log('Verification Summary', 'info');
   log('==========================\n', 'info');
 
-  if (missingRoutes === 0 && hasErrorBoundary && hasNotFound) {
+  if (missingRoutes === 0 && hasErrorBoundary && hasNotFound && missingContext === 0) {
     log('✓ All checks passed!', 'success');
     return 0;
   } else {
@@ -262,6 +296,7 @@ async function verifyRoutes() {
     if (missingRoutes > 0) log(`  - ${missingRoutes} missing routes`, 'error');
     if (!hasErrorBoundary) log(`  - Missing error boundary`, 'error');
     if (!hasNotFound) log(`  - Missing not-found page`, 'error');
+    if (missingContext > 0) log(`  - ${missingContext} external API routes missing withTenantContext`, 'error');
     return 1;
   }
 }

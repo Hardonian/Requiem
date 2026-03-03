@@ -106,3 +106,6 @@ export async function withSpan<T>(
     throw err;
   }
 }
+
+
+export interface TraceEvent extends Span {}
