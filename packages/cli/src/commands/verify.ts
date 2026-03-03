@@ -1,43 +1,80 @@
 /**
  * @fileoverview requiem verify <hash> — Top-level verification command.
  *
+ * Verifies execution determinism by replaying and comparing fingerprints.
  * Aliases to `replay run <hash> --verify` to surface trust.
+ * 
+ * USAGE:
+ *   requiem verify <hash> [options]
+ * 
+ * ARGUMENTS:
+ *   hash                Execution hash to verify (required)
+ * 
+ * OPTIONS:
+ *   --json              Output in JSON format
+ *   --minimal           Quiet deterministic output
+ *   --explain           Verbose structural reasoning
+ *   --trace             Include trace ID in output
+ * 
+ * EXAMPLES:
+ *   $ requiem verify sha256:abc123...
+ *     Verify execution by hash
+ * 
+ *   $ requiem verify abc123 --json
+ *     Verify and output result as JSON
  */
 
 import { replay } from './replay.js';
+import { handleCliError, ErrorCodes, createError } from '../core/cli-helpers.js';
+import type { CommandContext } from '../cli.js';
 
-export async function runVerifyCommand(args: string[]): Promise<number> {
-  // args[0] should be the hash
-  if (args.length === 0) {
-    console.error('Error: Execution hash required.');
-    console.error('Usage: requiem verify <hash>');
-    return 1;
-  }
+/**
+ * Verify command handler - verify execution determinism
+ */
+export async function runVerifyCommand(
+  args: string[],
+  ctx: CommandContext
+): Promise<number> {
+  try {
+    // args[0] should be the hash
+    if (args.length === 0) {
+      throw createError(
+        ErrorCodes.E_MISSING_ARGUMENT,
+        'Execution hash required',
+        { hint: 'Provide a hash from a previous execution: requiem verify <hash>' }
+      );
+    }
 
-  const hash = args[0];
-  
-  // We need to invoke the replay command's 'run' subcommand programmatically.
-  // Since Commander is designed for argv parsing, we can construct the argv.
-  // But we can also just find the subcommand and run its action.
-  
-  const runCommand = replay.commands.find(cmd => cmd.name() === 'run');
-  
-  if (!runCommand) {
-    console.error('Error: Replay command not found.');
-    return 1;
-  }
-  
-  // The action handler for 'run' takes (runId, options)
-  // We need to cast it to any because Commander types are tricky to infer here.
-  const action = (runCommand as any)._actionHandler;
-  
-  if (action) {
-    console.log(`Verifying execution ${hash}...`);
-    await action([hash], { verify: true, verbose: false });
-    return 0;
-  } else {
-    console.error('Error: Replay action not found.');
-    return 1;
+    const hash = args[0];
+    
+    // We need to invoke the replay command's 'run' subcommand programmatically.
+    const runCommand = replay.commands.find(cmd => cmd.name() === 'run');
+    
+    if (!runCommand) {
+      throw createError(
+        ErrorCodes.E_ENGINE_ERROR,
+        'Replay command not found',
+        { hint: 'The replay system may not be properly initialized.' }
+      );
+    }
+    
+    // The action handler for 'run' takes (runId, options)
+    const action = (runCommand as unknown as { _actionHandler?: (args: string[], options: { verify: boolean; verbose: boolean }) => Promise<void> })._actionHandler;
+    
+    if (action) {
+      if (!ctx.minimal) {
+        process.stdout.write(`Verifying execution ${hash}...\n`);
+      }
+      await action([hash], { verify: true, verbose: ctx.explain });
+      return 0;
+    } else {
+      throw createError(
+        ErrorCodes.E_ENGINE_ERROR,
+        'Replay action not found',
+        { hint: 'The replay system may not be properly initialized.' }
+      );
+    }
+  } catch (error) {
+    handleCliError(error, ctx);
   }
 }
-

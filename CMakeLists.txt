@@ -30,7 +30,7 @@ if(REQUIEM_REPRODUCIBLE)
     message(STATUS "Requiem: Reproducible build enabled (SOURCE_DATE_EPOCH=$ENV{SOURCE_DATE_EPOCH})")
   endif()
   if(MSVC)
-    add_compile_options(/Brepro)
+    add_compile_options(/Brepro) # cspell:disable-line
   else()
     add_compile_options(-fno-build-timestamp -fno-debug-macro)
   endif()
@@ -135,7 +135,7 @@ if(MSVC)
     PRIVATE
       /W4
       /permissive-
-      /Zc:__cplusplus
+      /Zc:__cplusplus # cspell:disable-line
       /Oy-   # Retain frame pointer for profiling
   )
 else()

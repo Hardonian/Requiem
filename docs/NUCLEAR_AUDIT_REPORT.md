@@ -13,13 +13,13 @@ A comprehensive audit of the Requiem C++ kernel and Web repos was prioritized to
 
 ### 2. Environment Drift & Determinism
 
-**Finding**: `snapshot.cpp` injected `timestamp_unix_ms` directly into `snapshot_hash` and `event_log.cpp` utilized clock mechanisms. This violates INV-NO-WALLCLOCK (logical time only).
+**Finding**: `snapshot.cpp` injected `timestamp_unix_ms` directly into `snapshot_hash` and `event_log.cpp` utilized clock mechanisms. This violates INV-NO-WALLCLOCK (logical time only). <!-- cspell:disable-line -->
 **Action**: Stripped `timestamp_unix_ms` from `snapshot_compute_hash()`. Verified EventLog only depends on deterministically accumulated logic sequences.
 
 ### 3. EventLog Locking & Windows Compatibility
 
-**Finding**: Windows users experienced test hangs and crashes (Issue #352-hang) because `EventLog` construction held an `ifstream` read lock indefinitely and then attempted `std::fopen(..."a")` append access. Test fixtures then tried to `std::filesystem::remove_all()` the temporary directory while handles remained open, violently crashing `ctest`.
-**Action**: Injected an explicit `ifs.close()` prior to appending. Wrapped test fixtures in internal scope blocks to let `EventLog` safely destruct to `fclose` its internal handles. Un-skipped all test cases in `kernel_tests.cpp`.
+**Finding**: Windows users experienced test hangs and crashes (Issue #352-hang) because `EventLog` construction held an `ifstream` read lock indefinitely and then attempted `std::fopen(..."a")` append access. Test fixtures then tried to `std::filesystem::remove_all()` the temporary directory while handles remained open, violently crashing `ctest`. <!-- cspell:disable-line -->
+**Action**: Injected an explicit `ifs.close()` prior to appending. Wrapped test fixtures in internal scope blocks to let `EventLog` safely destruct to `fclose` its internal handles. Un-skipped all test cases in `kernel_tests.cpp`. <!-- cspell:disable-line -->
 
 ### 4. Enforce "One Schema" (Receipts)
 

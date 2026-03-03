@@ -2,9 +2,21 @@
 
 /**
  * Console Snapshots Page - State snapshot management
+ * 
+ * What: Create and restore state snapshots.
+ * Why: Snapshots enable rollback, migration, and disaster recovery.
+ * What you can do: View snapshots, restore state, verify integrity.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { 
+  PageHeader, 
+  LoadingState, 
+  EmptyState,
+  HashDisplay,
+  ErrorDisplay,
+  VerificationBadge 
+} from '@/components/ui';
 
 interface Snapshot {
   id: string;
@@ -13,53 +25,77 @@ interface Snapshot {
   size: number;
   checksum: string;
   gated: boolean;
+  description?: string;
 }
 
 export default function ConsoleSnapshotsPage() {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ code: string; message: string; traceId?: string } | null>(null);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [restoreResult, setRestoreResult] = useState<{ id: string; success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    fetchSnapshots();
-  }, []);
-
-  const fetchSnapshots = async () => {
+  const fetchSnapshots = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch('/api/snapshots');
       const data = await response.json();
       
       if (data.ok) {
         setSnapshots(data.snapshots || []);
-        setTotal(data.total || 0);
       } else {
-        setError(data.error?.message || 'Failed to fetch snapshots');
+        setError({
+          code: data.error?.code || 'E_FETCH_FAILED',
+          message: data.error?.message || 'Failed to fetch snapshots',
+        });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError({
+        code: 'E_NETWORK_ERROR',
+        message: err instanceof Error ? err.message : 'Network error occurred',
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleRestore = async (id: string) => {
-    if (!confirm(`Are you sure you want to restore snapshot ${id}?`)) return;
+  useEffect(() => {
+    fetchSnapshots();
+  }, [fetchSnapshots]);
+
+  const handleRestore = useCallback(async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to restore snapshot "${name}"?\n\nThis will replace the current state.`)) return;
+    
+    setRestoringId(id);
+    setRestoreResult(null);
     
     try {
       const response = await fetch(`/api/snapshots?id=${id}`, { method: 'POST' });
       const data = await response.json();
       
+      setRestoreResult({
+        id,
+        success: data.ok,
+        message: data.ok 
+          ? 'Snapshot restored successfully' 
+          : (data.error?.message || 'Failed to restore snapshot'),
+      });
+      
       if (data.ok) {
-        alert('Snapshot restored successfully');
-      } else {
-        alert(`Error: ${data.error?.message || 'Failed to restore snapshot'}`);
+        // Refresh to get updated state
+        setTimeout(() => fetchSnapshots(), 1000);
       }
     } catch (err) {
-      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setRestoreResult({
+        id,
+        success: false,
+        message: err instanceof Error ? err.message : 'Restore request failed',
+      });
+    } finally {
+      setRestoringId(null);
     }
-  };
+  }, [fetchSnapshots]);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -68,89 +104,108 @@ export default function ConsoleSnapshotsPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Snapshots</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            State snapshots - create, list, and restore
-          </p>
-        </div>
-      </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      <PageHeader
+        title="Snapshots"
+        description="State snapshots for rollback, migration, and disaster recovery. Each snapshot is checksummed for integrity verification."
+      />
 
+      {/* Error */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+        <div className="mb-6">
+          <ErrorDisplay
+            code={error.code}
+            message={error.message}
+            traceId={error.traceId}
+            onRetry={fetchSnapshots}
+          />
         </div>
       )}
 
+      {/* Restore Result */}
+      {restoreResult && (
+        <div className="mb-6">
+          <VerificationBadge
+            status={restoreResult.success ? 'verified' : 'failed'}
+            message={restoreResult.success ? 'Restore Complete' : 'Restore Failed'}
+            details={restoreResult.message}
+          />
+        </div>
+      )}
+
+      {/* Content */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading snapshots...</p>
-        </div>
+        <LoadingState message="Loading snapshots..." />
       ) : snapshots.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
-          <p className="text-gray-500 dark:text-gray-400">No snapshots found</p>
-          <p className="text-sm text-gray-400 mt-2">Use `reach snapshots create` to create snapshots</p>
-        </div>
+        <EmptyState
+          title="No snapshots found"
+          description="Use the CLI to create snapshots: reach snapshots create --name <name>"
+        />
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Checksum
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Size
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Gated
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Created
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {snapshots.map((snap, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
-                    {snap.id?.substring(0, 16) || '-'}...
+              {snapshots.map((snap) => (
+                <tr key={snap.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                    <HashDisplay hash={snap.id} length={16} />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {snap.name || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <HashDisplay hash={snap.checksum} length={16} />
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {formatSize(snap.size || 0)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     {snap.gated ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                        YES
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                        Gated
                       </span>
                     ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400">
-                        NO
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400">
+                        Open
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {snap.createdAt?.substring(0, 10) || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => handleRestore(snap.id)}
-                      className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
+                      onClick={() => handleRestore(snap.id, snap.name)}
+                      disabled={restoringId === snap.id}
+                      className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                      type="button"
                     >
-                      Restore
+                      {restoringId === snap.id ? 'Restoring...' : 'Restore'}
                     </button>
                   </td>
                 </tr>
@@ -160,9 +215,17 @@ export default function ConsoleSnapshotsPage() {
         </div>
       )}
 
-      <div className="mt-4 text-sm text-gray-500">
-        Total: {total} snapshots
-      </div>
+      {/* Summary */}
+      {!loading && snapshots.length > 0 && (
+        <div className="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+          <span>
+            Total: {snapshots.length} snapshot{snapshots.length !== 1 ? 's' : ''}
+          </span>
+          <span>
+            Total size: {formatSize(snapshots.reduce((acc, s) => acc + (s.size || 0), 0))}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

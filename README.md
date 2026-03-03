@@ -25,9 +25,50 @@ A runtime that proves what your AI actually did.
 
 ---
 
+## Quickstart (5 commands)
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Build the runtime
+pnpm run build
+
+# 3. Execute with proof
+pnpm reach run system.echo '{"message":"hello"}'
+
+# 4. Verify determinism
+pnpm reach verify <fingerprint-from-step-3>
+
+# 5. Launch dashboard
+pnpm reach ui
+```
+
+**Expected output:**
+```
+┌────────────────────────────────────────────────────────────┐
+│ EXECUTION FINGERPRINT                                      │
+├────────────────────────────────────────────────────────────┤
+│  Hash:        a1b2c3d4e5f6...                              │
+│  Short ID:    a1b2c3d4...                                  │
+│  Verified:    2026-01-15T10:30:00.000Z                     │
+│  Algorithm:   BLAKE3-v1 (domain-separated)                 │
+│  CAS:         v2 (dual-hash: BLAKE3 + SHA-256)             │
+│  Policy:      enforced (deny-by-default)                   │
+├────────────────────────────────────────────────────────────┤
+│  This fingerprint proves that the execution produced a     │
+│  deterministic result that is replayable and               │
+│  policy-compliant.                                         │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Verification:** Run `pnpm reach verify <hash>` — you should see `Verification passed`.
+
+---
+
 ### How This Differs from GitHub Actions + OPA
 
-Requiem is not a CI wrapper. The core primitive is the **Semantic State Machine** — a first-class computing primitive for AI execution governance that cannot be replicated with GitHub Actions + OPA + Postgres without re-implementing its core semantics:
+Requiem is not a CI wrapper. The core primitive is the **Semantic State Machine** — a first-class computing primitive for AI execution governance:
 
 | Capability | GHA + OPA | Requiem SSM |
 |------------|-----------|-------------|
@@ -54,81 +95,6 @@ open http://localhost:3000/app/semantic-ledger
 ```
 
 See [docs/audits/DIFFERENTIATION_PROOF.md](docs/audits/DIFFERENTIATION_PROOF.md) for the complete runnable demo.
-
----
-
-## Quickstart (3 commands)
-
-```bash
-# 1. Clone and install
-git clone https://github.com/Hardonian/Requiem.git && cd Requiem && pnpm install
-
-# 2. Build the native engine
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
-
-# 3. Prove determinism — runs the same workload 3x and verifies all result_digests match
-./build/requiem demo
-```
-
-Expected output:
-```json
-{"ok":true,"deterministic":true,"runs":3,"result_digest":"<hash>","latency_ms":[...]}
-```
-
-**Determinism is confirmed when `"deterministic":true` and all three runs share the same `result_digest`.**
-
-### First Deterministic Execution (TypeScript Control Plane)
-
-```bash
-# Run a tool through the policy gate and get a verifiable execution envelope
-pnpm exec reach run system.echo "Hello, Determinism!"
-```
-
-Output:
-```
-┌─────────────────────────────────────────────────────────────┐
-│ EXECUTION COMPLETE                                          │
-├─────────────────────────────────────────────────────────────┤
-│ Tool:          system.echo@1.0.0                            │
-│ Tenant:        cli-tenant                                   │
-│ Duration:      12ms                                         │
-│ Deterministic: YES                                          │
-│ Policy:        ENFORCED                                     │
-│ Fingerprint:   a1b2c3d4e5f6...                              │
-│ Replay:        VERIFIED                                     │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Verify an Execution
-
-```bash
-pnpm exec reach verify <execution-hash>
-```
-
-### Replay with Proof
-
-```bash
-./build/requiem exec replay \
-  --request docs/examples/exec_request_smoke.json \
-  --result build/result.json \
-  --cas .requiem/cas/v2
-```
-
-### Inspect Policy Enforcement
-
-```bash
-# View every active constraint — nothing is implicit
-./build/requiem policy explain
-
-# View every version constant CI verifies
-./build/requiem version
-```
-
-### Launch Dashboard
-
-```bash
-pnpm exec reach ui
-```
 
 ---
 
@@ -178,24 +144,6 @@ reach tenant-check --format=table
 | `reach tenant-check` | Verify isolation boundaries | `reach tenant-check` |
 | `reach chaos --quick` | Run verification checks | `reach chaos --quick` |
 
-### Diff Proof Card
-
-The Diff Proof Card is a screenshot-worthy artifact showing:
-- Run A + Run B IDs (shortened)
-- Tenant scope indicator
-- Determinism VERIFIED badge
-- Replay Match percentages
-- Fingerprint summaries (with copy buttons)
-- Top 3 deltas (input/output/policy/graph)
-- First divergence point
-- "Verified by Requiem" footer with timestamp
-
-Access via:
-- CLI: `reach diff <A> <B> --card` → prints local URL
-- CLI: `reach diff <A> <B> --share` → creates share token
-- Web: `/proof/diff/<token>` → public share route
-- Web: `/runs/<id>/diff?with=<id>&card=1` → internal view
-
 ### Exit Codes
 
 All commands follow standard exit codes:
@@ -204,23 +152,6 @@ All commands follow standard exit codes:
 - `3` — Invariant failure (determinism mismatch, tenant violation)
 - `4` — System error (database, network)
 
-### Web UI Routes
-
-| Route | Purpose |
-|-------|---------|
-| `/runs/[runId]` | Run detail with Proof Panel |
-| `/runs/[runId]/diff?with=[runId]` | Diff comparison view |
-| `/runs/[runId]/lineage` | Lineage DAG visualization |
-| `/runs/[runId]/drift` | Drift timeline |
-| `/runs/[runId]/simulate` | Policy simulation results |
-| `/shares` | Share link management |
-| `/usage` | Usage dashboard |
-| `/tenant-check` | Tenant audit report |
-| `/chaos` | Chaos check results |
-| `/proof/diff/[token]` | Public proof card (shareable) |
-
-> **Two CLIs:** `./build/requiem` (C++ native engine — determinism, CAS, replay, policy) and `pnpm exec reach` (TypeScript control plane — AI decisions, junctions, MCP). See **[CLI Reference](docs/cli.md)**.
-
 ---
 
 ## Architecture
@@ -228,7 +159,7 @@ All commands follow standard exit codes:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Dashboard (Next.js)                    │
-│         Executions · Replay · Audit · Metrics            │
+│         Logs · Runs · Plans · Policies · FinOps          │
 ├─────────────────────────────────────────────────────────┤
 │                  Control Plane (TypeScript)               │
 │     Policy Gate · Tool Registry · MCP · Skills           │

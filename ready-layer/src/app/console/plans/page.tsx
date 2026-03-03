@@ -1,10 +1,20 @@
 'use client';
 
 /**
- * Console Plans Page - Plan management
+ * Console Plans Page - Plan definitions and execution
+ * 
+ * What: View and manage execution plans.
+ * Why: Plans define structured workflows with policy enforcement.
+ * What you can do: View plan details, monitor executions.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { 
+  PageHeader, 
+  LoadingState, 
+  EmptyState,
+  ErrorDisplay 
+} from '@/components/ui';
 
 interface Plan {
   id: string;
@@ -12,93 +22,135 @@ interface Plan {
   status: string;
   createdAt: string;
   lastRun?: string;
+  stepCount?: number;
+  description?: string;
 }
 
 export default function ConsolePlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ code: string; message: string; traceId?: string } | null>(null);
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch('/api/plans');
       const data = await response.json();
       
       if (data.ok) {
         setPlans(data.plans || []);
       } else {
-        setError(data.error?.message || 'Failed to fetch plans');
+        setError({
+          code: data.error?.code || 'E_FETCH_FAILED',
+          message: data.error?.message || 'Failed to fetch plans',
+        });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError({
+        code: 'E_NETWORK_ERROR',
+        message: err instanceof Error ? err.message : 'Network error occurred',
+      });
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'archived':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
+      default:
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
     }
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Plans</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Plan definitions and execution
-          </p>
-        </div>
-      </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      <PageHeader
+        title="Plans"
+        description="Plan definitions and execution workflows. Plans define structured, policy-enforced execution paths."
+      />
 
+      {/* Error */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+        <div className="mb-6">
+          <ErrorDisplay
+            code={error.code}
+            message={error.message}
+            traceId={error.traceId}
+            onRetry={fetchPlans}
+          />
         </div>
       )}
 
+      {/* Content */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading plans...</p>
-        </div>
+        <LoadingState message="Loading plans..." />
       ) : plans.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
-          <p className="text-gray-500 dark:text-gray-400">No plans found</p>
-        </div>
+        <EmptyState
+          title="No plans found"
+          description="Create a plan using the CLI: reach run <plan-name>"
+        />
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Created
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {plans.map((plan, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                    {plan.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {plan.status || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <div 
+              key={plan.id}
+              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                  {plan.name}
+                </h3>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(plan.status)}`}>
+                  {plan.status || 'unknown'}
+                </span>
+              </div>
+              
+              {plan.description && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                  {plan.description}
+                </p>
+              )}
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Steps:</span>
+                  <span className="text-gray-700 dark:text-gray-300">{plan.stepCount || '-'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Created:</span>
+                  <span className="text-gray-700 dark:text-gray-300">
                     {plan.createdAt?.substring(0, 10) || '-'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </span>
+                </div>
+                {plan.lastRun && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Last run:</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {plan.lastRun.substring(0, 10)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Total count */}
+      {!loading && plans.length > 0 && (
+        <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          Total: {plans.length} plan{plans.length !== 1 ? 's' : ''}
         </div>
       )}
     </div>

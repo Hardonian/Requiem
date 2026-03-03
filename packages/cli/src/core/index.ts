@@ -1,7 +1,7 @@
 /**
  * Core Module
  * 
- * Unified error system + structured logging.
+ * Unified error system + structured logging + CLI helpers.
  * No console.* in production paths.
  */
 
@@ -65,7 +65,7 @@ export {
   captureLogs,
 } from './logging.js';
 
-// Exit codes (SECTION 2)
+// Exit codes
 export {
   ExitCode,
   type ExitCodeValue,
@@ -75,3 +75,26 @@ export {
   normalizeError,
 } from './exit-codes.js';
 
+// CLI Helpers
+export {
+  // Types
+  type CLIError,
+  type HelpTemplate,
+  
+  // JSON formatting
+  deterministicJson,
+  stableSortKeys,
+  
+  // Error handling
+  createError,
+  formatError,
+  formatSuccess,
+  handleCliError,
+  
+  // Help generation
+  generateHelp,
+  
+  // Error codes
+  ErrorCodes,
+  ErrorHints,
+} from './cli-helpers.js';

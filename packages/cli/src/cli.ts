@@ -16,6 +16,8 @@
  * All heavy modules (logger, db, providers, signing) are lazy loaded.
  */
 
+import { formatError, ErrorCodes, ErrorHints, deterministicJson } from './core/cli-helpers.js';
+
 const VERSION = '0.2.0';
 
 // Lightweight error check for fast paths (avoids importing full error system)
@@ -58,8 +60,10 @@ function generateTraceId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * Print formatted help text
+ */
 function printHelp(): void {
-  // Help is allowed to use stdout directly - it's user-facing output
   process.stdout.write(`
 Requiem CLI v${VERSION}  —  Control Plane for AI Systems
 
@@ -157,7 +161,7 @@ OPTIONS:
   --json                              Output in JSON format
   --minimal                           Quiet deterministic output
   --explain                           Verbose structural reasoning
-  --trace                             Optional execution insight
+  --trace                             Include trace ID in output
   --help, -h                          Show help for a command
   --version, -v                       Show version information
 
@@ -196,33 +200,34 @@ function printFingerprint(fpHash: string): void {
 `);
 }
 
+/**
+ * Handle errors consistently using the CLI helpers
+ */
 async function handleError(error: unknown, ctx: CommandContext): Promise<number> {
   const duration = Date.now() - ctx.startTime;
 
   if (isLightweightAppError(error)) {
     // Lazy load logger only on error paths
-    const logger = await getLogger();
-    logger.error('cli.command_failed', error.message, {
-      code: error.code,
-      command: ctx.command,
-      durationMs: duration,
-      traceId: ctx.traceId,
-    });
-
-    if (ctx.json) {
-      process.stdout.write(JSON.stringify({
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message,
-          severity: error.severity || 'error',
-        },
-        traceId: ctx.traceId,
+    try {
+      const logger = await getLogger();
+      logger.error('cli.command_failed', error.message, {
+        code: error.code,
+        command: ctx.command,
         durationMs: duration,
-      }) + '\n');
-    } else {
-      process.stderr.write(`[${error.code}] ${error.message}\n`);
+        traceId: ctx.traceId,
+      });
+    } catch {
+      // Logger not available - continue
     }
+
+    const errorOutput = formatError({
+      code: error.code,
+      message: error.message,
+      traceId: ctx.traceId,
+      timestamp: new Date().toISOString(),
+    }, ctx);
+
+    process.stderr.write(errorOutput + '\n');
     return 1;
   }
 
@@ -242,22 +247,15 @@ async function handleError(error: unknown, ctx: CommandContext): Promise<number>
     // Logger failed to load - silently continue
   }
 
-  if (ctx.json) {
-    process.stdout.write(JSON.stringify({
-      success: false,
-      error: {
-        code: 'E_UNKNOWN',
-        message: message || 'An unexpected error occurred',
-        severity: 'error',
-        timestamp: new Date().toISOString(),
-      },
-      traceId: ctx.traceId,
-      durationMs: duration,
-    }) + '\n');
-  } else {
-    process.stderr.write(`Error: ${message}\n`);
-  }
+  const errorOutput = formatError({
+    code: ErrorCodes.E_UNKNOWN,
+    message: message || 'An unexpected error occurred',
+    hint: ErrorHints[ErrorCodes.E_UNKNOWN],
+    traceId: ctx.traceId,
+    timestamp: new Date().toISOString(),
+  }, ctx);
 
+  process.stderr.write(errorOutput + '\n');
   return 1;
 }
 
@@ -319,8 +317,8 @@ async function main(): Promise<number> {
 
     switch (command) {
       case 'run': {
-        const { runRunCommand } = await loadCommand('./commands/run.js') as { runRunCommand: (args: string[], ctx: CommandContext) => Promise<number> };
-        result = await runRunCommand(subArgs, ctx);
+        const { runRunCommand } = await loadCommand('./commands/run.js') as { runRunCommand: (args: string[]) => Promise<number> };
+        result = await runRunCommand(subArgs);
         break;
       }
 
@@ -695,4 +693,3 @@ main()
     process.stderr.write(`Fatal: ${err instanceof Error ? err.message : String(err)}\n`);
     process.exit(1);
   });
-

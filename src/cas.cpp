@@ -981,12 +981,12 @@ std::string S3CompatibleBackend::put(const std::string &data,
     meta += ".meta";
     std::string stored_hash = blake3_hex(data);
     uint64_t now = static_cast<uint64_t>(std::time(nullptr));
-    std::ofstream mofs(meta, std::ios::binary);
-    mofs << "{\"digest\":\"" << digest << "\",\"encoding\":\"identity\""
-         << ",\"original_size\":" << data.size()
-         << ",\"stored_size\":" << data.size() << ",\"stored_blob_hash\":\""
-         << stored_hash << "\""
-         << ",\"created_at\":" << now << "}";
+    std::ofstream meta_ofs(meta, std::ios::binary);
+    meta_ofs << "{\"digest\":\"" << digest << "\",\"encoding\":\"identity\""
+             << ",\"original_size\":" << data.size()
+             << ",\"stored_size\":" << data.size() << ",\"stored_blob_hash\":\""
+             << stored_hash << "\""
+             << ",\"created_at\":" << now << "}";
     return digest;
   }
 

@@ -107,7 +107,7 @@ static bool test_envelope_determinism() {
 // ---------------------------------------------------------------------------
 
 static bool test_event_log_append_and_read() {
-  auto dir = make_temp_dir("evlog");
+  auto dir = make_temp_dir("event_log");
   auto path = dir + "/events.ndjson";
 
   // Clean up any previous test file.
@@ -150,7 +150,7 @@ static bool test_event_log_append_and_read() {
 }
 
 static bool test_event_log_chain_verification() {
-  auto dir = make_temp_dir("evlog_chain");
+  auto dir = make_temp_dir("event_log_chain");
   auto path = dir + "/events.ndjson";
   fs::remove(path);
 
@@ -180,7 +180,7 @@ static bool test_event_log_chain_verification() {
 }
 
 static bool test_event_log_genesis_prev() {
-  auto dir = make_temp_dir("evlog_genesis");
+  auto dir = make_temp_dir("event_log_genesis");
   auto path = dir + "/events.ndjson";
   fs::remove(path);
 
@@ -204,7 +204,7 @@ static bool test_event_log_genesis_prev() {
 }
 
 static bool test_event_log_tamper_detection() {
-  auto dir = make_temp_dir("evlog_tamper");
+  auto dir = make_temp_dir("event_log_tamper");
   auto path = dir + "/events.ndjson";
   fs::remove(path);
 
@@ -256,7 +256,7 @@ static bool test_event_log_tamper_detection() {
 }
 
 static bool test_event_log_logical_time() {
-  auto dir = make_temp_dir("evlog_lt");
+  auto dir = make_temp_dir("event_log_lt");
   auto path = dir + "/events.ndjson";
   fs::remove(path);
 
@@ -714,8 +714,8 @@ static bool test_plan_hash_determinism() {
 
 static bool test_receipt_generate_and_verify() {
   std::map<std::string, std::string> step_digests;
-  step_digests["step-1"] = "aabb" + std::string(60, '0');
-  step_digests["step-2"] = "ccdd" + std::string(60, '0');
+  step_digests["step-1"] = "aabb" + std::string(60, '0'); // cspell:disable-line
+  step_digests["step-2"] = "ccdd" + std::string(60, '0'); // cspell:disable-line
 
   auto receipt = requiem::receipt_generate("run-001", "plan-hash-001",
                                            "req-digest-001", "res-digest-001",
@@ -732,7 +732,7 @@ static bool test_receipt_generate_and_verify() {
 
 static bool test_receipt_tamper_detection() {
   std::map<std::string, std::string> step_digests;
-  step_digests["step-1"] = "aabb" + std::string(60, '0');
+  step_digests["step-1"] = "aabb" + std::string(60, '0'); // cspell:disable-line
 
   auto receipt =
       requiem::receipt_generate("run-002", "plan-hash-002", "req-digest-002",
