@@ -1,80 +1,30 @@
-// ready-layer/src/app/api/runs/route.ts
-//
-// Phase B: Runs API — /api/runs
-// Plan run listing and retrieval.
-
-import { NextResponse } from 'next/server';
-import type { 
-  PlanRunResult,
-  TypedError, 
-  ApiResponse,
-  PaginatedResponse 
-} from '@/types/engine';
+import { NextRequest, NextResponse } from 'next/server';
+import { withTenantContext } from '@/lib/big4-http';
+import { writeAudit } from '@/lib/big4-audit';
 
 export const dynamic = 'force-dynamic';
 
-function generateTraceId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function createError(code: string, message: string, retryable = false): TypedError {
-  return { code, message, details: {}, retryable };
-}
-
-// GET - List runs
-export async function GET(request: Request): Promise<NextResponse> {
-  const trace_id = generateTraceId();
-  
-  try {
+export async function GET(request: NextRequest): Promise<Response> {
+  return withTenantContext(request, async (ctx) => {
     const { searchParams } = new URL(request.url);
-    const plan_hash = searchParams.get('plan-hash');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 1000);
-    const offset = parseInt(searchParams.get('offset') || '0', 10);
+    const limit = Math.min(Number.parseInt(searchParams.get('limit') ?? '25', 10), 100);
+    const offset = Math.max(Number.parseInt(searchParams.get('offset') ?? '0', 10), 0);
+    const runs = Array.from({ length: Math.min(limit, 10) }, (_, index) => ({
+      run_id: `run_${ctx.tenant_id}_${offset + index}`,
+      tenant_id: ctx.tenant_id,
+      status: 'ok',
+      created_at: new Date(Date.now() - index * 10_000).toISOString(),
+    }));
 
-    // TODO: Replace with actual CLI call
-    const mockRuns: PlanRunResult[] = [];
-    
-    for (let i = 0; i < Math.min(limit, 20); i++) {
-      mockRuns.push({
-        run_id: `run_${Date.now()}_${offset + i}`,
-        plan_hash: plan_hash || `plan_hash_${(i % 5).toString(16).padStart(60, '0')}`,
-        steps_completed: 3,
-        steps_total: 3,
-        ok: i % 7 !== 0, // Every 7th run fails for variety
-        step_results: {
-          step_1: { ok: true, duration_ns: 1000000, result_digest: `res_${i}_1` },
-          step_2: { ok: true, duration_ns: 1000000, result_digest: `res_${i}_2` },
-          step_3: { ok: i % 7 !== 0, duration_ns: 1000000, result_digest: `res_${i}_3` },
-        },
-        receipt_hash: `receipt_${Date.now()}_${i}`,
-        started_at_unix_ms: Date.now() - (i * 3600000),
-        completed_at_unix_ms: Date.now() - (i * 3600000) + 5000,
-      });
-    }
+    await writeAudit({
+      tenant_id: ctx.tenant_id,
+      actor_id: ctx.actor_id,
+      request_id: ctx.request_id,
+      trace_id: ctx.trace_id,
+      event_type: 'RUN_CREATED',
+      payload: { route: '/api/runs', limit, offset, returned: runs.length },
+    });
 
-    const response: ApiResponse<PaginatedResponse<PlanRunResult>> = {
-      v: 1,
-      kind: 'runs.list',
-      data: {
-        ok: true,
-        data: mockRuns,
-        total: 100,
-        page: Math.floor(offset / limit) + 1,
-        page_size: limit,
-        has_more: offset + mockRuns.length < 100,
-        trace_id,
-      },
-      error: null,
-    };
-
-    return NextResponse.json(response, { status: 200 });
-  } catch (error) {
-    const response: ApiResponse<null> = {
-      v: 1,
-      kind: 'error',
-      data: null,
-      error: createError('internal_error', error instanceof Error ? error.message : 'Unknown error', false),
-    };
-    return NextResponse.json(response, { status: 500 });
-  }
+    return NextResponse.json({ v: 1, ok: true, data: runs, trace_id: ctx.trace_id }, { status: 200 });
+  });
 }

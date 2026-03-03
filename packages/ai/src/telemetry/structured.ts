@@ -64,7 +64,7 @@ export interface TraceMetadata {
 
 // ─── Event Builder ─────────────────────────────────────────────────────────
 
-class EventBuilder {
+export class EventBuilder {
   private event: Partial<StructuredEvent>;
   
   constructor(traceId: string, runId: string, seq: number) {
@@ -241,7 +241,7 @@ export function registerHandler(handler: EventHandler): () => void {
 /**
  * Emit a structured event
  */
-export function emit(event: Omit<StructuredEvent, 'trace_id' | 'run_id' | 'seq' | 'schema_version'>): StructuredEvent | null {
+export function emit(event: Omit<StructuredEvent, 'trace_id' | 'run_id' | 'seq' | 'schema_version' | 'timestamp'>): StructuredEvent | null {
   if (!currentContext) {
     // No active trace, create a non-traced event
     const evt: StructuredEvent = {
@@ -393,7 +393,7 @@ export function securityEvent(eventType: string, severity: 'low' | 'medium' | 'h
  * Serialize events to JSON for storage in CAS
  */
 export function serializeEvents(events: StructuredEvent[]): string {
-  return events.map(e => JSON.stringify(redactTrace(e))).join('\n');
+  return events.map(e => JSON.stringify(redactTrace(e as unknown as Record<string, unknown>) as unknown as Record<string, unknown>)).join('\n');
 }
 
 /**
@@ -410,7 +410,7 @@ export function deserializeEvents(data: string): StructuredEvent[] {
  * Serialize trace metadata for SQLite
  */
 export function serializeMetadata(metadata: TraceMetadata): string {
-  return JSON.stringify(redactTrace(metadata));
+  return JSON.stringify(redactTrace(metadata as unknown as Record<string, unknown>));
 }
 
 /**

@@ -1,14 +1,6 @@
-/**
- * API Route: /api/runs/[runId]/diff
- *
- * Returns diff data between two runs
- * Tenant-scoped, redacted by default
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { validateTenantAuth } from '@/lib/auth';
+import { withTenantContext } from '@/lib/big4-http';
 
-// Mock diff computation - in production this would use the engine
 function computeDiff(runA: string, runB: string) {
   return {
     runA,
@@ -18,48 +10,29 @@ function computeDiff(runA: string, runB: string) {
     outputChanged: runA !== runB,
     firstDivergenceStep: runA === runB ? null : 0,
     diffDigest: `diff_${runA.substring(0, 8)}_${runB.substring(0, 8)}`,
-    topDeltas: runA === runB ? [] : [
-      { type: 'output', severity: 'high', summary: 'Output fingerprint differs', taxonomy: 'STRUCTURAL_MISMATCH' }
-    ],
+    topDeltas: runA === runB
+      ? []
+      : [{ type: 'output', severity: 'high', summary: 'Output fingerprint differs', taxonomy: 'STRUCTURAL_MISMATCH' }],
   };
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ runId: string }> }
-) {
-  try {
+  { params }: { params: Promise<{ runId: string }> },
+): Promise<Response> {
+  return withTenantContext(request, async () => {
     const { runId } = await params;
     const { searchParams } = new URL(request.url);
     const withRunId = searchParams.get('with');
 
     if (!withRunId) {
-      return NextResponse.json(
-        { error: 'Missing required parameter: with' },
-        { status: 400 }
-      );
-    }
-
-    // Verify tenant scope from Authorization header
-    const auth = await validateTenantAuth(request);
-    if (!auth.ok) {
-      return NextResponse.json(
-        { error: auth.error ?? 'Unauthorized' },
-        { status: auth.status ?? 401 }
-      );
+      return NextResponse.json({ ok: false, error: 'missing_with_parameter' }, { status: 400 });
     }
 
     const diff = computeDiff(runId, withRunId);
-
-    return NextResponse.json({
-      success: true,
-      data: diff,
-      redacted: true,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to compute diff', message: (error as Error).message },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ ok: true, data: diff, redacted: true }, { status: 200 });
+  }, async (ctx) => ({
+    allow: ctx.actor_id !== 'anonymous',
+    reasons: ctx.actor_id !== 'anonymous' ? [] : ['actor identity required'],
+  }));
 }

@@ -21,6 +21,7 @@ import {
   type EconomicRollup,
   type EconomicAlert,
 } from '../db/governance.js';
+import { appendAuditEvent } from './big4-contracts.js';
 
 // ─── Cost Model Configuration ─────────────────────────────────────────────────
 
@@ -103,13 +104,27 @@ export function recordEconomicEvent(params: RecordEventParams): EconomicEvent {
     ]
   );
   
-  return EconomicEventRepository.create({
+  const created = EconomicEventRepository.create({
     tenantId: params.tenantId,
     runId: params.runId,
     eventType: params.eventType,
     resourceUnits: params.resourceUnits,
     costUnits,
   });
+
+  void appendAuditEvent({
+    tenant_id: params.tenantId,
+    actor_id: 'service:economic-layer',
+    event_type: costUnits > params.resourceUnits ? 'COST_LIMIT_TRIPPED' : 'RUN_CREATED',
+    payload: {
+      run_id: params.runId ?? null,
+      event_type: params.eventType,
+      resource_units: params.resourceUnits,
+      cost_units: costUnits,
+    },
+  });
+
+  return created;
 }
 
 // ─── Alert Detection ───────────────────────────────────────────────────────────

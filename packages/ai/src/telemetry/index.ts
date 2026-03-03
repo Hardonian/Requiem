@@ -71,7 +71,7 @@ export {
   setCurrentTrace,
   endTrace,
   createSpan,
-  endSpan,
+  endSpan as endStructuredSpan,
   emit,
   log,
   metric,
