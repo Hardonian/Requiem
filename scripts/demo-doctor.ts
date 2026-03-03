@@ -36,6 +36,7 @@ interface DoctorReport {
     warn: number;
     skip: number;
   };
+  recommendations: string[];
 }
 
 // CLI binary path
@@ -49,8 +50,9 @@ function getCliPath(): string {
   return "requiem";
 }
 
-function runCommand(cmd: string, args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+function runCommand(cmd: string, args: string[], timeoutMs = 10000): Promise<{ stdout: string; stderr: string; exitCode: number; timedOut: boolean }> {
   return new Promise((resolve) => {
+    let timedOut = false;
     const proc = spawn(cmd, args, {
       cwd: ROOT_DIR,
       shell: false,
@@ -58,6 +60,11 @@ function runCommand(cmd: string, args: string[]): Promise<{ stdout: string; stde
 
     let stdout = "";
     let stderr = "";
+    
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      proc.kill();
+    }, timeoutMs);
 
     proc.stdout?.on("data", (data) => {
       stdout += data.toString();
@@ -68,11 +75,13 @@ function runCommand(cmd: string, args: string[]): Promise<{ stdout: string; stde
     });
 
     proc.on("close", (exitCode) => {
-      resolve({ stdout, stderr, exitCode: exitCode ?? 0 });
+      clearTimeout(timeoutId);
+      resolve({ stdout, stderr, exitCode: exitCode ?? 0, timedOut });
     });
 
     proc.on("error", (err) => {
-      resolve({ stdout, stderr: err.message, exitCode: 1 });
+      clearTimeout(timeoutId);
+      resolve({ stdout, stderr: err.message, exitCode: 1, timedOut: false });
     });
   });
 }
@@ -90,8 +99,17 @@ async function checkCliAvailable(): Promise<CheckResult> {
     };
   }
 
-  const { exitCode, stdout } = await runCommand(cliPath, ["version"]);
+  const { exitCode, stdout, timedOut } = await runCommand(cliPath, ["version"]);
   const durationMs = Date.now() - start;
+  
+  if (timedOut) {
+    return {
+      name: "cli_available",
+      status: "fail",
+      message: "CLI version check timed out",
+      durationMs,
+    };
+  }
   
   if (exitCode !== 0) {
     return {
@@ -197,15 +215,25 @@ async function checkCliDoctor(): Promise<CheckResult> {
   const start = Date.now();
   const cliPath = getCliPath();
   
-  const { stdout, exitCode } = await runCommand(cliPath, ["doctor", "--json"]);
+  const { stdout, exitCode, timedOut } = await runCommand(cliPath, ["doctor", "--json"]);
   const durationMs = Date.now() - start;
+  
+  if (timedOut) {
+    return {
+      name: "engine_health",
+      status: "fail",
+      message: "Doctor check timed out",
+      durationMs,
+    };
+  }
   
   if (exitCode !== 0) {
     let error = `Doctor failed with exit code ${exitCode}`;
     try {
-      const result = JSON.parse(stdout);
-      if (result.blockers && result.blockers.length > 0) {
-        error += `: ${result.blockers.join(", ")}`;
+      const envelope = JSON.parse(stdout);
+      const data = envelope.data || {};
+      if (data.blockers && data.blockers.length > 0) {
+        error += `: ${data.blockers.join(", ")}`;
       }
     } catch {
       // Ignore parse error
@@ -219,20 +247,21 @@ async function checkCliDoctor(): Promise<CheckResult> {
   }
 
   try {
-    const result = JSON.parse(stdout);
-    const blockers = result.blockers?.length || 0;
+    const envelope = JSON.parse(stdout);
+    const data = envelope.data || {};
+    const blockers = data.blockers?.length || 0;
     if (blockers > 0) {
       return {
         name: "engine_health",
         status: "fail",
-        message: `${blockers} blocker(s): ${result.blockers.join(", ")}`,
+        message: `${blockers} blocker(s): ${data.blockers.join(", ")}`,
         durationMs,
       };
     }
     return {
       name: "engine_health",
       status: "pass",
-      message: `Engine healthy (hash: ${result.hash_primitive}/${result.hash_backend})`,
+      message: `Engine healthy (hash: ${data.hash_primitive}/${data.hash_backend})`,
       durationMs,
     };
   } catch {
@@ -313,14 +342,79 @@ async function checkJsonParseable(): Promise<CheckResult> {
   };
 }
 
+async function checkPlanStructure(): Promise<CheckResult> {
+  const start = Date.now();
+  
+  try {
+    const planPath = path.join(ROOT_DIR, "examples", "demo", "plan.json");
+    const content = fs.readFileSync(planPath, "utf-8");
+    const plan = JSON.parse(content);
+    
+    const issues: string[] = [];
+    
+    // Check required fields
+    if (!plan.plan_id) issues.push("missing plan_id");
+    if (!plan.steps || !Array.isArray(plan.steps)) issues.push("missing or invalid steps");
+    if (plan.steps && plan.steps.length === 0) issues.push("empty steps array");
+    
+    // Check step structure
+    if (plan.steps) {
+      for (let i = 0; i < plan.steps.length; i++) {
+        const step = plan.steps[i];
+        if (!step.step_id) issues.push(`step ${i}: missing step_id`);
+        if (!step.kind) issues.push(`step ${i}: missing kind`);
+        if (!step.config) issues.push(`step ${i}: missing config`);
+      }
+    }
+    
+    const durationMs = Date.now() - start;
+    
+    if (issues.length > 0) {
+      return {
+        name: "plan_structure",
+        status: "warn",
+        message: `Plan structure issues: ${issues.join(", ")}`,
+        durationMs,
+      };
+    }
+    
+    return {
+      name: "plan_structure",
+      status: "pass",
+      message: `Plan has ${plan.steps?.length || 0} step(s) with valid structure`,
+      durationMs,
+    };
+  } catch (err) {
+    return {
+      name: "plan_structure",
+      status: "fail",
+      message: `Failed to validate plan: ${err}`,
+      durationMs: Date.now() - start,
+    };
+  }
+}
+
 async function runAllChecks(): Promise<DoctorReport> {
   const checks: CheckResult[] = [];
+  const recommendations: string[] = [];
   
   // Run checks in sequence
-  checks.push(await checkCliAvailable());
+  const cliAvailable = await checkCliAvailable();
+  checks.push(cliAvailable);
+  
+  if (!cliAvailable.ok) {
+    recommendations.push("Build the CLI: make build");
+  }
+  
   checks.push(await checkRequiredFiles());
+  
+  if (checks[checks.length - 1].status === "fail") {
+    recommendations.push("Ensure demo fixtures exist in examples/demo/");
+  }
+  
   checks.push(await checkEnvVars());
   checks.push(await checkJsonParseable());
+  checks.push(await checkPlanStructure());
   checks.push(await checkCliDoctor());
   checks.push(await checkDemoArtifactsDir());
   
@@ -334,6 +428,7 @@ async function runAllChecks(): Promise<DoctorReport> {
     timestamp: new Date().toISOString(),
     checks,
     summary: { pass, fail, warn, skip },
+    recommendations,
   };
 }
 
@@ -358,6 +453,14 @@ function printReport(report: DoctorReport, jsonOutput: boolean): void {
   console.log("");
   console.log(`Summary: ${report.summary.pass} passed, ${report.summary.fail} failed, ${report.summary.warn} warned, ${report.summary.skip} skipped`);
   console.log("");
+  
+  if (report.recommendations.length > 0) {
+    console.log("Recommendations:");
+    for (const rec of report.recommendations) {
+      console.log(`  • ${rec}`);
+    }
+    console.log("");
+  }
   
   if (report.ok) {
     console.log("✓ Environment ready for demo");
