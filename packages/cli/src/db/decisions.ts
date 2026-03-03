@@ -6,6 +6,12 @@ import { getDB } from './connection.js';
 import { newId } from './helpers.js';
 import { ArtifactStore } from './artifacts.js';
 import type { DecisionInput, DecisionOutput } from '../lib/fallback.js';
+import {
+  CalibrationSample,
+  computeCalibrationMetrics,
+  detectCalibrationStatus,
+  type WindowType,
+} from '../lib/calibration.js';
 
 export interface DecisionReport {
   id: string;
@@ -282,6 +288,152 @@ export class DecisionRepository {
  * Automates the feedback loop for decision improvement.
  */
 export class CalibrationRepository {
+  static listSamples(tenantId: string, window: WindowType): CalibrationSample[] {
+    const now = Date.now();
+    const minIso = window === '7d'
+      ? new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
+      : window === '30d'
+        ? new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+    const params: unknown[] = [tenantId];
+    let query = `
+      SELECT id, tenant_id, source_type as claim_type,
+             COALESCE(input_fingerprint, 'unknown') as model_fingerprint,
+             COALESCE(policy_snapshot_hash, 'v1') as promptset_version,
+             calibration_delta, outcome_status, created_at
+      FROM decisions
+      WHERE tenant_id = ? AND calibration_delta IS NOT NULL AND outcome_status IN ('success','failure')
+    `;
+    if (minIso) {
+      query += ' AND created_at >= ?';
+      params.push(minIso);
+    }
+    query += ' ORDER BY created_at ASC, id ASC';
+
+    const rows = getDB().prepare(query).all(...params) as Array<{
+      id: string;
+      tenant_id: string;
+      claim_type: string;
+      model_fingerprint: string;
+      promptset_version: string;
+      calibration_delta: number;
+      outcome_status: 'success' | 'failure';
+      created_at: string;
+    }>;
+
+    return rows.map((row) => {
+      const y = row.outcome_status === 'success' ? 1 : 0;
+      const predicted_p = Math.max(0, Math.min(1, y - row.calibration_delta));
+      return {
+        id: row.id,
+        tenant_id: row.tenant_id,
+        claim_type: row.claim_type,
+        model_fingerprint: row.model_fingerprint,
+        promptset_version: row.promptset_version,
+        predicted_p,
+        outcome_y: y,
+        created_at: row.created_at,
+      };
+    });
+  }
+
+  static computeAndStoreMetrics(tenantId: string, window: WindowType): number {
+    const samples = this.listSamples(tenantId, window);
+    const grouped = new Map<string, CalibrationSample[]>();
+
+    for (const sample of samples) {
+      const key = `${sample.claim_type}::${sample.model_fingerprint}::${sample.promptset_version}`;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(sample);
+    }
+
+    const insertMetric = getDB().prepare(`
+      INSERT INTO calibration_metrics (
+        id, tenant_id, claim_type, model_fingerprint, promptset_version, time_window,
+        sample_size, avg_brier, ece, mce, sharpness, avg_predicted_p, empirical_frequency,
+        baseline_brier_base_rate, baseline_brier_half, status, bins_json, created_at
+      ) VALUES (
+        @id, @tenant_id, @claim_type, @model_fingerprint, @promptset_version, @time_window,
+        @sample_size, @avg_brier, @ece, @mce, @sharpness, @avg_predicted_p, @empirical_frequency,
+        @baseline_brier_base_rate, @baseline_brier_half, @status, @bins_json, @created_at
+      )
+    `);
+    const insertSignal = getDB().prepare(`
+      INSERT INTO calibration_signals (
+        id, tenant_id, signal_type, claim_type, model_fingerprint, promptset_version,
+        time_window, severity, summary_json, created_at
+      ) VALUES (
+        @id, @tenant_id, @signal_type, @claim_type, @model_fingerprint, @promptset_version,
+        @time_window, @severity, @summary_json, @created_at
+      )
+    `);
+
+    for (const [key, group] of grouped) {
+      const [claim_type, model_fingerprint, promptset_version] = key.split('::');
+      const metrics = computeCalibrationMetrics(group);
+      const status = detectCalibrationStatus(metrics, {
+        minSamples: 5,
+        confidenceGapThreshold: 0.1,
+        eceThreshold: 0.08,
+        regressionMargin: 0.01,
+      });
+      const now = new Date().toISOString();
+      insertMetric.run({
+        id: newId('calm'),
+        tenant_id: tenantId,
+        claim_type,
+        model_fingerprint,
+        promptset_version,
+        time_window: window,
+        sample_size: metrics.n,
+        avg_brier: Number(metrics.mean_brier.toFixed(6)),
+        ece: Number(metrics.ece.toFixed(6)),
+        mce: Number(metrics.mce.toFixed(6)),
+        sharpness: Number(metrics.sharpness.toFixed(6)),
+        avg_predicted_p: Number(metrics.avg_predicted_p.toFixed(6)),
+        empirical_frequency: Number(metrics.empirical_frequency.toFixed(6)),
+        baseline_brier_base_rate: Number(metrics.baseline_brier_base_rate.toFixed(6)),
+        baseline_brier_half: Number(metrics.baseline_brier_half.toFixed(6)),
+        status,
+        bins_json: JSON.stringify(metrics.bins),
+        created_at: now,
+      });
+
+      const signalType = status === 'OVERCONFIDENT'
+        ? 'CALIBRATION_OVERCONFIDENT'
+        : status === 'UNDERCONFIDENT'
+          ? 'CALIBRATION_UNDERCONFIDENT'
+          : status === 'REGRESSION'
+            ? 'CALIBRATION_REGRESSION'
+            : null;
+      if (signalType) {
+        insertSignal.run({
+          id: newId('cals'),
+          tenant_id: tenantId,
+          signal_type: signalType,
+          claim_type,
+          model_fingerprint,
+          promptset_version,
+          time_window: window,
+          severity: signalType === 'CALIBRATION_REGRESSION' ? 'CRITICAL' : 'MEDIUM',
+          summary_json: JSON.stringify(metrics),
+          created_at: now,
+        });
+      }
+    }
+
+    return grouped.size;
+  }
+
+  static latestMetrics(tenantId: string): unknown[] {
+    return getDB().prepare(`
+      SELECT * FROM calibration_metrics
+      WHERE tenant_id = ?
+      ORDER BY created_at DESC, claim_type ASC
+      LIMIT 200
+    `).all(tenantId) as unknown[];
+  }
+
   /**
    * Calculates the cumulative accuracy bias for a source type.
    * This represents the drift between predicted success and actual outcome.
@@ -300,4 +452,3 @@ export class CalibrationRepository {
     return result?.avg_delta || 0;
   }
 }
-

@@ -120,6 +120,7 @@ AUDIT & GOVERNANCE (Differentiators):
 
 GOVERNANCE COMMANDS:
   learn [--window=7d] [--format]      Show learning signals and diagnoses
+  calibration compute|show [options]  Compute/show calibration metrics
   realign <patch-id>                  Apply patch in new branch and verify
   pivot plan <name>                   Plan a strategic pivot
   rollback <sha|release> [--force]    Rollback to previous release
@@ -611,6 +612,12 @@ async function main(): Promise<number> {
       case 'learn': {
         const { runLearnCommand } = await loadCommand('./commands/learn.js') as { runLearnCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runLearnCommand(subArgs, ctx);
+        break;
+      }
+
+      case 'calibration': {
+        const { runCalibrationCommand } = await loadCommand('./commands/calibration.js') as { runCalibrationCommand: (args: string[]) => Promise<number> };
+        result = await runCalibrationCommand(subArgs);
         break;
       }
 
