@@ -423,6 +423,46 @@ export function getDB(): DB {
       )
     `);
 
+
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS calibration_metrics (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        claim_type TEXT,
+        model_fingerprint TEXT,
+        promptset_version TEXT,
+        time_window TEXT,
+        sample_size INTEGER,
+        avg_brier REAL,
+        ece REAL,
+        mce REAL,
+        sharpness REAL,
+        avg_predicted_p REAL,
+        empirical_frequency REAL,
+        baseline_brier_base_rate REAL,
+        baseline_brier_half REAL,
+        status TEXT,
+        bins_json TEXT,
+        created_at TEXT
+      )
+    `);
+
+    dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS calibration_signals (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT,
+        signal_type TEXT,
+        claim_type TEXT,
+        model_fingerprint TEXT,
+        promptset_version TEXT,
+        time_window TEXT,
+        severity TEXT,
+        summary_json TEXT,
+        created_at TEXT
+      )
+    `);
+
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS skills (
         id TEXT PRIMARY KEY,

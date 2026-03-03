@@ -35,7 +35,7 @@ export interface SchemaVersion {
 const DEFAULT_DATA_DIR = path.join(os.homedir(), '.requiem', 'data');
 
 // Schema version - bump this when schema changes
-const CURRENT_SCHEMA_VERSION = 2;
+const CURRENT_SCHEMA_VERSION = 3;
 
 export class SQLiteStorage {
   private db: Database.Database | null = null;
@@ -441,6 +441,66 @@ export class SQLiteStorage {
     this.db.prepare(`
       INSERT INTO schema_version (version, applied_at, description)
       VALUES (2, ?, 'Entropy Collapse optimization')
+    `).run(new Date().toISOString());
+  }
+
+
+  /**
+   * Migration V3: calibration loop persistence tables
+   */
+  private migrationV3(): void {
+    if (!this.db) return;
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS calibration_metrics (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        claim_type TEXT NOT NULL,
+        model_fingerprint TEXT NOT NULL,
+        promptset_version TEXT NOT NULL,
+        time_window TEXT NOT NULL,
+        sample_size INTEGER NOT NULL,
+        avg_brier REAL NOT NULL,
+        ece REAL NOT NULL,
+        mce REAL NOT NULL,
+        sharpness REAL NOT NULL,
+        avg_predicted_p REAL NOT NULL,
+        empirical_frequency REAL NOT NULL,
+        baseline_brier_base_rate REAL NOT NULL,
+        baseline_brier_half REAL NOT NULL,
+        status TEXT NOT NULL,
+        bins_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS calibration_signals (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        signal_type TEXT NOT NULL,
+        claim_type TEXT NOT NULL,
+        model_fingerprint TEXT NOT NULL,
+        promptset_version TEXT NOT NULL,
+        time_window TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        summary_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+      )
+    `);
+
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_calibration_metrics_tenant_window
+      ON calibration_metrics(tenant_id, time_window, created_at);
+      CREATE INDEX IF NOT EXISTS idx_calibration_signals_tenant_window
+      ON calibration_signals(tenant_id, time_window, created_at);
+    `);
+
+    this.db.prepare(`
+      INSERT INTO schema_version (version, applied_at, description)
+      VALUES (3, ?, 'Calibration loop persistence tables')
     `).run(new Date().toISOString());
   }
 

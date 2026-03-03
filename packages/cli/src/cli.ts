@@ -130,6 +130,7 @@ GOVERNANCE COMMANDS:
   cases apply <case_id> --run <id>     Enforce case-reuse verification policy
   signals compute --last <window>     Compute perception signals
   risk score --paths <a,b>            Compute deterministic risk score
+  calibration compute|show [options]  Compute/show calibration metrics
   realign <patch-id>                  Apply patch in new branch and verify
   pivot plan <name>                   Plan a strategic pivot
   rollback <sha|release> [--force]    Rollback to previous release
@@ -154,6 +155,7 @@ TOOL MANAGEMENT:
 DASHBOARD & SETUP:
   ui                                  Launch the web dashboard
   quickstart                          10-minute proof: install, run, verify
+  foundry <subcommand>                Build/run/export deterministic test datasets
   init                                Initialize configuration
 
 ADMIN COMMANDS:
@@ -582,6 +584,12 @@ async function main(): Promise<number> {
         break;
       }
 
+      case 'foundry': {
+        const { runFoundryCommand } = await loadCommand('./commands/foundry.js') as { runFoundryCommand: (args: string[]) => Promise<number> };
+        result = await runFoundryCommand(subArgs);
+        break;
+      }
+
       case 'quickstart': {
         const { quickstart } = await loadCommand('./commands/quickstart.js') as { quickstart: { parseAsync: (args: string[]) => Promise<void> } };
         await quickstart.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
@@ -645,6 +653,12 @@ async function main(): Promise<number> {
       case 'learn': {
         const { runLearnCommand } = await loadCommand('./commands/learn.js') as { runLearnCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runLearnCommand(subArgs, ctx);
+        break;
+      }
+
+      case 'calibration': {
+        const { runCalibrationCommand } = await loadCommand('./commands/calibration.js') as { runCalibrationCommand: (args: string[]) => Promise<number> };
+        result = await runCalibrationCommand(subArgs);
         break;
       }
 
