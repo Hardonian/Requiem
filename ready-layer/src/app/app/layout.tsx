@@ -29,6 +29,15 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    label: "Intelligence",
+    items: [
+      { href: "/intelligence/calibration", label: "Calibration" },
+      { href: "/intelligence/verification", label: "Verification" },
+      { href: "/intelligence/cases", label: "Cases" },
+      { href: "/intelligence/signals", label: "Signals" },
+    ],
+  },
+  {
     label: "Operations",
     items: [
       { href: "/app/metrics", label: "Observability" },
