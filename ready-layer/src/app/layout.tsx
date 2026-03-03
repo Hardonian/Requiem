@@ -9,11 +9,11 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Requiem — Deterministic AI Execution Layer',
+    default: 'Requiem — Deterministic Agent Compute. Verifiable by Design.',
     template: '%s | Requiem',
   },
   description:
-    'The provable AI runtime for enterprise agents. Cryptographic execution proofs, byte-perfect replay, and deny-by-default policy enforcement.',
+    'Run AI workflows with cryptographic receipts, capability enforcement, and replayable execution — not best-effort logs. Deterministic by design.',
   keywords: ['AI', 'Deterministic', 'Runtime', 'Replay', 'BLAKE3', 'Governance'],
   authors: [{ name: 'Hardonian Team' }],
   creator: 'Hardonian',
@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://requiem.hardonian.com'),
   openGraph: {
-    title: 'Requiem — Provable AI Runtime',
-    description: 'Deterministic AI execution with cryptographic proof.',
+    title: 'Requiem — Deterministic Agent Compute',
+    description: 'Run AI workflows with cryptographic receipts and replayable execution. Verifiable by design.',
     url: 'https://requiem.hardonian.com',
     siteName: 'Requiem',
     locale: 'en_US',
@@ -34,8 +34,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Requiem — Provable AI Runtime',
-    description: 'Deterministic AI execution with cryptographic proof.',
+    title: 'Requiem — Deterministic Agent Compute',
+    description: 'Run AI workflows with cryptographic receipts and replayable execution. Verifiable by design.',
     creator: '@hardonian',
     site: '@hardonian',
   },
