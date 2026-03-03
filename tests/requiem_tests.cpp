@@ -1100,33 +1100,34 @@ void test_cas_put_stream_compression() {
 #if defined(REQUIEM_WITH_ZSTD)
   const fs::path tmp = fs::temp_directory_path() / "requiem_cas_zstd_test";
   fs::remove_all(tmp);
-fs::create_directories(tmp);
+  fs::create_directories(tmp);
 
-{
-  requiem::CasStore cas(tmp.string());
+  {
+    requiem::CasStore cas(tmp.string());
 
-  // Highly compressible data
-  std::string data;
-  for (int i = 0; i < 1000; ++i)
-    data += "repeat";
+    // Highly compressible data
+    std::string data;
+    for (int i = 0; i < 1000; ++i)
+      data += "repeat";
 
-  // Write via stream with zstd
-  std::stringstream ss(data);
-  std::string digest = cas.put_stream(ss, "zstd");
-  expect(!digest.empty(), "put_stream zstd success");
+    // Write via stream with zstd
+    std::stringstream ss(data);
+    std::string digest = cas.put_stream(ss, "zstd");
+    expect(!digest.empty(), "put_stream zstd success");
 
-  // Verify object size on disk
-  auto info = cas.info(digest);
-  expect(info.has_value(), "info exists");
-  expect(info->encoding == "zstd", "encoding is zstd");
-  expect(info->stored_size < info->original_size, "compressed size smaller");
+    // Verify object size on disk
+    auto info = cas.info(digest);
+    expect(info.has_value(), "info exists");
+    expect(info->encoding == "zstd", "encoding is zstd");
+    expect(info->stored_size < info->original_size, "compressed size smaller");
 
-  // Verify read back via get_stream (decompression)
-  auto in = cas.get_stream(digest);
-  expect(in != nullptr, "get_stream success");
-  std::string read_back((std::istreambuf_iterator<char>(*in)),
-                        std::istreambuf_iterator<char>());
-  expect(read_back == data, "content matches");
+    // Verify read back via get_stream (decompression)
+    auto in = cas.get_stream(digest);
+    expect(in != nullptr, "get_stream success");
+    std::string read_back((std::istreambuf_iterator<char>(*in)),
+                          std::istreambuf_iterator<char>());
+    expect(read_back == data, "content matches");
+  }
 
   fs::remove_all(tmp);
 #endif
