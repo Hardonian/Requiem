@@ -115,6 +115,35 @@ bool valid_digest(const std::string &d) {
   return true;
 }
 
+std::optional<CasObjectInfo> load_meta_sidecar(const fs::path &meta_path) {
+  if (!fs::exists(meta_path))
+    return std::nullopt;
+
+  std::ifstream ifs(meta_path, std::ios::binary);
+  if (!ifs)
+    return std::nullopt;
+
+  std::string payload((std::istreambuf_iterator<char>(ifs)),
+                      std::istreambuf_iterator<char>());
+  if (payload.empty())
+    return std::nullopt;
+
+  std::optional<jsonlite::JsonError> err;
+  auto obj = jsonlite::parse(payload, &err);
+  if (err)
+    return std::nullopt;
+
+  CasObjectInfo info;
+  info.digest = jsonlite::get_string(obj, "digest", "");
+  info.encoding = jsonlite::get_string(obj, "encoding", "identity");
+  info.original_size = jsonlite::get_u64(obj, "original_size", 0);
+  info.stored_size = jsonlite::get_u64(obj, "stored_size", 0);
+  info.stored_blob_hash = jsonlite::get_string(obj, "stored_blob_hash", "");
+  info.created_at_unix_ts = jsonlite::get_u64(obj, "created_at", 0);
+
+  return info;
+}
+
 #if defined(REQUIEM_WITH_ZSTD)
 class ZstdDecompressStreambuf : public std::streambuf {
 public:
