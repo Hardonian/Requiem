@@ -1099,8 +1099,7 @@ void test_cas_garbage_collector() {
 void test_cas_put_stream_compression() {
 #if defined(REQUIEM_WITH_ZSTD)
   const fs::path tmp = fs::temp_directory_path() / "requiem_cas_zstd_test";
-}
-fs::remove_all(tmp);
+  fs::remove_all(tmp);
 fs::create_directories(tmp);
 
 {
