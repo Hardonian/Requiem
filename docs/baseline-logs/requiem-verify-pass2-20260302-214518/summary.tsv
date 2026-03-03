@@ -1,3 +1,4 @@
 command	exit_code	log_file
 verify:ai-safety	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_ai-safety.log
 verify:boundaries	0	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_boundaries.log
+verify:ci	1	docs/baseline-logs/requiem-verify-pass2-20260302-214518/verify_ci.log
