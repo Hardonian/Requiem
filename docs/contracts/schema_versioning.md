@@ -68,7 +68,6 @@ Requiem follows [Semantic Versioning 2.0.0](https://semver.org/) (SemVer) for al
 
 ```typescript
 // Add @deprecated JSDoc
-deeprecated
 function oldCommand() { ... }
 
 // Output deprecation warning

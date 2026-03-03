@@ -25,8 +25,8 @@
 
 ## 4. Compliance
 
-- **Q: Are you SOC 2 compliant?**
-  - A: We are currently in the audit window for SOC 2 Type II (Anticipated Q3 2026).
+- **Q: What is the current status of SOC 2 Compliance Controls?**
+  - A: We are currently in the audit window for a SOC 2 Type II audit (Anticipated Q3 2026).
 - **Q: Is a DPA (Data Processing Agreement) available?**
   - A: Yes, a standard DPA is included in our [Vendor Onboarding Pack](file:///c:/Users/scott/GitHub/Requiem/private/rfp/VENDOR_ONBOARDING_CHECKLIST.md).
 

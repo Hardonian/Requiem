@@ -13,22 +13,22 @@
 
 ### Stage B: C++ Kernel Determinism & Correctness
 
-2. **CAS Compact Logic Update** (`src/cas.cpp`): Ensure memory writes un-flag or forcibly erase deleted entries regardless of lazy `index_loaded_` states so that compaction doesn't recover orphaned JSON headers to disk.
+1. **CAS Compact Logic Update** (`src/cas.cpp`): Ensure memory writes un-flag or forcibly erase deleted entries regardless of lazy `index_loaded_` states so that compaction doesn't recover orphaned JSON headers to disk.
    - *Risk*: Medium.
    - *Rationale*: Eliminates a core failure in the `CAS Scale Readiness` test suite.
-3. **Remove Wall-Clock Dependency** (`src/audit.cpp`, `src/event_log.cpp`): Instead of hashing `std::chrono::system_clock::now()` inside the kernel log struct generator, pass `0` or an injected logical sequence time exclusively stringified in the payload.
+2. **Remove Wall-Clock Dependency** (`src/audit.cpp`, `src/event_log.cpp`): Instead of hashing `std::chrono::system_clock::now()` inside the kernel log struct generator, pass `0` or an injected logical sequence time exclusively stringified in the payload.
    - *Risk*: High. Modifies the fundamental event hash output structure.
    - *Rationale*: The "No wall-clock inside kernel paths" mandate.
-4. **Remove Raw Exceptions** (`src/policy_linter.cpp`): Replace `throw std::runtime_error()` with standard error tracking strings, removing stack leak potential across boundaries.
+3. **Remove Raw Exceptions** (`src/policy_linter.cpp`): Replace `throw std::runtime_error()` with standard error tracking strings, removing stack leak potential across boundaries.
    - *Risk*: Medium. Modifies linter semantics.
    - *Rationale*: Deterministic sandboxing requires deterministic error envelopes.
-5. **Consolidate Event Log & Audit Log**: Determine if `ImmutableAuditLog` can subclass or wrap `EventLog`, rather than duplicating 250 LOC.
+4. **Consolidate Event Log & Audit Log**: Determine if `ImmutableAuditLog` can subclass or wrap `EventLog`, rather than duplicating 250 LOC.
    - *Risk*: Medium.
    - *Rationale*: "One event append path" rule.
 
 ### Stage C: Web Route Consolidation
 
-6. **Eliminate "Hard-500" & TODO Markers** (`ready-layer/src/app/api/...`): Systematically replace `status: 500` with proper `status: 200` enclosing the `kind: 'error'` typed envelope. Remove `// TODO: Replace with actual CLI call` stubs.
+1. **Eliminate "Hard-500" & TODO Markers** (`ready-layer/src/app/api/...`): Systematically replace `status: 500` with proper `status: 200` enclosing the `kind: 'error'` typed envelope. Remove `// TODO: Replace with actual CLI call` stubs.
    - *Risk*: Low.
    - *Rationale*: Mocks are valid if they fulfill the typed schema interface for UI prototyping, but fake tests and hard-500s violate the error wrapping rules.
 

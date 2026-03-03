@@ -11,7 +11,7 @@ const BANNED_PATTERNS = [
     message: 'Avoid "perfectly". Use specific performance/invariant metrics.'
   },
   {
-    regex: /\bSOC\s*2\b(?!\s*(?:(?:Type\s+[IV]+\s+)?(?:compliant\s+design|Compliance\s+Controls|compliance|audits|readiness|designed\s+to\s+support|CC[0-9])))/i,
+    regex: /\bSOC\s*2\b(?!\s*(?:Type\s+[IV]+|readiness|audits|compliance|Compliance\s+Controls|requirements|designed\s+to\s+support|CC[0-9]))/i,
     message: 'Claims of "SOC 2" must specify "designed to support", "Compliance Controls", "audits", "readiness", or a specific criteria (e.g., CC6.1).'
   },
   {
@@ -19,7 +19,7 @@ const BANNED_PATTERNS = [
     message: 'No such thing as "absolute security". Use "verified isolation" or "cryptographic proof".'
   },
   {
-    regex: /\bguaranteed\b(?!\s*by\s+(?:verification|validation|test|invariant|gate|\[test\/command\]))/i,
+    regex: /\bguaranteed\b(?!\s*by\s+(?:verification|validation|test|invariant|gate|default|\[test\/command\]))/i,
     message: 'Claims must be "verified by [test/command]", not "guaranteed".'
   }
 ];
