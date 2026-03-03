@@ -7,6 +7,7 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 import globals from 'globals';
 
 export default [
+  nextPlugin.configs['core-web-vitals'],
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
@@ -31,23 +32,22 @@ export default [
       '@typescript-eslint': tsPlugin,
       'react': reactPlugin,
       'react-hooks': reactHooksPlugin,
-      '@next/next': nextPlugin,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
-      ...nextPlugin.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@next/next/no-html-link-for-pages': 'error',
-      '@next/next/no-img-element': 'warn',
     },
     settings: {
       react: {
         version: 'detect',
+      },
+      next: {
+        rootDir: ['.'],
       },
     },
   },
