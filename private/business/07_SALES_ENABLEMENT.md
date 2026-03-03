@@ -1,37 +1,38 @@
 # Sales Enablement: Requiem
 
-## 1. Ideal Customer Profile (ICP)
+**Version**: 1.0.0  
+**Last Updated**: 2026-03-02
 
-- **Sector**: FinTech, Legal, Healthcare, Enterprise Software.
-- **Team Size**: 20+ Engineers with at least 5 focus on AI/ML.
-- **Pain Points**:
+## 1. Battlecard: The "Provable" Pitch
 
-  - High failure rate in production AI agents.
-  - Inability to satisfy auditors regarding AI decision logic.
-  - Fear of "shadow AI" tool usage within the company.
+### The Problem
+Companies are terrified of "Rogue AI" or "Hallucination Costs." They usually solve this by adding more filters or restricting use cases.
 
-## 2. Discovery Questions
+### The Requiem Solution
+Don't restrict the AI; govern the **Execution**. We provide the sandbox and the "Flight Recorder." If it's not strictly according to policy, it doesn't happen.
 
-- "How do you currently prove to your legal team that your AI agent didn't violate a data privacy policy?"
-- "If a customer asks for a step-by-step audit of an AI-generated decision from 3 months ago, how long does it take you to produce that?"
-- "What happens today when you upgrade from GPT-4 to a newer model—how do you guarantee no behavior regressions?"
+## 2. Typical Objections & Rebuttals
 
-## 3. Demo Script Highlights
+| Objection | Rebuttal |
+|-----------|----------|
+| **"Doesn't this add latency?"** | Our core engine is C++. Hashing overhead is < 5ms. The cost of a single hallucination or budget overrun is far higher than 5ms. |
+| **"We already use LangSmith for logs."** | Logs are for developers to *read*. Receipts are for the system to *verify*. You can't replay a LangSmith log and guarantee it was the original output. With Requiem, you can. |
+| **"Our model provider handles safety."** | Model safety is context-blind. Requiem's Policy VM enforces *your* business logic (e.g., "Don't spend more than $10 on this specific user") which models can't see. |
+| **"Is this another vendor lock-in?"** | Our core is MIT Licensed. You own your receipts and your logs. We provide the management layer for convenience and scale. |
 
-1. **The Proof**: Run a tool call, show the BLAKE3 hash. "This is your cryptographic receipt."
-2. **The Policy**: Attempt a forbidden tool call. Show the `reach run` failure. "The gate is enforced at the runtime level. No bypass."
-3. **The Replay**: Open ReadyLayer. Replay the run. "Identical result, verified to the byte."
+## 3. Discovery Questions
+- "How do you prove to your CISO that an AI agent didn't access unauthorized data?"
+- "If a customer claims an AI made an illegal promise, how do you reproduce the exact state of that decision today?"
+- "What happens when your model provider updates their model and your agent's behavior drifts? How do you detect it before customers do?"
 
-## 4. Objection Responses
+## 4. The "Reach Verify" Demo
+1. Run a tool: `reach run system.echo '{"test":1}'`
+2. Show the fingerprint.
+3. Modify the underlying data.
+4. Run `reach verify <hash>` and show it **FAIL**.
+5. Explain: "This failure is your safety net. If the state isn't exactly what was proven, Requiem stops it."
 
-- **"We already have logs"**: "Logs are just stories. Requiem produces *evidence*. You can't replay a log to verify its integrity."
-- **"This sounds complex"**: "It’s one CLI command (`reach`). We handle the hashing, the sandbox, and the policy evaluation automatically."
-- **"We trust our providers (OpenAI/Anthropic)"**: "You trust them to provide the model, but you need to verify *your use* of that model. Requiem is the bridge between their raw output and your business safety."
-
-## 5. Proof Checklist for POCs
-
-- [ ] Install Reach CLI locally.
-- [ ] Connect a custom tool (MCP).
-- [ ] Define a "Deny-by-Default" policy.
-- [ ] Verify a deterministic execution across two different team member machines.
-- [ ] View the run trace in ReadyLayer.
+## 5. Pricing Guidance
+- Start with a "Governance Audit" (Free/OSS).
+- Upsell to "Departmental Enforcement" (Pro).
+- Close on "Institutional Integrity" (Enterprise).

@@ -1,39 +1,41 @@
 # Go-To-Market (GTM) Strategy: Requiem
 
-## 1. Phase 1: OSS Launch (Developer-Led)
+**Version**: 1.0.0  
+**Last Updated**: 2026-03-02
 
-- **Target**: GitHub community, AI builders, Platform engineers.
-- **Channels**: Hacker News, Reddit (r/MachineLearning), Twitter (AI Dev community).
-- **Core Hook**: "Stop guessing what your AI is doing—get a cryptographic receipt."
-- **Key Asset**: The `reach run` vs `reach verify` local loop.
+## 1. The "Land and Expand" Motion
 
-## 2. Phase 2: Product Hunt & Early Adopters
+### Phase 1: Developer Utility (The "Land")
+- **Vehicle**: `reach` CLI (OSS).
+- **Hook**: Solve the "it works on my machine but fails in production" problem with deterministic verification.
+- **Goal**: Establish Requiem as the debugging standard for AI agents.
 
-- **Target**: Mid-market startups building AI agents.
-- **Goal**: Convert individual reach users to teams on ReadyLayer Dashboard.
-- **Campaign**: "The Microfracture Suite: Find the cracks in your AI before they break your business."
+### Phase 2: Team Collaboration (The "Expand")
+- **Vehicle**: ReadyLayer Cloud (Pro Tier).
+- **Hook**: Shareable "Proof Cards" for bug reports and performance comparisons.
+- **Goal**: Move from individual debugging to team-wide visibility.
 
-## 3. Phase 3: Enterprise Motion
+### Phase 3: Enterprise Governance (The "Consolidate")
+- **Vehicle**: Requiem Enterprise.
+- **Hook**: Centralized policy enforcement, cost attribution, and compliance "Receipts" for legal/audit.
+- **Goal**: Mandate Requiem as the standardized runtime for all production AI.
 
-- **Target**: CTOs and Heads of AI at Fortune 500 companies.
-- **Strategy**: Direct sales and partnerships with AI Infrastructure providers (e.g., Anthropic, OpenAI, AWS Bedrock).
-- **Positioning**: "Compliance and Governance for Autonomous Agent Clusters."
+## 2. Channel Strategy
+- **Direct**: Sales focus on "Head of AI Platform" and "CISO" at Fintech/Legaltech firms.
+- **OSS Community**: Engagement via GitHub, Discord, and technical blogging on "Provability."
+- **Partnerships**: SI (System Integrators) who specialize in Regulated AI deployment.
 
-## 4. Content Plan
+## 3. Marketing Tactics
+- **Content**: "Proof of Determinism" series—Deep dives into BLAKE3, Merkle chains, and why generic logging fails.
+- **Events**: Demos at AI Safety and Platform Engineering conferences.
+- **Product Hunt**: Launching the "Reach Proof Library" to the developer community.
 
-- **"The State of AI Determinism" Report**: Proprietary data (anonymized) on how often top models drift.
-- **Demos**: 60-second video of catching a policy violation in real-time.
-- **Case Studies**: "How [Company X] used Requiem to audit 1M agent actions for regulatory compliance."
+## 4. Sales Stages
+1. **Proof of Concept (PoC)**: Integrate `reach` into one non-critical agent. Verify 100% determinism.
+2. **Pilot**: Deploy Policy VM to enforce budgets for one department.
+3. **Full Rollout**: Centralize all agent execution through Requiem for audit integrity.
 
-## 5. Partnerships
-
-- **MCP Ecosystem**: Become the default "Safe Runtime" for Model Context Protocol servers.
-- **Cloud Providers**: Native integrations into AWS Bedrock and Azure AI Studio as a governance layer.
-
-## 6. Launch Timeline (30 Days)
-
-- **Day 1-7**: Finalize README and "Reality Gate" CI.
-- **Day 8-14**: Preview launch to select design partners.
-- **Day 15**: Public GitHub Launch + HN Post.
-- **Day 20**: Release "The Microfracture Suite" case study.
-- **Day 30**: Product Hunt Launch.
+## 5. Key OKRs
+- **Adoption**: 10k monthly active CLI users within 6 months.
+- **Retention**: < 5% churn on Pro tier.
+- **Verification**: 1 Million executions verified per month globally.
