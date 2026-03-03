@@ -2,11 +2,11 @@
   "name": "ready-layer",
   "version": "1.0.0",
   "private": true,
-  "description": "ReadyLayer — AI control plane dashboard for the Requiem engine",
+  "description": "ReadyLayer \u2014 AI control plane dashboard for the Requiem engine",
   "scripts": {
     "dev": "next dev",
-    "build": "npm run lint && npm run type-check && next build",
-    "analyze": "ANALYZE=true npm run build",
+    "build": "pnpm run lint && pnpm run type-check && next build",
+    "analyze": "ANALYZE=true pnpm run build",
     "start": "next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
@@ -20,14 +20,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "verify": "npm run type-check && npm run lint",
+    "verify": "pnpm run type-check && pnpm run lint",
     "doctor": "echo 'Run doctor from root: pnpm doctor'",
     "verify:boundaries": "node ../scripts/run-tsx.mjs scripts/verify-boundaries.ts",
     "verify:integrity": "node ../scripts/run-tsx.mjs scripts/verify-integrity.ts",
     "verify:policy": "node ../scripts/run-tsx.mjs scripts/verify-policy.ts",
     "verify:replay": "node ../scripts/run-tsx.mjs scripts/verify-replay.ts",
     "verify:web": "node ../scripts/run-tsx.mjs scripts/verify-web.ts",
-    "verify:all": "npm run verify:web && npm run verify:boundaries && npm run verify:integrity && npm run verify:policy && npm run verify:replay"
+    "verify:all": "pnpm run verify:web && pnpm run verify:boundaries && pnpm run verify:integrity && pnpm run verify:policy && pnpm run verify:replay"
   },
   "dependencies": {
     "@babel/parser": "^7.28.6",
