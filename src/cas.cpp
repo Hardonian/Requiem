@@ -438,15 +438,29 @@ std::optional<std::string> CasStore::get(const std::string &digest) const {
   if (!meta)
     return std::nullopt;
 
+  // Sidecar metadata is authoritative for blob integrity fields at read time.
+  auto sidecar = load_meta_sidecar(meta_path(digest));
+  if (!sidecar)
+    return std::nullopt;
+  if (!sidecar->digest.empty() && sidecar->digest != digest)
+    return std::nullopt;
+  if (sidecar->stored_blob_hash.empty())
+    return std::nullopt;
+
+  const std::string encoding =
+      sidecar->encoding.empty() ? meta->encoding : sidecar->encoding;
+  const std::size_t original_size =
+      sidecar->original_size == 0 ? meta->original_size : sidecar->original_size;
+
   // Verify stored blob integrity (plain BLAKE3, no domain prefix for blob
   // hash).
   const auto stored_hash = blake3_hex(data);
-  if (stored_hash != meta->stored_blob_hash)
+  if (stored_hash != sidecar->stored_blob_hash)
     return std::nullopt;
 
 #if defined(REQUIEM_WITH_ZSTD)
-  if (meta->encoding == "zstd")
-    data = decompress_zstd(data, meta->original_size);
+  if (encoding == "zstd")
+    data = decompress_zstd(data, original_size);
 #endif
 
   // INV-2 ENFORCEMENT: Verify original content integrity using cas: domain
