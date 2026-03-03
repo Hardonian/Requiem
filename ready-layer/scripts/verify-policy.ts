@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * verify:policy - Policy engine verification per KERNEL_SPEC §7
  *

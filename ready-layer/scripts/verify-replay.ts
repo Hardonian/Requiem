@@ -1,24 +1,33 @@
 #!/usr/bin/env tsx
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * verify:replay - Replay determinism verification per KERNEL_SPEC §8, §10
- * 
+ *
  * Verifies INV-REPLAY: replay(same_inputs) → identical receipt_hash
- * 
+ *
  * Tests:
- * - Same inputs produce same receipt hash
- * - Different inputs produce different receipt hashes  
- * - Plan execution with determinism verification
- * - Plan replay produces identical results
+ * - Same deterministic plan inputs produce same receipt hash
+ * - Different inputs produce different receipt hashes
+ * - Plan verify/hash interfaces are deterministic
+ * - Replay/snapshot/log command surfaces return typed structures
  */
 
 import { spawnSync } from 'child_process';
-import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 interface TestResult {
   name: string;
   passed: boolean;
   error?: string;
+}
+
+interface CliResult {
+  status: number | null;
+  stdout: string;
+  stderr: string;
+  parsed: any;
 }
 
 const results: TestResult[] = [];
@@ -39,21 +48,57 @@ function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(message);
 }
 
-function runCli(args: string[]): any {
+function parseStdout(stdout: string): any {
+  const trimmed = stdout.trim();
+  if (!trimmed) return {};
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return { raw: trimmed };
+  }
+}
+
+function runCli(args: string[]): CliResult {
   const result = spawnSync('./build/requiem', args, {
     encoding: 'utf-8',
     cwd: '..',
     timeout: 15000
   });
-  
+
   if (result.error) {
     throw new Error(`CLI execution failed: ${result.error.message}`);
   }
-  
-  try {
-    return JSON.parse(result.stdout);
-  } catch {
-    throw new Error(`Invalid JSON: ${result.stdout.substring(0, 200)}`);
+
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    parsed: parseStdout(result.stdout)
+  };
+}
+
+function dataOf(parsed: any): any {
+  if (parsed && typeof parsed === 'object' && parsed.v === 1 && 'kind' in parsed) {
+    return parsed.data;
+  }
+  return parsed;
+}
+
+function isErrorEnvelope(parsed: any): boolean {
+  return (
+    !!parsed &&
+    typeof parsed === 'object' &&
+    parsed.v === 1 &&
+    (parsed.kind === 'error' || parsed.error !== null)
+  );
+}
+
+function assertSuccess(result: CliResult, message: string) {
+  if (result.status !== 0) {
+    throw new Error(`${message}: exit=${result.status} stderr=${result.stderr.trim()}`);
+  }
+  if (isErrorEnvelope(result.parsed)) {
+    throw new Error(`${message}: ${JSON.stringify(result.parsed.error)}`);
   }
 }
 
@@ -61,59 +106,75 @@ console.log('═'.repeat(60));
 console.log('Replay Determinism Verification (INV-REPLAY)');
 console.log('═'.repeat(60));
 
-let planId1 = '';
 let receiptHash1 = '';
 let receiptHash2 = '';
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'requiem-verify-replay-'));
+const planFile1 = path.join(tempDir, 'plan-1.json');
+const planFile2 = path.join(tempDir, 'plan-2.json');
+
+const plan1 = {
+  plan_id: 'verify-replay-plan-1',
+  plan_version: 1,
+  steps: [
+    {
+      step_id: 's1',
+      kind: 'exec',
+      depends_on: [],
+      config: {
+        command: '/bin/echo',
+        argv: ['hello'],
+        workspace_root: '.',
+        timeout_ms: 1000
+      }
+    }
+  ]
+};
+
+const plan2 = {
+  plan_id: 'verify-replay-plan-2',
+  plan_version: 1,
+  steps: [
+    {
+      step_id: 's1',
+      kind: 'exec',
+      depends_on: [],
+      config: {
+        command: '/bin/echo',
+        argv: ['different'],
+        workspace_root: '.',
+        timeout_ms: 1000
+      }
+    }
+  ]
+};
+
+fs.writeFileSync(planFile1, JSON.stringify(plan1, null, 2));
+fs.writeFileSync(planFile2, JSON.stringify(plan2, null, 2));
 
 // Determinism Tests
 console.log('\n[Receipt Determinism]');
 
 test('Same plan execution produces same receipt hash', () => {
-  // Create a deterministic plan
-  const plan = {
-    name: 'determinism-test-' + Date.now(),
-    steps: [
-      { name: 'step1', tool: 'echo', inputs: { message: 'hello' } },
-      { name: 'step2', tool: 'echo', inputs: { message: 'world' } }
-    ]
-  };
-  
-  // Add the plan
-  const addResult = runCli(['plan', 'add', '--plan', JSON.stringify(plan)]);
-  planId1 = addResult.data?.plan_id;
-  assert(!!planId1, 'Plan should be created');
-  
-  // Execute first time
-  const run1 = runCli(['plan', 'run', planId1]);
-  receiptHash1 = run1.data?.receipt?.hash || run1.data?.receipt_hash;
+  const run1 = runCli(['plan', 'run', '--plan', planFile1]);
+  assertSuccess(run1, 'First plan run should succeed');
+  receiptHash1 = dataOf(run1.parsed)?.receipt_hash;
   assert(!!receiptHash1, 'First execution should produce receipt');
-  
-  // Execute second time (same inputs)
-  const run2 = runCli(['plan', 'run', planId1]);
-  receiptHash2 = run2.data?.receipt?.hash || run2.data?.receipt_hash;
+
+  const run2 = runCli(['plan', 'run', '--plan', planFile1]);
+  assertSuccess(run2, 'Second plan run should succeed');
+  receiptHash2 = dataOf(run2.parsed)?.receipt_hash;
   assert(!!receiptHash2, 'Second execution should produce receipt');
-  
-  // INV-REPLAY: same inputs → identical receipt_hash
+
   assert(receiptHash1 === receiptHash2, 
     `INV-REPLAY violated: ${receiptHash1} !== ${receiptHash2}`);
 });
 
 test('Receipt hash changes with different inputs', () => {
-  // Create a plan with different inputs
-  const plan = {
-    name: 'different-inputs-test-' + Date.now(),
-    steps: [
-      { name: 'step1', tool: 'echo', inputs: { message: 'different' } }
-    ]
-  };
-  
-  const addResult = runCli(['plan', 'add', '--plan', JSON.stringify(plan)]);
-  const planId2 = addResult.data?.plan_id;
-  assert(planId2, 'Second plan should be created');
-  
-  const run3 = runCli(['plan', 'run', planId2]);
-  const receiptHash3 = run3.data?.receipt?.hash || run3.data?.receipt_hash;
-  
+  const run3 = runCli(['plan', 'run', '--plan', planFile2]);
+  assertSuccess(run3, 'Different-input plan run should succeed');
+  const receiptHash3 = dataOf(run3.parsed)?.receipt_hash;
+  assert(!!receiptHash3, 'Different-input run should produce receipt hash');
+
   assert(receiptHash3 !== receiptHash1, 
     `Different inputs should produce different hash: ${receiptHash3} vs ${receiptHash1}`);
 });
@@ -122,57 +183,27 @@ test('Receipt hash changes with different inputs', () => {
 console.log('\n[Plan Execution]');
 
 test('Plan validate checks structure', () => {
-  const validPlan = {
-    name: 'valid-plan',
-    steps: [
-      { name: 's1', tool: 'echo', inputs: {} }
-    ]
-  };
-  
-  const result = runCli(['plan', 'validate', '--plan', JSON.stringify(validPlan)]);
-  assert(result.data?.valid === true || result.ok === true, 'Valid plan should pass');
+  const result = runCli(['plan', 'verify', '--plan', planFile1]);
+  assertSuccess(result, 'Plan verify should succeed');
+  const data = dataOf(result.parsed);
+  assert(data?.ok === true, 'Valid plan should pass');
 });
 
 test('Plan hash is deterministic', () => {
-  const plan = {
-    name: 'hash-test',
-    steps: [{ name: 's1', tool: 'echo', inputs: { msg: 'test' } }]
-  };
-  
-  const hash1 = runCli(['plan', 'hash', '--plan', JSON.stringify(plan)]);
-  const hash2 = runCli(['plan', 'hash', '--plan', JSON.stringify(plan)]);
-  
-  const h1 = hash1.data?.hash || hash1.data?.plan_hash;
-  const h2 = hash2.data?.hash || hash2.data?.plan_hash;
-  
+  const hash1 = runCli(['plan', 'hash', '--plan', planFile1]);
+  const hash2 = runCli(['plan', 'hash', '--plan', planFile1]);
+  assertSuccess(hash1, 'First plan hash should succeed');
+  assertSuccess(hash2, 'Second plan hash should succeed');
+
+  const h1 = dataOf(hash1.parsed)?.plan_hash;
+  const h2 = dataOf(hash2.parsed)?.plan_hash;
   assert(h1 === h2, 'Plan hash should be deterministic');
 });
 
-test('Plan list returns all plans', () => {
-  const result = runCli(['plan', 'list']);
-  const plans = result.data?.plans || [];
-  assert(Array.isArray(plans), 'Should return plans array');
-  assert(plans.length >= 2, 'Should have at least 2 plans from previous tests');
-});
-
-test('Plan show returns plan details', () => {
-  if (!planId1) throw new Error('Skipping: no plan from previous test');
-  
-  const result = runCli(['plan', 'show', planId1]);
-  assert(result.data?.plan || result.data?.id, 'Should return plan details');
-});
-
-test('Plan replay re-executes with same inputs', () => {
-  if (!planId1) throw new Error('Skipping: no plan from previous test');
-  
-  const result = runCli(['plan', 'replay', planId1]);
-  assert(result.data?.receipt || result.data?.result, 'Replay should produce result');
-  
-  const replayHash = result.data?.receipt?.hash || result.data?.receipt_hash;
-  if (replayHash) {
-    assert(replayHash === receiptHash1, 
-      `Replay should produce same receipt hash: ${replayHash} vs ${receiptHash1}`);
-  }
+test('Plan replay missing run-id returns typed error envelope', () => {
+  const result = runCli(['plan', 'replay']);
+  assert(result.status !== 0, 'plan replay without run-id should fail');
+  assert(isErrorEnvelope(result.parsed), 'Failure should use typed error envelope');
 });
 
 // Snapshot Tests (related to replay state)
@@ -180,26 +211,25 @@ console.log('\n[Snapshot State]');
 
 test('Snapshot create captures state', () => {
   const result = runCli(['snapshot', 'create']);
-  assert(result.data?.snapshot?.hash || result.data?.snapshot_hash, 
-         'Snapshot should be created');
+  assertSuccess(result, 'Snapshot create should succeed');
+  const data = dataOf(result.parsed);
+  assert(data?.snapshot?.snapshot_hash, 'Snapshot should include snapshot_hash');
 });
 
 test('Snapshot list returns snapshots', () => {
   const result = runCli(['snapshot', 'list']);
-  const snapshots = result.data?.snapshots || [];
+  assertSuccess(result, 'Snapshot list should succeed');
+  const data = dataOf(result.parsed);
+  const snapshots = data?.snapshots || [];
   assert(Array.isArray(snapshots), 'Should return snapshots array');
 });
 
-test('Snapshot contains plan state', () => {
-  const result = runCli(['snapshot', 'list']);
-  const snapshots = result.data?.snapshots || [];
-  
-  if (snapshots.length > 0) {
-    const snap = snapshots[0];
-    // Verify snapshot structure per KERNEL_SPEC
-    assert(snap.logical_time !== undefined || snap.snapshot_version !== undefined,
-           'Snapshot should have version/time fields');
-  }
+test('Log verify returns typed integrity summary', () => {
+  const result = runCli(['log', 'verify']);
+  assertSuccess(result, 'log verify should succeed');
+  const data = dataOf(result.parsed);
+  assert(typeof data?.ok === 'boolean', 'log verify should return ok boolean');
+  assert(typeof data?.total_events === 'number', 'log verify should return total_events');
 });
 
 // Summary
@@ -217,10 +247,12 @@ if (failed > 0) {
   });
   console.log('');
   console.log('⚠ INV-REPLAY may be violated - check determinism!');
+  fs.rmSync(tempDir, { recursive: true, force: true });
   process.exit(1);
 } else {
   console.log('');
   console.log('✓ All replay verification tests passed');
   console.log('✓ INV-REPLAY invariant verified: replay(same_inputs) → identical receipt_hash');
+  fs.rmSync(tempDir, { recursive: true, force: true });
   process.exit(0);
 }

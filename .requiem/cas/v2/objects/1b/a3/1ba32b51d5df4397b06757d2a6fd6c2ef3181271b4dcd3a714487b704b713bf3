@@ -1,0 +1,10 @@
+{
+  "name": "verify-policy",
+  "rules": [
+    {
+      "effect": "allow",
+      "action": "read",
+      "resource": "/public/*"
+    }
+  ]
+}
