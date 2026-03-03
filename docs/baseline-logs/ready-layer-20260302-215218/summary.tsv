@@ -5,3 +5,10 @@ type-check	0	docs/baseline-logs/ready-layer-20260302-215218/type-check.log
 test	1	docs/baseline-logs/ready-layer-20260302-215218/test.log
 build	0	docs/baseline-logs/ready-layer-20260302-215218/build.log
 doctor	0	docs/baseline-logs/ready-layer-20260302-215218/doctor.log
+verify	0	docs/baseline-logs/ready-layer-20260302-215218/verify.log
+verify:all	1	docs/baseline-logs/ready-layer-20260302-215218/verify_all.log
+verify:boundaries	1	docs/baseline-logs/ready-layer-20260302-215218/verify_boundaries.log
+verify:integrity	1	docs/baseline-logs/ready-layer-20260302-215218/verify_integrity.log
+verify:policy	1	docs/baseline-logs/ready-layer-20260302-215218/verify_policy.log
+verify:replay	1	docs/baseline-logs/ready-layer-20260302-215218/verify_replay.log
+verify:web	1	docs/baseline-logs/ready-layer-20260302-215218/verify_web.log
