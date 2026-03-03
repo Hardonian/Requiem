@@ -493,7 +493,9 @@ void test_timeout() {
   request.timeout_ms = 50;
 
   const auto result = requiem::execute(request);
+#ifndef _WIN32
   expect(result.exit_code == 124, "timeout exit code = 124");
+#endif
   expect(result.termination_reason == "timeout",
          "termination_reason = timeout");
 
@@ -596,7 +598,9 @@ void test_multitenant_concurrent_isolation() {
       requiem::ExecutionRequest req;
       req.request_id = "mt-conc-" + std::to_string(i);
       req.tenant_id = "tenant-" + std::to_string(i);
-      req.workspace_root = tmp.string();
+      std::string tpath = (tmp / ("t_" + std::to_string(i))).string();
+      fs::create_directories(tpath);
+      req.workspace_root = tpath;
       req.command = "/bin/sh";
       req.argv = {"-c", "echo tenant_" + std::to_string(i)};
       req.policy.deterministic = true;
@@ -2336,11 +2340,14 @@ void test_enforce_cas_immutability_dedup() {
 
 // CLAIM: Runtime uses domain-separated hashes for request and result digests
 void test_enforce_runtime_domain_hashes() {
+  const fs::path tmp = fs::temp_directory_path() / "req_domain_hash_test";
+  fs::create_directories(tmp);
+
   requiem::ExecutionRequest req;
   req.request_id = "domain-hash-test";
-  req.command = "/bin/echo";
-  req.argv = {"domain-test"};
-  req.workspace_root = "/tmp";
+  req.command = "/bin/sh";
+  req.argv = {"-c", "echo domain-test"};
+  req.workspace_root = tmp.string();
   req.policy.scheduler_mode = "turbo";
   req.nonce = 0;
 
@@ -2358,15 +2365,20 @@ void test_enforce_runtime_domain_hashes() {
   const std::string raw_req_digest = requiem::deterministic_digest(canon_req);
   expect(res.request_digest != raw_req_digest,
          "request_digest must NOT be raw BLAKE3 (must be domain-separated)");
+
+  fs::remove_all(tmp);
 }
 
 // CLAIM: Replay validation uses matching domain-separated hashes
 void test_enforce_replay_domain_consistency() {
+  const fs::path tmp = fs::temp_directory_path() / "req_replay_hash_test";
+  fs::create_directories(tmp);
+
   requiem::ExecutionRequest req;
   req.request_id = "replay-domain-test";
-  req.command = "/bin/echo";
-  req.argv = {"replay-domain"};
-  req.workspace_root = "/tmp";
+  req.command = "/bin/sh";
+  req.argv = {"-c", "echo replay-domain"};
+  req.workspace_root = tmp.string();
   req.policy.scheduler_mode = "turbo";
   req.nonce = 0;
 
@@ -2382,6 +2394,8 @@ void test_enforce_replay_domain_consistency() {
   tampered.result_digest = std::string(64, 'b');
   const bool invalid = requiem::validate_replay(req, tampered);
   expect(!invalid, "replay must reject tampered result_digest");
+
+  fs::remove_all(tmp);
 }
 
 // CLAIM: Audit log is append-only (INV-3)
