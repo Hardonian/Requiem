@@ -12,7 +12,7 @@ Requiem follows SemVer. All public APIs (CLI, UI, Library) are subject to these 
 
 ### Invariant Stability Rule
 
-**Hashing Algorithm (BLAKE3-v1)**
+#### Hashing Algorithm (BLAKE3-v1)
 
 - Changing the hashing protocol or domain separation constitutes a MAJOR breaking change.
 - In-place performance optimizations that do NOT change the result digest are MINOR or PATCH.
