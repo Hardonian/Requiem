@@ -24,7 +24,7 @@ export function VerificationBadge({
   onVerify,
   className = ''
 }: VerificationBadgeProps) {
-  const styles = {
+  const config = {
     verified: {
       bg: 'bg-green-50 dark:bg-green-900/20',
       border: 'border-green-200 dark:border-green-800',
@@ -34,7 +34,9 @@ export function VerificationBadge({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      defaultMessage: 'Verification passed'
+      defaultMessage: 'Verification passed',
+      showButton: true,
+      buttonText: 'Verify Again'
     },
     failed: {
       bg: 'bg-red-50 dark:bg-red-900/20',
@@ -45,7 +47,9 @@ export function VerificationBadge({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      defaultMessage: 'Verification failed'
+      defaultMessage: 'Verification failed',
+      showButton: true,
+      buttonText: 'Verify'
     },
     pending: {
       bg: 'bg-yellow-50 dark:bg-yellow-900/20',
@@ -57,7 +61,9 @@ export function VerificationBadge({
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
       ),
-      defaultMessage: 'Verifying...'
+      defaultMessage: 'Verifying...',
+      showButton: false,
+      buttonText: ''
     },
     unknown: {
       bg: 'bg-gray-50 dark:bg-gray-800',
@@ -68,11 +74,13 @@ export function VerificationBadge({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      defaultMessage: 'Not verified'
+      defaultMessage: 'Not verified',
+      showButton: false,
+      buttonText: ''
     }
   };
 
-  const style = styles[status];
+  const style = config[status];
 
   return (
     <div 
@@ -96,10 +104,9 @@ export function VerificationBadge({
             </p>
           )}
         </div>
-        {onVerify && status !== 'pending' && (
+        {onVerify && style.showButton && (
           <button
             onClick={onVerify}
-            disabled={status === 'pending'}
             className={`
               px-3 py-1.5 text-sm font-medium rounded-md
               transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -110,7 +117,7 @@ export function VerificationBadge({
             `}
             type="button"
           >
-            {status === 'verified' ? 'Verify Again' : 'Verify'}
+            {style.buttonText}
           </button>
         )}
       </div>
