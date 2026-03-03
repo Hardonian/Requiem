@@ -231,7 +231,7 @@ export function generateSeededSampleDataset(
   const labels: Label[] = [];
 
   const labelGenerator = config.include_labels
-    ? createSimpleLabelGenerator(rng, config.label_distribution)
+    ? createSimpleLabelGenerator(rng, config.label_distribution ?? { positive: 0.4, neutral: 0.35, negative: 0.25 })
     : null;
 
   let totalSizeBytes = 0;

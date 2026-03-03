@@ -241,7 +241,7 @@ describe('Foundry API Smoke Tests', () => {
       };
 
       expect(errorResponse.trace_id).toBeDefined();
-      expect(errorResponse.trace_id).toHaveLength.greaterThan(0);
+      expect(errorResponse.trace_id.length).toBeGreaterThan(0);
     });
 
     it('should include trace_id in success responses', () => {
