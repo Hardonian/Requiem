@@ -37,6 +37,9 @@
     "./eval": {
       "types": "./dist/eval/index.d.ts",
       "import": "./dist/eval/index.js"
+    },
+    "./bootstrap": {
+      "import": "./src/bootstrap.ts"
     }
   },
   "scripts": {

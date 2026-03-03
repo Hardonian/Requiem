@@ -43,6 +43,17 @@ const nextConfig: NextConfig = {
     ];
   },
 
+
+  webpack: (config) => {
+    config.resolve = config.resolve || {};
+    config.resolve.extensionAlias = {
+      ...(config.resolve.extensionAlias || {}),
+      '.js': ['.ts', '.tsx', '.js'],
+      '.mjs': ['.mts', '.mjs'],
+    };
+    return config;
+  },
+
   // Rewrites: proxy engine API calls to Node API boundary in production.
   // INVARIANT: Only /api/engine/* and /api/cas/* routes may be proxied here.
   // Marketing routes (/, /docs, /pricing) must NEVER be proxied to the engine.

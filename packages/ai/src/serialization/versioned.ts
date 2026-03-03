@@ -398,8 +398,8 @@ export function testBackwardCompatibility(
       const original = canonicalStringify(testCase);
       const restored = canonicalStringify(deserialized);
       
-      if (original !== restored.push(`Canonical form) {
-        failures mismatch for ${JSON.stringify(testCase).slice(0, 50)}`);
+      if (original !== restored) {
+        failures.push(`Canonical form mismatch for ${JSON.stringify(testCase).slice(0, 50)}`);
       }
     } catch (e) {
       failures.push(`Serialization error: ${(e as Error).message}`);

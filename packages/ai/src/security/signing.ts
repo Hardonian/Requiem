@@ -26,9 +26,9 @@ export type SignatureAlgorithm = 'ed25519' | 'rsa-sha256' | 'hmac-sha256';
  * Artifact signature structure
  */
 export interface ArtifactSignature {
-  /** Unique signature ID: string;
-  /** SHA */
-  signatureId-256 of the artifact content */
+  /** Unique signature ID */
+  signatureId: string;
+  /** SHA-256 of the artifact content */
   artifactHash: string;
   /** Algorithm used */
   algorithm: SignatureAlgorithm;
