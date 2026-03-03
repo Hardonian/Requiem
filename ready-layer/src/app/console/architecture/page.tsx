@@ -13,7 +13,6 @@
  */
 
 import { 
-  StitchHeader, 
   StitchContainer, 
   StitchCard,
   StitchActivityItem,

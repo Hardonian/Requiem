@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NextRequest } from 'next/server';
 
-function authHeaders(tenantId = 'tenant-contract-1'): HeadersInit {
+function authHeaders(tenantId = 'tenant-contract-1'): Record<string, string> {
   return {
     authorization: 'Bearer contract-token',
     'x-tenant-id': tenantId,

@@ -22,7 +22,7 @@ export interface ProblemOptions {
   code?: string;
   errors?: Array<Record<string, unknown>>;
   retryAfterSec?: number;
-  headers?: HeadersInit;
+  headers?: Record<string, string> | Headers;
 }
 
 export class ProblemError extends Error {

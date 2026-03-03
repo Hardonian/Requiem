@@ -9,8 +9,6 @@
  * - Title, badge, and description per step
  */
 
-import { ReactNode } from 'react';
-
 interface TimelineStep {
   id: string;
   title: string;
@@ -26,7 +24,7 @@ interface StitchTimelineProps {
 export function StitchTimeline({ steps, className = '' }: StitchTimelineProps) {
   return (
     <div className={`relative pl-4 border-l border-[#2a3441] space-y-8 ${className}`}>
-      {steps.map((step, index) => (
+      {steps.map((step) => (
         <div key={step.id} className="relative">
           {/* Dot indicator */}
           <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-[#1c252e] border-2 border-[#137fec]" />

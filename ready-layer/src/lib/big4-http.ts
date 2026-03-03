@@ -151,7 +151,7 @@ async function toCachedResponse(response: Response, expiresAtMs: number): Promis
   };
 }
 
-function fromCachedResponse(snapshot: CachedResponse, headers: HeadersInit = {}): Response {
+function fromCachedResponse(snapshot: CachedResponse, headers: Record<string, string> | Headers = {}): Response {
   const merged = new Headers(snapshot.headers);
   const extra = new Headers(headers);
   for (const [key, value] of extra.entries()) {
@@ -450,7 +450,7 @@ export function jsonResponse(
   payload: unknown,
   ctx: Pick<RequestContext, 'trace_id' | 'request_id'>,
   status = 200,
-  headers?: HeadersInit,
+  headers?: Record<string, string> | Headers,
 ): NextResponse {
   const response = NextResponse.json(payload, {
     status,

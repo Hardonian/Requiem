@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { withTenantContext } from '../src/lib/big4-http';
 
-function authHeaders(tenantId = 'tenant-hard500-1'): HeadersInit {
+function authHeaders(tenantId = 'tenant-hard500-1'): Record<string, string> {
   return {
     authorization: 'Bearer hard500-token',
     'x-tenant-id': tenantId,
