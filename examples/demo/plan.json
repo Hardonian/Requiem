@@ -1,0 +1,42 @@
+{
+  "plan_id": "demo-plan-001",
+  "plan_version": 1,
+  "description": "Demo plan: echo hello and compute hash",
+  "steps": [
+    {
+      "step_id": "step-hello",
+      "kind": "exec",
+      "depends_on": [],
+      "config": {
+        "command": "echo",
+        "args": ["hello-from-requiem"],
+        "workspace_root": ".",
+        "timeout_ms": 5000,
+        "env_allowlist": []
+      },
+      "metadata": {
+        "purpose": "Basic execution test"
+      }
+    },
+    {
+      "step_id": "step-verify",
+      "kind": "exec",
+      "depends_on": ["step-hello"],
+      "config": {
+        "command": "echo",
+        "args": ["verification-complete"],
+        "workspace_root": ".",
+        "timeout_ms": 5000,
+        "env_allowlist": []
+      },
+      "metadata": {
+        "purpose": "Verification marker"
+      }
+    }
+  ],
+  "metadata": {
+    "author": "demo-runner",
+    "created_at": "2026-03-01T00:00:00Z",
+    "tags": ["demo", "deterministic"]
+  }
+}

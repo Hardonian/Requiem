@@ -1,0 +1,29 @@
+{
+  "rules": [
+    {
+      "rule_id": "allow-demo-tenant",
+      "description": "Allow operations for demo tenant",
+      "condition": {
+        "field": "tenant_id",
+        "op": "eq",
+        "value": "demo-tenant"
+      },
+      "effect": "allow",
+      "priority": 100
+    },
+    {
+      "rule_id": "deny-dangerous",
+      "description": "Deny potentially dangerous operations",
+      "condition": {
+        "field": "operation",
+        "op": "in",
+        "value": ["delete", "purge", "reset"]
+      },
+      "effect": "deny",
+      "priority": 1000
+    }
+  ],
+  "default_effect": "deny",
+  "version": "1.0.0",
+  "created_at": "2026-03-01T00:00:00Z"
+}

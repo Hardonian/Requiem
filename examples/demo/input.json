@@ -1,0 +1,10 @@
+{
+  "tenant_id": "demo-tenant",
+  "operation": "exec",
+  "request_id": "demo-req-001",
+  "timestamp": "2026-03-01T00:00:00Z",
+  "context": {
+    "source": "demo-run",
+    "version": "1.0.0"
+  }
+}
