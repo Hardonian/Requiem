@@ -93,7 +93,11 @@
     "Virtualizes",
     "Wextra",
     "Wpedantic",
-    "zstd"
+    "zstd",
+    "Dagster",
+    "syscall",
+    "CCPA",
+    "Replayability"
   ],
   "ignorePaths": [
     "node_modules",

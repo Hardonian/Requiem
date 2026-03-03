@@ -13,7 +13,7 @@ working in a single layer.
 **Build:** CMake (`CMakeLists.txt`)
 **External deps:** vendored BLAKE3, optional zstd (system or disabled)
 
-### In Scope
+### Layer 1: In Scope
 
 - Execution runtime: sandbox, worker pool, scheduler
 - Content-addressed storage (CAS): insert, get, gc
@@ -23,7 +23,7 @@ working in a single layer.
 - CLI: `requiem exec`, `requiem cas`, `requiem replay`, `requiem version`, `requiem health`, `requiem doctor`
 - C API (`include/requiem/c_api.h`): pure C, ABI-stable
 
-### Out of Scope (in this layer)
+### Layer 1: Out of Scope
 
 - HTTP servers or web frameworks
 - Database drivers
@@ -31,7 +31,7 @@ working in a single layer.
 - Any `ready-layer/`-specific logic
 - Telemetry that requires network calls (metrics are local only)
 
-### Boundary Enforcement
+### Layer 1: Boundary Enforcement
 
 - CI: `scripts/verify_oss_boundaries.sh`
 - Invariant: INV-5
@@ -45,7 +45,7 @@ working in a single layer.
 **Runtime:** Vercel / Node.js
 **Constraint:** NEVER copies engine logic; always proxies via `REQUIEM_API_URL`
 
-### In Scope
+### Layer 2: In Scope
 
 - Dashboard pages: executions, CAS, replay, metrics, diagnostics, tenants
 - API routes: `/api/health`, `/api/engine/*`, `/api/cas/*`, `/api/replay/*`, `/api/audit/*`
@@ -53,14 +53,14 @@ working in a single layer.
 - Engine client: typed HTTP wrappers (`src/lib/engine-client.ts`)
 - Type definitions: `src/types/engine.ts`
 
-### Out of Scope (in this layer)
+### Layer 2: Out of Scope
 
 - Any BLAKE3 or hash computation
 - Spawning child processes
 - Implementing replay logic (consume replay API only)
 - Modifying `src/` or `include/` C++ files
 
-### Boundary Enforcement
+### Layer 2: Boundary Enforcement
 
 - CI: `scripts/verify_enterprise_boundaries.sh`
 - Invariant: INV-6
@@ -71,7 +71,7 @@ working in a single layer.
 
 **Directories:** `scripts/`, `.github/`, `contracts/`, `testdata/`, `prompts/`
 
-### In Scope
+### Layer 3: In Scope
 
 - Verify scripts (all `scripts/verify_*.sh`)
 - GitHub Actions workflows (`.github/workflows/`)
@@ -82,13 +82,13 @@ working in a single layer.
 - Prompt lock (`prompts/system.lock.md`)
 - Route manifest (`routes.manifest.json`)
 
-### Out of Scope (in this layer)
+### Layer 3: Out of Scope
 
 - Engine business logic
 - UI components
 - Database schema changes
 
-### Boundary Enforcement
+### Layer 3: Boundary Enforcement
 
 - Any CI change that disables or weakens an existing check requires two reviewers.
 
@@ -122,4 +122,3 @@ A PR touching files in ≥2 layers must:
 ## Internal Business Documentation
 
 - **Business & Launch Docs**: [private/business/](file:///c:/Users/scott/GitHub/Requiem/private/business/) (restricted access/internal only)
-
