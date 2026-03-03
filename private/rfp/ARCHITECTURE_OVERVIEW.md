@@ -1,43 +1,42 @@
-# Enterprise Architecture Overview: Requiem
+# Architecture Overview: Requiem Enterprise
 
 **Version**: 1.0.0  
 **Last Updated**: 2026-03-02
 
 ## 1. System Topology
-Requiem is composed of three primary layers designed for resilience and auditability.
 
-```mermaid
-graph TD
-    A[UI / Dashboard: ReadyLayer] --> B[Control Plane: TS/Node]
-    B --> C[Policy VM: Gatekeeper]
-    C --> D[Native Engine: C++]
-    D --> E[CAS: Content Storage]
-    D --> F[Tool Registry]
-```
+Requiem is comprised of four primary layers, designed for maximum isolation and auditability.
 
-## 2. Core Components
+### Layer 1: The Native Engine (The "Actuator")
+- **Language**: C++20.
+- **Role**: Process sandboxing, tool invocation, and BLAKE3 hashing.
+- **Boundary**: Strict process isolation from the host OS.
 
-### 2.1 The Native Engine (C++)
-To ensure bit-perfect determinism, the core engine manages the sandbox environment, sanitizes environment variables, and performs high-speed BLAKE3 hashing. It is optimized for sub-10ms overhead.
+### Layer 2: The Control Plane (The "Orchestrator")
+- **Language**: TypeScript (Node.js/Next.js).
+- **Role**: Policy evaluation, tenant management, and API bridging.
+- **Communication**: gRPC / JSON-RPC over local socket.
 
-### 2.2 The Policy VM (Governance)
-A declarative governance engine that evaluates every proposed tool call against a set of constraints (Budget, Identity, Content). It follows a **Deny-by-Default** security posture.
+### Layer 3: Content-Addressable Storage (The "Memory")
+- **Backend**: In-memory (Dev/Test), SQLite (Local), S3/MinIO (Cloud).
+- **Integrity**: Dual-hash verification for all artifacts.
 
-### 2.3 CAS v2 (Integrity Layer)
-Content-Addressable Storage ensures that every input and output is immutable. By utilizing dual-hashing, we provide 100% verification that data has not been tampered with between execution and audit.
+### Layer 4: ReadyLayer (The "Interface")
+- **Tech Stack**: Next.js, Tailwind, Shadcn UI.
+- **Role**: Visual management of the semantic ledger and policy definitions.
 
-## 3. Integration Patterns
-- **CLI-First (Reach)**: Developers integrate `reach` into their local workflows for debugging.
-- **API-Integrated**: Production agents call the Requiem runtime via a secure RPC/REST interface.
-- **Enterprise Hub**: Multiple clusters sync their receipts to one central ReadyLayer instance for organization-wide visibility.
+## 2. Integration Patterns
 
-## 4. Scalability & Availability
-- **Horizontally Scalable**: Engines can be spun up across any number of workers.
-- **Stateless Execution**: Each run is self-contained via its fingerprint; state is persisted in the global CAS.
-- **High Availability**: Control plane supports cluster coordination for zero-downtime policy updates.
+- **CLI-First**: All operations originate or are representable in the `reach` CLI.
+- **API-Integrated**: REST/gRPC endpoints for legacy system integration.
+- **MCP Native**: Supports the Model Context Protocol for seamless tool registry and tool access.
 
-## 5. Security Model
-Requiem utilizes a "Defense in Depth" strategy:
-1. **Process Isolation**: Native sandbox.
-2. **Capability RBAC**: Tool-level permissions.
-3. **Cryptographic Verifiability**: Merkle-signed traces.
+## 3. High Availability (Enterprise Only)
+
+- **Control Plane**: Multi-node clusters with shared state via high-performance consensus (Raft).
+- **CAS**: Global replication with hash-consistency checks.
+
+## 4. Security Model
+
+- **Deny-by-Default**: No capability is active unless a Policy VM rule explicitly enables it.
+- **Domain Separation**: Secrets and tenant data are isolated at the cryptographic level using domain-specific keys.

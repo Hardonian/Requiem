@@ -1,34 +1,43 @@
-# Organization Structure & Hiring Plan: Requiem
+# Organization Structure & Hiring: Requiem
 
-**Projected 12-Month Vision**
+**Version**: 1.0.0  
+**Last Updated**: 2026-03-02
 
-## 1. Core Team (The "Foundry")
-The Foundry is responsible for the native engine, security invariants, and core performance.
+## 1. Core Philosophy: "The Small & Dense Team"
 
-- **CTO / Chief Architect**: Vision, TLA+ Specs, Invariant enforcement.
-- **Principal Engine Engineer**: C++, Sandbox, BLAKE3 performance.
-- **Security Lead**: Incident response, Threat modeling, SOC2 audits.
+We prioritize high-density talent over head-count. Every team member must be able to verify their contribution to the "Determinism First" mission.
 
-## 2. Product & Experience (The "ReadyLayer" Team)
-Responsible for the Dashboard, CLI UX, and developer workflows.
+## 2. Team Structure (Q1 - Q4)
 
-- **VP of Product**: Roadmap, ICP alignment, Enterprise requirements.
-- **Lead Fullstack Engineer**: Next.js, API design, Control Plane.
-- **Senior UI/UX Designer**: Data visualization for the Semantic Ledger.
+### The Foundry (Core Engineering)
 
-## 3. Growth & Success (The "Provability" Team)
-Building the community, supporting customers, and proving the value.
+- **Focus**: C++ Engine, Sandbox Security, Cryptography, CAS v2.
+- **Hiring**: 2x Systems Engineers, 1x Security Researcher.
 
-- **Head of Growth**: GTM strategy, Sales enablement.
-- **DevRel Engineer**: Documentation, Samples, Ecosystem (Reach).
-- **Customer Success Engineer**: Enterprise onboarding, PoC delivery.
+### Product & Experience (PX)
 
-## 4. Role Definition: Principal Engine Engineer
-- **Mission**: Ensure 100% determinism and 0% security bypass in the runtime.
-- **Key Skills**: Modern C++ (20+), Linux Namespaces/Cgroups, Hashing (BLAKE3), Formal Methods (TLA+).
-- **Invariants**: 100% of code must be CI-verified; 0% tolerance for "flaky" tests.
+- **Focus**: ReadyLayer (UI/UX), `reach` CLI UX, Developer Documentation.
+- **Hiring**: 1x Full-stack Designer, 1x Technical Writer.
 
-## 5. Role Definition: Fullstack Engineer (Control Plane)
-- **Mission**: Build the "Bloomberg Terminal for AI."
-- **Key Skills**: TypeScript, Next.js, PostgreSQL (RLS), Merkle Chain visualization.
-- **Invariants**: Design tokens are the source of truth; Accessibility (A11y) is non-negotiable.
+### Growth & Success (GS)
+
+- **Focus**: Enterprise Sales, Solutions Architecture, Community DevRel.
+- **Hiring**: 1x AE (Account Executive), 1x Solutions Architect (AI-specialist).
+
+## 3. Hiring Criteria (The "Requiem Filter")
+
+- **Low Entropy Mindset**: Candidates must demonstrate an obsession with order and determinism in their code.
+- **Native Fluent**: Foundry candidates must be comfortable at the instruction-set level.
+- **AI-Native**: Everyone must use and understand the limits of current LLMs and why Requiem is necessary.
+
+## 4. Compensation Framework
+
+- **Salary**: Competitive with Series-A / Tier-1 Tech.
+- **Equity**: Meaningful ownership via ESOP (Employee Stock Option Plan).
+- **Incentives**: Quarterly "Determinism Bonus" for significant reductions in system variance.
+
+## 5. Culture Invariants
+
+- **No Shadows**: All decisions are documented.
+- **No Placeholders**: We don't hire "TBD" roles; we only open roles with a specific 6-month OKR already defined.
+- **Ship for Replay**: Every feature must be testable via the `reach` CLI before merging.
