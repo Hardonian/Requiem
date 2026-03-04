@@ -8,6 +8,7 @@
  */
 
 import { getLearningSummary, runLearningPipeline } from '../lib/learning-pipeline.js';
+import { ProofDependencyError } from '../lib/proof-dependency.js';
 import { calculateSymmetry } from '../lib/symmetry-engine.js';
 
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
@@ -164,6 +165,7 @@ export async function runLearnCommand(args: string[]): Promise<number> {
         tenantId: parsed.tenantId!,
         since,
         autoGeneratePatches: true,
+        traceId: `learn-${Date.now().toString(36)}` ,
       });
     }
     
@@ -185,6 +187,19 @@ export async function runLearnCommand(args: string[]): Promise<number> {
     
     return 0;
   } catch (error) {
+    if (error instanceof ProofDependencyError) {
+      if (parsed.format === 'json') {
+        console.log(JSON.stringify(error.problem, null, 2));
+      } else {
+        console.error(`[409] ${error.problem.title}: ${error.problem.detail}`);
+        if (error.problem.reasons?.length) {
+          console.error(`Missing proofs: ${error.problem.reasons.join(', ')}`);
+        }
+        console.error(`trace_id: ${error.problem.trace_id}`);
+      }
+      return 1;
+    }
+
     console.error('Error running learn command:', error);
     return 1;
   }

@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -30,7 +30,7 @@
     "verify:nosecrets": "node scripts/run-tsx.mjs scripts/verify-nosecrets.ts",
     "verify:no-stack-leaks": "node scripts/run-tsx.mjs scripts/verify-no-stack-leaks.ts",
     "verify:demo": "node scripts/run-tsx.mjs scripts/demo-doctor.ts && node scripts/run-tsx.mjs scripts/demo-run.ts",
-    "verify": "npm-run-all --parallel lint typecheck verify:boundaries",
+    "verify": "npm-run-all --parallel lint typecheck verify:boundaries verify:sovereignty",
     "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:nosecrets verify:no-stack-leaks verify:demo verify:ratchet verify:entropy verify:mcp-routes",
     "verify:entropy": "node scripts/run-tsx.mjs scripts/final-enforcement.ts",
     "verify:deps-graph": "node scripts/run-tsx.mjs scripts/verify-dependency-graph.ts",
@@ -81,7 +81,8 @@
     "verify:foundry:metamorphic": "node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry generate && node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry metamorphic generate --base-suite core_vectors --per 1 --seed 1",
     "verify:foundry:faults": "FOUNDRY_FAULTS=1 node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry faults run --dataset fault_injection_suite",
     "verify:foundry:models": "node scripts/run-tsx.mjs scripts/verify-foundry.ts",
-    "ingest:lineage": "node scripts/run-tsx.mjs packages/cli/src/cli.ts ingest lineage"
+    "ingest:lineage": "node scripts/run-tsx.mjs packages/cli/src/cli.ts ingest lineage",
+    "verify:sovereignty": "node scripts/verify-sovereignty.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
