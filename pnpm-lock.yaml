@@ -49,8 +49,13 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
+  packages/audit: {}
+
   packages/cli:
     dependencies:
+      '@requiem/testdata':
+        specifier: workspace:*
+        version: link:../testdata
       better-sqlite3:
         specifier: ^11.8.1
         version: 11.10.0
@@ -85,6 +90,27 @@ importers:
       typescript-eslint:
         specifier: ^7.0.0
         version: 7.18.0(eslint@8.57.1)(typescript@5.9.3)
+
+  packages/core:
+    dependencies:
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.6
+
+  packages/http: {}
+
+  packages/testdata:
+    dependencies:
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.19.35
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
 
   packages/ui:
     dependencies:

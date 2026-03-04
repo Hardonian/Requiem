@@ -6,6 +6,7 @@
  *
  * Commands:
  *   rl status / doctor / env / version
+ *   rl system fingerprint
  *   rl models (list providers, show throttles, show defaults)
  *   rl mode set (intensity, thinking mode, tool policy)
  *   rl prompt (list/get/add/run) with deterministic prompt IDs (hash)
@@ -107,6 +108,9 @@ GRAPH COMMANDS:
   graph repo                          Show repository lineage graph
   graph run <run_id>                  Show run dependency graph
   graph trace <trace_id>              Show trace execution graph
+
+SYSTEM COMMANDS:
+  system fingerprint                  Emit runtime self-fingerprint + persist to CAS
 
 DATASET COMMANDS:
   dataset list [--json]               List all registered datasets
@@ -348,6 +352,13 @@ async function main(): Promise<number> {
         break;
       }
 
+
+      // System commands
+      case 'system': {
+        const { runSystem } = await loadCommand('./commands/rl-system.js') as {
+          runSystem: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
+        };
+        result = await runSystem(subArgs[0] ?? 'fingerprint', subArgs.slice(1), { json });
       // Interop commands
       case 'interop': {
         const { runInterop } = await loadCommand('./commands/rl-interop.js') as {

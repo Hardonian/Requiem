@@ -1,16 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-
-export interface ProblemPayload {
-  type: string;
-  title: string;
-  status: number;
-  detail: string;
-  trace_id: string;
-  code?: string;
-  errors?: Array<Record<string, unknown>>;
-}
+import { buildProblemJSON } from '../../../packages/core/src/truth-spine.js';
 
 export interface ProblemOptions {
   status: number;
@@ -77,15 +68,15 @@ export function requestIdFromHeaders(headers: Headers): string {
 }
 
 export function problemResponse(options: ProblemOptions): NextResponse {
-  const payload: ProblemPayload = {
-    type: options.type ?? `https://httpstatuses.com/${options.status}`,
-    title: options.title,
+  const payload = buildProblemJSON({
     status: options.status,
+    title: options.title,
     detail: options.detail,
-    trace_id: options.traceId,
-    ...(options.code ? { code: options.code } : {}),
-    ...(options.errors ? { errors: options.errors } : {}),
-  };
+    traceId: options.traceId,
+    type: options.type,
+    code: options.code,
+    errors: options.errors,
+  });
 
   const headers = new Headers(options.headers);
   headers.set('content-type', 'application/problem+json');

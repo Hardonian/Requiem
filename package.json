@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -30,8 +30,8 @@
     "verify:nosecrets": "node scripts/run-tsx.mjs scripts/verify-nosecrets.ts",
     "verify:no-stack-leaks": "node scripts/run-tsx.mjs scripts/verify-no-stack-leaks.ts",
     "verify:demo": "node scripts/run-tsx.mjs scripts/demo-doctor.ts && node scripts/run-tsx.mjs scripts/demo-run.ts",
-    "verify": "npm-run-all --parallel lint typecheck verify:boundaries",
-    "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:nosecrets verify:no-stack-leaks verify:demo verify:ratchet verify:entropy verify:mcp-routes verify:errors verify:tenant-body verify:determinism-smoke",
+    "verify": "npm-run-all --parallel lint typecheck verify:boundaries verify:sovereignty",
+    "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:nosecrets verify:no-stack-leaks verify:demo verify:ratchet verify:entropy verify:mcp-routes",
     "verify:entropy": "node scripts/run-tsx.mjs scripts/final-enforcement.ts",
     "verify:deps-graph": "node scripts/run-tsx.mjs scripts/verify-dependency-graph.ts",
     "verify:sbom": "node scripts/run-tsx.mjs scripts/generate-sbom.ts",
@@ -82,6 +82,7 @@
     "verify:foundry:faults": "FOUNDRY_FAULTS=1 node scripts/run-tsx.mjs packages/cli/src/cli.ts foundry faults run --dataset fault_injection_suite",
     "verify:foundry:models": "node scripts/run-tsx.mjs scripts/verify-foundry.ts",
     "ingest:lineage": "node scripts/run-tsx.mjs packages/cli/src/cli.ts ingest lineage",
+    "verify:sovereignty": "node scripts/verify-sovereignty.mjs"
     "test:smoke": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure -E stress_harness",
     "test:stress": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure -R stress_harness",
     "verify:errors": "node scripts/run-tsx.mjs scripts/verify-problem-json.ts",

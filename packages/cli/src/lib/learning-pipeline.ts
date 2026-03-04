@@ -27,6 +27,7 @@ import {
   determineRootCause,
   calculateConfidenceScore,
 } from './drift-detector.js';
+import { type ProofPackRefs, enforceProofDependencies } from './proof-dependency.js';
 
 // ─── Signal Threshold ─────────────────────────────────────────────────────────
 
@@ -152,6 +153,8 @@ export interface GeneratePatchParams {
   diagnosisId: string;
   patchDiff?: Record<string, unknown>;
   rollbackPlan?: Record<string, unknown>;
+  traceId?: string;
+  proofPacks?: ProofPackRefs;
 }
 
 /**
@@ -159,6 +162,7 @@ export interface GeneratePatchParams {
  * All patches include rollback instructions.
  */
 export function generatePatch(params: GeneratePatchParams): LearningPatch | null {
+  enforceProofDependencies({ proofs: params.proofPacks, traceId: params.traceId });
   const diagnosis = LearningDiagnosisRepository.findById(params.diagnosisId);
   
   if (!diagnosis) {
@@ -199,6 +203,8 @@ export interface RunPipelineParams {
   tenantId: string;
   since?: Date;
   autoGeneratePatches?: boolean;
+  traceId?: string;
+  proofPacks?: ProofPackRefs;
 }
 
 export interface PipelineResult {
@@ -233,6 +239,8 @@ export function runLearningPipeline(
       const patch = generatePatch({
         tenantId: params.tenantId,
         diagnosisId: diagnosis.id,
+        traceId: params.traceId,
+        proofPacks: params.proofPacks,
       });
       
       if (patch) {
