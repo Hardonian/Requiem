@@ -1,0 +1,31 @@
+{
+  "edges_by_type": {
+    "doc_links_to": 0,
+    "fork_of": 0,
+    "package_depends_on_repo": 0,
+    "remote_points_to": 0,
+    "submodule_depends_on": 0
+  },
+  "edges_count": 0,
+  "failures": [
+    {
+      "error": "GitHub network error for https://api.github.com/users/Hardonian/orgs: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "stage": "discover_targets"
+    }
+  ],
+  "finished_at": "2026-03-03T13:10:59.110734+00:00",
+  "github_auth": false,
+  "issues_count": 0,
+  "prs_count": 0,
+  "repos_count": 0,
+  "run_id": "run-20260303T131059Z-03dd1514",
+  "seed": "hardonian-lineage-v1",
+  "started_at": "2026-03-03T13:10:59.100251+00:00",
+  "table_hashes": {},
+  "target": "Hardonian",
+  "targets_discovered": [
+    "Hardonian"
+  ],
+  "tenant_id": "public-hardonian-test",
+  "test_cases_count": 0
+}
