@@ -21,7 +21,7 @@ import {
   assertCASBlobExists,
   assertPolicyPresent,
   assertCostRecorded,
-} from '../../packages/cli/src/lib/invariant-assertions';
+} from '../../packages/cli/src/lib/invariant-assertions.ts';
 import { ErrorCode } from '../../packages/cli/src/lib/errors';
 
 describe('Runtime Invariant Assertions', () => {

@@ -5,7 +5,7 @@
  * Run with: npx tsx tests/invariants/index.ts
  */
 
-import { run } from 'node:test';
+import { spawnSync } from 'node:child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -25,9 +25,9 @@ for (const f of testFiles) {
 }
 console.log('');
 
-const stream = run({ files: testFiles });
-stream.pipe(process.stdout);
-
-stream.on('test:fail', () => {
-  process.exitCode = 1;
+const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...testFiles], {
+  stdio: 'inherit',
+  env: process.env,
 });
+
+process.exit(result.status ?? 1);
