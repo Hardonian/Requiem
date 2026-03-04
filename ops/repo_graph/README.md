@@ -18,8 +18,12 @@ This workflow builds a deterministic repository-lineage dataset for tenant `publ
 - `doc_links_to`: `0.45` (weak)
 
 ## Tenant isolation
-- Ingestion uses a fixed constant tenant id: `public-hardonian`.
-- Future API handlers must derive tenant from auth context (`auth.jwt()->>'tenant_id'`) and must **never** trust request body tenant ids.
+  --tenant-id public-owner-test \
+## Test profiles
+- Your test-owner workflow (Hardonia/Hardonian): `python3 ops/repo_graph/ingest.py --target Hardonian --tenant-id public-owner-test --seed hardonian-lineage-v1`
+- Any other owner workflow: `python3 ops/repo_graph/ingest.py --target octocat --tenant-id public-owner-test --seed repo-lineage-v1`
+
+psql "$SUPABASE_DB_URL" -v tenant_id='public-owner-test' -f ops/repo_graph/verify.sql
 - RLS policies in `schema.sql` enforce row access by `tenant_id`.
 
 ## Prerequisites
