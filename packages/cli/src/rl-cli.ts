@@ -118,6 +118,17 @@ DATASET COMMANDS:
   dataset validate <CODE> --seed <n> Validate dataset
   dataset replay <run_id>             Replay a dataset run
 
+INTEROP COMMANDS:
+  interop ingest github --payload <json>    Normalize GitHub payload
+  interop ingest sentry --payload <json>    Normalize Sentry payload
+
+REVIEW COMMANDS:
+  review run --engine <name> --proof <cas>  Run review engine
+  review propose --review <cas>              Build correction proposal
+  review open-pr --proposal <cas>            Prepare GitHub PR payload
+  review verify --pr <number>                Verify replay for PR
+  review arena --engines a,b,c               Compare multiple engines
+
 OPTIONS:
   --json                              Output in JSON format
   --minimal                           Quiet, deterministic output
@@ -348,6 +359,21 @@ async function main(): Promise<number> {
           runSystem: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
         };
         result = await runSystem(subArgs[0] ?? 'fingerprint', subArgs.slice(1), { json });
+      // Interop commands
+      case 'interop': {
+        const { runInterop } = await loadCommand('./commands/rl-interop.js') as {
+          runInterop: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
+        };
+        result = await runInterop(subArgs[0] ?? 'ingest', subArgs.slice(1), { json });
+        break;
+      }
+
+      // Review commands
+      case 'review': {
+        const { runReview } = await loadCommand('./commands/rl-review.js') as {
+          runReview: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
+        };
+        result = await runReview(subArgs[0] ?? 'run', subArgs.slice(1), { json });
         break;
       }
 

@@ -18,7 +18,7 @@ import {
   createTenantId,
   createLedgerId,
   createCASDigest,
-} from '../../packages/cli/src/lib/branded-types';
+} from '../../packages/cli/src/lib/branded-types.ts';
 
 describe('Branded Types — Fingerprint', () => {
   it('should accept valid 64-char hex digest', () => {

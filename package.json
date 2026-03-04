@@ -13,7 +13,7 @@
     "build:ui": "pnpm --filter @requiem/ui build",
     "build:web": "pnpm --filter @requiem/ai build && pnpm --filter ready-layer build",
     "build:ai": "pnpm --filter @requiem/ai build",
-    "test": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure",
+    "test": "pnpm run test:smoke",
     "build:cpp": "bash scripts/cmake-build.sh",
     "test:ui": "pnpm --filter @requiem/ui typecheck",
     "lint": "pnpm --filter ready-layer lint",
@@ -46,7 +46,7 @@
     "verify:cpp": "bash scripts/cmake-build.sh && ctest --test-dir build -C Release --output-on-failure",
     "verify:boundaries": "node scripts/verify-ui-boundaries.mjs",
     "verify:dependencies": "node scripts/run-tsx.mjs scripts/verify-dependency-graph.ts",
-    "verify:routes": "node scripts/run-tsx.mjs scripts/verify-routes.ts && node scripts/run-tsx.mjs scripts/verify-routes-runtime.ts",
+    "verify:routes": "node scripts/run-tsx.mjs scripts/verify-routes.ts && node scripts/run-tsx.mjs scripts/verify-problem-json.ts && node scripts/run-tsx.mjs scripts/verify-tenant-body.ts && node scripts/run-tsx.mjs scripts/verify-routes-runtime.ts",
     "verify:integrity": "pnpm --filter ready-layer verify:integrity",
     "verify:policy": "pnpm --filter ready-layer verify:policy",
     "verify:replay": "pnpm --filter ready-layer verify:replay",
@@ -83,6 +83,13 @@
     "verify:foundry:models": "node scripts/run-tsx.mjs scripts/verify-foundry.ts",
     "ingest:lineage": "node scripts/run-tsx.mjs packages/cli/src/cli.ts ingest lineage",
     "verify:sovereignty": "node scripts/verify-sovereignty.mjs"
+    "test:smoke": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure -E stress_harness",
+    "test:stress": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure -R stress_harness",
+    "verify:errors": "node scripts/run-tsx.mjs scripts/verify-problem-json.ts",
+    "verify:tenant-body": "node scripts/run-tsx.mjs scripts/verify-tenant-body.ts",
+    "verify:determinism-smoke": "DETERMINISM_RUNS=5 bash scripts/verify_determinism.sh"
+    "verify:adapter-conformance": "node scripts/run-tsx.mjs tests/adapter-conformance/run.ts",
+    "verify:review-safety": "node scripts/run-tsx.mjs scripts/verify-review-safety.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

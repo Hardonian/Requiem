@@ -263,12 +263,12 @@ async function verifyRoutes() {
   // 7. Enforce tenant context middleware on external BIG4 routes
   log('\nChecking tenant context middleware usage...', 'info');
   const requiredContextRoutes = new Set([
-    'api/runs',
-    'api/runs/[runId]/diff',
-    'api/cluster/drift',
-    'api/registry',
-    'api/spend',
-    'api/drift',
+    '/api/runs',
+    '/api/runs/[runId]/diff',
+    '/api/cluster/drift',
+    '/api/registry',
+    '/api/spend',
+    '/api/drift',
   ]);
 
   let missingContext = 0;

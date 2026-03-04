@@ -15,6 +15,7 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { resolveCliPath } from "./lib/cli-path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -37,17 +38,6 @@ interface DoctorReport {
     skip: number;
   };
   recommendations: string[];
-}
-
-// CLI binary path
-function getCliPath(): string {
-  const releasePath = path.join(ROOT_DIR, "build", "Release", "requiem.exe");
-  const debugPath = path.join(ROOT_DIR, "build", "Debug", "requiem.exe");
-  
-  if (fs.existsSync(releasePath)) return releasePath;
-  if (fs.existsSync(debugPath)) return debugPath;
-  
-  return "requiem";
 }
 
 function runCommand(cmd: string, args: string[], timeoutMs = 10000): Promise<{ stdout: string; stderr: string; exitCode: number; timedOut: boolean }> {
@@ -88,18 +78,9 @@ function runCommand(cmd: string, args: string[], timeoutMs = 10000): Promise<{ s
 
 async function checkCliAvailable(): Promise<CheckResult> {
   const start = Date.now();
-  const cliPath = getCliPath();
-  
-  if (!fs.existsSync(cliPath) && cliPath === "requiem") {
-    return {
-      name: "cli_available",
-      status: "fail",
-      message: "requiem CLI not found in PATH. Build with: make build",
-      durationMs: Date.now() - start,
-    };
-  }
+  const cli = resolveCliPath(ROOT_DIR);
 
-  const { exitCode, stdout, timedOut } = await runCommand(cliPath, ["version"]);
+  const { exitCode, stdout, stderr, timedOut } = await runCommand(cli.command, ["version"]);
   const durationMs = Date.now() - start;
   
   if (timedOut) {
@@ -115,7 +96,10 @@ async function checkCliAvailable(): Promise<CheckResult> {
     return {
       name: "cli_available",
       status: "fail",
-      message: `CLI version check failed with exit code ${exitCode}`,
+      message:
+        cli.source === "path"
+          ? `requiem CLI not found in PATH and no local build artifact found. Build with: pnpm build or make build. (${stderr || `exit ${exitCode}`})`
+          : `CLI version check failed for ${cli.command} with exit code ${exitCode}: ${stderr || "unknown error"}` ,
       durationMs,
     };
   }
@@ -213,9 +197,9 @@ async function checkEnvVars(): Promise<CheckResult> {
 
 async function checkCliDoctor(): Promise<CheckResult> {
   const start = Date.now();
-  const cliPath = getCliPath();
-  
-  const { stdout, exitCode, timedOut } = await runCommand(cliPath, ["doctor", "--json"]);
+  const cli = resolveCliPath(ROOT_DIR);
+
+  const { stdout, stderr, exitCode, timedOut } = await runCommand(cli.command, ["doctor", "--json"]);
   const durationMs = Date.now() - start;
   
   if (timedOut) {
@@ -228,7 +212,7 @@ async function checkCliDoctor(): Promise<CheckResult> {
   }
   
   if (exitCode !== 0) {
-    let error = `Doctor failed with exit code ${exitCode}`;
+    let error = `Doctor failed with exit code ${exitCode}${stderr ? `: ${stderr.trim()}` : ""}`;
     try {
       const envelope = JSON.parse(stdout);
       const data = envelope.data || {};
@@ -402,8 +386,8 @@ async function runAllChecks(): Promise<DoctorReport> {
   const cliAvailable = await checkCliAvailable();
   checks.push(cliAvailable);
   
-  if (!cliAvailable.ok) {
-    recommendations.push("Build the CLI: make build");
+  if (cliAvailable.status !== "pass") {
+    recommendations.push("Build the CLI: pnpm build (or make build)");
   }
   
   checks.push(await checkRequiredFiles());
@@ -415,7 +399,18 @@ async function runAllChecks(): Promise<DoctorReport> {
   checks.push(await checkEnvVars());
   checks.push(await checkJsonParseable());
   checks.push(await checkPlanStructure());
-  checks.push(await checkCliDoctor());
+
+  if (cliAvailable.status === "pass") {
+    checks.push(await checkCliDoctor());
+  } else {
+    checks.push({
+      name: "engine_health",
+      status: "skip",
+      message: "Skipped because CLI is unavailable",
+      durationMs: 0,
+    });
+  }
+
   checks.push(await checkDemoArtifactsDir());
   
   const pass = checks.filter(c => c.status === "pass").length;
