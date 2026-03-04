@@ -1,4 +1,4 @@
-# Repo Lineage Graph Ingestion (Hardonian)
+> `Hardonia` / `Hardonian` (your account naming in notes vs GitHub handle) is documented here only as your **test owner case** for validating pipeline workflow. It is not a universal/default tenant or owner.
 
 This workflow builds a deterministic repository-lineage dataset for tenant `public-hardonian`.
 
