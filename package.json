@@ -87,6 +87,8 @@
     "verify:errors": "node scripts/run-tsx.mjs scripts/verify-problem-json.ts",
     "verify:tenant-body": "node scripts/run-tsx.mjs scripts/verify-tenant-body.ts",
     "verify:determinism-smoke": "DETERMINISM_RUNS=5 bash scripts/verify_determinism.sh"
+    "verify:adapter-conformance": "node scripts/run-tsx.mjs tests/adapter-conformance/run.ts",
+    "verify:review-safety": "node scripts/run-tsx.mjs scripts/verify-review-safety.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
