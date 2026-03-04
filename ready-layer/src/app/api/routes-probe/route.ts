@@ -21,3 +21,19 @@ export async function GET(req: NextRequest): Promise<Response> {
     },
   );
 }
+
+export async function POST(req: NextRequest): Promise<Response> {
+  return withTenantContext(
+    req,
+    async () => {
+      throw new ProblemError(405, 'Method Not Allowed', 'Use GET for routes probe', { code: 'method_not_allowed' });
+    },
+    async () => ({ allow: true, reasons: [] }),
+    {
+      requireAuth: false,
+      routeId: 'routes.probe',
+      rateLimit: false,
+      cache: false,
+    },
+  );
+}

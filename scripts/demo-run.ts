@@ -15,21 +15,11 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { resolveCliPath } from "./lib/cli-path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
 const DEFAULT_OUTPUT_DIR = path.join(ROOT_DIR, "demo_artifacts");
-
-// CLI binary path
-function getCliPath(): string {
-  const releasePath = path.join(ROOT_DIR, "build", "Release", "requiem.exe");
-  const debugPath = path.join(ROOT_DIR, "build", "Debug", "requiem.exe");
-  
-  if (fs.existsSync(releasePath)) return releasePath;
-  if (fs.existsSync(debugPath)) return debugPath;
-  
-  return "requiem";
-}
 
 interface DemoResult {
   ok: boolean;
@@ -123,7 +113,7 @@ function parseOutput(stdout: string): { ok: boolean; data?: unknown; raw: unknow
 async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResult> {
   const traceId = generateTraceId();
   const startTime = Date.now();
-  const cliPath = getCliPath();
+  const cliPath = resolveCliPath(ROOT_DIR).command;
   
   const result: DemoResult = {
     ok: false,
@@ -259,13 +249,15 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
       
       // Check for spawn failures (expected in restricted environments)
       const stepResults = data.step_results as Record<string, { error_code?: string }> | undefined;
-      const firstStep = stepResults ? Object.values(stepResults)[0] : undefined;
-      
-      if (!runOk && firstStep?.error_code === "spawn_failed") {
+      const hasSpawnFailure = stepResults
+        ? Object.values(stepResults).some((step) => step.error_code === "spawn_failed")
+        : false;
+
+      if (!runOk && hasSpawnFailure) {
         warning = "Process spawn not available in this environment (expected in sandbox)";
         result.environment.spawnCapable = false;
-        // Consider this acceptable - plan structure was valid
-        runOk = true; 
+        // Consider this acceptable - plan structure was valid and execution path was sandbox-limited
+        runOk = true;
       } else if (runOk) {
         result.environment.spawnCapable = true;
       }
@@ -444,10 +436,15 @@ async function main(): Promise<void> {
     : DEFAULT_OUTPUT_DIR;
 
   // Check if CLI exists
-  const cliPath = getCliPath();
-  if (!fs.existsSync(cliPath) && cliPath === "requiem") {
-    console.error("Error: requiem CLI not found. Build first with: make build");
-    process.exit(1);
+  const cli = resolveCliPath(ROOT_DIR);
+  const cliPath = cli.command;
+  if (cli.source === "path") {
+    const probe = await runCommand(cliPath, ["version"], { timeoutMs: 5000 });
+    if (probe.exitCode !== 0) {
+      console.error("Error: requiem CLI not found in PATH and no local build artifact found.");
+      console.error("Build first with: pnpm build (or make build)");
+      process.exit(1);
+    }
   }
 
   const result = await runDemo(!skipDoctor, outputDir);

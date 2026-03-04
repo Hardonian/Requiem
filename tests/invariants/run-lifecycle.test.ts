@@ -12,7 +12,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { RunLifecycleTracker, RunLifecycleStates, createRunLifecycleStateMachine } from '../../packages/cli/src/lib/run-lifecycle';
+import { RunLifecycleTracker, RunLifecycleStates, createRunLifecycleStateMachine } from '../../packages/cli/src/lib/run-lifecycle.ts';
 
 describe('RunLifecycleStateMachine', () => {
   it('should allow full happy-path traversal', () => {
