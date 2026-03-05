@@ -85,3 +85,7 @@ Requiem maintains a tamper-evident audit trail of all core decisions. Each recor
 - [INVARIANTS.md](./INVARIANTS.md) — System-wide constraints.
 - [DETERMINISM.md](./DETERMINISM.md) — Technical spec for reproducibility.
 - [THEATRE_AUDIT.md](./THEATRE_AUDIT.md) — Implementation status of security features.
+
+
+## Canonical Product Convergence
+See `docs/architecture/CANONICAL_PRODUCT_MODEL.md` and `docs/architecture/TERMINOLOGY_MAP.md` for unified naming across Requiem kernel, ReadyLayer control plane, and CLI operations.

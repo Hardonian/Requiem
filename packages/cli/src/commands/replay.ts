@@ -7,8 +7,28 @@ const DEFAULT_TENANT = process.env.REQUIEM_TENANT_ID ?? 'default';
 
 export const replay = new Command('replay')
   .description('Replay, verify, and diff deterministic execution records')
-  .action(() => {
-    console.log('Replay — use subcommands: run, diff, list, export');
+  .argument('[bundleOrRunId]', 'Optional replay bundle/run ID for direct replay')
+  .action(async (bundleOrRunId?: string) => {
+    if (!bundleOrRunId) {
+      console.log('Replay — use subcommands: run, diff, list, export');
+      return;
+    }
+
+    const decision = DecisionRepository.findById(bundleOrRunId, DEFAULT_TENANT);
+    if (!decision) {
+      console.log(JSON.stringify({
+        ok: false,
+        trace_id: `replay-${Date.now().toString(36)}`,
+        error: { code: 'E_NOT_FOUND', message: `Replay bundle not found: ${bundleOrRunId}` },
+      }, null, 2));
+      return;
+    }
+
+    console.log(JSON.stringify({
+      ok: true,
+      trace_id: `replay-${Date.now().toString(36)}`,
+      replay: { id: decision.id, status: decision.status, tenant_id: decision.tenant_id },
+    }, null, 2));
   });
 
 replay
@@ -217,7 +237,7 @@ replay
   .command('export')
   .description('Export run data with provenance metadata')
   .argument('<runId>', 'Run ID to export')
-  .option('-f, --format <format>', 'Output format (json, yaml)', 'json')
+  .option('-f, --format <format>', 'Output format (json, yaml, graph-json)', 'json')
   .option('--tenant <tenantId>', 'Tenant ID for tenant-scoped lookup', DEFAULT_TENANT)
   .action((runId: string, _options: { format?: string; tenant?: string }) => {
     const tenantId = _options.tenant ?? DEFAULT_TENANT;
@@ -255,6 +275,37 @@ replay
         cas_version: 'v2',
       },
     };
+
+
+    if (_options.format === 'graph-json') {
+      const nodes = [
+        { id: runId, type: 'run', timestamp: decision.created_at },
+        ...trace.map((step, index) => ({
+          id: `${runId}:step:${index + 1}`,
+          type: 'trace_step',
+          tool: step.tool || 'unknown',
+          timestamp: decision.created_at,
+          artifact_hash: step.output ? hash(JSON.stringify(step.output)) : null,
+        })),
+      ];
+      const edges = trace.map((_, index) => ({
+        from: index === 0 ? runId : `${runId}:step:${index}`,
+        to: `${runId}:step:${index + 1}`,
+        relation: 'executes',
+      }));
+
+      console.log(JSON.stringify({
+        nodes,
+        edges,
+        metadata: {
+          format: 'graph-json',
+          run_id: runId,
+          trace_steps: trace.length,
+          exported_at: new Date().toISOString(),
+        },
+      }, null, 2));
+      return;
+    }
 
     console.log(JSON.stringify(exportData, null, 2));
   });
