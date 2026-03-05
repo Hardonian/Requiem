@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "fix/build_failure_fix",
+    "name": "Build Failure Fix",
+    "description": "Produces repair strategy for build failures.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "local_llm",
+    "permissions": ["read_repo", "run_tests", "write_repo"],
+    "trigger": ["build_fail"],
+    "inputs": {"build_log": "build output log"},
+    "outputs": {"fix_plan": "ordered remediation plan"},
+    "safety_level": "high",
+    "reproducibility_seed": 108
+  },
+  "template": "Diagnose build failure {{build_log}} and provide deterministic fix plan."
+}

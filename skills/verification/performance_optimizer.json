@@ -1,0 +1,13 @@
+{
+  "id": "verification.performance_optimizer",
+  "scope": "verification",
+  "triggers": ["cost_spike", "drift"],
+  "required_inputs": ["profile_data"],
+  "expected_outputs": ["optimization_report"],
+  "verification_steps": [
+    "Verify benchmark delta is included",
+    "Check deterministic seed in report"
+  ],
+  "rollback_instructions": "Reinstate previous optimizer skill and remove new benchmark outputs.",
+  "version": "1.0.0"
+}

@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "review/commit_review",
+    "name": "Commit Review",
+    "description": "Runs a commit-level review.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "openrouter",
+    "permissions": ["read_repo"],
+    "trigger": ["commit"],
+    "inputs": {"commit": "commit sha"},
+    "outputs": {"findings": "commit findings"},
+    "safety_level": "medium",
+    "reproducibility_seed": 106
+  },
+  "template": "Review commit {{commit}} and emit deterministic issues."
+}

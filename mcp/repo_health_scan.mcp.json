@@ -1,0 +1,14 @@
+{
+  "id": "repo_health_scan",
+  "parallel": true,
+  "retry": { "max_attempts": 2 },
+  "steps": [
+    { "name": "lint", "run": "skill.lint" },
+    { "name": "test", "run": "skill.test" },
+    { "name": "security_scan", "run": "skill.security_scan" },
+    { "name": "review", "run": "skill.review" }
+  ],
+  "on_failure": {
+    "branch": "ci_failure_recovery"
+  }
+}

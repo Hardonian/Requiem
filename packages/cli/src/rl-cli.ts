@@ -98,6 +98,15 @@ PROMPT COMMANDS:
   prompt add <name> <file>            Add a new prompt pack
   prompt run <name> [vars...]         Run a prompt with variables
 
+REPO AUTOMATION COMMANDS:
+  repo prompt list|run|validate|publish
+                                      Prompt orchestration lifecycle
+  repo prompts search|install|publish Prompt marketplace operations
+  repo skills list|run                Skills registry operations
+  repo mcp run <recipe-id>            Execute MCP recipe workflow
+  repo agent yolo <lint|test|fix>     Plan autonomous fix execution
+  repo slash </review|...> [vars...]  Route slash command to prompts
+
 RUN COMMANDS:
   run start <prompt> [vars...]        Start a new run
   run replay <run_id>                 Replay a previous run
@@ -346,6 +355,14 @@ async function main(): Promise<number> {
           runPrompt: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
         };
         result = await runPrompt(subArgs[0] ?? 'list', subArgs.slice(1), { json });
+        break;
+      }
+
+      case 'repo': {
+        const { runRepo } = await loadCommand('./commands/rl-repo.js') as {
+          runRepo: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
+        };
+        result = await runRepo(subArgs[0] ?? 'prompt', subArgs.slice(1), { json });
         break;
       }
 

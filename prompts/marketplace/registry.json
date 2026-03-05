@@ -1,0 +1,14 @@
+{
+  "prompts": [
+    {
+      "id": "marketplace.secure-module-review",
+      "name": "Secure Module Review",
+      "description": "Performs module-level security and correctness review.",
+      "rating": 4.8,
+      "downloads": 321,
+      "compatibility": ["requiem>=1.0.0", "rl>=0.3.0"],
+      "runtime_requirements": ["codex"],
+      "path": "prompts/marketplace/sample-review/prompt.yaml"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "execution.test_generator",
+  "scope": "execution",
+  "triggers": ["test_failure"],
+  "required_inputs": ["requirements"],
+  "expected_outputs": ["test_cases"],
+  "verification_steps": [
+    "Ensure generated tests are deterministic",
+    "Run generated tests locally"
+  ],
+  "rollback_instructions": "Delete generated tests and restore prior test generator skill definition.",
+  "version": "1.0.0"
+}

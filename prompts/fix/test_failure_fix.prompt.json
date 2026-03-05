@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "fix/test_failure_fix",
+    "name": "Test Failure Auto-Fix",
+    "description": "Generates repair plan for test failures.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "codex",
+    "permissions": ["read_repo", "run_tests", "write_repo"],
+    "trigger": ["test_fail"],
+    "inputs": {"failure_log": "test failure log"},
+    "outputs": {"patch": "proposed patch", "verification": "validation commands"},
+    "safety_level": "high",
+    "reproducibility_seed": 102
+  },
+  "template": "Analyze test failure {{failure_log}} and provide minimal deterministic patch with checks."
+}

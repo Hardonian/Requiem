@@ -1,0 +1,14 @@
+{
+  "id": "policy.security_scan",
+  "scope": "policy",
+  "triggers": ["policy_violation", "fairness_violation"],
+  "required_inputs": ["scanner_report"],
+  "expected_outputs": ["triage", "mitigations"],
+  "verification_steps": [
+    "Validate severity mapping",
+    "Verify no secret leakage in output",
+    "Confirm rollback branch is attached"
+  ],
+  "rollback_instructions": "Restore prior security scan skill JSON and rerun verify:skills.",
+  "version": "1.0.0"
+}

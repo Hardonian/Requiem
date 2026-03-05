@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "fix/lint_autofix",
+    "name": "Lint Auto-Fix",
+    "description": "Creates patch suggestions for lint failures.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "codex",
+    "permissions": ["read_repo", "write_repo"],
+    "trigger": ["lint_fail"],
+    "inputs": {"lint_output": "lint command output"},
+    "outputs": {"patch": "lint fix patch", "summary": "fix rationale"},
+    "safety_level": "medium",
+    "reproducibility_seed": 103
+  },
+  "template": "Fix lint violations from {{lint_output}} and output deterministic patch guidance."
+}

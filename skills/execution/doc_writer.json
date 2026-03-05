@@ -1,0 +1,13 @@
+{
+  "id": "execution.doc_writer",
+  "scope": "execution",
+  "triggers": ["skill_gap"],
+  "required_inputs": ["topic", "sources"],
+  "expected_outputs": ["documentation"],
+  "verification_steps": [
+    "Validate all cited files exist",
+    "Ensure docs include verification commands"
+  ],
+  "rollback_instructions": "Revert generated docs and restore previous doc writer skill.",
+  "version": "1.0.0"
+}
