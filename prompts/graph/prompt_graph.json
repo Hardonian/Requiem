@@ -1,0 +1,161 @@
+{
+  "generated_at": "2026-03-05T06:29:27.034Z",
+  "nodes": [
+    {
+      "id": "fix/build_failure_fix",
+      "name": "Build Failure Fix",
+      "depends_on": [],
+      "outputs": [
+        "fix_plan"
+      ],
+      "inputs": [
+        "build_log"
+      ]
+    },
+    {
+      "id": "fix/lint_autofix",
+      "name": "Lint Auto-Fix",
+      "depends_on": [],
+      "outputs": [
+        "patch",
+        "summary"
+      ],
+      "inputs": [
+        "lint_output"
+      ]
+    },
+    {
+      "id": "fix/test_failure_fix",
+      "name": "Test Failure Auto-Fix",
+      "depends_on": [],
+      "outputs": [
+        "patch",
+        "verification"
+      ],
+      "inputs": [
+        "failure_log"
+      ]
+    },
+    {
+      "id": "review/commit_review",
+      "name": "Commit Review",
+      "depends_on": [],
+      "outputs": [
+        "findings"
+      ],
+      "inputs": [
+        "commit"
+      ]
+    },
+    {
+      "id": "review/full_repo_review",
+      "name": "Full Repository Review",
+      "depends_on": [],
+      "outputs": [
+        "findings",
+        "risk"
+      ],
+      "inputs": [
+        "scope",
+        "diff"
+      ]
+    },
+    {
+      "id": "review/merge_gate_review",
+      "name": "Merge Gate Review",
+      "depends_on": [],
+      "outputs": [
+        "gate"
+      ],
+      "inputs": [
+        "pr"
+      ]
+    },
+    {
+      "id": "review/module_review",
+      "name": "Module Review",
+      "depends_on": [],
+      "outputs": [
+        "findings"
+      ],
+      "inputs": [
+        "module",
+        "focus"
+      ]
+    },
+    {
+      "id": "review/security_scan_review",
+      "name": "Security Scan Review",
+      "depends_on": [],
+      "outputs": [
+        "triage"
+      ],
+      "inputs": [
+        "scanner_report"
+      ]
+    },
+    {
+      "id": "skills/doc_writer_skill",
+      "name": "Documentation Writer Skill Prompt",
+      "depends_on": [],
+      "outputs": [
+        "doc"
+      ],
+      "inputs": [
+        "topic"
+      ]
+    },
+    {
+      "id": "skills/performance_optimizer_skill",
+      "name": "Performance Optimizer Skill Prompt",
+      "depends_on": [],
+      "outputs": [
+        "optimizations"
+      ],
+      "inputs": [
+        "target"
+      ]
+    },
+    {
+      "id": "skills/test_generator_skill",
+      "name": "Test Generator Skill Prompt",
+      "depends_on": [],
+      "outputs": [
+        "tests"
+      ],
+      "inputs": [
+        "requirement"
+      ]
+    },
+    {
+      "id": "system/explain_change",
+      "name": "Explain Change",
+      "depends_on": [],
+      "outputs": [
+        "explanation"
+      ],
+      "inputs": [
+        "change"
+      ]
+    }
+  ],
+  "edges": [],
+  "execution_groups": [
+    [
+      "fix/build_failure_fix",
+      "fix/lint_autofix",
+      "fix/test_failure_fix",
+      "review/commit_review",
+      "review/full_repo_review",
+      "review/merge_gate_review",
+      "review/module_review",
+      "review/security_scan_review",
+      "skills/doc_writer_skill",
+      "skills/performance_optimizer_skill",
+      "skills/test_generator_skill",
+      "system/explain_change"
+    ]
+  ],
+  "has_cycle": false,
+  "cache_key": "b2569933e06cc96f35656ea56b4ed8029b20b7266dafaa119ced0f789f4a2a46"
+}

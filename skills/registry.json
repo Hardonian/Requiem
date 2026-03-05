@@ -3,7 +3,11 @@
   "skills": [
     {
       "id": "execution.api_design",
-      "file": "skills/execution/api_design.json"
+      "file": "skills/execution/api_design.json",
+      "composes": [
+        "policy.security_scan",
+        "verification.determinism"
+      ]
     },
     {
       "id": "execution.code_review",
@@ -11,7 +15,10 @@
     },
     {
       "id": "execution.doc_writer",
-      "file": "skills/execution/doc_writer.json"
+      "file": "skills/execution/doc_writer.json",
+      "composes": [
+        "execution.code_review"
+      ]
     },
     {
       "id": "execution.echo",
@@ -31,7 +38,10 @@
     },
     {
       "id": "policy.security_scan",
-      "file": "skills/policy/security_scan.json"
+      "file": "skills/policy/security_scan.json",
+      "composes": [
+        "policy.security"
+      ]
     },
     {
       "id": "verification.determinism",
@@ -39,7 +49,10 @@
     },
     {
       "id": "verification.performance_optimizer",
-      "file": "skills/verification/performance_optimizer.json"
+      "file": "skills/verification/performance_optimizer.json",
+      "composes": [
+        "execution.refactor_engine"
+      ]
     }
   ]
 }

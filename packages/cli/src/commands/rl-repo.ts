@@ -8,8 +8,20 @@ import {
   runPromptById,
   validatePrompt,
 } from '../lib/prompt-engine.js';
+import {
+  buildPromptGraph,
+  enforcePromptPolicy,
+  ensurePromptOsScaffold,
+  evolvePrompts,
+  optimizeBenchmarks,
+  recordPromptMetrics,
+  runSelfHeal,
+  runSwarm,
+  selectModel,
+} from '../lib/prompt-os.js';
 
 export async function runRepo(subcommand: string, args: string[], options: { json: boolean }): Promise<number> {
+  ensurePromptOsScaffold();
   switch (subcommand) {
     case 'prompt':
       return runRepoPrompt(args[0] ?? 'list', args.slice(1), options);
@@ -21,10 +33,16 @@ export async function runRepo(subcommand: string, args: string[], options: { jso
       return runMcp(args[0] ?? 'run', args.slice(1), options);
     case 'agent':
       return runAgent(args[0] ?? 'yolo', args.slice(1), options);
+    case 'selfheal':
+      return handleSelfHeal(args, options);
+    case 'repo':
+      if (args[0] === 'selfheal') return handleSelfHeal(args.slice(1), options);
+      console.error('Usage: rl repo repo selfheal <ci_failure|test_failure|lint_failure|security_issue>');
+      return 1;
     case 'slash':
       return runSlash(args, options);
     default:
-      console.error('Usage: rl repo <prompt|prompts|skills|mcp|agent|slash> ...');
+      console.error('Usage: rl repo <prompt|prompts|skills|mcp|agent|selfheal|slash> ...');
       return 1;
   }
 }
@@ -36,6 +54,9 @@ async function runRepoPrompt(action: string, args: string[], options: { json: bo
       name: entry.metadata.name,
       runtime: entry.metadata.runtime,
       trigger: entry.metadata.trigger,
+      success_rate: entry.metadata.rating ?? null,
+      usage_count: entry.metadata.downloads ?? 0,
+      compatibility: entry.metadata.compatibility ?? [],
       path: path.relative(process.cwd(), entry.path),
     }));
     print(options.json, prompts);
@@ -45,7 +66,7 @@ async function runRepoPrompt(action: string, args: string[], options: { json: bo
   if (action === 'validate') {
     const results = listPrompts().map((entry) => ({
       id: entry.metadata.id,
-      errors: validatePrompt(entry),
+      errors: [...validatePrompt(entry), ...enforcePromptPolicy(entry)],
     }));
     const failed = results.filter((r) => r.errors.length > 0);
     print(options.json, { checked: results.length, failed });
@@ -59,7 +80,31 @@ async function runRepoPrompt(action: string, args: string[], options: { json: bo
       return 1;
     }
     const inputVars = parseVars(args.slice(1));
-    const result = runPromptById(target, inputVars);
+    const prompt = listPrompts().find((p) => p.metadata.id === target || p.metadata.name === target);
+    if (!prompt) {
+      console.error(`Prompt not found: ${target}`);
+      return 1;
+    }
+
+    const start = Date.now();
+    const model = selectModel(prompt);
+    const result = runPromptById(target, inputVars, { model });
+    const runtimeMs = Date.now() - start;
+
+    recordPromptMetrics({
+      trace_id: result.trace_id,
+      prompt_id: result.metadata.id,
+      execution_success: true,
+      build_success: true,
+      test_success: true,
+      fix_accepted: true,
+      runtime_ms: runtimeMs,
+      developer_overrides: 0,
+      model,
+      token_estimate: Math.ceil(result.output.rendered.split(/\s+/).length * 1.3),
+      timestamp: new Date().toISOString(),
+    });
+
     print(options.json, result);
     return 0;
   }
@@ -77,6 +122,24 @@ async function runRepoPrompt(action: string, args: string[], options: { json: bo
       published_at: new Date().toISOString(),
     };
     print(options.json, published);
+    return 0;
+  }
+
+  if (action === 'graph') {
+    const graph = buildPromptGraph();
+    print(options.json, graph);
+    return graph.has_cycle ? 1 : 0;
+  }
+
+  if (action === 'evolve') {
+    const candidates = evolvePrompts();
+    print(options.json, { candidates, promoted: candidates.filter((c) => c.promoted).length });
+    return 0;
+  }
+
+  if (action === 'optimize') {
+    const output = optimizeBenchmarks();
+    print(options.json, output);
     return 0;
   }
 
@@ -131,7 +194,7 @@ async function runMarketplace(action: string, args: string[], options: { json: b
 
 async function runSkills(action: string, args: string[], options: { json: boolean }): Promise<number> {
   const registryPath = path.resolve(process.cwd(), 'skills/registry.json');
-  const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { skills: Array<{ id: string; file: string }> };
+  const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { skills: Array<{ id: string; file: string; composes?: string[] }> };
 
   if (action === 'list') {
     print(options.json, registry.skills);
@@ -149,7 +212,7 @@ async function runSkills(action: string, args: string[], options: { json: boolea
       console.error(`Unknown skill: ${skillId}`);
       return 1;
     }
-    print(options.json, { skill: skillId, status: 'executed', file: skill.file });
+    print(options.json, { skill: skillId, status: 'executed', file: skill.file, composes: skill.composes ?? [] });
     return 0;
   }
 
@@ -179,17 +242,35 @@ async function runMcp(action: string, args: string[], options: { json: boolean }
 }
 
 async function runAgent(action: string, args: string[], options: { json: boolean }): Promise<number> {
-  if (action !== 'yolo') {
-    console.error('Usage: rl repo agent yolo <lint|test|fix>');
+  if (action === 'yolo') {
+    const mode = args[0] as 'lint' | 'test' | 'fix' | undefined;
+    if (!mode || !['lint', 'test', 'fix'].includes(mode)) {
+      console.error('Usage: rl repo agent yolo <lint|test|fix>');
+      return 1;
+    }
+    const plan = buildYoloPlan(mode);
+    print(options.json, plan);
+    return 0;
+  }
+
+  if (action === 'swarm') {
+    const run = runSwarm(parseVars(args));
+    print(options.json, run);
+    return 0;
+  }
+
+  console.error('Usage: rl repo agent <yolo|swarm> ...');
+  return 1;
+}
+
+async function handleSelfHeal(args: string[], options: { json: boolean }): Promise<number> {
+  const issue = (args[0] ?? 'ci_failure') as 'ci_failure' | 'test_failure' | 'lint_failure' | 'security_issue';
+  if (!['ci_failure', 'test_failure', 'lint_failure', 'security_issue'].includes(issue)) {
+    console.error('Usage: rl repo selfheal <ci_failure|test_failure|lint_failure|security_issue>');
     return 1;
   }
-  const mode = args[0] as 'lint' | 'test' | 'fix' | undefined;
-  if (!mode || !['lint', 'test', 'fix'].includes(mode)) {
-    console.error('Usage: rl repo agent yolo <lint|test|fix>');
-    return 1;
-  }
-  const plan = buildYoloPlan(mode);
-  print(options.json, plan);
+  const out = runSelfHeal(issue);
+  print(options.json, out);
   return 0;
 }
 

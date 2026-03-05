@@ -1,0 +1,9 @@
+{
+  "roles": {
+    "planner": "review/full_repo_review",
+    "implementer": "fix/build_failure_fix",
+    "reviewer": "review/module_review",
+    "critic": "review/security_scan_review",
+    "verifier": "fix/test_failure_fix"
+  }
+}

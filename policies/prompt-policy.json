@@ -1,0 +1,15 @@
+{
+  "blocked_permissions": [
+    "exfiltrate_secrets",
+    "disable_tests",
+    "modify_protected_files",
+    "remove_safety_checks"
+  ],
+  "protected_files": [
+    ".github/workflows",
+    "policies",
+    "prompts/system.lock.md"
+  ],
+  "max_runtime_ms": 120000,
+  "max_template_chars": 12000
+}
