@@ -25,6 +25,7 @@
  */
 
 import { replay } from './replay.js';
+import { runProofPackVerifyCommand } from './infrastructure.js';
 import { handleCliError, ErrorCodes, createError } from '../core/cli-helpers.js';
 import type { CommandContext } from '../cli.js';
 
@@ -46,6 +47,10 @@ export async function runVerifyCommand(
     }
 
     const hash = args[0];
+
+    if (hash === 'proof-pack') {
+      return runProofPackVerifyCommand(ctx);
+    }
     
     // We need to invoke the replay command's 'run' subcommand programmatically.
     const runCommand = replay.commands.find(cmd => cmd.name() === 'run');

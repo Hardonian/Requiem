@@ -73,18 +73,22 @@ USAGE:
 CONTROL COMMANDS (Deterministic Execution):
   run <name> [input]                  Execute a tool with determinism proof
   verify <hash>                       Verify execution determinism
+  verify proof-pack                   Validate proof-pack integrity
   replay run <id>                     Replay an execution with verification
   replay diff <run1> <run2>           Deterministic diff between two runs
   fingerprint <hash>                  Generate shareable execution proof
 
 OBSERVABILITY COMMANDS:
   trace <id>                          Visualize decision trace
+  inspect <artifact>                  Inspect CAS/WAL-backed artifacts
+  graph <cas|wal>                     Generate graph-json for storage topology
   stats                               Determinism rate, policy events, replay state
   status                              System health and enforcement state
   telemetry                           Real-time usage stats
 
 PROOF SURFACE COMMANDS (Microfracture):
   diff <runA> <runB> [--format]       Deterministic diff between runs
+  diff replay <runA> <runB>           Compare deterministic replay runs
   lineage <runId> [--depth=N]         Show run ancestry graph
   simulate <runId> --policy=<name>    Simulate policy evaluation
   drift --since=<runId> [--window]    Analyze behavior drift over time
@@ -378,6 +382,23 @@ async function main(): Promise<number> {
         break;
       }
 
+
+      case 'inspect': {
+        const { runInspectCommand } = await loadCommand('./commands/infrastructure.js') as {
+          runInspectCommand: (args: string[], ctx: CommandContext) => Promise<number>;
+        };
+        result = await runInspectCommand(subArgs, ctx);
+        break;
+      }
+
+      case 'graph': {
+        const { runGraphCommand } = await loadCommand('./commands/infrastructure.js') as {
+          runGraphCommand: (args: string[], ctx: CommandContext) => Promise<number>;
+        };
+        result = await runGraphCommand(subArgs, ctx);
+        break;
+      }
+
       case 'replay': {
         const { replay } = await loadCommand('./commands/replay.js') as { replay: { parseAsync: (args: string[]) => Promise<void> } };
         await replay.parseAsync([process.argv[0], process.argv[1], ...subArgs]);
@@ -528,6 +549,22 @@ async function main(): Promise<number> {
       case 'tenant-check':
       case 'chaos':
       case 'share': {
+        if (command === 'diff' && subArgs[0] === 'replay') {
+          const { runReplayDiffCommand } = await loadCommand('./commands/infrastructure.js') as {
+            runReplayDiffCommand: (args: string[], ctx: CommandContext) => Promise<number>;
+          };
+          result = await runReplayDiffCommand(subArgs.slice(1), ctx);
+          break;
+        }
+
+        if (command === 'explain' && subArgs.length > 0 && !subArgs[0].startsWith('--')) {
+          const { runExplainDecisionCommand } = await loadCommand('./commands/infrastructure.js') as {
+            runExplainDecisionCommand: (args: string[], ctx: CommandContext) => Promise<number>;
+          };
+          result = await runExplainDecisionCommand(subArgs, ctx);
+          break;
+        }
+
         const { runMicrofractureCommand } = await loadCommand('./commands/microfracture.js') as {
           runMicrofractureCommand: (cmd: string, args: string[], ctx: CommandContext) => Promise<number>;
         };
