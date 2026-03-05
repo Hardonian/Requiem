@@ -118,6 +118,22 @@ DATASET COMMANDS:
   dataset validate <CODE> --seed <n> Validate dataset
   dataset replay <run_id>             Replay a dataset run
 
+LEARNING COMMANDS:
+  learning predict log [--flags]      Log prediction event artifact
+  learning outcome add --prediction <cas> --actual <n>
+                                      Record outcome for a prediction
+  learning errors compute             Materialize deterministic error records
+  learning train weights --dataset <cas>
+                                      Train deterministic weight set
+  learning calibrate --dataset <cas> --method <platt|isotonic|bayesian_beta|none>
+                                      Train calibration model artifact
+  learning crosstabs --window <w>     Generate crosstab report artifact
+  learning error-bands --mc <n>       Generate Monte Carlo error bands
+  learning rules list|add             Manage/evaluate countermeasure rules
+  learning propose-weights-activation --weights <cas>
+                                      Open human-gated activation proposal
+  learning dashboard                  Summarize learning funnel status
+
 INTEROP COMMANDS:
   interop ingest github --payload <json>    Normalize GitHub payload
   interop ingest sentry --payload <json>    Normalize Sentry payload
@@ -359,6 +375,9 @@ async function main(): Promise<number> {
           runSystem: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
         };
         result = await runSystem(subArgs[0] ?? 'fingerprint', subArgs.slice(1), { json });
+        break;
+      }
+
       // Interop commands
       case 'interop': {
         const { runInterop } = await loadCommand('./commands/rl-interop.js') as {
@@ -385,6 +404,14 @@ async function main(): Promise<number> {
         };
         await runDataset(subArgs[0] ?? 'list', subArgs.slice(1), { json });
         result = 0;
+        break;
+      }
+
+      case 'learning': {
+        const { runLearning } = await loadCommand('./commands/rl-learning.js') as {
+          runLearning: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
+        };
+        result = await runLearning(subArgs[0] ?? 'dashboard', subArgs.slice(1), { json });
         break;
       }
 
