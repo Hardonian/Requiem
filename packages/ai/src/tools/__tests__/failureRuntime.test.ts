@@ -1,16 +1,22 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
 import {
   applyRepairPlan,
   classifyFailure,
   computeEnvFingerprint,
   diffRunToolEvents,
-  exportIncidentPack,
   hashArgs,
   normalizeError,
   preflightTool,
   recordToolEvent,
   buildRepairPlan,
+  exportIncidentPack,
+  importIncidentPack,
+  replayIncidentPack,
+  listAdapters,
+  listPermissionRequests,
+  getFailurePatternStats,
 } from '../failureRuntime.js';
 
 describe('tool failure runtime classifier', () => {
@@ -121,5 +127,57 @@ describe('tool failure runtime integration', () => {
     const dryRun = applyRepairPlan('run-fixture-a', false);
     assert.equal(dryRun.applied, false);
     assert.match(dryRun.message, /Dry-run/);
+  });
+});
+
+
+describe('runtime platform extensions', () => {
+  it('loads built-in adapters', () => {
+    const adapters = listAdapters();
+    assert.ok(adapters.includes('github.api'));
+    assert.ok(adapters.includes('http.fetch'));
+    assert.ok(adapters.includes('postgres.supabase'));
+  });
+
+  it('creates permission request records on permission failures', () => {
+    const env = computeEnvFingerprint();
+    const c = classifyFailure('postgres.supabase', 'permission denied by RLS policy');
+    recordToolEvent({
+      run_id: 'run-perm-1',
+      trace_id: 'run-perm-1',
+      tool_name: 'postgres.supabase',
+      tool_version: '1.0.0',
+      args_hash: hashArgs({ t: 1 }),
+      args_redacted_preview: '{}',
+      start_ts: 0,
+      duration_ms: 3,
+      status: 'failed',
+      raw_error: 'permission denied by RLS policy',
+      normalized_error: normalizeError('permission denied by RLS policy'),
+      failure_class: c.failure_class,
+      failure_subclass: c.failure_subclass,
+      diagnosis: c.diagnosis,
+      repair_plan: buildRepairPlan(c),
+      env_fingerprint_id: env.id,
+      policy_fingerprint_id: env.policy_bundle_hash,
+      artifact_refs: [],
+    });
+    assert.ok(listPermissionRequests().length > 0);
+  });
+
+  it('incident export/import/replay is deterministic for classification', () => {
+    const pack = exportIncidentPack('run-fixture-a');
+    const tmp = '.data/test-pack.rqpack';
+    writeFileSync(tmp, JSON.stringify(pack), 'utf8');
+    const imported = importIncidentPack(tmp);
+    const replay = replayIncidentPack(imported, { mock_mode: true, network_isolation: true });
+    assert.equal(replay.classification_match, true);
+    assert.equal(replay.diagnosis_match, true);
+  });
+
+  it('failure registry returns aggregate metrics', () => {
+    const stats = getFailurePatternStats();
+    assert.ok(stats.total_failures >= 1);
+    assert.ok(stats.top_subclasses.length >= 1);
   });
 });

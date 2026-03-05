@@ -1,6 +1,6 @@
 # Requiem (Repository) / ReadyLayer (Product)
 
-> **Provable AI Execution.** Deterministic, content-addressable, policy-governed, and now natively debuggable with replayable tool failures (Run → Replay → Diagnose → Repair → Prove → Diff).
+> **Agents break because tools break.** Requiem records every tool call, classifies failures, explains root cause, and generates safe repair plans (Run → Replay → Diagnose → Repair → Prove → Diff).
 
 Requiem is an open-source AI execution engine designed for production-grade reliability and cryptographic auditability. It replaces the "fuzzy" execution of traditional AI agents with a deterministic C++ kernel, ensuring that every run is reproducible, every artifact is content-addressed, and every decision is gated by formal policy.
 
