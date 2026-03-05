@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "system/explain_change",
+    "name": "Explain Change",
+    "description": "Generates concise change explanation.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "codex",
+    "permissions": ["read_repo"],
+    "trigger": ["manual_request"],
+    "inputs": {"change": "change description"},
+    "outputs": {"explanation": "readable summary"},
+    "safety_level": "low",
+    "reproducibility_seed": 109
+  },
+  "template": "Explain the following change in clear terms: {{change}}"
+}

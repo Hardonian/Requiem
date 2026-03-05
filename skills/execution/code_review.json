@@ -1,0 +1,14 @@
+{
+  "id": "execution.code_review",
+  "scope": "execution",
+  "triggers": ["test_failure", "build_failure"],
+  "required_inputs": ["diff", "scope"],
+  "expected_outputs": ["findings", "risk_summary"],
+  "verification_steps": [
+    "Run prompt validation",
+    "Confirm findings include severity",
+    "Replay with same seed and compare output hash"
+  ],
+  "rollback_instructions": "Revert the skill definition file and restore previous registry entry.",
+  "version": "1.0.0"
+}

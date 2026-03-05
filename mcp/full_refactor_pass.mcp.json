@@ -1,0 +1,13 @@
+{
+  "id": "full_refactor_pass",
+  "parallel": false,
+  "retry": { "max_attempts": 1 },
+  "steps": [
+    { "name": "analyze", "run": "skill.code_review" },
+    { "name": "refactor", "run": "skill.refactor_engine" },
+    { "name": "verify", "run": "skill.test" }
+  ],
+  "on_failure": {
+    "branch": "repo_health_scan"
+  }
+}

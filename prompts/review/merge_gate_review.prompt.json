@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "review/merge_gate_review",
+    "name": "Merge Gate Review",
+    "description": "Runs final merge gate checks.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "gemini",
+    "permissions": ["read_repo", "run_tests"],
+    "trigger": ["merge"],
+    "inputs": {"pr": "pull request id"},
+    "outputs": {"gate": "go/no-go decision"},
+    "safety_level": "high",
+    "reproducibility_seed": 107
+  },
+  "template": "Perform merge gate review for PR {{pr}} with deterministic gate output."
+}

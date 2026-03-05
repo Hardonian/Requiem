@@ -1,0 +1,22 @@
+id: marketplace.secure-module-review
+name: Secure Module Review
+description: Reusable marketplace prompt package for secure module review.
+author: requiem
+version: 1.0.0
+runtime: codex
+permissions:
+  - read_repo
+trigger:
+  - manual_request
+inputs:
+  module_path: path to module
+outputs:
+  findings: prioritized findings
+safety_level: high
+reproducibility_seed: 501
+rating: 4.8
+downloads: 321
+compatibility:
+  - requiem>=1.0.0
+runtime_requirements:
+  - codex

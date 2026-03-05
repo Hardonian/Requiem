@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "review/full_repo_review",
+    "name": "Full Repository Review",
+    "description": "Performs a deterministic full-repo review pass.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "codex",
+    "permissions": ["read_repo", "run_tests"],
+    "trigger": ["pull_request"],
+    "inputs": {"scope": "review scope", "diff": "unified diff"},
+    "outputs": {"findings": "review findings", "risk": "risk summary"},
+    "safety_level": "high",
+    "reproducibility_seed": 101
+  },
+  "template": "Run a full review for {{scope}} using diff {{diff}} and produce deterministic findings."
+}

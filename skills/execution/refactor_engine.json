@@ -1,0 +1,14 @@
+{
+  "id": "execution.refactor_engine",
+  "scope": "execution",
+  "triggers": ["drift", "test_failure"],
+  "required_inputs": ["target", "constraints"],
+  "expected_outputs": ["patch", "verification_plan"],
+  "verification_steps": [
+    "Ensure patch compiles",
+    "Run lint and test gates",
+    "Compare behavior snapshots"
+  ],
+  "rollback_instructions": "Reset modified files and restore previous refactor skill config.",
+  "version": "1.0.0"
+}

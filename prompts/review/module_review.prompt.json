@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "review/module_review",
+    "name": "Module Review",
+    "description": "Reviews a specific module path.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "codex",
+    "permissions": ["read_repo"],
+    "trigger": ["manual_request"],
+    "inputs": {"module": "module path", "focus": "review focus"},
+    "outputs": {"findings": "module findings"},
+    "safety_level": "medium",
+    "reproducibility_seed": 104
+  },
+  "template": "Review module {{module}} with focus {{focus}} and provide prioritized findings."
+}

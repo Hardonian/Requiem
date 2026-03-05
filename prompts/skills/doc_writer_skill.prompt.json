@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "skills/doc_writer_skill",
+    "name": "Documentation Writer Skill Prompt",
+    "description": "Builds deterministic docs from source material.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "codex",
+    "permissions": ["read_repo", "write_repo"],
+    "trigger": ["manual_request"],
+    "inputs": {"topic": "documentation topic"},
+    "outputs": {"doc": "document text"},
+    "safety_level": "low",
+    "reproducibility_seed": 111
+  },
+  "template": "Write documentation for topic {{topic}} using repository context."
+}

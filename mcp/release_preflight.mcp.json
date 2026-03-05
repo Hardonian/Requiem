@@ -1,0 +1,14 @@
+{
+  "id": "release_preflight",
+  "parallel": true,
+  "retry": { "max_attempts": 2 },
+  "steps": [
+    { "name": "lint", "run": "skill.lint" },
+    { "name": "test", "run": "skill.test" },
+    { "name": "security", "run": "skill.security_scan" },
+    { "name": "report", "run": "generate.report" }
+  ],
+  "on_failure": {
+    "branch": "ci_failure_recovery"
+  }
+}

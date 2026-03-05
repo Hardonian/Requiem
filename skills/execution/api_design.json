@@ -1,0 +1,13 @@
+{
+  "id": "execution.api_design",
+  "scope": "execution",
+  "triggers": ["schema_gap"],
+  "required_inputs": ["api_contract"],
+  "expected_outputs": ["design_review"],
+  "verification_steps": [
+    "Validate output against API conventions",
+    "Confirm deterministic ordering in generated suggestions"
+  ],
+  "rollback_instructions": "Revert API design skill and remove any generated artifacts.",
+  "version": "1.0.0"
+}

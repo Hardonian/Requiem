@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "skills/test_generator_skill",
+    "name": "Test Generator Skill Prompt",
+    "description": "Generates deterministic test cases from requirements.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "codex",
+    "permissions": ["read_repo", "write_repo"],
+    "trigger": ["manual_request"],
+    "inputs": {"requirement": "requirement text"},
+    "outputs": {"tests": "generated tests"},
+    "safety_level": "medium",
+    "reproducibility_seed": 110
+  },
+  "template": "Generate tests for requirement: {{requirement}}"
+}

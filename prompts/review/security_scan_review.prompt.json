@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "review/security_scan_review",
+    "name": "Security Scan Review",
+    "description": "Explains and triages security scanner findings.",
+    "author": "requiem",
+    "version": "1.0.0",
+    "runtime": "anthropic",
+    "permissions": ["read_repo"],
+    "trigger": ["security_scan"],
+    "inputs": {"scanner_report": "security scanner output"},
+    "outputs": {"triage": "severity-ranked triage"},
+    "safety_level": "high",
+    "reproducibility_seed": 105
+  },
+  "template": "Triage security scanner report {{scanner_report}} with deterministic remediation guidance."
+}

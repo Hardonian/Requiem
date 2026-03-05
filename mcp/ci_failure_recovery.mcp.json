@@ -1,0 +1,13 @@
+{
+  "id": "ci_failure_recovery",
+  "parallel": false,
+  "retry": { "max_attempts": 3 },
+  "steps": [
+    { "name": "classify", "run": "skill.code_review" },
+    { "name": "fix", "run": "skill.refactor_engine" },
+    { "name": "retest", "run": "skill.test" }
+  ],
+  "on_failure": {
+    "branch": "manual_escalation"
+  }
+}
