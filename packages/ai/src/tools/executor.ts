@@ -23,6 +23,15 @@ import { withSpan } from '../telemetry/trace.js';
 import { logger } from '../telemetry/logger.js';
 import { checkDepth, releaseDepth } from './sandbox.js';
 import { checkReplayCache, storeReplayRecord } from './replay.js';
+import {
+  buildRepairPlan,
+  classifyFailure,
+  computeEnvFingerprint,
+  hashArgs,
+  normalizeError,
+  recordToolEvent,
+  redactedArgsPreview,
+} from './failureRuntime.js';
 import type { InvocationContext } from '../types/index.js';
 import type { ToolAuditRecord } from './types.js';
 
@@ -83,6 +92,9 @@ export async function executeToolEnvelope(
   const startMs = Date.now(); // DETERMINISM: observation-only, not in decision path
   const tenantId = ctx.tenant.tenantId;
   const timeoutMs = Math.min(opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS);
+  const envFingerprint = computeEnvFingerprint();
+  const argsHash = hashArgs(input);
+  const argsPreview = redactedArgsPreview(input);
 
   return withSpan(`tool:${toolName}`, ctx.traceId, async (span) => {
     span.attributes['tool'] = toolName;
@@ -137,6 +149,20 @@ export async function executeToolEnvelope(
           const duration_ms = Date.now() - startMs;
           span.attributes['from_cache'] = true;
           logger.debug('[executor] replay cache hit', { hash: executionHash, tool: toolName });
+          recordToolEvent({
+            run_id: ctx.traceId,
+            trace_id: ctx.traceId,
+            tool_name: toolName,
+            tool_version: definition.version,
+            args_hash: argsHash,
+            args_redacted_preview: argsPreview,
+            start_ts: startMs,
+            duration_ms,
+            status: 'ok',
+            env_fingerprint_id: envFingerprint.id,
+            policy_fingerprint_id: envFingerprint.policy_bundle_hash,
+            artifact_refs: [executionHash, 'replay-cache-hit'],
+          });
           return {
             result: cached.result,
             deterministic: true,
@@ -192,6 +218,20 @@ export async function executeToolEnvelope(
       });
 
       // ── 10. Return envelope ─────────────────────────────────────────────────
+      recordToolEvent({
+        run_id: ctx.traceId,
+        trace_id: ctx.traceId,
+        tool_name: toolName,
+        tool_version: definition.version,
+        args_hash: argsHash,
+        args_redacted_preview: argsPreview,
+        start_ts: startMs,
+        duration_ms,
+        status: 'ok',
+        env_fingerprint_id: envFingerprint.id,
+        policy_fingerprint_id: envFingerprint.policy_bundle_hash,
+        artifact_refs: [executionHash],
+      });
       return {
         result: output,
         deterministic: definition.deterministic,
@@ -202,6 +242,31 @@ export async function executeToolEnvelope(
         request_id: ctx.traceId,
         from_cache: false,
       };
+    } catch (err) {
+      const normalizedError = normalizeError(err);
+      const classification = classifyFailure(toolName, normalizedError);
+      recordToolEvent({
+        run_id: ctx.traceId,
+        trace_id: ctx.traceId,
+        tool_name: toolName,
+        tool_version: opts?.version ?? 'unknown',
+        args_hash: argsHash,
+        args_redacted_preview: argsPreview,
+        start_ts: startMs,
+        duration_ms: Date.now() - startMs,
+        status: classification.failure_class === 'guardrail_block' ? 'blocked' : (normalizedError.includes('partial') ? 'partial' : 'failed'),
+        raw_error: normalizedError,
+        normalized_error: normalizedError,
+        failure_class: classification.failure_class,
+        failure_subclass: classification.failure_subclass,
+        diagnosis: classification.diagnosis,
+        repair_plan: buildRepairPlan(classification),
+        retry_recommendation: classification.failure_class === 'rate_limit_error' ? 'retry-with-backoff' : 'manual-review',
+        env_fingerprint_id: envFingerprint.id,
+        policy_fingerprint_id: envFingerprint.policy_bundle_hash,
+        artifact_refs: [],
+      });
+      throw err;
     } finally {
       releaseDepth(ctx.traceId);
     }

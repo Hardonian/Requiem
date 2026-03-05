@@ -1,6 +1,6 @@
 # Requiem (Repository) / ReadyLayer (Product)
 
-> **Provable AI Execution.** Deterministic, content-addressable, and policy-governed.
+> **Provable AI Execution.** Deterministic, content-addressable, policy-governed, and now natively debuggable with replayable tool failures (Run → Replay → Diagnose → Repair → Prove → Diff).
 
 Requiem is an open-source AI execution engine designed for production-grade reliability and cryptographic auditability. It replaces the "fuzzy" execution of traditional AI agents with a deterministic C++ kernel, ensuring that every run is reproducible, every artifact is content-addressed, and every decision is gated by formal policy.
 
@@ -66,6 +66,12 @@ Expected output includes:
 Reach CLI (`req`) provides the operator interface for interacting with the kernel and managing executions.
 
 ```bash
+# 30-second Tool Failure Intelligence demo
+rq run web.fetch --input '{"url":"https://127.0.0.1:9"}'
+rq diagnose <run_id>
+rq repair <run_id> --plan
+rq diff <baseline_run_id> <failed_run_id>
+
 # Run a diagnostic check
 pnpm doctor
 

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://requiem.dev/schemas/tool-failure-taxonomy.schema.json",
+  "title": "ToolFailureTaxonomy",
+  "type": "object",
+  "required": ["failure_class", "failure_subclass"],
+  "properties": {
+    "failure_class": {
+      "type": "string",
+      "enum": [
+        "permission_error",
+        "dependency_error",
+        "interface_error",
+        "network_error",
+        "rate_limit_error",
+        "timeout_error",
+        "tool_logic_error",
+        "partial_execution_error",
+        "guardrail_block",
+        "determinism_break",
+        "storage_error",
+        "concurrency_error",
+        "planning_error",
+        "unknown_error"
+      ]
+    },
+    "failure_subclass": {
+      "type": "string",
+      "enum": [
+        "oauth_scope_missing",
+        "rls_denied",
+        "binary_missing",
+        "env_var_missing",
+        "schema_mismatch",
+        "http_429",
+        "deadline_exceeded",
+        "policy_denied",
+        "replay_mismatch",
+        "artifact_missing",
+        "step_failed_after_side_effect",
+        "network_unreachable",
+        "lock_contention",
+        "invalid_plan",
+        "unclassified"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -93,7 +93,8 @@
     "verify:learning": "node scripts/run-tsx.mjs scripts/verify-learning.ts",
     "verify:calibration-stability": "node scripts/run-tsx.mjs scripts/verify-calibration-stability.ts",
     "verify:error-bands": "node scripts/run-tsx.mjs scripts/verify-error-bands.ts",
-    "verify:moe-reduction": "node scripts/run-tsx.mjs scripts/verify-moe-reduction.ts"
+    "verify:moe-reduction": "node scripts/run-tsx.mjs scripts/verify-moe-reduction.ts",
+    "verify:tool-failure-runtime": "node scripts/run-tsx.mjs scripts/verify-tool-failure-runtime.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
