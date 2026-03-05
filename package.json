@@ -110,7 +110,7 @@
     "type": "git",
     "url": "https://github.com/reachhq/requiem.git"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": [
     "deterministic",
     "runtime",

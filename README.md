@@ -6,6 +6,16 @@ Requiem is an open-source AI execution engine designed for production-grade reli
 
 **ReadyLayer** is the control plane and web console built on top of Requiem, providing deep observability into agent drift, cost anomalies, and provable execution logs.
 
+## Naming & Components
+
+| Canonical term | Role | Legacy/alt references |
+| :--- | :--- | :--- |
+| **Requiem** | OSS runtime/kernel repository and engine | `requiem` (repo/package references) |
+| **ReadyLayer** | Web console / control plane | `ready-layer` (workspace/app folder) |
+| **Reach CLI** | Command-line interface for verification/replay | `@requiem/cli`, `rl` script |
+
+See [docs/overview/POSITIONING.md](./docs/overview/POSITIONING.md) for the canonical product boundary statement and [docs/README.md](./docs/README.md) for the docs index.
+
 ---
 
 ## Why Requiem?
