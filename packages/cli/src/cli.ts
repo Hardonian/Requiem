@@ -177,7 +177,10 @@ ADMIN COMMANDS:
   restore                             Restore database from JSON
   import                              Ingest decision logs from CSV
   nuke                                Clear database state
-  doctor                              Validate environment setup
+  doctor [--tool <name>]              Validate environment setup
+  diagnose <run_id> [--json]          Classify tool failures for a run
+  repair <run_id> [--apply] [--json]  Preview/apply safe repair plan
+  incident export <run_id>             Export incident/proof pack
   bugreport                           Generate diagnostic report
   selftest                            Run comprehensive self-diagnostic checks
   bench                               Sub-millisecond latency baseline
@@ -528,9 +531,35 @@ async function main(): Promise<number> {
         break;
       }
 
+
+      case 'diagnose': {
+        const { runDiagnoseCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runDiagnoseCommand: (args: string[]) => Promise<number> };
+        result = await runDiagnoseCommand(subArgs);
+        break;
+      }
+
+      case 'repair': {
+        const { runRepairCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runRepairCommand: (args: string[]) => Promise<number> };
+        result = await runRepairCommand(subArgs);
+        break;
+      }
+
+      case 'incident': {
+        if (subArgs[0] !== 'export') {
+          throw new Error('Usage: rq incident export <run_id>');
+        }
+        const { runIncidentExportCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runIncidentExportCommand: (args: string[]) => Promise<number> };
+        result = await runIncidentExportCommand(subArgs.slice(1));
+        break;
+      }
       case 'doctor': {
         const { runDoctor } = await loadCommand('./commands/doctor.js') as { runDoctor: (opts: { json: boolean }, ctx: CommandContext) => Promise<number> };
-        result = await runDoctor({ json }, ctx);
+        if (subArgs.includes('--tool')) {
+          const { runDoctorRuntimeCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runDoctorRuntimeCommand: (args: string[]) => Promise<number> };
+          result = await runDoctorRuntimeCommand(subArgs);
+        } else {
+          result = await runDoctor({ json }, ctx);
+        }
         break;
       }
 
@@ -563,6 +592,12 @@ async function main(): Promise<number> {
             runReplayDiffCommand: (args: string[], ctx: CommandContext) => Promise<number>;
           };
           result = await runReplayDiffCommand(subArgs.slice(1), ctx);
+          break;
+        }
+
+        if (command === 'diff' && subArgs.length >= 2 && !subArgs[0].startsWith('--') && !subArgs[1].startsWith('--')) {
+          const { runToolDiffCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runToolDiffCommand: (args: string[]) => Promise<number> };
+          result = await runToolDiffCommand(subArgs);
           break;
         }
 

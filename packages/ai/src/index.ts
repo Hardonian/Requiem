@@ -157,6 +157,19 @@ export { sandboxPath, checkDepth, releaseDepth, MAX_DEPTH, MAX_CHAIN_LENGTH, _re
 
 // ─── Tool Executor ────────────────────────────────────────────────────────────
 export { executeToolEnvelope, type ExecutionEnvelope } from './tools/executor.js';
+export {
+  classifyFailure,
+  buildRepairPlan,
+  recordToolEvent,
+  getRunToolEvents,
+  diffRunToolEvents,
+  exportIncidentPack,
+  preflightTool,
+  applyRepairPlan,
+  computeEnvFingerprint,
+  type ToolEvent,
+  type FailureClass,
+} from './tools/failureRuntime.js';
 
 // ─── Model Router ─────────────────────────────────────────────────────────────
 export { routeModelCall, type RouterRequest, type RouterResponse } from './models/router.js';
