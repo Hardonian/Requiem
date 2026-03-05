@@ -181,6 +181,11 @@ ADMIN COMMANDS:
   diagnose <run_id> [--json]          Classify tool failures for a run
   repair <run_id> [--apply] [--json]  Preview/apply safe repair plan
   incident export <run_id>             Export incident/proof pack
+  incident import <file.rqpack>        Import incident pack
+  incident replay <file.rqpack>        Replay incident pack in mock mode
+  permission list|approve|deny         Permission broker workflow
+  failures [--tool <name>] [--json]    Failure pattern registry summary
+  demo                                 Runtime platform demo (<60s)
   bugreport                           Generate diagnostic report
   selftest                            Run comprehensive self-diagnostic checks
   bench                               Sub-millisecond latency baseline
@@ -545,13 +550,32 @@ async function main(): Promise<number> {
       }
 
       case 'incident': {
-        if (subArgs[0] !== 'export') {
-          throw new Error('Usage: rq incident export <run_id>');
-        }
-        const { runIncidentExportCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runIncidentExportCommand: (args: string[]) => Promise<number> };
-        result = await runIncidentExportCommand(subArgs.slice(1));
+        const runtime = await loadCommand('./commands/tool-failure-runtime.js') as { runIncidentExportCommand: (args: string[]) => Promise<number>; runIncidentImportCommand: (args: string[]) => Promise<number>; runIncidentReplayCommand: (args: string[]) => Promise<number> };
+        if (subArgs[0] === 'export') result = await runtime.runIncidentExportCommand(subArgs.slice(1));
+        else if (subArgs[0] === 'import') result = await runtime.runIncidentImportCommand(subArgs.slice(1));
+        else if (subArgs[0] === 'replay') result = await runtime.runIncidentReplayCommand(subArgs.slice(1));
+        else throw new Error('Usage: rq incident export|import|replay ...');
         break;
       }
+
+      case 'permission': {
+        const { runPermissionCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runPermissionCommand: (args: string[]) => Promise<number> };
+        result = await runPermissionCommand(subArgs);
+        break;
+      }
+
+      case 'failures': {
+        const { runFailuresCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runFailuresCommand: (args: string[]) => Promise<number> };
+        result = await runFailuresCommand(subArgs);
+        break;
+      }
+
+      case 'demo': {
+        const { runDemoCommand } = await loadCommand('./commands/tool-failure-runtime.js') as { runDemoCommand: () => Promise<number> };
+        result = await runDemoCommand();
+        break;
+      }
+
       case 'doctor': {
         const { runDoctor } = await loadCommand('./commands/doctor.js') as { runDoctor: (opts: { json: boolean }, ctx: CommandContext) => Promise<number> };
         if (subArgs.includes('--tool')) {
