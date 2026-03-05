@@ -14,6 +14,7 @@ import { calculateSymmetry } from '../lib/symmetry-engine.js';
 // ─── Argument Parsing ───────────────────────────────────────────────────────────
 
 export interface LearnArgs {
+  mode?: 'analyze' | 'patterns' | 'drift';
   window?: string;
   format?: 'table' | 'json';
   tenantId?: string;
@@ -22,9 +23,15 @@ export interface LearnArgs {
 
 export function parseLearnArgs(args: string[]): LearnArgs {
   const result: LearnArgs = {
+    mode: 'analyze',
     format: 'table',
     runPipeline: false,
   };
+
+  if (args[0] === 'analyze' || args[0] === 'patterns' || args[0] === 'drift') {
+    result.mode = args[0];
+    args = args.slice(1);
+  }
   
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -129,6 +136,7 @@ function printJsonSummary(
 ): void {
   const output = {
     tenant_id: tenantId,
+    mode: summary.proposedPatches.length > 0 ? 'patterns' : 'analyze',
     signal_counts: summary.signalCounts,
     diagnosis_count: summary.diagnosisCount,
     patch_count: summary.patchCount,
@@ -209,7 +217,7 @@ export async function runLearnCommand(args: string[]): Promise<number> {
 
 export const learn = {
   name: 'learn',
-  description: 'Show learning signals, diagnoses, and patch proposals',
+  description: 'Show learning signals, diagnoses, patterns, and drift summaries',
   
   async parse(args: string[]) {
     return runLearnCommand(args);

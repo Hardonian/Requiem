@@ -10,7 +10,8 @@
   "bin": {
     "requiem": "./dist/cli/src/cli.js",
     "reach": "./dist/cli/src/cli.js",
-    "rl": "./dist/cli/src/rl-cli.js"
+    "rl": "./dist/cli/src/rl-cli.js",
+    "req": "./dist/cli/src/cli.js"
   },
   "exports": {
     ".": {

@@ -1,4 +1,4 @@
-# Requiem / ReadyLayer
+# Requiem (Repository) / ReadyLayer (Product)
 
 > **Provable AI Execution.** Deterministic, content-addressable, and policy-governed.
 
@@ -53,20 +53,20 @@ Expected output includes:
 
 ## CLI Cheatsheet
 
-Requiem provides a powerful CLI for interacting with the kernel and managing executions.
+Reach CLI (`req`) provides the operator interface for interacting with the kernel and managing executions.
 
 ```bash
 # Run a diagnostic check
 pnpm doctor
 
 # Inspect a plan hash
-pnpm req plan inspect <hash>
+req inspect <hash> --json
 
 # Check log integrity
-pnpm req log verify
+req verify <hash> --replay
 
 # List active entitlements
-pnpm req entitlement list
+req trust show --json
 ```
 
 ---

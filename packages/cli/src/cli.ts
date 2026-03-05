@@ -2,7 +2,7 @@
 /**
  * Requiem CLI — Control Plane for AI Systems
  *
- * Binary aliases: `requiem` and `reach`
+ * Binary aliases: `requiem`, `reach`, and `req`
  *
  * Every execution is provable. Every outcome is replayable. Every policy is enforced.
  * This is a control plane with invariants, not a wrapper, router, or dashboard.
@@ -65,10 +65,10 @@ function generateTraceId(): string {
  */
 function printHelp(): void {
   process.stdout.write(`
-Requiem CLI v${VERSION}  —  Control Plane for AI Systems
+Reach CLI v${VERSION}  —  ReadyLayer operator interface for the Requiem kernel
 
 USAGE:
-  requiem <command> [options]
+  req <command> [options]
 
 CONTROL COMMANDS (Deterministic Execution):
   run <name> [input]                  Execute a tool with determinism proof
@@ -76,6 +76,15 @@ CONTROL COMMANDS (Deterministic Execution):
   replay run <id>                     Replay an execution with verification
   replay diff <run1> <run2>           Deterministic diff between two runs
   fingerprint <hash>                  Generate shareable execution proof
+
+
+OPERATOR PLATFORM COMMANDS:
+  run|replay|inspect|graph|diff        Operator-grade execution and analysis commands
+  verify|policy|learn|doctor|status    Deterministic verification and diagnostics
+  pipeline <create|run|inspect|graph>  Manage pipeline lifecycle
+  artifact <list|verify|gc>            Artifact inventory and integrity workflows
+  trust <show|verify|rotate>           Append-only trust ledger operations
+  budget <inspect|audit>               Budget accounting workflows
 
 OBSERVABILITY COMMANDS:
   trace <id>                          Visualize decision trace
@@ -715,6 +724,18 @@ async function main(): Promise<number> {
 
       // Note: help/version are handled at top of main() for fast path
       // Also included here for completeness and verification
+
+
+      case 'inspect':
+      case 'graph':
+      case 'pipeline':
+      case 'artifact':
+      case 'trust':
+      case 'policy': {
+        const { runPlatformCommand } = await loadCommand('./lib/platform.js') as { runPlatformCommand: (command: string, args: string[], traceId: string) => Promise<number> };
+        result = await runPlatformCommand(command, subArgs, traceId);
+        break;
+      }
 
       case 'help': {
         printHelp();
