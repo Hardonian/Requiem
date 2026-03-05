@@ -1,0 +1,18 @@
+{
+  "suite": "core",
+  "tasks": [
+    {
+      "prompt_id": "review/module_review",
+      "input": {
+        "module_path": "src/index.ts"
+      }
+    },
+    {
+      "prompt_id": "fix/lint_autofix",
+      "input": {
+        "file": "src/index.ts",
+        "lint_error": "no-unused-vars"
+      }
+    }
+  ]
+}

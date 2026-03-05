@@ -1,0 +1,15 @@
+{
+  "successful_fixes": [
+    "lint_failure:swarm_mmd32pom",
+    "ci_failure:swarm_mmd33zub"
+  ],
+  "common_issues": [],
+  "preferred_patterns": [
+    "deterministic output",
+    "minimal safe change"
+  ],
+  "architecture_constraints": [
+    "tenant isolation",
+    "policy enforcement"
+  ]
+}

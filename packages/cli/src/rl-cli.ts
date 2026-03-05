@@ -99,12 +99,14 @@ PROMPT COMMANDS:
   prompt run <name> [vars...]         Run a prompt with variables
 
 REPO AUTOMATION COMMANDS:
-  repo prompt list|run|validate|publish
+  repo prompt list|run|validate|publish|graph|evolve|optimize
                                       Prompt orchestration lifecycle
   repo prompts search|install|publish Prompt marketplace operations
   repo skills list|run                Skills registry operations
   repo mcp run <recipe-id>            Execute MCP recipe workflow
   repo agent yolo <lint|test|fix>     Plan autonomous fix execution
+  repo agent swarm [key=value]        Run planner/implementer/reviewer/critic/verifier swarm
+  repo selfheal <issue-type>          Diagnose and propose auto-fix workflow
   repo slash </review|...> [vars...]  Route slash command to prompts
 
 RUN COMMANDS:
