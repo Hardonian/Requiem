@@ -9,6 +9,10 @@ import { dataset as cliPipePressure } from './cli_pipe_pressure.js';
 import { dataset as perfColdStart } from './perf_cold_start.js';
 import { dataset as faultOomScenario } from './fault_oom_scenario.js';
 import { dataset as traceRoundtrip } from './trace_roundtrip.js';
+import { dataset as repoLineageDataset } from './repo_lineage_dataset.js';
+import { dataset as pipelineExecutionDataset } from './pipeline_execution_dataset.js';
+import { dataset as artifactMutationDataset } from './artifact_mutation_dataset.js';
+import { dataset as driftDetectionDataset } from './drift_detection_dataset.js';
 
 export const BUILTIN_DATASETS = [
   polTenantIsolation,
@@ -21,6 +25,10 @@ export const BUILTIN_DATASETS = [
   perfColdStart,
   faultOomScenario,
   traceRoundtrip,
+  repoLineageDataset,
+  pipelineExecutionDataset,
+  artifactMutationDataset,
+  driftDetectionDataset,
 ] as const;
 
 let registered = false;
