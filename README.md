@@ -63,7 +63,7 @@ Expected output includes:
 
 ## CLI Cheatsheet
 
-Reach CLI (`req`) provides the operator interface for interacting with the kernel and managing executions.
+Reach CLI (`rq`) provides the operator interface for interacting with the kernel and managing executions.
 
 ```bash
 # 30-second Tool Failure Intelligence demo
@@ -76,13 +76,13 @@ rq diff <baseline_run_id> <failed_run_id>
 pnpm doctor
 
 # Inspect a plan hash
-req inspect <hash> --json
+rq inspect <hash> --json
 
 # Check log integrity
-req verify <hash> --replay
+rq verify <hash> --replay
 
 # List active entitlements
-req trust show --json
+rq trust show --json
 ```
 
 ---

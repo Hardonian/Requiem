@@ -9,43 +9,43 @@ export const metadata: Metadata = {
 const resources = [
   {
     title: 'Quick Start Guide',
-    description: 'Get up and running with ReadyLayer in minutes.',
-    href: '/docs/quick-start',
+    description: 'Start with operator-oriented docs and first-run links.',
+    href: '/docs',
   },
   {
     title: 'Architecture Overview',
     description: 'Understand the ReadyLayer system design and components.',
-    href: '/docs/architecture',
+    href: '/console/architecture',
   },
   {
-    title: 'API Reference',
-    description: 'Complete API documentation for programmatic access.',
-    href: '/docs/api',
+    title: 'API Surface',
+    description: 'Inspect the generated OpenAPI route contract.',
+    href: '/api/openapi.json',
   },
   {
-    title: 'CLI Reference',
-    description: 'Command-line interface documentation.',
-    href: '/docs/cli',
+    title: 'CLI Operations',
+    description: 'Run and verify workloads from the console entrypoint.',
+    href: '/console',
   },
   {
     title: 'Policy Configuration',
-    description: 'Learn how to configure governance policies.',
-    href: '/docs/configuration',
+    description: 'Configure governance policies and guardrails.',
+    href: '/console/policies',
   },
   {
-    title: 'Provider Integration',
-    description: 'Connect with different LLM providers.',
-    href: '/docs/providers',
+    title: 'Runtime Status',
+    description: 'Check deployment health and runtime diagnostics.',
+    href: '/status',
   },
   {
-    title: 'Security Guide',
-    description: 'Security best practices and configuration.',
-    href: '/docs/security',
+    title: 'Security Posture',
+    description: 'Review implemented controls and disclosure guidance.',
+    href: '/security',
   },
   {
-    title: 'Observability',
-    description: 'Monitoring, logging, and tracing setup.',
-    href: '/docs/observability',
+    title: 'Support and Escalation',
+    description: 'Contact support and review the service status feed.',
+    href: '/support',
   },
 ];
 
@@ -56,7 +56,7 @@ export default function LibraryPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Library</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Documentation, guides, and resources to help you get the most out of ReadyLayer.
+            Documentation, guides, and operational resources for ReadyLayer.
           </p>
         </div>
 
