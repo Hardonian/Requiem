@@ -496,7 +496,7 @@ function SemanticLedgerContent() {
           </p>
         </div>
         <Link
-          href="/docs/reference/semantic-state-machine"
+          href="/docs"
           className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-sm font-medium transition-colors"
         >
           Read Documentation

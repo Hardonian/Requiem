@@ -56,7 +56,7 @@ async function ExecutionsList() {
               Connect to a Requiem node to see live execution data and policy enforcement metrics.
             </p>
             <div className="mt-4 flex items-center gap-6">
-              <a href="/docs/connecting-nodes" className="text-sm font-bold text-amber-900 hover:opacity-70 flex items-center gap-1">
+              <a href="/docs" className="text-sm font-bold text-amber-900 hover:opacity-70 flex items-center gap-1">
                 Read connection guide
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </a>
