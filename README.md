@@ -94,12 +94,15 @@ The ReadyLayer dashboard provides a visual control plane for your AI operations.
 ```bash
 # Start the web console locally
 pnpm --filter ready-layer dev
+
+# Verify route completeness + API hardening + smoke checks
+pnpm --filter ready-layer test && pnpm --filter ready-layer build && pnpm --filter ready-layer test:e2e
 ```
 Open [http://localhost:3000](http://localhost:3000) to view:
-- **Registry**: Real-time tool definitions and constraints.
-- **Spend**: Cost tracking and anomaly detection.
-- **Drift**: Comparison of execution hashes over time.
-- **Settings**: Global policy and tenant isolation controls.
+- **Home / Docs / Pricing**: Entry points for product and technical onboarding.
+- **Console**: Operations shell (runs, plans, policies, capabilities, finops, snapshots).
+- **Status**: Runtime diagnostics (build SHA, environment, prompt/core identifiers, backend reachability).
+- **Registry / Spend / Drift / Settings**: Control plane views for policy and runtime operations.
 
 ---
 
