@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
 import { canonicalStringify } from './canonical-json.js';
+import { blake3Hex } from './hash.js';
 
 export interface ProblemJSON {
   type: string;
@@ -37,14 +37,13 @@ export function stableSort<T>(items: readonly T[], compare: (a: T, b: T) => numb
     .map((entry) => entry.item);
 }
 
-export function hashBytes(bytes: string | Uint8Array, algorithm: 'sha256' = 'sha256'): string {
-  const hash = createHash(algorithm);
-  hash.update(bytes);
-  return hash.digest('hex');
+export function hashBytes(bytes: string | Uint8Array): string {
+  const input = typeof bytes === 'string' ? bytes : Buffer.from(bytes);
+  return blake3Hex(input);
 }
 
-export function hashObject(value: unknown, algorithm: 'sha256' = 'sha256'): string {
-  return hashBytes(canonicalize(value), algorithm);
+export function hashObject(value: unknown): string {
+  return hashBytes(canonicalize(value));
 }
 
 export function buildProblemJSON(options: ProblemJSONOptions): ProblemJSON {
