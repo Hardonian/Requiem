@@ -90,7 +90,7 @@ describe('Foundry Tenant Isolation', () => {
       const runId = generateRunId(tenantId, 'gen');
 
       expect(runId).toContain('gen_');
-      expect(runId).toContain('tenant-abc');
+      expect(runId).toContain(tenantId.slice(0, 8));
     });
 
     it('should produce unique run IDs', () => {

@@ -18,6 +18,15 @@ const STATIC_ASSET_PATTERNS = [
 
 const PUBLIC_ROUTES = [
   '/',
+  '/docs',
+  '/documentation',
+  '/pricing',
+  '/status',
+  '/changelog',
+  '/privacy',
+  '/terms',
+  '/login',
+  '/signup',
   '/auth/signin',
   '/auth/signup',
   '/auth/callback',
@@ -26,12 +35,14 @@ const PUBLIC_ROUTES = [
   '/api/health',
   '/api/ready',
   '/api/openapi.json',
+  '/api/status',
 ];
 
 const PUBLIC_API_ROUTES = [
   '/api/health',
   '/api/ready',
   '/api/openapi.json',
+  '/api/status',
 ];
 
 function isStaticAsset(pathname: string): boolean {
