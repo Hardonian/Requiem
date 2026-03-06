@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.1 — Release Candidate Close-out (2026-03-06)
+
+### Added
+- **Route truth generation script** — Added `scripts/generate-route-truth.ts` plus `verify:release-artifacts` to produce machine-readable and human-readable route inventory artifacts for release verification.
+- **Release evidence pack** — Added `reports/release-candidate/` artifacts for brand audit, claims-vs-reality, verification log, deployment notes, and known tradeoffs.
+
+### Changed
+- **Problem+JSON verifier allowlist** — Updated `scripts/verify-problem-json.ts` to recognize `api/status` as a valid non-tenant route and treat `unknownErrorToProblem(...)` usage as structured-error compliance evidence.
+
+---
+
+
 ## 1.4.0 — Audit Remediation Complete (2026-03-01)
 
 ### Security

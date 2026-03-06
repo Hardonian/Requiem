@@ -11,6 +11,7 @@ const apiRoot = path.join(root, 'ready-layer', 'src', 'app', 'api');
 interface Violation { file: string; message: string }
 
 const allowedWithoutTenantContext = new Set([
+  'status/route.ts',
   'mcp/health/route.ts',
   'mcp/tools/route.ts',
   'mcp/tool/call/route.ts',
@@ -37,7 +38,7 @@ function main(): void {
     const source = fs.readFileSync(file, 'utf8');
     const rel = path.relative(apiRoot, file).replace(/\\/g, '/');
     const hasTenantContext = source.includes('withTenantContext(');
-    const hasProblemType = source.includes('application/problem+json');
+    const hasProblemType = source.includes('application/problem+json') || source.includes('unknownErrorToProblem(');
     const hasTraceId = source.includes('trace_id') || source.includes('x-trace-id');
 
     if (!hasTenantContext && !allowedWithoutTenantContext.has(rel)) {
