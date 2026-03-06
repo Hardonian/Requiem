@@ -1,9 +1,54 @@
 /**
- * Hash utilities for deterministic operations
+ * Hash utilities — unified BLAKE3-256 with domain separation
+ *
+ * This module is the single source of truth for hashing in the TypeScript
+ * layer. It mirrors the C++ kernel's domain-separated BLAKE3 scheme:
+ *
+ *   "req:" — request digests
+ *   "res:" — result digests
+ *   "cas:" — CAS content keys
+ *   "evt:" — event chain hashes
+ *   "pol:" — policy proof hashes
  */
 
-import { createHash } from 'node:crypto';
 import { hash as blake3Hash } from 'blake3';
+
+/** Canonical BLAKE3-256 hash (64 hex chars) */
+export function hash(data: string | Buffer): string {
+  const content = typeof data === 'string' ? Buffer.from(data) : data;
+  return blake3Hash(content).toString('hex');
+}
+
+/** Domain-separated hash (matches C++ kernel's hash_domain) */
+export function hashDomain(domain: string, payload: string): string {
+  return hash(domain + payload);
+}
+
+/** Request digest — domain "req:" */
+export function requestDigest(canonicalJson: string): string {
+  return hashDomain('req:', canonicalJson);
+}
+
+/** Result digest — domain "res:" */
+export function resultDigest(canonicalJson: string): string {
+  return hashDomain('res:', canonicalJson);
+}
+
+/** CAS content hash — domain "cas:" */
+export function casContentHash(payload: string | Buffer): string {
+  const content = typeof payload === 'string' ? payload : payload.toString();
+  return hashDomain('cas:', content);
+}
+
+/** Event chain hash — domain "evt:" */
+export function eventChainHash(eventJson: string): string {
+  return hashDomain('evt:', eventJson);
+}
+
+/** Policy proof hash — domain "pol:" */
+export function policyProofHash(decisionJson: string): string {
+  return hashDomain('pol:', decisionJson);
+}
 
 export interface HashBridge {
   artifact_hash: string;
@@ -11,32 +56,17 @@ export interface HashBridge {
   canonical_hash: string;
 }
 
-/**
- * Create a deterministic hash of input data
- * Uses BLAKE3 to match the native engine's hashing logic.
- */
-export function hash(data: string | Buffer): string {
-  const content = typeof data === 'string' ? Buffer.from(data) : data;
-  return blake3Hash(content).toString('hex');
-}
-
-export function runtimeHash(data: string | Buffer): string {
-  const content = typeof data === 'string' ? Buffer.from(data) : data;
-  return createHash('sha256').update(content).digest('hex');
-}
-
+/** Create hash bridge — all fields now use BLAKE3 */
 export function createHashBridge(data: string | Buffer): HashBridge {
-  const artifactHash = hash(data);
+  const h = hash(data);
   return {
-    artifact_hash: artifactHash,
-    runtime_hash: runtimeHash(data),
-    canonical_hash: artifactHash,
+    artifact_hash: h,
+    runtime_hash: h,
+    canonical_hash: h,
   };
 }
 
-/**
- * Create a short hash (first 16 characters)
- */
+/** Truncated hash for display (first 16 chars) */
 export function hashShort(data: string | Buffer): string {
   return hash(data).substring(0, 16);
 }
