@@ -156,6 +156,15 @@ REVIEW COMMANDS:
   review verify --pr <number>                Verify replay for PR
   review arena --engines a,b,c               Compare multiple engines
 
+PROOF ENGINE COMMANDS:
+  prove [suite...]                    Run proof verification tests, output proofpacks
+  replay <execution_id>              Replay a prior execution deterministically
+    --step                            Step-by-step replay with pauses
+    --trace                           Full execution trace output
+    --explain                         Annotated decision explanations
+  verify <proofpack.json>             Verify proofpack cryptographic integrity
+    --verbose                         Show all individual checks
+
 OPTIONS:
   --json                              Output in JSON format
   --minimal                           Quiet, deterministic output
@@ -431,6 +440,40 @@ async function main(): Promise<number> {
           runLearning: (subcommand: string, args: string[], opts: { json: boolean }) => Promise<number>;
         };
         result = await runLearning(subArgs[0] ?? 'dashboard', subArgs.slice(1), { json });
+        break;
+      }
+
+      // Proof Engine commands
+      case 'prove': {
+        const { runProve } = await loadCommand('./commands/rl-prove.js') as {
+          runProve: (opts: { json: boolean; suites?: string[]; outputDir?: string }) => Promise<number>;
+        };
+        const suites = subArgs.filter(a => !a.startsWith('--'));
+        result = await runProve({ json, suites: suites.length > 0 ? suites : undefined });
+        break;
+      }
+
+      case 'replay': {
+        const executionId = subArgs[0];
+        if (!executionId || executionId.startsWith('--')) {
+          throw new Error('Usage: rl replay <execution_id> [--step] [--trace] [--explain]');
+        }
+        const { runReplayDebug } = await loadCommand('./commands/rl-replay-debug.js') as {
+          runReplayDebug: (executionId: string, args: string[], opts: { json: boolean }) => Promise<number>;
+        };
+        result = await runReplayDebug(executionId, subArgs.slice(1), { json });
+        break;
+      }
+
+      case 'verify': {
+        const proofpackPath = subArgs[0];
+        if (!proofpackPath || proofpackPath.startsWith('--')) {
+          throw new Error('Usage: rl verify <proofpack.json> [--verbose]');
+        }
+        const { runVerify } = await loadCommand('./commands/rl-verify.js') as {
+          runVerify: (path: string, args: string[], opts: { json: boolean }) => Promise<number>;
+        };
+        result = await runVerify(proofpackPath, subArgs.slice(1), { json });
         break;
       }
 
