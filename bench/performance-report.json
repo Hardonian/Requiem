@@ -1,0 +1,1 @@
+{"cas_hit_rate":0.8,"concurrent_phase_duration_ms":42.21643499999993,"concurrent_workloads":1000,"cpu_user_ms":1173.551,"execution_throughput_per_sec":15942.43445475688,"memory_usage_mb":91.796875,"p50_latency_ms":0.05095400000004702,"p95_latency_ms":0.09304500000001781,"p99_latency_ms":0.4168339999999944,"sequential_workloads":10000}

@@ -190,6 +190,11 @@ ADMIN COMMANDS:
   bugreport                           Generate diagnostic report
   selftest                            Run comprehensive self-diagnostic checks
   bench                               Sub-millisecond latency baseline
+  benchmark                           Full evidence benchmark suite
+  test:determinism                    Generate determinism + replay artifacts
+  test:crash                          Generate crash recovery artifact
+  test:adapters                       Generate adapter determinism artifact
+  evidence                            Bundle benchmark artifacts under bench/evidence
   fast-start [--minimal]              Cached skip of engine/DB checks
 
 OPTIONS:
@@ -605,6 +610,36 @@ async function main(): Promise<number> {
       case 'bench': {
         const { runBench } = await loadCommand('./commands/bench.js') as { runBench: (ctx: CommandContext) => Promise<number> };
         result = await runBench(ctx);
+        break;
+      }
+
+      case 'benchmark': {
+        const { runBenchmarkSuite } = await loadCommand('./commands/benchmark-suite.js') as { runBenchmarkSuite: (ctx: CommandContext) => Promise<number> };
+        result = await runBenchmarkSuite(ctx);
+        break;
+      }
+
+      case 'test:determinism': {
+        const { runDeterminismTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runDeterminismTestCommand: () => Promise<number> };
+        result = await runDeterminismTestCommand();
+        break;
+      }
+
+      case 'test:crash': {
+        const { runCrashTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runCrashTestCommand: () => Promise<number> };
+        result = await runCrashTestCommand();
+        break;
+      }
+
+      case 'test:adapters': {
+        const { runAdapterTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runAdapterTestCommand: () => Promise<number> };
+        result = await runAdapterTestCommand();
+        break;
+      }
+
+      case 'evidence': {
+        const { runEvidenceCommand } = await loadCommand('./commands/benchmark-suite.js') as { runEvidenceCommand: () => Promise<number> };
+        result = await runEvidenceCommand();
         break;
       }
 

@@ -1,12 +1,12 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
   "scripts": {
-    "dev": "pnpm web:dev",
+    "dev": "pnpm --filter ready-layer dev",
     "rl": "node scripts/run-tsx.mjs packages/cli/src/rl-cli.ts",
     "reach": "pnpm --filter @requiem/cli",
     "reality-gate": "bash scripts/reality-gate.sh",
@@ -97,8 +97,12 @@
     "verify:error-bands": "node scripts/run-tsx.mjs scripts/verify-error-bands.ts",
     "verify:moe-reduction": "node scripts/run-tsx.mjs scripts/verify-moe-reduction.ts",
     "verify:tool-failure-runtime": "node scripts/run-tsx.mjs scripts/verify-tool-failure-runtime.ts",
-    "dev": "pnpm --filter ready-layer dev",
-    "verify:repo": "node scripts/verify-repo.mjs"
+    "verify:repo": "node scripts/verify-repo.mjs",
+    "benchmark": "node scripts/run-tsx.mjs packages/cli/src/cli.ts benchmark --json",
+    "test:determinism": "node scripts/run-tsx.mjs packages/cli/src/cli.ts test:determinism",
+    "test:crash": "node scripts/run-tsx.mjs packages/cli/src/cli.ts test:crash",
+    "test:adapters": "node scripts/run-tsx.mjs packages/cli/src/cli.ts test:adapters",
+    "evidence": "node scripts/run-tsx.mjs packages/cli/src/cli.ts evidence"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
