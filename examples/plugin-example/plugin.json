@@ -1,0 +1,23 @@
+{
+  "name": "example-safe-plugin",
+  "version": "1.0.0",
+  "interfaceVersion": "1.0",
+  "capabilities": [
+    {
+      "id": "workflow.concat",
+      "description": "Deterministic concat adapter",
+      "scope": "workflow",
+      "deterministic": true
+    }
+  ],
+  "permissions": ["workflow:run"],
+  "tenancy": {
+    "requiresTenantContext": true,
+    "allowsCrossTenantAccess": false
+  },
+  "security": {
+    "requiresPolicyEvaluation": true,
+    "requiresTraceHeaders": true,
+    "networkAccess": "none"
+  }
+}
