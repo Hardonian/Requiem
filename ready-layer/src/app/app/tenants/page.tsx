@@ -4,6 +4,13 @@
 // Enterprise Operator: view tenant list, isolation status, quota usage.
 // INVARIANT: Requires elevated admin role. Non-admin requests → 403.
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Tenant Isolation',
+  description: 'Manage tenants, isolation boundaries, and quota enforcement.',
+};
+
 import { Suspense } from 'react';
 
 export default function TenantsPage() {

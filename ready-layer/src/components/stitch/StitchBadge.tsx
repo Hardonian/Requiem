@@ -1,13 +1,7 @@
 'use client';
 
 /**
- * StitchBadge - Status badge with pulse animation option
- * 
- * Variants:
- * - default: Primary color with border
- * - success: Green accent
- * - warning: Yellow/amber accent
- * - error: Red accent
+ * StitchBadge - Status badge with consistent token usage
  */
 
 import type { ReactNode } from 'react';
@@ -19,30 +13,30 @@ interface StitchBadgeProps {
   className?: string;
 }
 
-export function StitchBadge({ 
-  children, 
+export function StitchBadge({
+  children,
   variant = 'default',
   pulse = false,
-  className = '' 
+  className = ''
 }: StitchBadgeProps) {
   const variantClasses = {
-    default: 'bg-[#137fec]/10 border-[#137fec]/20 text-[#137fec]',
-    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500',
-    warning: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500',
-    error: 'bg-red-500/10 border-red-500/20 text-red-500',
+    default: 'bg-accent/10 border-accent/20 text-accent',
+    success: 'bg-success/10 border-success/20 text-success',
+    warning: 'bg-warning/10 border-warning/20 text-warning',
+    error: 'bg-destructive/10 border-destructive/20 text-destructive',
   };
 
   return (
-    <div className={`
-      inline-flex items-center gap-2 self-start rounded-full 
-      px-3 py-1 border text-xs font-medium uppercase tracking-wider
+    <span className={`
+      inline-flex items-center gap-1.5 rounded-full
+      px-2.5 py-0.5 border text-xs font-medium
       ${variantClasses[variant]}
       ${className}
     `}>
       {pulse && (
-        <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" aria-hidden="true" />
       )}
       {children}
-    </div>
+    </span>
   );
 }

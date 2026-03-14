@@ -9,36 +9,38 @@
   --background: 248 250 252;
   --foreground: 15 23 42;
   --surface: 255 255 255;
+  --surface-elevated: 248 250 252;
   --border: 226 232 240;
   --muted: 100 116 139;
-  --accent: 16 185 129;
+  --accent: 19 127 236;
   --destructive: 239 68 68;
-  --success: 34 197 94;
+  --success: 16 185 129;
   --warning: 234 179 8;
-  
+
   /* Stitch design system - light mode */
-  --stitch-bg: 246 247 248;
+  --stitch-bg: 248 250 252;
   --stitch-fg: 15 23 42;
   --stitch-surface: 255 255 255;
-  --stitch-surface-elevated: 248 250 252;
+  --stitch-surface-elevated: 241 245 249;
   --stitch-border: 226 232 240;
   --stitch-muted: 100 116 139;
   --stitch-primary: 19 127 236;
 }
 
 .dark {
-  --background: 2 6 23;
+  --background: 10 15 22;
   --foreground: 226 232 240;
-  --surface: 15 23 42;
-  --border: 51 65 85;
+  --surface: 28 37 46;
+  --surface-elevated: 21 30 39;
+  --border: 42 52 65;
   --muted: 148 163 184;
-  --accent: 16 185 129;
+  --accent: 19 127 236;
   --destructive: 248 113 113;
-  --success: 74 222 128;
+  --success: 52 211 153;
   --warning: 250 204 21;
-  
+
   /* Stitch design system - dark mode */
-  --stitch-bg: 16 25 34;
+  --stitch-bg: 10 15 22;
   --stitch-fg: 226 232 240;
   --stitch-surface: 28 37 46;
   --stitch-surface-elevated: 21 30 39;
@@ -55,42 +57,121 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   color: rgb(var(--foreground));
   background: rgb(var(--background));
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Noto Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Focus visible styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: rgb(var(--foreground));
+  color: rgb(var(--background));
+  padding: 8px 16px;
+  z-index: 100;
+  font-size: 14px;
+  font-weight: 600;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
 }
 
 /* Stitch design system utilities */
 @layer components {
   .stitch-container {
-    @apply min-h-screen bg-stitch-background-light dark:bg-stitch-background-dark font-body antialiased;
+    @apply min-h-screen bg-background font-body antialiased;
   }
-  
+
   .stitch-surface {
-    @apply bg-stitch-surface-dark dark:bg-stitch-surface-darker border-stitch-border-dark;
+    @apply bg-surface dark:bg-surface border-border;
   }
-  
+
   .stitch-card {
-    @apply bg-stitch-surface-dark dark:bg-stitch-surface-darker border border-stitch-border-dark rounded-xl p-4;
+    @apply bg-surface border border-border rounded-xl p-4
+           shadow-sm hover:shadow-md transition-shadow duration-200;
   }
-  
+
   .stitch-button-primary {
-    @apply flex items-center justify-center gap-2 rounded-lg bg-stitch-primary hover:bg-stitch-primary-dark 
-           h-12 px-6 text-white text-sm font-bold transition-colors;
+    @apply flex items-center justify-center gap-2 rounded-lg bg-accent hover:brightness-110
+           h-10 px-5 text-white text-sm font-semibold transition-all
+           focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2;
   }
-  
+
   .stitch-button-secondary {
-    @apply flex items-center justify-center gap-2 rounded-lg bg-stitch-surface-dark border border-stitch-border-dark 
-           hover:bg-stitch-surface-darker h-12 px-6 text-white text-sm font-bold transition-colors;
+    @apply flex items-center justify-center gap-2 rounded-lg bg-surface border border-border
+           hover:bg-surface-elevated h-10 px-5 text-foreground text-sm font-semibold transition-all
+           focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2;
   }
-  
+
   .stitch-text-secondary {
-    @apply text-stitch-text-secondary;
+    @apply text-muted;
   }
-  
+
   .stitch-header {
-    @apply sticky top-0 z-50 bg-stitch-background-dark/95 backdrop-blur border-b border-stitch-border-dark 
+    @apply sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border
            px-4 py-3 flex items-center justify-between;
+  }
+
+  /* Canonical table styling */
+  .stitch-table {
+    @apply w-full text-sm;
+  }
+  .stitch-table thead {
+    @apply bg-surface-elevated;
+  }
+  .stitch-table th {
+    @apply text-left py-3 px-4 text-xs font-semibold text-muted uppercase tracking-wider;
+  }
+  .stitch-table td {
+    @apply py-3 px-4 text-foreground;
+  }
+  .stitch-table tbody tr {
+    @apply border-t border-border hover:bg-surface-elevated/50 transition-colors;
+  }
+
+  /* Canonical stat card */
+  .stitch-stat {
+    @apply bg-surface border border-border rounded-xl p-5
+           shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+  .stitch-stat-label {
+    @apply text-xs font-semibold text-muted uppercase tracking-wider leading-none mb-2;
+  }
+  .stitch-stat-value {
+    @apply text-2xl font-bold text-foreground font-display tracking-tight;
+  }
+  .stitch-stat-sub {
+    @apply text-xs text-muted mt-2 flex items-center gap-1.5;
+  }
+
+  /* Canonical section header */
+  .stitch-section-header {
+    @apply px-5 py-3.5 border-b border-border bg-surface-elevated/50
+           flex items-center justify-between;
+  }
+  .stitch-section-title {
+    @apply text-sm font-semibold text-foreground tracking-tight;
   }
 }

@@ -4,6 +4,13 @@
 // SRE/DevOps persona: system health, determinism score, last 10 executions,
 // CAS efficiency snapshot. No blank dashboard on first login.
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Diagnostics',
+  description: 'Engine health checks, determinism scoring, and system diagnostics.',
+};
+
 import { Suspense } from 'react';
 
 function DiagnosticsSkeleton() {

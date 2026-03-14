@@ -15,14 +15,19 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      
+
       colors: {
         background: 'rgb(var(--background) / <alpha-value>)',
         foreground: 'rgb(var(--foreground) / <alpha-value>)',
-        surface: 'rgb(var(--surface) / <alpha-value>)',
+        surface: {
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
+        },
         border: 'rgb(var(--border) / <alpha-value>)',
         muted: 'rgb(var(--muted) / <alpha-value>)',
-        accent: 'rgb(var(--accent) / <alpha-value>)',
+        accent: {
+          DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+        },
         destructive: 'rgb(var(--destructive) / <alpha-value>)',
         success: 'rgb(var(--success) / <alpha-value>)',
         warning: 'rgb(var(--warning) / <alpha-value>)',
@@ -40,7 +45,7 @@ const config: Config = {
           primary: '#137fec',
           'primary-dark': '#0b5cb5',
           'background-light': '#f6f7f8',
-          'background-dark': '#101922',
+          'background-dark': '#0a0f16',
           'surface-dark': '#1c252e',
           'surface-darker': '#151e27',
           'border-dark': '#2a3441',
@@ -53,7 +58,8 @@ const config: Config = {
         body: ['Noto Sans', 'system-ui', 'sans-serif'],
       },
       animation: {
-        'fade-in': 'fadeIn 0.15s ease-in',
+        'fade-in': 'fadeIn 0.2s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
@@ -61,6 +67,14 @@ const config: Config = {
           from: { opacity: '0' },
           to: { opacity: '1' },
         },
+        slideUp: {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
       },
     },
   },

@@ -2,7 +2,13 @@
 //
 // Phase E: Enterprise Operator — View CAS efficiency (hit rate, dedupe ratio).
 
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
+
+export const metadata: Metadata = {
+  title: 'CAS Management',
+  description: 'Content-addressable storage efficiency, hit rates, and deduplication metrics.',
+};
 
 export default function CASPage() {
   return (

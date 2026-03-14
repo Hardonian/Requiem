@@ -1,5 +1,37 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
+export const metadata: Metadata = {
+  title: 'Sign Up',
+  description: 'Create your Requiem account and tenant.',
+  robots: { index: false, follow: false },
+};
+
 export default function SignUpPage() {
-  return <main className="mx-auto max-w-md px-6 py-16"><h1 className="text-2xl font-semibold">Sign up</h1><p className="mt-3 text-slate-600">Create your ReadyLayer tenant and connect an identity provider.</p><Link href="/auth/signin" className="mt-6 inline-block text-emerald-700 hover:underline">Already have an account? Sign in</Link></main>;
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <div className="w-10 h-10 bg-foreground rounded-xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-background font-bold text-sm">R</span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground font-display">Create your account</h1>
+          <p className="mt-2 text-sm text-muted">
+            Set up your ReadyLayer tenant and connect an identity provider.
+          </p>
+        </div>
+        <div className="bg-surface rounded-xl border border-border p-6 shadow-sm">
+          <p className="text-sm text-muted text-center">
+            Configure your Supabase project to enable tenant provisioning.
+          </p>
+        </div>
+        <p className="text-center mt-6 text-sm text-muted">
+          Already have an account?{' '}
+          <Link href="/auth/signin" className="text-accent hover:underline font-medium">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </main>
+  );
 }
