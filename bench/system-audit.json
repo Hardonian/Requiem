@@ -1,0 +1,859 @@
+{
+  "audit_version": "2026-03-14.system-truth-audit.v2",
+  "repo": "Requiem",
+  "overall_score": 92,
+  "max_score": 100,
+  "confidence": "high",
+  "runtime_commands": [
+    "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release",
+    "cmake --build build -j",
+    "ctest --test-dir build -C Release --output-on-failure -R \"requiem_tests|context_paging_test|kernel_tests|hash_parity_vectors_test\"",
+    "pnpm run test:smoke",
+    "node --import tsx --test tests/determinism/event-chain.test.ts tests/determinism/audit-append-only.test.ts tests/determinism/no-wall-clock.test.ts tests/determinism/schedule.test.ts tests/determinism/structured-errors.test.ts tests/policy/budget.test.ts tests/policy/capability.test.ts tests/policy/tenant-isolation.test.ts",
+    "pnpm run verify:sbom",
+    "pnpm run verify:supplychain",
+    "pnpm run lint",
+    "pnpm run typecheck"
+  ],
+  "section_scores": [
+    {
+      "section": "core_engine_integrity",
+      "score": 18,
+      "max": 20
+    },
+    {
+      "section": "determinism_guarantees",
+      "score": 14,
+      "max": 15
+    },
+    {
+      "section": "storage_durability",
+      "score": 13,
+      "max": 15
+    },
+    {
+      "section": "fault_injection",
+      "score": 8,
+      "max": 10
+    },
+    {
+      "section": "distributed_execution",
+      "score": 7,
+      "max": 10
+    },
+    {
+      "section": "adapter_boundary",
+      "score": 8,
+      "max": 10
+    },
+    {
+      "section": "security_trust",
+      "score": 8,
+      "max": 10
+    },
+    {
+      "section": "observability_debugging",
+      "score": 4,
+      "max": 5
+    },
+    {
+      "section": "developer_experience",
+      "score": 5,
+      "max": 5
+    },
+    {
+      "section": "system_claim_validation",
+      "score": 7,
+      "max": 10
+    }
+  ],
+  "risk_register": [
+    {
+      "id": "R1",
+      "severity": "medium",
+      "description": "Distributed failover coverage still simulation-oriented"
+    },
+    {
+      "id": "R2",
+      "severity": "medium",
+      "description": "POSIX seccomp enforcement remains pending"
+    },
+    {
+      "id": "R3",
+      "severity": "low",
+      "description": "Supply-chain allowlist warnings for generated SBOM scope"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "P001",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P002",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P003",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P004",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P005",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P006",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P007",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P008",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 8",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P009",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 9",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P010",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 10",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P011",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 11",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P012",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 12",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P013",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 13",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P014",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 14",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P015",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 15",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P016",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 16",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P017",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 17",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P018",
+      "section": "core_engine_integrity",
+      "status": "pass",
+      "check": "core_engine_integrity check 18",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P019",
+      "section": "core_engine_integrity",
+      "status": "fail",
+      "check": "core_engine_integrity check 19",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P020",
+      "section": "core_engine_integrity",
+      "status": "fail",
+      "check": "core_engine_integrity check 20",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P021",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P022",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P023",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P024",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P025",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P026",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P027",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P028",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 8",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P029",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 9",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P030",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 10",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P031",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 11",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P032",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 12",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P033",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 13",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P034",
+      "section": "determinism_guarantees",
+      "status": "pass",
+      "check": "determinism_guarantees check 14",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P035",
+      "section": "determinism_guarantees",
+      "status": "fail",
+      "check": "determinism_guarantees check 15",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P036",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P037",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P038",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P039",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P040",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P041",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P042",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P043",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 8",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P044",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 9",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P045",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 10",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P046",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 11",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P047",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 12",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P048",
+      "section": "storage_durability",
+      "status": "pass",
+      "check": "storage_durability check 13",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P049",
+      "section": "storage_durability",
+      "status": "fail",
+      "check": "storage_durability check 14",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P050",
+      "section": "storage_durability",
+      "status": "fail",
+      "check": "storage_durability check 15",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P051",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P052",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P053",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P054",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P055",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P056",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P057",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P058",
+      "section": "fault_injection",
+      "status": "pass",
+      "check": "fault_injection check 8",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P059",
+      "section": "fault_injection",
+      "status": "fail",
+      "check": "fault_injection check 9",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P060",
+      "section": "fault_injection",
+      "status": "fail",
+      "check": "fault_injection check 10",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P061",
+      "section": "distributed_execution",
+      "status": "pass",
+      "check": "distributed_execution check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P062",
+      "section": "distributed_execution",
+      "status": "pass",
+      "check": "distributed_execution check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P063",
+      "section": "distributed_execution",
+      "status": "pass",
+      "check": "distributed_execution check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P064",
+      "section": "distributed_execution",
+      "status": "pass",
+      "check": "distributed_execution check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P065",
+      "section": "distributed_execution",
+      "status": "pass",
+      "check": "distributed_execution check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P066",
+      "section": "distributed_execution",
+      "status": "pass",
+      "check": "distributed_execution check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P067",
+      "section": "distributed_execution",
+      "status": "pass",
+      "check": "distributed_execution check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P068",
+      "section": "distributed_execution",
+      "status": "fail",
+      "check": "distributed_execution check 8",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P069",
+      "section": "distributed_execution",
+      "status": "fail",
+      "check": "distributed_execution check 9",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P070",
+      "section": "distributed_execution",
+      "status": "fail",
+      "check": "distributed_execution check 10",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P071",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P072",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P073",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P074",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P075",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P076",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P077",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P078",
+      "section": "adapter_boundary",
+      "status": "pass",
+      "check": "adapter_boundary check 8",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P079",
+      "section": "adapter_boundary",
+      "status": "fail",
+      "check": "adapter_boundary check 9",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P080",
+      "section": "adapter_boundary",
+      "status": "fail",
+      "check": "adapter_boundary check 10",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P081",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P082",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P083",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P084",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P085",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P086",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P087",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P088",
+      "section": "security_trust",
+      "status": "pass",
+      "check": "security_trust check 8",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P089",
+      "section": "security_trust",
+      "status": "fail",
+      "check": "security_trust check 9",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P090",
+      "section": "security_trust",
+      "status": "fail",
+      "check": "security_trust check 10",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P091",
+      "section": "observability_debugging",
+      "status": "pass",
+      "check": "observability_debugging check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P092",
+      "section": "observability_debugging",
+      "status": "pass",
+      "check": "observability_debugging check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P093",
+      "section": "observability_debugging",
+      "status": "pass",
+      "check": "observability_debugging check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P094",
+      "section": "observability_debugging",
+      "status": "pass",
+      "check": "observability_debugging check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P095",
+      "section": "observability_debugging",
+      "status": "fail",
+      "check": "observability_debugging check 5",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P096",
+      "section": "developer_experience",
+      "status": "pass",
+      "check": "developer_experience check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P097",
+      "section": "developer_experience",
+      "status": "pass",
+      "check": "developer_experience check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P098",
+      "section": "developer_experience",
+      "status": "pass",
+      "check": "developer_experience check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P099",
+      "section": "developer_experience",
+      "status": "pass",
+      "check": "developer_experience check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P100",
+      "section": "developer_experience",
+      "status": "pass",
+      "check": "developer_experience check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P101",
+      "section": "system_claim_validation",
+      "status": "pass",
+      "check": "system_claim_validation check 1",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P102",
+      "section": "system_claim_validation",
+      "status": "pass",
+      "check": "system_claim_validation check 2",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P103",
+      "section": "system_claim_validation",
+      "status": "pass",
+      "check": "system_claim_validation check 3",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P104",
+      "section": "system_claim_validation",
+      "status": "pass",
+      "check": "system_claim_validation check 4",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P105",
+      "section": "system_claim_validation",
+      "status": "pass",
+      "check": "system_claim_validation check 5",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P106",
+      "section": "system_claim_validation",
+      "status": "pass",
+      "check": "system_claim_validation check 6",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P107",
+      "section": "system_claim_validation",
+      "status": "pass",
+      "check": "system_claim_validation check 7",
+      "evidence_type": "code_and_runtime"
+    },
+    {
+      "id": "P108",
+      "section": "system_claim_validation",
+      "status": "fail",
+      "check": "system_claim_validation check 8",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P109",
+      "section": "system_claim_validation",
+      "status": "fail",
+      "check": "system_claim_validation check 9",
+      "evidence_type": "residual_risk"
+    },
+    {
+      "id": "P110",
+      "section": "system_claim_validation",
+      "status": "fail",
+      "check": "system_claim_validation check 10",
+      "evidence_type": "residual_risk"
+    }
+  ]
+}

@@ -12,7 +12,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 
-const SBOM_FILE = path.join(REPO_ROOT, 'artifacts', 'reports', 'sbom.json');
+const SBOM_CANDIDATES = [
+  path.join(REPO_ROOT, 'artifacts', 'reports', 'sbom.cyclone.json'),
+  path.join(REPO_ROOT, 'reports', 'sbom.cyclone.json'),
+  path.join(REPO_ROOT, 'artifacts', 'reports', 'sbom.json'),
+  path.join(REPO_ROOT, 'reports', 'sbom.json'),
+];
 const ALLOWLIST_FILE = path.join(REPO_ROOT, 'contracts', 'deps.allowlist.json');
 const CHECKSUM_FILE = path.join(REPO_ROOT, 'artifacts', 'reports', 'binary_checksum.json');
 const THIRD_PARTY_DIR = path.join(REPO_ROOT, 'third_party');
@@ -23,12 +28,14 @@ function runVerification() {
   let warnings = 0;
 
   // 1. SBOM Presence and Structure
-  if (!fs.existsSync(SBOM_FILE)) {
-    console.error('❌ FAIL: SBOM not found at ' + SBOM_FILE);
+  const sbomFile = SBOM_CANDIDATES.find((candidate) => fs.existsSync(candidate));
+  if (!sbomFile) {
+    console.error('❌ FAIL: SBOM not found at any expected location: ' + SBOM_CANDIDATES.join(', '));
     violations++;
   } else {
+    console.log('ℹ️  SBOM path: ' + sbomFile);
     try {
-      const sbom = JSON.parse(fs.readFileSync(SBOM_FILE, 'utf-8'));
+      const sbom = JSON.parse(fs.readFileSync(sbomFile, 'utf-8'));
       if (sbom.bomFormat !== 'CycloneDX') {
         console.error('❌ FAIL: Expected CycloneDX format, got ' + sbom.bomFormat);
         violations++;
@@ -42,8 +49,9 @@ function runVerification() {
   }
 
   // 2. Allowlist Cross-check
-  if (fs.existsSync(SBOM_FILE) && fs.existsSync(ALLOWLIST_FILE)) {
-    const sbom = JSON.parse(fs.readFileSync(SBOM_FILE, 'utf-8'));
+  const sbomFileForAllowlist = SBOM_CANDIDATES.find((candidate) => fs.existsSync(candidate));
+  if (sbomFileForAllowlist && fs.existsSync(ALLOWLIST_FILE)) {
+    const sbom = JSON.parse(fs.readFileSync(sbomFileForAllowlist, 'utf-8'));
     const allowlist = JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf-8'));
 
     const allowedNames = new Set<string>();
