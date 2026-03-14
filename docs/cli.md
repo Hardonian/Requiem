@@ -443,3 +443,37 @@ requiem fast-start --minimal
 | 7    | DB_ERROR            |
 | 8    | NETWORK_ERROR       |
 | 9    | PERMISSION_DENIED   |
+
+### DURABILITY EVIDENCE
+
+#### `requiem test:durability`
+
+Run disk-backed durability verification and emit `bench/recovery-report.json`.
+
+```bash
+requiem test:durability
+```
+
+#### `requiem test:fault-injection`
+
+Run deterministic failpoint crash matrix and emit `bench/crash-matrix-report.json`.
+
+```bash
+requiem test:fault-injection
+```
+
+#### `requiem doctor`
+
+Run startup and environment diagnostics.
+
+```bash
+requiem doctor --json
+```
+
+#### `requiem evidence`
+
+Bundle benchmark and durability artifacts under `bench/evidence`.
+
+```bash
+requiem evidence
+```

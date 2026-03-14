@@ -192,7 +192,8 @@ ADMIN COMMANDS:
   bench                               Sub-millisecond latency baseline
   benchmark                           Full evidence benchmark suite
   test:determinism                    Generate determinism + replay artifacts
-  test:crash                          Generate crash recovery artifact
+  test:durability                     Generate durability/recovery artifact
+  test:fault-injection                Generate crash matrix artifact
   test:adapters                       Generate adapter determinism artifact
   evidence                            Bundle benchmark artifacts under bench/evidence
   fast-start [--minimal]              Cached skip of engine/DB checks
@@ -625,9 +626,15 @@ async function main(): Promise<number> {
         break;
       }
 
-      case 'test:crash': {
-        const { runCrashTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runCrashTestCommand: () => Promise<number> };
-        result = await runCrashTestCommand();
+      case 'test:durability': {
+        const { runDurabilityTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runDurabilityTestCommand: () => Promise<number> };
+        result = await runDurabilityTestCommand();
+        break;
+      }
+
+      case 'test:fault-injection': {
+        const { runFaultInjectionTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runFaultInjectionTestCommand: () => Promise<number> };
+        result = await runFaultInjectionTestCommand();
         break;
       }
 
