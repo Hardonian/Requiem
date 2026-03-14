@@ -1,0 +1,1498 @@
+{
+  "generatedAt": "2026-03-14T04:56:29.717Z",
+  "routes": [
+    {
+      "routeId": "agents.list",
+      "path": "/api/agents",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/agents/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "audit.logs",
+      "path": "/api/audit/logs",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/audit/logs/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "budget.show",
+      "path": "/api/budgets",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/budgets/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": true,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "openapi",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "caps.list",
+      "path": "/api/caps",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/caps/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "cas.integrity",
+      "path": "/api/cas/integrity",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/cas/integrity/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "cluster.drift",
+      "path": "/api/cluster/drift",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/cluster/drift/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "cluster.status",
+      "path": "/api/cluster/status",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/cluster/status/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "cluster.workers",
+      "path": "/api/cluster/workers",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/cluster/workers/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "control-plane.insights",
+      "path": "/api/control-plane/insights",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/control-plane/insights/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "decisions.list",
+      "path": "/api/decisions",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/decisions/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "drift.list",
+      "path": "/api/drift",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/drift/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "engine.analyze",
+      "path": "/api/engine/analyze",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/engine/analyze/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "engine.autotune.get",
+      "path": "/api/engine/autotune",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/engine/autotune/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "engine.diagnostics",
+      "path": "/api/engine/diagnostics",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/engine/diagnostics/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "engine.metrics",
+      "path": "/api/engine/metrics",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/engine/metrics/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "engine.status",
+      "path": "/api/engine/status",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/engine/status/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": true,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "openapi",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "failures.analytics",
+      "path": "/api/failures/analytics",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/failures/analytics/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "foundry.artifacts.fetch",
+      "path": "/api/foundry/artifacts",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/foundry/artifacts/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "untyped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "foundry.artifacts.get",
+      "path": "/api/foundry/artifacts/[id]",
+      "methods": [
+        "GET",
+        "DELETE"
+      ],
+      "sourceFile": "ready-layer/src/app/api/foundry/artifacts/[id]/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "untyped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "foundry.datasets.list",
+      "path": "/api/foundry/datasets",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/foundry/datasets/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "untyped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "foundry.datasets.get",
+      "path": "/api/foundry/datasets/[id]",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/foundry/datasets/[id]/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "untyped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "foundry.generators.list",
+      "path": "/api/foundry/generators",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/foundry/generators/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "untyped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "foundry.runs.list",
+      "path": "/api/foundry/runs",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/foundry/runs/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "untyped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "foundry.runs.get",
+      "path": "/api/foundry/runs/[id]",
+      "methods": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/foundry/runs/[id]/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "untyped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "health",
+      "path": "/api/health",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/health/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": true,
+      "auth": "public",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "openapi",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "intelligence.calibration.list",
+      "path": "/api/intelligence/calibration",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/intelligence/calibration/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "intelligence.calibration.claim",
+      "path": "/api/intelligence/calibration/[claim_type]",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/intelligence/calibration/[claim_type]/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.intelligence.cases",
+      "path": "/api/intelligence/cases",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/intelligence/cases/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.intelligence.outcomes",
+      "path": "/api/intelligence/outcomes",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/intelligence/outcomes/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.intelligence.predictions",
+      "path": "/api/intelligence/predictions",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/intelligence/predictions/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.intelligence.signals",
+      "path": "/api/intelligence/signals",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/intelligence/signals/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.learning.calibrate",
+      "path": "/api/learning/calibrate",
+      "methods": [
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/learning/calibrate/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.learning.crosstabs",
+      "path": "/api/learning/crosstabs",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/learning/crosstabs/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.learning.dashboard",
+      "path": "/api/learning/dashboard",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/learning/dashboard/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.learning.error.bands",
+      "path": "/api/learning/error-bands",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/learning/error-bands/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.learning.outcomes",
+      "path": "/api/learning/outcomes",
+      "methods": [
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/learning/outcomes/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.learning.train",
+      "path": "/api/learning/train",
+      "methods": [
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/learning/train/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "logs.list",
+      "path": "/api/logs",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/logs/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.mcp.health",
+      "path": "/api/mcp/health",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/mcp/health/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "no withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.mcp.tool.call",
+      "path": "/api/mcp/tool/call",
+      "methods": [
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/mcp/tool/call/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "no withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.mcp.tools",
+      "path": "/api/mcp/tools",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/mcp/tools/route.ts",
+      "registeredInManifest": true,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "no withTenantContext wrapper"
+    },
+    {
+      "routeId": "objects.list",
+      "path": "/api/objects",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "sourceFile": "ready-layer/src/app/api/objects/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "openapi.spec",
+      "path": "/api/openapi.json",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/openapi.json/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "public",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "plans.list_or_show",
+      "path": "/api/plans",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/plans/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "policies.list",
+      "path": "/api/policies",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/policies/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "policies.simulate",
+      "path": "/api/policies/simulate",
+      "methods": [
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/policies/simulate/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "registry.search",
+      "path": "/api/registry",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/registry/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "replay.lab",
+      "path": "/api/replay/lab",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/replay/lab/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "replay.verify",
+      "path": "/api/replay/verify",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/replay/verify/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "routes.probe",
+      "path": "/api/routes-probe",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/routes-probe/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "public",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "runs.list",
+      "path": "/api/runs",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/runs/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "runs.diff",
+      "path": "/api/runs/[runId]/diff",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/runs/[runId]/diff/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "snapshots.list",
+      "path": "/api/snapshots",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/snapshots/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "spend.summary",
+      "path": "/api/spend",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "sourceFile": "ready-layer/src/app/api/spend/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": ".api.status",
+      "path": "/api/status",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/status/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "no withTenantContext wrapper"
+    },
+    {
+      "routeId": "tenants.isolation",
+      "path": "/api/tenants/isolation",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/tenants/isolation/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "manual-or-none",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "trust-graph",
+      "path": "/api/trust-graph",
+      "methods": [
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/trust-graph/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": false,
+      "auth": "protected",
+      "tenancy": "global",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "not-detected",
+      "sdkExposure": "none",
+      "notes": "withTenantContext wrapper"
+    },
+    {
+      "routeId": "vector.search",
+      "path": "/api/vector/search",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sourceFile": "ready-layer/src/app/api/vector/search/route.ts",
+      "registeredInManifest": false,
+      "inOpenApi": true,
+      "auth": "public",
+      "tenancy": "tenant-scoped",
+      "inputValidation": "schema-validated",
+      "outputContract": "typed-or-shaped",
+      "testCoverage": "covered",
+      "sdkExposure": "openapi",
+      "notes": "withTenantContext wrapper"
+    }
+  ],
+  "findings": {
+    "unregistered": [
+      "/api/agents GET",
+      "/api/budgets GET",
+      "/api/budgets POST",
+      "/api/caps GET",
+      "/api/caps POST",
+      "/api/control-plane/insights GET",
+      "/api/decisions GET",
+      "/api/drift GET",
+      "/api/drift POST",
+      "/api/engine/analyze GET",
+      "/api/engine/autotune GET",
+      "/api/failures/analytics GET",
+      "/api/foundry/artifacts GET",
+      "/api/foundry/artifacts/[id] GET",
+      "/api/foundry/artifacts/[id] DELETE",
+      "/api/foundry/datasets GET",
+      "/api/foundry/datasets POST",
+      "/api/foundry/datasets/[id] GET",
+      "/api/foundry/datasets/[id] PATCH",
+      "/api/foundry/datasets/[id] DELETE",
+      "/api/foundry/datasets/[id] POST",
+      "/api/foundry/generators GET",
+      "/api/foundry/generators POST",
+      "/api/foundry/runs GET",
+      "/api/foundry/runs POST",
+      "/api/foundry/runs/[id] GET",
+      "/api/foundry/runs/[id] PATCH",
+      "/api/foundry/runs/[id] POST",
+      "/api/intelligence/calibration GET",
+      "/api/intelligence/calibration/[claim_type] GET",
+      "/api/intelligence/cases GET",
+      "/api/intelligence/outcomes GET",
+      "/api/intelligence/predictions GET",
+      "/api/intelligence/signals GET",
+      "/api/learning/calibrate POST",
+      "/api/learning/crosstabs GET",
+      "/api/learning/crosstabs POST",
+      "/api/learning/dashboard GET",
+      "/api/learning/error-bands GET",
+      "/api/learning/error-bands POST",
+      "/api/learning/outcomes POST",
+      "/api/learning/train POST",
+      "/api/logs GET",
+      "/api/objects GET",
+      "/api/objects HEAD",
+      "/api/openapi.json GET",
+      "/api/plans GET",
+      "/api/plans POST",
+      "/api/policies GET",
+      "/api/policies POST",
+      "/api/policies/simulate POST",
+      "/api/registry GET",
+      "/api/registry POST",
+      "/api/replay/lab GET",
+      "/api/replay/verify GET",
+      "/api/routes-probe GET",
+      "/api/routes-probe POST",
+      "/api/runs GET",
+      "/api/runs/[runId]/diff GET",
+      "/api/snapshots GET",
+      "/api/snapshots POST",
+      "/api/spend GET",
+      "/api/spend POST",
+      "/api/status GET",
+      "/api/tenants/isolation GET",
+      "/api/trust-graph GET",
+      "/api/vector/search GET"
+    ],
+    "duplicates": [],
+    "deadManifest": [
+      "/api/engine/analyze#POST",
+      "/api/replay/verify#POST"
+    ]
+  },
+  "testCoverageMatrix": [
+    {
+      "surface": "/api/agents [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/audit/logs [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/budgets [GET,POST]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/caps [GET,POST]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/cas/integrity [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/cluster/drift [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/cluster/status [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/cluster/workers [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/control-plane/insights [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/decisions [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/drift [GET,POST]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/engine/analyze [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/engine/autotune [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/engine/diagnostics [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/engine/metrics [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/engine/status [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/failures/analytics [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/foundry/artifacts [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/foundry/artifacts/[id] [GET,DELETE]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/foundry/datasets [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/foundry/datasets/[id] [GET,PATCH,DELETE,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/foundry/generators [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/foundry/runs [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/foundry/runs/[id] [GET,PATCH,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/health [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "smoke + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/intelligence/calibration [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/intelligence/calibration/[claim_type] [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/intelligence/cases [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/intelligence/outcomes [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/intelligence/predictions [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/intelligence/signals [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/learning/calibrate [POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/learning/crosstabs [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/learning/dashboard [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/learning/error-bands [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/learning/outcomes [POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/learning/train [POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/logs [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/mcp/health [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/mcp/tool/call [POST]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/mcp/tools [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/objects [GET,HEAD]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/openapi.json [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "smoke + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/plans [GET,POST]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/policies [GET,POST]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/policies/simulate [POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/registry [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/replay/lab [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/replay/verify [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/routes-probe [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "smoke + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/runs [GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/runs/[runId]/diff [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/snapshots [GET,POST]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/spend [GET,POST]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/status [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/tenants/isolation [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "high"
+    },
+    {
+      "surface": "/api/trust-graph [GET]",
+      "currentCoverage": "none detected",
+      "missingCoverage": "auth/validation contract tests",
+      "recommendedTestType": "integration + contract",
+      "priority": "medium"
+    },
+    {
+      "surface": "/api/vector/search [POST,GET]",
+      "currentCoverage": "route tests detected",
+      "missingCoverage": "deeper regression optional",
+      "recommendedTestType": "smoke + contract",
+      "priority": "high"
+    }
+  ]
+}
