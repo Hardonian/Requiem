@@ -1,13 +1,7 @@
 'use client';
 
 /**
- * StitchEmptyState - Empty state display with icon and action
- * 
- * Features:
- * - Centered layout
- * - Icon display
- * - Title and description
- * - Optional action button
+ * StitchEmptyState - Canonical empty state using design tokens
  */
 
 import { ReactNode } from 'react';
@@ -28,15 +22,15 @@ export function StitchEmptyState({
   className = '',
 }: StitchEmptyStateProps) {
   return (
-    <div className={`text-center py-12 bg-[#1c252e] rounded-xl border border-[#2a3441] ${className}`}>
+    <div className={`text-center py-16 px-6 bg-surface rounded-xl border border-border ${className}`}>
       {icon && (
-        <div className="mx-auto h-12 w-12 text-[#94a3b8] mb-4">
+        <div className="mx-auto h-12 w-12 text-muted mb-4 flex items-center justify-center">
           {icon}
         </div>
       )}
-      <h3 className="text-sm font-medium text-white">{title}</h3>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {description && (
-        <p className="mt-1 text-sm text-[#94a3b8] max-w-sm mx-auto">
+        <p className="mt-2 text-sm text-muted max-w-sm mx-auto leading-relaxed">
           {description}
         </p>
       )}

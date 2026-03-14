@@ -1,13 +1,7 @@
 'use client';
 
 /**
- * StitchHeader - Sticky header with ReadyLayer branding
- * 
- * Features:
- * - Logo with Material Symbol icon
- * - Title display
- * - User avatar button
- * - Responsive design
+ * StitchHeader - Sticky header using design tokens
  */
 
 interface StitchHeaderProps {
@@ -16,28 +10,28 @@ interface StitchHeaderProps {
   className?: string;
 }
 
-export function StitchHeader({ 
-  title = 'Ready Layer', 
+export function StitchHeader({
+  title = 'Ready Layer',
   showUser = true,
-  className = '' 
+  className = ''
 }: StitchHeaderProps) {
   return (
-    <header className={`sticky top-0 z-50 bg-[#101922]/95 backdrop-blur border-b border-[#2a3441] px-4 py-3 flex items-center justify-between ${className}`}>
+    <header className={`stitch-header ${className}`}>
       <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-8 h-8 rounded bg-[#137fec]/20 text-[#137fec]">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/15 text-accent">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0L12 17.25 6.43 14.25" />
           </svg>
         </div>
-        <h1 className="text-white text-lg font-bold font-display tracking-tight">{title}</h1>
+        <h1 className="text-foreground text-lg font-bold font-display tracking-tight">{title}</h1>
       </div>
       {showUser && (
-        <button 
-          className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-[#1c252e] transition-colors text-white"
+        <button
+          className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-elevated transition-colors text-muted hover:text-foreground"
           aria-label="User account"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
           </svg>
         </button>
       )}

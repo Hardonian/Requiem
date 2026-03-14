@@ -1,13 +1,7 @@
 'use client';
 
 /**
- * StitchCard - Consistent card component with Stitch styling
- * 
- * Features:
- * - Dark surface background
- * - Border styling
- * - Optional hover states
- * - Clickable variant with cursor pointer
+ * StitchCard - Consistent card component using design tokens
  */
 
 import { ReactNode } from 'react';
@@ -21,8 +15,8 @@ interface StitchCardProps {
   padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-export function StitchCard({ 
-  children, 
+export function StitchCard({
+  children,
   className = '',
   hoverable = false,
   onClick,
@@ -36,15 +30,17 @@ export function StitchCard({
   };
 
   return (
-    <div 
+    <div
       className={`
-        bg-[#1c252e] border border-[#2a3441] rounded-xl
+        bg-surface border border-border rounded-xl
+        shadow-sm
         ${paddingClasses[padding]}
-        ${hoverable ? 'hover:bg-[#151e27] transition-all cursor-pointer' : ''}
+        ${hoverable ? 'hover:shadow-md hover:border-border/80 transition-all duration-200' : ''}
         ${onClick ? 'cursor-pointer' : ''}
         ${className}
       `}
       onClick={onClick}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >

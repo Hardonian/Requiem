@@ -1,18 +1,14 @@
 'use client';
 
 /**
- * StitchButton - Primary and secondary button variants
- * 
- * Variants:
- * - primary: Blue background, white text
- * - secondary: Dark surface, border, white text
+ * StitchButton - Primary and secondary button variants using design tokens
  */
 
 import { ReactNode } from 'react';
 
 interface StitchButtonProps {
   children?: ReactNode;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'ghost';
   icon?: ReactNode;
   onClick?: () => void;
   className?: string;
@@ -32,14 +28,17 @@ export function StitchButton({
   type = 'button',
 }: StitchButtonProps) {
   const baseClasses = `
-    flex items-center justify-center gap-2 rounded-lg h-12 px-6 
-    text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+    inline-flex items-center justify-center gap-2 rounded-lg h-10 px-5
+    text-sm font-semibold transition-all duration-150
+    disabled:opacity-50 disabled:cursor-not-allowed
+    focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
     ${fullWidth ? 'w-full' : ''}
   `;
 
   const variantClasses = {
-    primary: 'bg-[#137fec] hover:bg-[#0b5cb5] text-white',
-    secondary: 'bg-[#1c252e] border border-[#2a3441] hover:bg-[#151e27] text-white',
+    primary: 'bg-accent hover:brightness-110 text-white',
+    secondary: 'bg-surface border border-border hover:bg-surface-elevated text-foreground',
+    ghost: 'bg-transparent hover:bg-surface-elevated text-foreground',
   };
 
   return (

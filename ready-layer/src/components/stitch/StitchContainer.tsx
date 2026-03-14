@@ -1,13 +1,7 @@
 'use client';
 
 /**
- * StitchContainer - Main content wrapper for Stitch-styled pages
- * 
- * Features:
- * - Full-height flex container
- * - Dark background
- * - Centered content with max-width
- * - Proper padding for mobile
+ * StitchContainer - Main content wrapper using design tokens
  */
 
 import { ReactNode } from 'react';
@@ -15,7 +9,7 @@ import { ReactNode } from 'react';
 interface StitchContainerProps {
   children?: ReactNode;
   className?: string;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '7xl' | 'full';
   centered?: boolean;
 }
 
@@ -24,24 +18,26 @@ const maxWidthClasses = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+  '7xl': 'max-w-7xl',
   full: 'max-w-full',
 };
 
-export function StitchContainer({ 
-  children, 
+export function StitchContainer({
+  children,
   className = '',
   maxWidth = 'md',
   centered = true,
 }: StitchContainerProps) {
   return (
-    <main className={`
-      flex-1 w-full 
+    <div className={`
+      flex-1 w-full
       ${centered ? 'mx-auto' : ''}
       ${maxWidthClasses[maxWidth]}
-      p-4 pb-24
+      p-6 lg:p-8 pb-24
       ${className}
     `}>
       {children}
-    </main>
+    </div>
   );
 }

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   },
   description:
     'Run AI workflows with cryptographic receipts, capability enforcement, and replayable execution — not best-effort logs. Deterministic by design.',
-  keywords: ['AI', 'Deterministic', 'Runtime', 'Replay', 'BLAKE3', 'Governance'],
+  keywords: ['AI', 'Deterministic', 'Runtime', 'Replay', 'BLAKE3', 'Governance', 'Provable', 'Agent Compute'],
   authors: [{ name: 'Hardonian Team' }],
   creator: 'Hardonian',
   publisher: 'Hardonian',
@@ -60,7 +60,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0f172a',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f8fafc' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0f16' },
+  ],
 };
 
 export default function RootLayout({
@@ -70,7 +73,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className="antialiased">
-      <body className="min-h-screen bg-background text-foreground font-sans selection:bg-blue-100 selection:text-blue-900">
+      <body className="min-h-screen bg-background text-foreground font-body selection:bg-accent/20 selection:text-accent">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -80,7 +83,8 @@ export default function RootLayout({
               'name': 'Requiem',
               'operatingSystem': 'Linux, Windows, macOS',
               'applicationCategory': 'DeveloperApplication',
-              'description': 'Provable AI Runtime for deterministic agent execution.',
+              'description': 'Provable AI Runtime for deterministic agent execution with cryptographic receipts.',
+              'url': 'https://requiem.hardonian.com',
               'offers': {
                 '@type': 'Offer',
                 'price': '0',

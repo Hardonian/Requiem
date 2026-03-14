@@ -3,6 +3,13 @@
 // Phase E: Enterprise Operator — View replay drift, trigger replays.
 // Shows replay_verified_rate, divergence_count, per-execution replay status.
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Replay',
+  description: 'View replay drift, trigger deterministic replays, and verify execution outcomes.',
+};
+
 import { Suspense } from 'react';
 
 function ReplaySkeleton() {
