@@ -1,0 +1,8 @@
+{
+  "tenant_id": "demo-tenant",
+  "environment": "local",
+  "policy_file": "./demo-policy.json",
+  "workflow_file": "./demo-workflow.json",
+  "output_dir": "./proofpacks/latest",
+  "replay_command": "requiem replay run demo-run"
+}
