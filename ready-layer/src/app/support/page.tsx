@@ -1,65 +1,54 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { MarketingShell } from '@/components/marketing/MarketingShell';
 
 export const metadata: Metadata = {
-  title: 'Support | ReadyLayer',
-  description: 'Get help with ReadyLayer — contact support, check status, and find resources.',
+  title: 'Support | Requiem',
+  description: 'Support channels, status visibility, and operator help for Requiem.',
 };
+
+const supportLinks = [
+  {
+    href: '/support/contact',
+    title: 'Contact support',
+    description: 'Reach the team for production incidents, onboarding help, or sales requests.',
+  },
+  {
+    href: '/status',
+    title: 'System status',
+    description: 'Review deployment metadata and backend health before troubleshooting.',
+  },
+  {
+    href: '/docs',
+    title: 'Documentation',
+    description: 'Runbooks and product guides for deterministic workflows.',
+  },
+  {
+    href: '/changelog',
+    title: 'Changelog',
+    description: 'Track platform changes and release details impacting operation.',
+  },
+];
 
 export default function SupportPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Support</h1>
-        
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
-          <Link
-            href="/support/contact"
-            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-          >
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Contact Us</h2>
-            <p className="text-gray-600">
-              Get in touch with our team for help, feedback, or sales inquiries.
-            </p>
-          </Link>
-          
-          <Link
-            href="/support/status"
-            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-          >
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">System Status</h2>
-            <p className="text-gray-600">
-              Check the current status of ReadyLayer services and any ongoing incidents.
-            </p>
-          </Link>
-        </div>
+    <MarketingShell>
+      <section className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6">
+        <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Support</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Operator support without guesswork.</h1>
+        <p className="mt-4 text-slate-600">
+          Use the paths below to report incidents, verify platform state, and unblock deterministic production workflows quickly.
+        </p>
+      </section>
 
-        <section className="bg-white rounded-xl p-8 shadow-sm mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Common Questions</h2>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium text-gray-900">How do I get started?</h3>
-              <p className="text-gray-600">Check our quick start guide in the library.</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900">How does deterministic replay work?</h3>
-              <p className="text-gray-600">Read our architecture documentation for details.</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900">What providers are supported?</h3>
-              <p className="text-gray-600">We support OpenAI, Anthropic, Ollama, and OpenRouter.</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-white rounded-xl p-8 shadow-sm">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Community</h2>
-          <p className="text-gray-600">
-            Join our community to connect with other ReadyLayer users, share best practices, 
-            and get help from the community.
-          </p>
-        </section>
-      </div>
-    </div>
+      <section className="mx-auto grid w-full max-w-4xl gap-4 px-4 pb-16 sm:grid-cols-2 sm:px-6">
+        {supportLinks.map((item) => (
+          <Link key={item.href} href={item.href} className="rounded-xl border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300">
+            <h2 className="text-lg font-semibold text-slate-900">{item.title}</h2>
+            <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+          </Link>
+        ))}
+      </section>
+    </MarketingShell>
   );
 }
