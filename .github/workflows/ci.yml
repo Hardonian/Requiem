@@ -21,7 +21,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: configure git hooks (Linux)
         if: runner.os == 'Linux'
         run: git config core.hooksPath .githooks
@@ -112,7 +112,7 @@ jobs:
   governance:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0   # full history for diff-based checks
       - name: deps
@@ -162,7 +162,7 @@ jobs:
   ai-unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -193,7 +193,7 @@ jobs:
   ready-layer-verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 8
@@ -266,7 +266,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: deps
         run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev python3 graphviz
       - name: build
@@ -303,7 +303,7 @@ jobs:
   verify-all:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: system deps (engine build)
         run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev libzstd-dev
       - uses: pnpm/action-setup@v4
@@ -325,7 +325,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: deps
         run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
       - name: build (ASAN)
@@ -353,7 +353,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: deps
         run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
       - name: build (UBSAN)
@@ -379,7 +379,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: deps
         run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
       - name: build (TSAN)
@@ -405,7 +405,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: deps
         run: sudo apt-get update && sudo apt-get install -y cmake clang libssl-dev
       - name: build (fuzz)
@@ -445,7 +445,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: deps
         run: sudo apt-get update && sudo apt-get install -y python3
       - name: verify formal specs present
@@ -465,7 +465,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: deps
         run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev python3
       - name: build (with chaos harness)
@@ -501,7 +501,7 @@ jobs:
   intelligence-gates:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 8
@@ -526,7 +526,7 @@ jobs:
   continuous-verification:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 8
@@ -563,7 +563,7 @@ jobs:
   deploy-readiness:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 8.15.0
