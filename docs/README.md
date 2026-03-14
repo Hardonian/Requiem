@@ -1,15 +1,20 @@
-# Requiem Documentation Index
+# Documentation Index
 
-This index is the canonical navigation entrypoint for repository docs.
+Use this page as the canonical documentation navigation spine.
 
 ## Start here
 
-- [README](../README.md) — project front door and quickstart.
-- [QUICKSTART](../QUICKSTART.md) — installation and first-run walkthrough.
-- [Positioning](./overview/POSITIONING.md) — canonical product identity and boundaries.
+- [../README.md](../README.md)
+- [GETTING_STARTED.md](./GETTING_STARTED.md)
+- [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md)
+- [OSS_BOUNDARY.md](./OSS_BOUNDARY.md)
 
-## Core technical docs
+## Contributing and governance
 
+- [../CONTRIBUTING.md](../CONTRIBUTING.md)
+- [../GOVERNANCE.md](../GOVERNANCE.md)
+- [DOCS_GOVERNANCE.md](./DOCS_GOVERNANCE.md)
+- [ARCHIVE_INDEX.md](./ARCHIVE_INDEX.md)
 - [Architecture](./ARCHITECTURE.md)
 - [Engine](./ENGINE.md)
 - [Determinism](./DETERMINISM.md)
@@ -20,20 +25,15 @@ This index is the canonical navigation entrypoint for repository docs.
 - [Architectural invariants](./ARCHITECTURAL_INVARIANTS.md)
 - [Security model](./SECURITY_MODEL.md)
 
-## Operations and governance
+## Trust and operations
 
-- [Operations](./OPERATIONS.md)
-- [API conventions](./API_CONVENTIONS.md)
-- [MCP](./MCP.md)
-- [Security policy](../SECURITY.md)
-- [Contributing](../CONTRIBUTING.md)
+- [../SECURITY.md](../SECURITY.md)
+- [../SUPPORT.md](../SUPPORT.md)
+- [../ROADMAP.md](../ROADMAP.md)
+- [../CHANGELOG.md](../CHANGELOG.md)
 
-## Launch and messaging
+## Historical material
 
-- [Product Hunt polish notes](./PRODUCT_HUNT_POLISH.md)
-- [Launch gate checklist](./LAUNCH_GATE_CHECKLIST.md)
-- [Launch kit](../launch/PRODUCT_HUNT_KIT.md)
+- [archive/](./archive/)
 
-## Note on legacy docs
-
-The docs directory contains historical reports and audit snapshots. Prefer docs linked from this index when there is overlap.
+For historical docs, prefer archive entries over treating them as current project truth.
