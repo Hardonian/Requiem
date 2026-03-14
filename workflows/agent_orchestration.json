@@ -1,0 +1,10 @@
+{
+  "metadata": { "name": "agent_orchestration", "version": "1.0.0", "description": "Sub-workflow orchestration" },
+  "inputs_schema": { "required": ["left", "right"], "properties": { "left": { "type": "string" }, "right": { "type": "string" } } },
+  "execution_graph": [
+    { "id": "pipeline", "type": "subworkflow", "action": "file_pipeline", "inputs": { "left": "$left", "right": "$right" }, "policy_hook": "allow_orch", "output_key": "pipeline_result" },
+    { "id": "policy", "type": "subworkflow", "action": "policy_validation", "inputs": { "value": "$left" }, "policy_hook": "allow_orch", "output_key": "policy_result" }
+  ],
+  "policy_hooks": { "allow_orch": { "effect": "allow", "reason": "deterministic subworkflow composition" } },
+  "expected_outputs": ["pipeline_result", "policy_result"]
+}

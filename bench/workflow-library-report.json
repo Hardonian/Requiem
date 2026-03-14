@@ -1,0 +1,9 @@
+{
+  "suite": "workflow-library",
+  "status": "pass",
+  "checks": [
+    "workflow:list returns versioned definitions",
+    "workflow:run emits proofpack + replay log",
+    "sub-workflow composition preserves state hash chain"
+  ]
+}

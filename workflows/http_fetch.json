@@ -1,0 +1,10 @@
+{
+  "metadata": { "name": "http_fetch", "version": "1.0.0", "description": "Deterministic fetch simulation" },
+  "inputs_schema": { "required": ["url"], "properties": { "url": { "type": "string" } } },
+  "execution_graph": [
+    { "id": "request", "type": "task", "action": "set", "inputs": { "url": "$url" }, "policy_hook": "allow_network", "output_key": "request" },
+    { "id": "fetch", "type": "adapter", "action": "builtin.echo", "inputs": { "text": "$url" }, "policy_hook": "allow_network", "output_key": "response" }
+  ],
+  "policy_hooks": { "allow_network": { "effect": "allow", "reason": "offline deterministic adapter" } },
+  "expected_outputs": ["response"]
+}

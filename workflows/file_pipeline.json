@@ -1,0 +1,10 @@
+{
+  "metadata": { "name": "file_pipeline", "version": "1.0.0", "description": "Compose deterministic transforms" },
+  "inputs_schema": { "required": ["left", "right"], "properties": { "left": { "type": "string" }, "right": { "type": "string" } } },
+  "execution_graph": [
+    { "id": "combine", "type": "adapter", "action": "builtin.concat", "inputs": { "left": "$left", "right": "$right" }, "policy_hook": "allow_fs", "output_key": "merged" },
+    { "id": "echo", "type": "adapter", "action": "builtin.echo", "inputs": { "text": "$merged" }, "policy_hook": "allow_fs", "output_key": "final" }
+  ],
+  "policy_hooks": { "allow_fs": { "effect": "allow", "reason": "virtual fs only" } },
+  "expected_outputs": ["final"]
+}

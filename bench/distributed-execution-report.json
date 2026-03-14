@@ -1,0 +1,9 @@
+{
+  "suite": "distributed-execution",
+  "status": "pass",
+  "checks": [
+    "workflow:enqueue creates deterministic queue tasks",
+    "worker:start executes queued tasks and emits proof artifacts",
+    "cluster:status reports queue/worker consistency"
+  ]
+}
