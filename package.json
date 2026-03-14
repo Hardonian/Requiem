@@ -53,7 +53,7 @@
     "verify:policy": "pnpm --filter ready-layer verify:policy",
     "verify:replay": "pnpm --filter ready-layer verify:replay",
     "verify:web": "pnpm --filter ready-layer verify:web",
-    "verify:determinism": "node scripts/run-tsx.mjs scripts/verify_determinism.ts",
+    "verify:determinism": "bash scripts/verify_determinism.sh",
     "stress:determinism": "node scripts/run-tsx.mjs scripts/stress_test_determinism.ts",
     "verify:mcp": "node scripts/run-tsx.mjs scripts/verify-mcp.ts",
     "verify:ai-safety": "node scripts/run-tsx.mjs scripts/verify-ai-safety.ts",

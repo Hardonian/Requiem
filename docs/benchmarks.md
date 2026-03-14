@@ -1,32 +1,21 @@
-# Requiem Benchmark Report
+# Benchmarks
 
-## Determinism and Replay
+Benchmark claims must be tied to real command output.
 
-| Metric | Value |
-| --- | --- |
-| determinism_rate | 1 |
-| replay_success_rate | 1 |
+## Commands
 
-## Integrity and Recovery
+```bash
+pnpm benchmark
+pnpm evidence
+pnpm verify:benchmark-drift
+```
 
-| Check | Value |
-| --- | --- |
-| object_hash_immutability | true |
-| replay_identical_after_restart | true |
+## Reporting rules
 
-## Performance
+- Report command, commit SHA, and environment for every number.
+- Treat benchmark output as environment-specific unless repeated in controlled conditions.
+- Do not claim universal throughput/latency guarantees from one local run.
 
-| Metric | Value |
-| --- | --- |
-| p50_latency_ms | 0.05095400000004702 |
-| p95_latency_ms | 0.09304500000001781 |
-| p99_latency_ms | 0.4168339999999944 |
-| execution_throughput_per_sec | 15942.43445475688 |
+## Evidence policy
 
-## Adapter Determinism
-
-| Metric | Value |
-| --- | --- |
-| recorded_tool_responses_replayed | true |
-| state_hashes_identical | true |
-
+Include generated benchmark artifacts in review material when publishing performance claims.

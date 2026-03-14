@@ -1,29 +1,34 @@
-# Technical FAQ
+# FAQ
 
-## Why does deterministic execution matter?
+## What is Requiem in one sentence?
 
-Determinism turns incident/debugging questions from probabilistic to testable. If a run can be replayed from canonical input and policy state, root cause isolation is faster and claims are easier to verify.
+A deterministic execution runtime with replay and evidence surfaces for workflow/agent-style operations.
 
-## How does replay work?
+## What should I run first?
 
-Replay consumes stored execution artifacts, reconstructs run context, and re-evaluates execution paths against recorded expectations. The operator can then compare replay output to prior receipts/evidence.
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+pnpm verify:demo
+```
 
-## How does CAS help prevent mutation?
+## How do I verify deterministic behavior?
 
-CAS stores artifacts by digest. If content changes, the digest changes. This makes silent in-place mutation detectable because references no longer match expected hashes.
+Run:
 
-## How is policy evaluation proven?
+```bash
+pnpm verify:determinism
+pnpm verify:replay
+```
 
-Policy evaluation is recorded as part of execution evidence (for example policy digests and decision traces attached to run artifacts/proof material). Verification checks can assert the evaluated policy state matches what execution claims.
+## Where are limitations documented?
 
-## How are proofpacks different from logs?
+`docs/limitations.md`.
 
-Logs are chronological records and may be operationally useful but weak as standalone integrity evidence. Proofpacks are structured evidence artifacts intended for verification workflows (digest linkage, execution context, and integrity metadata).
+## Is this claiming complete production security by default?
 
-## What guarantees are provided today?
+No. Security outcomes depend on deployment controls and validated environment configuration.
 
-Requiem emphasizes deterministic execution pathways, replay, policy gating, and integrity-oriented storage. Exact guarantee boundaries depend on enabled components and deployment configuration.
+## How do I evaluate quickly as an external engineer?
 
-## What is experimental?
-
-Some security and platform-hardening features may be partial or in-progress depending on environment (for example specific sandboxing/auth integrations). Use the limitations doc and theatre/security audits to scope production claims.
+Use `docs/first-10-minutes.md` and `docs/external-tester-guide.md`.

@@ -70,6 +70,17 @@ Reach CLI v${VERSION}  —  ReadyLayer operator interface for the Requiem kernel
 USAGE:
   req <command> [options]
 
+FIRST STEPS:
+  pnpm doctor                        Validate local runtime prerequisites
+  pnpm verify:demo                   Run demo flow and generate demo_artifacts
+  pnpm verify:determinism            Verify deterministic behavior path
+  pnpm verify:replay                 Verify replay path
+
+DOCS:
+  docs/quickstart.md                 Canonical setup/run path
+  docs/demo-walkthrough.md           Terminal + screenshare demo flow
+  docs/limitations.md                Explicit guarantee boundaries
+
 CONTROL COMMANDS (Deterministic Execution):
   run <name> [input]                  Execute a tool with determinism proof
   verify <hash>                       Verify execution determinism

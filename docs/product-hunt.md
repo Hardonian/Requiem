@@ -1,54 +1,56 @@
-# Product Hunt Launch Assets
+# Product Hunt Launch Copy
 
 ## Tagline
 
-Deterministic AI execution with replayable proofs.
+Deterministic execution with replayable evidence for agent/workflow operations.
 
-## Short Description
+## Short description
 
-Requiem is a deterministic runtime for agent workflows with policy gating, content-addressed artifacts, replay, and proof-oriented verification.
+Requiem helps engineering teams run deterministic execution paths and validate results with replay + evidence artifacts.
 
-## Long Description
+## Long description
 
-Requiem is built for teams that need reproducible AI execution under technical scrutiny.
+Requiem is an OSS runtime focused on technical reviewability:
 
-Instead of treating agent runs as opaque logs, Requiem focuses on deterministic execution and verifiable evidence:
+- deterministic execution checks,
+- replay verification flows,
+- policy-aware run paths,
+- digest-addressed artifacts,
+- evidence outputs you can inspect locally.
 
-- canonicalized execution inputs
-- policy evaluation gating
-- content-addressed storage for artifacts
-- replay and diff workflows for reproducibility checks
-- proof-oriented receipts/proofpacks for integrity review
+This launch is intentionally claim-bounded. We only present behaviors tied to commands and repository checks.
 
-This launch is aimed at engineering teams that care about incident review, auditability, and operator trust—not prompt demos.
+## Feature bullets
 
-## Key Features
+- Run demo in minutes (`pnpm verify:demo`)
+- Validate determinism (`pnpm verify:determinism`)
+- Validate replay path (`pnpm verify:replay`)
+- Generate evidence bundle (`pnpm evidence`)
+- Inspect limits and boundaries in repo docs
 
-- Deterministic execution pathways
-- Replay + replay diff workflows
-- CAS-backed artifact integrity model
-- Policy-as-code enforcement surfaces
-- Proofpack/receipt verification surface
-- CLI + web console operator workflows
+## Maker comment
 
-## Demo Explanation
+If you are a skeptical engineer, that is the right stance for this project.
 
-The launch demo shows a complete technical loop:
+Please run the commands yourself and inspect generated artifacts before trusting any statement. If something is unclear or fails, file an issue with exact output so we can correct docs or behavior.
 
-1. run environment + workflow checks,
-2. execute and inspect artifacts,
-3. view proof-oriented output,
-4. replay and compare behavior,
-5. verify integrity checks.
+## FAQ-style launch replies
 
-Core command shown:
+- **Does this replace every orchestration system?**
+  No. It targets deterministic/replay/evidence posture.
+- **Is it production-secure by default?**
+  Not by assumption. Security depends on deployment controls plus verification.
+- **Can I test it quickly?**
+  Yes: install, build, demo, determinism, replay.
 
-```bash
-pnpm verify:demo
-```
+## Launch-day talking points
 
-## Launch Comment
+1. Determinism/replay/proof claims are mapped to commands.
+2. Limitations are published alongside feature docs.
+3. Operator checklists and external tester guide are included.
 
-Thanks for checking out Requiem.
+## What it is not
 
-If you are evaluating this as an engineer, start by running the demo and checking the generated artifacts yourself. We have intentionally documented limitations and guarantee boundaries so claims stay aligned with what can be verified in code and CLI workflows.
+- Not a guarantee of universal reproducibility across every external environment.
+- Not a substitute for deployment-specific threat modeling.
+- Not a no-governance “prompt toy” framework.
