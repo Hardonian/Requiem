@@ -1,20 +1,17 @@
-# Comparison: Requiem vs Existing Systems
+# Comparison
 
-This table focuses on technical properties, not category positioning.
+This comparison is intentionally narrow and claim-bounded.
 
-| System | Primary Abstraction | Deterministic Replay (workflow/result oriented) | Proof Artifacts | Policy-as-Code Evaluation Evidence | Content-Addressed Storage as Core Primitive | Cryptographic Traceability Surface |
-|---|---|---|---|---|---|---|
-| **Requiem** | Deterministic agent/workflow runtime | **Yes** (explicit replay workflows and replay verification surfaces) | **Yes** (proofpack/receipt-oriented artifacts) | **Yes** (policy gates tied to execution artifacts) | **Yes** (CAS/integrity workflows are first-class) | **Yes** (digest-linked artifacts; signing/integrity surfaces where configured) |
-| LangChain | LLM application/orchestration library | Partial (depends on app design and external logging) | Partial (via integrations, not a single default artifact model) | Partial (external policy stacks) | No (not a core default) | Partial (integration-dependent) |
-| Temporal | Durable workflow orchestration | Strong workflow event replay, not agent-proofpack focused | Partial (workflow history, not proofpack schema by default) | Partial (policy generally external) | No (not CAS-first) | Partial (depends on deployment controls) |
-| Airflow | Batch DAG orchestration | Limited for deterministic agent-style state replay | No default proof artifact model | Partial (policy mostly infra/platform side) | No | Limited |
-| Ray | Distributed compute/runtime | Limited (focus is distributed execution, not reproducible proof receipts) | No default proofpack model | Partial | No | Limited |
-| Dagster | Data orchestration/asset pipelines | Partial (re-execution lineage exists; deterministic agent replay is not primary) | Partial (metadata/events) | Partial | No | Limited |
-| CrewAI | Multi-agent orchestration framework | Partial/experimental depending on implementation | Limited | Partial | No | Limited |
-| AutoGen | Agent conversation/orchestration framework | Partial/experimental depending on implementation | Limited | Partial | No | Limited |
+| Category | Typical focus | Requiem focus |
+|---|---|---|
+| Orchestration tools | scheduling, fan-out/fan-in, retries | deterministic execution + replay verification |
+| Workflow engines | workflow state transitions | replay/proof surfaces tied to CLI verification |
+| Agent frameworks | model/tool composition ergonomics | policy-gated execution with artifact/evidence outputs |
+| Job systems | queueing + worker throughput | deterministic/reproducibility checks and run evidence |
+| Debugging/repro tools | logs and traces | logs + replay + proof/evidence command path |
 
-## Notes on Interpretation
+## Notes
 
-- "Partial" means the capability is possible with composition/integration but not usually a default, end-to-end, verifiable path.
-- Requiem-specific claims above should be validated against local commands and docs before external publication in your environment.
-- This comparison intentionally avoids performance and scale claims unless benchmark evidence is attached.
+- Requiem is not presented as a replacement for every scheduler/orchestrator.
+- The differentiator is verification/replay/proof posture, not broad feature count.
+- Validate fit with `docs/demo-walkthrough.md` and diligence commands.

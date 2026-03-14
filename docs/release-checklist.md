@@ -1,29 +1,34 @@
 # Release Checklist
 
-## Build + parity gates
+## Pre-release verification
 
 - [ ] `pnpm install --frozen-lockfile`
 - [ ] `pnpm lint`
 - [ ] `pnpm typecheck`
 - [ ] `pnpm build`
 - [ ] `pnpm test`
+- [ ] `pnpm verify:demo`
+- [ ] `pnpm verify:determinism`
+- [ ] `pnpm verify:replay`
+- [ ] `pnpm evidence`
 - [ ] `pnpm verify:deploy-readiness`
-- [ ] CI `deploy-readiness` job green
 
-## Config + env gates
+## Documentation alignment
 
-- [ ] `ready-layer/.env.example` matches expected required variables
-- [ ] Vercel project uses repository root config (`vercel.json`)
-- [ ] Preview + production env values reviewed for required keys
+- [ ] README quickstart commands match actual scripts.
+- [ ] `docs/quickstart.md` and `docs/first-10-minutes.md` are current.
+- [ ] `docs/limitations.md` reflects known boundaries.
+- [ ] `docs/known-issues.md` is updated.
 
-## Smoke checks
+## Launch publish sequence
 
-- [ ] Web route `/` loads
-- [ ] Health endpoint responds
-- [ ] Primary API action returns non-500 response
+1. Tag release commit.
+2. Publish release notes + changelog update.
+3. Publish launch post/social copy.
+4. Run smoke tests on published commit.
 
-## Release metadata
+## Rollback + hotfix
 
-- [ ] Changelog updated
-- [ ] Release notes drafted
-- [ ] Rollback target identified
+- [ ] Previous stable tag documented.
+- [ ] Hotfix owner and triage channel assigned.
+- [ ] Rollback command/process documented for operators.

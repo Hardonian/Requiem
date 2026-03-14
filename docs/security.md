@@ -1,15 +1,25 @@
-# Security Operations
+# Security
 
-## Supply chain and proof security
+Security posture is bounded by what is implemented and verifiable in this repository.
 
-Use these commands:
+## Baseline checks
 
-- `requiem security:scan [--sbom <path>]` to generate SBOM and run dependency denylist checks.
-- `requiem proof:sign <proofpack> --key <private.pem>` to append an Ed25519 manifest signature.
-- `requiem proof:verify <proofpack> --key <public.pem>` to verify attached signatures.
-- `requiem proof:inspect <proofpack>` to inspect execution and hash fields.
+```bash
+pnpm verify:nosecrets
+pnpm verify:ai-safety
+pnpm verify:tenant-isolation
+pnpm verify:deploy-readiness
+```
 
-## Security posture notes
+## Security expectations
 
-- Verification output is explicit (`valid: true/false`) and returns non-zero on failure.
-- Proofpack inspection reports missing required fields instead of silently passing.
+- Degraded security state should be explicit in command output.
+- Verification commands should fail closed where checks cannot be established.
+- Multi-tenant boundaries must be tested; no cross-tenant assumptions by default.
+
+## Not claimed here
+
+- No claim of external certification or third-party audit by default.
+- No claim that local checks alone provide complete production security proof.
+
+See also: root `SECURITY.md` for vulnerability reporting process.
