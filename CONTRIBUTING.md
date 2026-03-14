@@ -1,121 +1,92 @@
 # Contributing to Requiem
 
-> **Mission:** Increase structural coherence. Reduce accidental complexity.
+Thanks for contributing. This project prioritizes deterministic behavior, clear boundaries, and auditable changes.
 
-We welcome contributions that improve the reliability, performance, and provability of the Requiem engine. Before you start, please read our [Architecture Guide](./docs/ARCHITECTURE.md).
+## Before you start
 
----
+Read these first:
 
-## The Antigravity Principle
+- [README.md](./README.md)
+- [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)
+- [docs/OSS_BOUNDARY.md](./docs/OSS_BOUNDARY.md)
+- [GOVERNANCE.md](./GOVERNANCE.md)
+- [docs/DOCS_GOVERNANCE.md](./docs/DOCS_GOVERNANCE.md)
 
-Every modification to this repository must answer one question:
-**Does this reduce entropy or increase it?**
+## Development setup
 
-We prioritize:
-1. **Determinism**: No hidden randomness.
-2. **Minimal Diffs**: Modify only what is required.
-3. **No Silent Failures**: All errors must be explicit and structured.
-4. **Performance**: No unnecessary dependencies or bundle bloat.
-
----
-
-## Development Workflow
-
-### 1. Setup
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm build
 ```
 
-### 2. Branching
-Create a feature branch from `main`. Use descriptive names: `feat/cas-v3` or `fix/merkle-root-leak`.
+For C++ test workflows, ensure CMake and a C++20-capable toolchain are available.
 
-### 3. Verification
-Before opening a PR, your branch **must** pass the full verification suite:
+## Code standards
+
+- Keep diffs focused and minimal.
+- Prefer deterministic, explicit behavior over implicit or hidden behavior.
+- Reuse existing primitives and patterns before introducing new abstractions.
+- Update docs and tests when behavior changes.
+
+## Commit conventions
+
+Use clear, scoped commit messages. Preferred style:
+
+- `docs: ...`
+- `fix: ...`
+- `feat: ...`
+- `chore: ...`
+
+If a change spans multiple layers, call that out clearly in the commit body.
+
+## Pull request guidelines
+
+A good PR should include:
+
+- What changed and why.
+- Scope boundaries affected (engine, CLI, docs, ready-layer, scripts).
+- Verification commands run and results.
+- Follow-up work (if any).
+
+Do not merge TODO-only or placeholder-only PRs.
+
+## Issue reporting
+
+Use GitHub issues for:
+
+- Reproducible bugs.
+- Feature requests with concrete use cases.
+- Documentation gaps.
+
+For security reports, use [SECURITY.md](./SECURITY.md) instead of public issues.
+
+## Testing expectations
+
+Run relevant checks before opening a PR. Typical baseline:
+
 ```bash
 pnpm lint
 pnpm typecheck
 pnpm test
-pnpm doctor
+pnpm verify:determinism
 ```
 
-### 4. PR Guidelines
-- **No Placeholders**: Do not leave `TODO` or placeholder comments.
-- **Audit Compliance**: If you add a security-critical feature, update [docs/THEATRE_AUDIT.md](./docs/THEATRE_AUDIT.md).
-- **Atomic Commits**: Group related changes into single, well-described commits.
+If you cannot run a check locally, state the limitation explicitly in the PR.
 
----
+## Documentation expectations
 
-## Coding Standards
+- Keep canonical docs concise and current.
+- Archive outdated docs instead of silently deleting useful project history.
+- Link new docs from existing canonical entry points.
 
-- **TypeScript**: Strict mode enabled. Use functional patterns where possible.
-- **C++**: C++17. Follow the existing style (see `.clang-format`).
-- **CSS**: Vanilla CSS or Tailwind primitives only. No ad-hoc utility classes.
+See [docs/DOCS_GOVERNANCE.md](./docs/DOCS_GOVERNANCE.md).
 
----
+## Public vs internal docs rules
+
+- Public repo docs should contain durable developer/operator truth.
+- Internal planning, scratch notes, and sensitive operational material belong outside committed public docs.
+- Use ignored paths documented in `.gitignore` for non-public working material.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's [Apache-2.0 License](./LICENSE).
-
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## How Can I Contribute?
-
-
-- **Check if the bug is already reported** in the [issues](https://github.com/reachhq/requiem/issues).
-- **Use the Bug Report template** when creating a new issue.
-- **Provide a reproduction** if possible. Use `requiem doctor` to collect environment info.
-
-### Suggesting Enhancements
-
-- **Check if the feature has already been suggested**.
-- **Use the Feature Request template**.
-- **Describe the use case** and how it fits into Requiem's focus on determinism and performance.
-
-### Pull Requests
-
-1. **Fork the repository**.
-2. **Create a branch** for your fix or feature (e.g., `fix/determinism-drift` or `feat/cli-colors`).
-3. **Follow the coding style** defined in `.editorconfig`.
-4. **Ensure all tests pass** by running `npm run verify`.
-5. **Update documentation** if relevant.
-6. **Submit a Merge Request** against the `main` branch.
-
-## Development Workflow
-
-### Requirements
-
-- CMake 3.20+
-- C++20 compatible compiler (GCC 11+, Clang 14+, MSVC 2022+)
-- Node.js 18+ (for UI components)
-- pnpm or npm
-
-### Building
-
-```bash
-# Build C++ engine
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-
-# Build UI packages
-npm run build:ui
-```
-
-### Verification
-
-Before submitting a PR, ensure all checks pass:
-
-```bash
-npm run verify
-```
-
-This runs:
-
-- C++ build and unit tests
-- UI typechecks and linting
-- Determinism and contract validation
-
-## Security
-
-Please report security vulnerabilities to [security@reach.com](mailto:security@reach.com) instead of opening a public issue. See [SECURITY.md](SECURITY.md) for more details.
+By contributing, you agree your contributions are licensed under [Apache-2.0](./LICENSE).

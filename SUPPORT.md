@@ -1,33 +1,19 @@
-# Support: Requiem / Zeo
+# Support
 
-## 🚨 Security Outages / Tenant Leakage
+## Open-source usage support
 
-If you have discovered a security vulnerability or a potential for cross-tenant data leakage, please do **NOT** open a public issue. Follow the instructions in [SECURITY.md](SECURITY.md).
+Use GitHub issues for bugs and feature requests in the open-source repository.
 
-## 🛠️ Community Support (Open Source)
+Before opening an issue, include:
 
-For help using the open-source version of Requiem, please use the following:
+- Reproduction steps
+- Expected vs actual behavior
+- Relevant command output (`pnpm doctor` where applicable)
 
-- **GitHub Issues**: Use [bug_report.yml](.github/ISSUE_TEMPLATE/bug_report.yml) or [feature_request.yml](.github/ISSUE_TEMPLATE/feature_request.yml).
-- **GitHub Discussions**: General questions, implementation tips, and community-led support.
+## Security issues
 
-## 🏢 Enterprise Support (SLA-Backed)
+For vulnerabilities, follow [SECURITY.md](./SECURITY.md) and avoid public disclosure first.
 
-If you are an Enterprise customer, please use your dedicated support channel or email:
+## Enterprise support
 
-- **Email**: <support@zeo.ai> [Placeholder - REPLACE WITH ACTUAL]
-- **Tenant ID**: Please provide your tenant hash in all communications.
-- **SLA**: Initial response for P0 (Critical) incidents within 4 hours.
-
-## 📋 Triage Preparation
-
-When filing an issue, please ensure you have the following ready:
-
-1. **Execution Fingerprint** (64-character hash).
-2. **Short ID** (8-character hash).
-3. **Version** (`pnpm reach version`).
-4. **Diagnostic Output** (`pnpm reach doctor --format=md`).
-
-## Invariant Failure (Determinism Breach)
-
-If you detect a drift where `reach verify <digest>` fails, please tag the issue as `type:determinism-drift`. These are prioritized as P0 by the engineering team.
+ReadyLayer Cloud enterprise customers should use their contracted support channel for SLA-backed incidents.

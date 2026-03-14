@@ -1,21 +1,32 @@
-# Requiem (OSS runtime) + ReadyLayer (operator console)
+# Requiem
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 ![Node >=20.11](https://img.shields.io/badge/node-%3E%3D20.11.0-339933)
-![Deterministic replay](https://img.shields.io/badge/runtime-deterministic%20replay-black)
 
-Requiem is a deterministic execution runtime for workflow/agent-style operations with replay and evidence artifacts.
+Requiem is an open-source deterministic execution platform for workflow and agent-style runs. It is built to make execution behavior replayable, testable, and reviewable.
 
-It matters when logs are not enough: you need repeatable runs, explicit policy gates, and machine-checkable artifacts for review.
+This repository also contains the open-source Reach CLI and integration points for ReadyLayer Cloud.
 
-## Core primitives
+## Project overview
 
-- **Deterministic execution contract** with versioned behavior and replay checks.
-- **CAS-backed artifacts** addressed by digest for integrity validation.
-- **Policy gates** evaluated during execution, not only in post-hoc analysis.
-- **Proof/evidence surfaces** (`proofpack`, receipts, benchmark artifacts) for audit and incident review.
+Requiem ecosystem components:
 
-## Quickstart (first successful run)
+- **Requiem**: the core execution and verification platform (engine, contracts, tests, and shared runtime primitives).
+- **Reach CLI**: the open-source command-line interface developers use to run demos, verify determinism, inspect evidence, and interact with local tooling.
+- **ReadyLayer Cloud**: a hosted enterprise control plane operated by ReadyLayer. It is not fully open-source in this repository.
+
+## Architecture overview
+
+At a high level:
+
+1. Reach CLI accepts commands and prepares execution requests.
+2. Requiem runtime executes workloads under deterministic contracts.
+3. Outputs are captured as artifacts/evidence and can be replayed or verified.
+4. ReadyLayer Cloud (enterprise) can provide hosted control-plane workflows around these primitives.
+
+See [docs/ARCHITECTURE_OVERVIEW.md](./docs/ARCHITECTURE_OVERVIEW.md) for details.
+
+## Developer quick start
 
 ```bash
 git clone https://github.com/reachhq/requiem.git
@@ -25,48 +36,77 @@ pnpm build
 pnpm verify:demo
 ```
 
-Then open:
+Then review generated artifacts under `demo_artifacts/`.
 
-- `demo_artifacts/demo-summary.json`
-- `demo_artifacts/demo-receipt.json`
+For a full onboarding path, see [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md).
 
-## Demo + replay + proof checks
+## Installation
+
+Minimum local requirements:
+
+- Node.js 20.11+
+- pnpm 8+
+- CMake and a C++20-capable toolchain (for engine build/test workflows)
+
+Install dependencies:
 
 ```bash
-# Environment and repo doctor checks
+pnpm install --frozen-lockfile
+```
+
+## Example usage
+
+Run representative checks:
+
+```bash
 pnpm doctor
-
-# Run demo flow and generate artifacts
-pnpm verify:demo
-
-# Determinism/proof/replay checks used in diligence
 pnpm verify:determinism
 pnpm verify:replay
 pnpm evidence
 ```
 
-## Proof and verification surfaces
+Run Reach CLI commands via the workspace script:
 
-- Proofpack and evidence model: [docs/proofpacks.md](./docs/proofpacks.md)
-- System claims and testable boundaries: [docs/system-claims.md](./docs/system-claims.md)
-- Explicit limitations and non-goals: [docs/limitations.md](./docs/limitations.md)
+```bash
+pnpm rl --help
+pnpm rl doctor
+```
 
-## Architecture and deeper docs
+## Repository structure
 
-- Architecture overview: [docs/architecture-overview.md](./docs/architecture-overview.md)
-- Quickstart (canonical path): [docs/quickstart.md](./docs/quickstart.md)
-- First 10 minutes guide: [docs/first-10-minutes.md](./docs/first-10-minutes.md)
-- Demo pack: [docs/demo-walkthrough.md](./docs/demo-walkthrough.md)
-- Technical diligence pack: [docs/diligence.md](./docs/diligence.md)
-- Comparison + positioning: [docs/comparison.md](./docs/comparison.md), [docs/positioning.md](./docs/positioning.md)
+- `src/`, `include/requiem/`, `tests/`: core runtime and test coverage.
+- `packages/cli/`: Reach CLI implementation.
+- `ready-layer/`: ReadyLayer web/control-plane code in this monorepo.
+- `docs/`: canonical and archived repository documentation.
+- `scripts/`: build, verification, and governance automation.
 
-## Launch status
+See [docs/REPO_STRUCTURE.md](./docs/REPO_STRUCTURE.md) for a fuller map.
 
-Current launch verdict is documented in `docs/release-checklist.md` and `docs/launch-checklist.md`.
+## Open-source vs enterprise boundary
 
-## Trust and contribution surfaces
+- The open-source surface is documented in this repository and includes Requiem + Reach CLI developer workflows.
+- ReadyLayer Cloud is the hosted enterprise platform and includes commercial operated services beyond the OSS local surface.
 
-- Security policy: [SECURITY.md](./SECURITY.md)
-- Contributing: [CONTRIBUTING.md](./CONTRIBUTING.md)
-- Code of conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+See [docs/OSS_BOUNDARY.md](./docs/OSS_BOUNDARY.md).
+
+## Contributing
+
+Contributions are welcome. Start with:
+
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [GOVERNANCE.md](./GOVERNANCE.md)
+- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+
+## License summary
+
+This repository is licensed under [Apache-2.0](./LICENSE) unless otherwise stated.
+
+Enterprise deployment and hosted platform boundary notes are documented in [LICENSE_ENTERPRISE_NOTE.md](./LICENSE_ENTERPRISE_NOTE.md).
+
+## Community and support
+
+- Security reporting: [SECURITY.md](./SECURITY.md)
+- Support channels: [SUPPORT.md](./SUPPORT.md)
+- Roadmap: [ROADMAP.md](./ROADMAP.md)
 - Changelog: [CHANGELOG.md](./CHANGELOG.md)
+- Documentation index: [docs/README.md](./docs/README.md)

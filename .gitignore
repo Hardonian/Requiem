@@ -102,3 +102,11 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Private/internal planning material (must not be committed)
+.private/
+.internal/
+planning/private/
+docs/internal-private/
+**/*.scratch.md
+**/*.brainstorm.md
