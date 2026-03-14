@@ -20,11 +20,18 @@ const PUBLIC_ROUTES = [
   '/',
   '/docs',
   '/documentation',
+  '/features',
+  '/demo',
+  '/enterprise',
+  '/templates',
   '/pricing',
   '/status',
   '/changelog',
+  '/transparency',
+  '/security',
   '/privacy',
   '/terms',
+  '/support',
   '/login',
   '/signup',
   '/auth/signin',
@@ -36,6 +43,18 @@ const PUBLIC_ROUTES = [
   '/api/ready',
   '/api/openapi.json',
   '/api/status',
+];
+
+const PROTECTED_PAGE_PREFIXES = [
+  '/app',
+  '/console',
+  '/intelligence',
+  '/runs',
+  '/registry',
+  '/settings',
+  '/drift',
+  '/spend',
+  '/proof',
 ];
 
 const PUBLIC_API_ROUTES = [
@@ -51,6 +70,12 @@ function isStaticAsset(pathname: string): boolean {
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+}
+
+function isProtectedPageRoute(pathname: string): boolean {
+  return PROTECTED_PAGE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 function isPublicApiRoute(pathname: string): boolean {
@@ -238,6 +263,12 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
   }
 
   if (isPublicRoute(pathname) || isPublicApiRoute(pathname)) {
+    return withTraceHeader(NextResponse.next(), traceId);
+  }
+
+  const isProtectedPage = !pathname.startsWith('/api/') && isProtectedPageRoute(pathname);
+
+  if (!pathname.startsWith('/api/') && !isProtectedPage) {
     return withTraceHeader(NextResponse.next(), traceId);
   }
 
