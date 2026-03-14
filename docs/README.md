@@ -17,6 +17,8 @@ This index is the canonical navigation entrypoint for repository docs.
 - [Contract](./CONTRACT.md)
 - [Migration](./MIGRATION.md)
 - [Invariants](./INVARIANTS.md)
+- [Architectural invariants](./ARCHITECTURAL_INVARIANTS.md)
+- [Security model](./SECURITY_MODEL.md)
 
 ## Operations and governance
 
