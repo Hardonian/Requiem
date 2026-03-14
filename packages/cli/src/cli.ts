@@ -87,6 +87,7 @@ OPERATOR PLATFORM COMMANDS:
   proof:sign <proofpack> --key <pem>   Sign proofpack manifest digest (Ed25519)
   proof:verify <proofpack> --key <pem> Verify proofpack signature set
   security:scan [--sbom <path>]        Generate SBOM + dependency denylist scan
+  new <project>                      Scaffold a deterministic workflow project
   workflow:list                       List available deterministic workflows
   workflow:inspect <workflow>         Show workflow metadata, graph, and policy hooks
   workflow:run <workflow> [--input]   Execute workflow and emit proofpack
@@ -97,6 +98,8 @@ OPERATOR PLATFORM COMMANDS:
   worker:start [id] [--drain]         Start deterministic worker loop
   worker:status                       Show worker health and processed task counts
   cluster:status                      Show distributed execution coordinator status
+  sandbox                             Start local deterministic sandbox services
+  debug <execution_id>                Inspect execution graph, policy, and proof artifacts
   pipeline <create|run|inspect|graph>  Manage pipeline lifecycle
   artifact <list|verify|gc>            Artifact inventory and integrity workflows
   trust <show|verify|rotate>           Append-only trust ledger operations
@@ -913,6 +916,9 @@ async function main(): Promise<number> {
         break;
       }
 
+      case 'new':
+      case 'sandbox':
+      case 'debug':
       case 'workflow:list':
       case 'workflow:inspect':
       case 'workflow:run':

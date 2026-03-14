@@ -1,0 +1,9 @@
+{
+  "name": "http_adapter_template",
+  "deterministic_invocation": true,
+  "input_capture": true,
+  "output_capture": true,
+  "response_hashing": "blake3",
+  "proofpack_inclusion": true,
+  "description": "Offline deterministic HTTP adapter template"
+}

@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "name": "data_processing",
+    "version": "1.0.0",
+    "description": "Normalize and summarize deterministic dataset"
+  },
+  "inputs_schema": {
+    "required": ["left", "right"],
+    "properties": {
+      "left": { "type": "string" },
+      "right": { "type": "string" }
+    }
+  },
+  "execution_graph": [
+    { "id": "merge", "type": "adapter", "action": "builtin.concat", "inputs": { "left": "$left", "right": "$right" }, "policy_hook": "allow_data", "output_key": "merged" },
+    { "id": "summary", "type": "adapter", "action": "builtin.echo", "inputs": { "text": "$merged" }, "policy_hook": "allow_data", "output_key": "summary" }
+  ],
+  "policy_hooks": {
+    "allow_data": { "effect": "allow", "reason": "deterministic processing pipeline" }
+  },
+  "expected_outputs": ["summary"]
+}
