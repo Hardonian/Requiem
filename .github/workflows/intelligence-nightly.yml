@@ -31,7 +31,7 @@ jobs:
         run: pnpm verify:drift-suite
       - name: upload intelligence reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: intelligence-reports
           path: artifacts/reports/intelligence_drift_report.json
