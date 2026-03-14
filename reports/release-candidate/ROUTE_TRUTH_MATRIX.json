@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-03-06T03:43:13.471Z",
+  "generatedAt": "2026-03-14T05:03:39.003Z",
   "summary": {
-    "totalRoutes": 118,
-    "pageRoutes": 67,
-    "apiRoutes": 51,
+    "totalRoutes": 127,
+    "pageRoutes": 69,
+    "apiRoutes": 58,
     "dynamicRoutes": 12
   },
   "routes": [
@@ -18,6 +18,18 @@
       "hasLoading": false,
       "hasErrorBoundary": true,
       "hasNotFoundBoundary": true
+    },
+    {
+      "route": "/api/agents",
+      "kind": "api",
+      "bucket": "api/internal",
+      "source": "ready-layer/src/app/api/agents/route.ts",
+      "dynamicParams": false,
+      "renderMode": "dynamic",
+      "hasMetadata": false,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
     },
     {
       "route": "/api/audit/logs",
@@ -104,6 +116,18 @@
       "hasNotFoundBoundary": false
     },
     {
+      "route": "/api/control-plane/insights",
+      "kind": "api",
+      "bucket": "api/internal",
+      "source": "ready-layer/src/app/api/control-plane/insights/route.ts",
+      "dynamicParams": false,
+      "renderMode": "dynamic",
+      "hasMetadata": false,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
       "route": "/api/decisions",
       "kind": "api",
       "bucket": "api/internal",
@@ -180,6 +204,18 @@
       "kind": "api",
       "bucket": "api/internal",
       "source": "ready-layer/src/app/api/engine/status/route.ts",
+      "dynamicParams": false,
+      "renderMode": "dynamic",
+      "hasMetadata": false,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
+      "route": "/api/failures/analytics",
+      "kind": "api",
+      "bucket": "api/internal",
+      "source": "ready-layer/src/app/api/failures/analytics/route.ts",
       "dynamicParams": false,
       "renderMode": "dynamic",
       "hasMetadata": false,
@@ -524,10 +560,34 @@
       "hasNotFoundBoundary": false
     },
     {
+      "route": "/api/policies/simulate",
+      "kind": "api",
+      "bucket": "api/internal",
+      "source": "ready-layer/src/app/api/policies/simulate/route.ts",
+      "dynamicParams": false,
+      "renderMode": "dynamic",
+      "hasMetadata": false,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
       "route": "/api/registry",
       "kind": "api",
       "bucket": "api/internal",
       "source": "ready-layer/src/app/api/registry/route.ts",
+      "dynamicParams": false,
+      "renderMode": "dynamic",
+      "hasMetadata": false,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
+      "route": "/api/replay/lab",
+      "kind": "api",
+      "bucket": "api/internal",
+      "source": "ready-layer/src/app/api/replay/lab/route.ts",
       "dynamicParams": false,
       "renderMode": "dynamic",
       "hasMetadata": false,
@@ -612,6 +672,30 @@
       "kind": "api",
       "bucket": "api/health/status",
       "source": "ready-layer/src/app/api/status/route.ts",
+      "dynamicParams": false,
+      "renderMode": "dynamic",
+      "hasMetadata": false,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
+      "route": "/api/tenants/isolation",
+      "kind": "api",
+      "bucket": "api/internal",
+      "source": "ready-layer/src/app/api/tenants/isolation/route.ts",
+      "dynamicParams": false,
+      "renderMode": "dynamic",
+      "hasMetadata": false,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
+      "route": "/api/trust-graph",
+      "kind": "api",
+      "bucket": "api/internal",
+      "source": "ready-layer/src/app/api/trust-graph/route.ts",
       "dynamicParams": false,
       "renderMode": "dynamic",
       "hasMetadata": false,
@@ -1056,6 +1140,30 @@
       "kind": "page",
       "bucket": "marketing/static",
       "source": "ready-layer/src/app/enterprise/page.tsx",
+      "dynamicParams": false,
+      "renderMode": "static-or-isr",
+      "hasMetadata": true,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
+      "route": "/enterprise/request-demo",
+      "kind": "page",
+      "bucket": "marketing/static",
+      "source": "ready-layer/src/app/enterprise/request-demo/page.tsx",
+      "dynamicParams": false,
+      "renderMode": "static-or-isr",
+      "hasMetadata": true,
+      "hasLoading": false,
+      "hasErrorBoundary": false,
+      "hasNotFoundBoundary": false
+    },
+    {
+      "route": "/features",
+      "kind": "page",
+      "bucket": "other",
+      "source": "ready-layer/src/app/features/page.tsx",
       "dynamicParams": false,
       "renderMode": "static-or-isr",
       "hasMetadata": true,

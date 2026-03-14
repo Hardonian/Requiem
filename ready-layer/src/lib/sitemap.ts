@@ -21,6 +21,9 @@ const BASE_URL = 'https://requiem.hardonian.com';
 const staticRoutes: SitemapEntry[] = [
   { path: '/', priority: 1.0, changefreq: 'daily' },
   { path: '/app/executions', priority: 0.9, changefreq: 'daily' },
+  { path: '/features', priority: 0.8, changefreq: 'weekly' },
+  { path: '/docs', priority: 0.8, changefreq: 'weekly' },
+  { path: '/about', priority: 0.7, changefreq: 'monthly' },
   { path: '/security', priority: 0.8, changefreq: 'weekly' },
   { path: '/transparency', priority: 0.8, changefreq: 'weekly' },
   { path: '/pricing', priority: 0.8, changefreq: 'weekly' },

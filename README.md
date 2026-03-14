@@ -11,22 +11,7 @@ This repository also contains the open-source Reach CLI and integration points f
 
 Requiem ecosystem components:
 
-- **Requiem**: the core execution and verification platform (engine, contracts, tests, and shared runtime primitives).
-- **Reach CLI**: the open-source command-line interface developers use to run demos, verify determinism, inspect evidence, and interact with local tooling.
-- **ReadyLayer Cloud**: a hosted enterprise control plane operated by ReadyLayer. It is not fully open-source in this repository.
-
-## Architecture overview
-
-At a high level:
-
-1. Reach CLI accepts commands and prepares execution requests.
-2. Requiem runtime executes workloads under deterministic contracts.
-3. Outputs are captured as artifacts/evidence and can be replayed or verified.
-4. ReadyLayer Cloud (enterprise) can provide hosted control-plane workflows around these primitives.
-
-See [docs/ARCHITECTURE_OVERVIEW.md](./docs/ARCHITECTURE_OVERVIEW.md) for details.
-
-## Developer quick start
+## Quickstart (canonical)
 
 ```bash
 git clone https://github.com/reachhq/requiem.git
@@ -97,7 +82,12 @@ Contributions are welcome. Start with:
 - [GOVERNANCE.md](./GOVERNANCE.md)
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 
-## License summary
+- Getting started: [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)
+- Repository structure: [docs/REPO_STRUCTURE.md](./docs/REPO_STRUCTURE.md)
+- API governance: [docs/API_GOVERNANCE.md](./docs/API_GOVERNANCE.md)
+- Verified claims: [docs/VERIFIED_CLAIMS.md](./docs/VERIFIED_CLAIMS.md)
+- Operator runbook: [docs/OPERATOR_RUNBOOK.md](./docs/OPERATOR_RUNBOOK.md)
+- Docs governance + archive: [docs/DOCS_GOVERNANCE.md](./docs/DOCS_GOVERNANCE.md), [docs/ARCHIVE_INDEX.md](./docs/ARCHIVE_INDEX.md)
 
 This repository is licensed under [Apache-2.0](./LICENSE) unless otherwise stated.
 

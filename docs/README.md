@@ -15,6 +15,15 @@ Use this page as the canonical documentation navigation spine.
 - [../GOVERNANCE.md](../GOVERNANCE.md)
 - [DOCS_GOVERNANCE.md](./DOCS_GOVERNANCE.md)
 - [ARCHIVE_INDEX.md](./ARCHIVE_INDEX.md)
+- [Architecture](./ARCHITECTURE.md)
+- [Engine](./ENGINE.md)
+- [Determinism](./DETERMINISM.md)
+- [CAS](./CAS.md)
+- [Contract](./CONTRACT.md)
+- [Migration](./MIGRATION.md)
+- [Invariants](./INVARIANTS.md)
+- [Architectural invariants](./ARCHITECTURAL_INVARIANTS.md)
+- [Security model](./SECURITY_MODEL.md)
 
 ## Trust and operations
 
