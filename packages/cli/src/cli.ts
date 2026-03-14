@@ -73,6 +73,7 @@ USAGE:
 CONTROL COMMANDS (Deterministic Execution):
   run <name> [input]                  Execute a tool with determinism proof
   verify <hash>                       Verify execution determinism
+  prove [--json]                      Run proof suites and generate proofpack
   verify proof-pack                   Validate proof-pack integrity
   replay run <id>                     Replay an execution with verification
   replay diff <run1> <run2>           Deterministic diff between two runs
@@ -353,6 +354,12 @@ async function main(): Promise<number> {
       case 'run': {
         const { runRunCommand } = await loadCommand('./commands/run.js') as { runRunCommand: (args: string[]) => Promise<number> };
         result = await runRunCommand(subArgs);
+        break;
+      }
+
+      case 'prove': {
+        const { runProve } = await loadCommand('./commands/rl-prove.js') as { runProve: (opts: { json: boolean; suites?: string[]; outputDir?: string }) => Promise<number> };
+        result = await runProve({ json });
         break;
       }
 

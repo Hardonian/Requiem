@@ -1,0 +1,20 @@
+{
+  "id": "demo-run",
+  "name": "Requiem deterministic demo workflow",
+  "steps": [
+    {
+      "id": "step-1",
+      "tool": "system.echo",
+      "input": {
+        "message": "hello from requiem demo"
+      }
+    },
+    {
+      "id": "step-2",
+      "tool": "system.echo",
+      "input": {
+        "message": "proofpack generation"
+      }
+    }
+  ]
+}

@@ -12,7 +12,8 @@ import {
   replayIncidentPack,
   runRuntimeDemo,
 } from '../../../ai/src/tools/failureRuntime.js';
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { resolve, dirname } from 'path';
 
 function asJson(args: string[]): boolean { return args.includes('--json'); }
 
@@ -136,7 +137,47 @@ export async function runFailuresCommand(args: string[]): Promise<number> {
 }
 
 export async function runDemoCommand(): Promise<number> {
+  const configPath = resolve(process.cwd(), 'examples/demo-workflow/demo-config.json');
+  const policyPath = resolve(process.cwd(), 'examples/demo-workflow/demo-policy.json');
+  const workflowPath = resolve(process.cwd(), 'examples/demo-workflow/demo-workflow.json');
+
+  const config = JSON.parse(readFileSync(configPath, 'utf8')) as { output_dir?: string; replay_command?: string };
+  const policy = JSON.parse(readFileSync(policyPath, 'utf8')) as Record<string, unknown>;
+  const workflow = JSON.parse(readFileSync(workflowPath, 'utf8')) as Record<string, unknown>;
+
   const demo = runRuntimeDemo();
-  console.log(JSON.stringify(demo, null, 2));
+  const proofpackPath = resolve(process.cwd(), config.output_dir ?? 'proofpacks/latest', 'demo-proofpack.json');
+  mkdirSync(dirname(proofpackPath), { recursive: true });
+
+  writeFileSync(
+    proofpackPath,
+    JSON.stringify(
+      {
+        generated_at: new Date().toISOString(),
+        config,
+        policy,
+        workflow,
+        runtime_demo: demo,
+      },
+      null,
+      2,
+    ),
+    'utf8',
+  );
+
+  console.log(
+    JSON.stringify(
+      {
+        status: 'ok',
+        message: 'Demo workflow completed',
+        run_id: demo.run_id,
+        proofpack: proofpackPath,
+        replay: config.replay_command ?? 'requiem replay run demo-run',
+      },
+      null,
+      2,
+    ),
+  );
+
   return 0;
 }
