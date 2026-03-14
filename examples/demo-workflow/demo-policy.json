@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "mode": "enforce",
+  "rules": [
+    {
+      "id": "deny-network-side-effects",
+      "action": "deny",
+      "when": {
+        "tool": "http.fetch",
+        "effect": "write"
+      }
+    },
+    {
+      "id": "allow-observable-demo",
+      "action": "allow",
+      "when": {
+        "tool": "system.echo"
+      }
+    }
+  ]
+}

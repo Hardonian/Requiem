@@ -32,7 +32,7 @@ interface FailureAnalyticsResponse {
 export async function GET(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
-    async (ctx) => {
+    async (_ctx) => {
       const analytics: FailureAnalyticsResponse = {
         ok: true,
         total_failures: 47,
