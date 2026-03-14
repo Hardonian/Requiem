@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "name": "llm_agent_orchestration",
+    "version": "1.0.0",
+    "description": "Mock LLM plan + file pipeline execution"
+  },
+  "inputs_schema": {
+    "required": ["left", "right"],
+    "properties": {
+      "left": { "type": "string" },
+      "right": { "type": "string" }
+    }
+  },
+  "execution_graph": [
+    { "id": "plan", "type": "adapter", "action": "llm_mock.complete", "inputs": { "text": "$left" }, "policy_hook": "allow_llm", "output_key": "plan" },
+    { "id": "execute", "type": "subworkflow", "action": "agent_orchestration", "inputs": { "left": "$left", "right": "$right" }, "policy_hook": "allow_llm", "output_key": "execution" }
+  ],
+  "policy_hooks": {
+    "allow_llm": { "effect": "allow", "reason": "mock llm only" }
+  },
+  "expected_outputs": ["plan", "execution"]
+}

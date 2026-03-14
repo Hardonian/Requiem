@@ -1,0 +1,9 @@
+{
+  "name": "llm_mock_adapter_template",
+  "deterministic_invocation": true,
+  "input_capture": true,
+  "output_capture": true,
+  "response_hashing": "blake3",
+  "proofpack_inclusion": true,
+  "description": "Mock LLM adapter template for deterministic replay"
+}

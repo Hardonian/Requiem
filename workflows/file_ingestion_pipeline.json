@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "name": "file_ingestion_pipeline",
+    "version": "1.0.0",
+    "description": "Deterministic file ingest + processing"
+  },
+  "inputs_schema": {
+    "required": ["left", "right"],
+    "properties": {
+      "left": { "type": "string" },
+      "right": { "type": "string" }
+    }
+  },
+  "execution_graph": [
+    { "id": "ingest", "type": "subworkflow", "action": "file_pipeline", "inputs": { "left": "$left", "right": "$right" }, "policy_hook": "allow_ingest", "output_key": "ingest_result" },
+    { "id": "validate", "type": "subworkflow", "action": "policy_validation", "inputs": { "value": "$left" }, "policy_hook": "allow_ingest", "output_key": "validation" }
+  ],
+  "policy_hooks": {
+    "allow_ingest": { "effect": "allow", "reason": "ingest policy check" }
+  },
+  "expected_outputs": ["ingest_result", "validation"]
+}

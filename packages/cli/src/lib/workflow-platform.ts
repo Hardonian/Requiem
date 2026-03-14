@@ -38,6 +38,16 @@ interface WorkflowExecutionEvent {
   state_hash: string;
 }
 
+
+export interface DebugSnapshot {
+  run_id: string;
+  workflow: string;
+  execution_graph: WorkflowNode[];
+  adapter_calls: Array<{ seq: number; node_id: string; action: string; detail_hash: string }>;
+  policy_decisions: Array<{ seq: number; node_id: string; decision_hash: string }>;
+  state_transitions: Array<{ seq: number; state_hash: string }>;
+  proof_artifacts: { proofpack_path: string; replay_log_path: string; cas_digest?: string };
+}
 export interface WorkflowRunResult {
   workflow: string;
   run_id: string;
@@ -175,6 +185,7 @@ export function runWorkflow(name: string, input: Record<string, unknown>): Workf
   const adapters: Record<string, (input: Record<string, unknown>) => unknown> = {
     'builtin.echo': (i) => ({ text: String(i['text'] ?? '') }),
     'builtin.concat': (i) => ({ text: `${String(i['left'] ?? '')}${String(i['right'] ?? '')}` }),
+    'llm_mock.complete': (i) => ({ text: `mock:${String(i['text'] ?? '')}` }),
     ...pluginAdapters(),
   };
 
@@ -224,6 +235,107 @@ export function runWorkflow(name: string, input: Record<string, unknown>): Workf
   writeJsonFile(proofpackPath, proofpack);
 
   return { workflow: name, run_id: runId, result: result as Record<string, unknown>, state_hash: prevStateHash, request_digest: reqDigest, result_digest: resDigest, proofpack_path: proofpackPath, replay_log_path: replayPath };
+}
+
+
+export function createProjectScaffold(projectName: string): { project_path: string; generated: string[] } {
+  const sanitized = projectName.trim();
+  if (!sanitized || /[\\/]/.test(sanitized)) {
+    throw new Error('Project name must be a single directory name');
+  }
+
+  const projectRoot = path.join(ROOT, sanitized);
+  const dirs = ['workflows', 'policies', 'adapters', 'config'];
+  for (const dir of dirs) ensureDir(path.join(projectRoot, dir));
+
+  const exampleWorkflow: WorkflowDefinition = deterministic({
+    metadata: { name: 'example_workflow', version: '1.0.0', description: 'Scaffolded deterministic starter workflow' },
+    inputs_schema: {
+      required: ['message'],
+      properties: { message: { type: 'string' } },
+    },
+    execution_graph: [
+      { id: 'echo', type: 'adapter', action: 'builtin.echo', inputs: { text: '$message' }, policy_hook: 'allow_default', output_key: 'echoed' },
+    ],
+    policy_hooks: { allow_default: { effect: 'allow', reason: 'scaffold default policy' } },
+    expected_outputs: ['echoed'],
+  });
+
+  const workflowPath = path.join(projectRoot, 'example-workflow.json');
+  writeJsonFile(workflowPath, exampleWorkflow);
+
+  const configPath = path.join(projectRoot, 'config', 'project.json');
+  writeJsonFile(configPath, {
+    name: sanitized,
+    created_by: 'requiem new',
+    deterministic_defaults: true,
+  });
+
+  return {
+    project_path: projectRoot,
+    generated: [
+      ...dirs.map(dir => path.join(projectRoot, dir)),
+      workflowPath,
+      configPath,
+    ],
+  };
+}
+
+export function sandboxStatus(): {
+  engine: string;
+  cas: string;
+  policy_engine: string;
+  web_console: string;
+  deterministic_mode: boolean;
+} {
+  ensureDir(path.join(ROOT, '.requiem'));
+  ensureDir(path.join(ROOT, '.requiem', 'cas'));
+  ensureDir(path.join(ROOT, '.requiem', 'platform'));
+  return {
+    engine: 'local-ready',
+    cas: '.requiem/cas',
+    policy_engine: 'enforced',
+    web_console: 'http://localhost:4173/console (placeholder)',
+    deterministic_mode: true,
+  };
+}
+
+export function debugExecution(runId: string): DebugSnapshot {
+  const proofpackPath = path.join(PROOFPACK_DIR, `${runId}.proofpack.json`);
+  const replayPath = path.join(PROOFPACK_DIR, `${runId}.replay.json`);
+  const proof = readJsonFile<{
+    manifest: { workflow: string; cas_digest?: string };
+    replay_log: {
+      events: WorkflowExecutionEvent[];
+      run_id: string;
+    };
+  }>(proofpackPath);
+
+  const workflow = inspectWorkflow(proof.manifest.workflow);
+  const events = proof.replay_log.events ?? [];
+
+  return deterministic({
+    run_id: runId,
+    workflow: proof.manifest.workflow,
+    execution_graph: workflow.execution_graph,
+    adapter_calls: events
+      .filter(event => event.type === 'node')
+      .map(event => ({
+        seq: event.seq,
+        node_id: event.node_id ?? 'unknown',
+        action: workflow.execution_graph.find(node => node.id === event.node_id)?.action ?? 'unknown',
+        detail_hash: event.detail_hash,
+      })),
+    policy_decisions: events
+      .filter(event => event.type === 'policy')
+      .map(event => ({ seq: event.seq, node_id: event.node_id ?? 'unknown', decision_hash: event.detail_hash })),
+    state_transitions: events.map(event => ({ seq: event.seq, state_hash: event.state_hash })),
+    proof_artifacts: {
+      proofpack_path: proofpackPath,
+      replay_log_path: replayPath,
+      cas_digest: proof.manifest.cas_digest,
+    },
+  });
 }
 
 export function replayWorkflow(runId: string): { deterministic: boolean; state_hash: string } {

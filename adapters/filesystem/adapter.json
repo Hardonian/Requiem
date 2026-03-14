@@ -1,0 +1,9 @@
+{
+  "name": "filesystem_adapter_template",
+  "deterministic_invocation": true,
+  "input_capture": true,
+  "output_capture": true,
+  "response_hashing": "blake3",
+  "proofpack_inclusion": true,
+  "description": "Sandboxed filesystem adapter template"
+}

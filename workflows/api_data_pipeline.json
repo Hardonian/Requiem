@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "name": "api_data_pipeline",
+    "version": "1.0.0",
+    "description": "API fetch, policy validation, and deterministic transform"
+  },
+  "inputs_schema": {
+    "required": ["url", "left", "right"],
+    "properties": {
+      "url": { "type": "string" },
+      "left": { "type": "string" },
+      "right": { "type": "string" }
+    }
+  },
+  "execution_graph": [
+    { "id": "fetch", "type": "subworkflow", "action": "http_fetch", "inputs": { "url": "$url" }, "policy_hook": "allow_pipeline", "output_key": "fetch_result" },
+    { "id": "process", "type": "subworkflow", "action": "data_processing", "inputs": { "left": "$left", "right": "$right" }, "policy_hook": "allow_pipeline", "output_key": "processed" }
+  ],
+  "policy_hooks": {
+    "allow_pipeline": { "effect": "allow", "reason": "controlled api pipeline" }
+  },
+  "expected_outputs": ["fetch_result", "processed"]
+}

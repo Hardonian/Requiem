@@ -1,12 +1,15 @@
 import { stableSortKeys } from '../core/cli-helpers.js';
 import {
   clusterStatus,
+  createProjectScaffold,
+  debugExecution,
   enqueueWorkflow,
   inspectWorkflow,
   installPlugin,
   listPlugins,
   listWorkflows,
   runWorkflow,
+  sandboxStatus,
   setPluginEnabled,
   workerStart,
   workerStatus,
@@ -24,6 +27,12 @@ function parseInput(args: string[]): Record<string, unknown> {
 
 export async function runWorkflowPlatformCommand(command: string, args: string[]): Promise<number> {
   switch (command) {
+    case 'new': {
+      const project = args[0];
+      if (!project) throw new Error('Usage: requiem new <project>');
+      print(createProjectScaffold(project));
+      return 0;
+    }
     case 'workflow:list':
       print({ workflows: listWorkflows() });
       return 0;
@@ -67,6 +76,15 @@ export async function runWorkflowPlatformCommand(command: string, args: string[]
       const name = args[0];
       if (!name) throw new Error('Usage: requiem plugin:disable <name>');
       print(setPluginEnabled(name, false));
+      return 0;
+    }
+    case 'sandbox':
+      print({ sandbox: sandboxStatus() });
+      return 0;
+    case 'debug': {
+      const executionId = args[0];
+      if (!executionId) throw new Error('Usage: requiem debug <execution_id>');
+      print({ debug: debugExecution(executionId) });
       return 0;
     }
     case 'worker:start': {
