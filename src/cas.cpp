@@ -131,15 +131,6 @@ bool atomic_write(const fs::path &target, const std::string &data) {
   return true;
 }
 
-std::string bytes_to_hex(const unsigned char *data, size_t len) {
-  std::ostringstream oss;
-  for (size_t i = 0; i < len; ++i) {
-    oss << std::hex << std::setw(2) << std::setfill('0')
-        << static_cast<int>(data[i]);
-  }
-  return oss.str();
-}
-
 // Validate digest is a 64-char hex string.
 bool valid_digest(const std::string &d) {
   if (d.size() != 64)
@@ -1054,6 +1045,7 @@ S3CompatibleBackend::S3CompatibleBackend(std::string endpoint,
 
 std::string S3CompatibleBackend::put(const std::string &data,
                                      const std::string &compression) {
+  (void)compression;
   const std::string digest = cas_content_hash(data);
   if (digest.empty())
     return {};

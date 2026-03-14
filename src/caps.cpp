@@ -54,18 +54,6 @@ bool hex_to_bytes(const std::string &hex, unsigned char *out,
   return true;
 }
 
-// Serialize permissions array to JSON.
-std::string perms_to_json(const std::vector<std::string> &perms) {
-  std::string out = "[";
-  for (size_t i = 0; i < perms.size(); ++i) {
-    if (i)
-      out += ",";
-    out += "\"" + jsonlite::escape(perms[i]) + "\"";
-  }
-  out += "]";
-  return out;
-}
-
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -181,6 +169,11 @@ CapabilityToken caps_mint(const std::vector<std::string> &permissions,
                           const std::string &public_key_hex,
                           const std::string &issuer_fingerprint,
                           uint64_t not_before, uint64_t not_after) {
+
+  // Mint currently signs with the private seed and does not require the
+  // public key for serialization or fingerprint derivation. Keep the
+  // parameter for API compatibility with callers that keep keypair context.
+  (void)public_key_hex;
 
   CapabilityToken token;
   token.cap_version = 1;

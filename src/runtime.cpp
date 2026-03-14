@@ -298,7 +298,12 @@ ExecutionResult execute(const ExecutionRequest &request) {
                    cwd,
                    request.timeout_ms,
                    request.max_output_bytes,
-                   request.policy.deterministic};
+                   request.policy.deterministic,
+                   false,
+                   false,
+                   {},
+                   0,
+                   0};
   // CLAIM ENFORCEMENT: Pass rlimit values from policy to sandbox.
   spec.max_memory_bytes = request.policy.max_memory_bytes;
   spec.max_file_descriptors = request.policy.max_file_descriptors;

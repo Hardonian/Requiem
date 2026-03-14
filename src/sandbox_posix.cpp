@@ -42,6 +42,7 @@ void append_limited(std::string &dst, const char *src, ssize_t n,
 
 // v1.2: Implement seccomp-BPF filter installation
 bool install_seccomp_filter(const std::vector<SeccompRule> &rules) {
+  (void)rules;
 #if defined(__linux__)
   // Build a BPF program that allows basic syscalls and optionally blocks others
   // Default allowlist - common syscalls needed for most tools
@@ -95,7 +96,6 @@ bool install_seccomp_filter(const std::vector<SeccompRule> &rules) {
   return true;
 #else
   // Non-Linux platforms: not supported
-  (void)rules;
   return false;
 #endif
 }
