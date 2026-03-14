@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -13,6 +13,7 @@
     "build": "npm-run-all build:engine build:web",
     "build:ui": "pnpm --filter @requiem/ui build",
     "build:web": "pnpm --filter @requiem/ai build && pnpm --filter ready-layer build",
+    "build:vercel": "pnpm --filter @requiem/ai build && pnpm --filter ready-layer build",
     "build:ai": "pnpm --filter @requiem/ai build",
     "test": "pnpm run test:smoke",
     "build:cpp": "pnpm run build:engine",

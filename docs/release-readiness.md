@@ -15,7 +15,7 @@ _Last updated: 2026-03-14_
   - `ready-layer`
 - Core release build commands:
   - Engine/C++: `pnpm build` (`scripts/cmake-build.sh`).
-  - Web app: `pnpm --filter ready-layer build`.
+  - Web app: `pnpm run build:vercel`.
   - CI parity/deploy checks: `pnpm verify:deploy-readiness`.
 
 ## CI / local / Vercel parity contract
@@ -37,7 +37,7 @@ pnpm verify:deploy-readiness
 `vercel.json` is authoritative:
 
 - `installCommand`: `pnpm install --frozen-lockfile`
-- `buildCommand`: `pnpm --filter ready-layer build`
+- `buildCommand`: `pnpm run build:vercel`
 - framework: Next.js
 
 ## Environment contract

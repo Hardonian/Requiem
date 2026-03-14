@@ -5,7 +5,7 @@
 - **Root Directory:** `ready-layer`
 - **Framework Preset:** Next.js
 - **Install Command:** `pnpm install --frozen-lockfile`
-- **Build Command:** `pnpm --filter ready-layer build`
+- **Build Command:** `pnpm run build:vercel`
 
 If Vercel is configured at repository root instead of `ready-layer`, deployment may resolve to an app without `app/` routes and yield `/` failures.
 
