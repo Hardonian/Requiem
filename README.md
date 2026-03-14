@@ -29,7 +29,7 @@ For a full onboarding path, see [docs/GETTING_STARTED.md](./docs/GETTING_STARTED
 Minimum local requirements:
 
 - Node.js 20.11+
-- pnpm 8+
+- pnpm 8.15+ (packageManager is pinned to `pnpm@8.15.0`)
 - CMake and a C++20-capable toolchain (for engine build/test workflows)
 
 Install dependencies:
@@ -37,6 +37,14 @@ Install dependencies:
 ```bash
 pnpm install --frozen-lockfile
 ```
+
+## Canonical root commands
+
+- `pnpm run dev`: starts ReadyLayer local development.
+- `pnpm run build`: builds engine + web surfaces from root.
+- `pnpm run test`: runs engine smoke tests (`test:smoke`) for quick feedback.
+- `pnpm run verify:all`: strongest repo confidence gate.
+- `pnpm run doctor`: checks prerequisites and reports engine build state.
 
 ## Example usage
 

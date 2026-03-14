@@ -10,7 +10,7 @@
     "rl": "node scripts/run-tsx.mjs packages/cli/src/rl-cli.ts",
     "reach": "pnpm --filter @requiem/cli",
     "reality-gate": "bash scripts/reality-gate.sh",
-    "build": "pnpm run build:engine",
+    "build": "npm-run-all build:engine build:web",
     "build:ui": "pnpm --filter @requiem/ui build",
     "build:web": "pnpm --filter @requiem/ai build && pnpm --filter ready-layer build",
     "build:ai": "pnpm --filter @requiem/ai build",

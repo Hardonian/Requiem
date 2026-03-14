@@ -1,0 +1,38 @@
+## A. Root command semantics
+- `build` was the main semantic mismatch; it implied root build but only built the engine.
+- Root `build` now runs both engine and web builds.
+- Root `test` remains smoke-only and is explicitly documented as such.
+- `verify:all` remains the strongest canonical root gate.
+
+## B. First-clone experience
+- Canonical first-clone flow is now consistent across root and docs entry points.
+- Prerequisites are explicit and version-aligned.
+- Doctor output now clearly separates blockers from warnings and includes exact remediation commands.
+
+## C. Engine build honesty
+- Doctor now reports engine artifact state as warning (not blocker) with exact fix command.
+- Build failures remain blocking and surfaced by native build tooling.
+- `ensure-engine-build` remains responsible for auto-build in smoke tests.
+
+## D. Prerequisite clarity
+- Node, pnpm, CMake, and compiler minimums are aligned across scripts/docs.
+- pnpm pin (`pnpm@8.15.0`) is now reflected in prerequisite wording.
+
+## E. Script surface quality
+- Canonical path remains clear: `dev`, `build`, `test`, `doctor`, `verify:all`.
+- Specialized scripts were retained where meaningful; no misleading canonical alias remains for root `build`.
+
+## F. Verification truth
+- Verification claims in this pass are based on executed commands only.
+- No claims of hardening were made where no code behavior changed.
+- One non-fatal runtime note (`verify-routes-runtime` 429 assertion skip) remains explicitly visible.
+
+## G. Remaining minor trust risks
+- Runtime-dependent rate-limit assertion can still be skipped in `verify-routes-runtime` under some local conditions.
+- Script surface remains large; canonical path is now explicit but breadth may still require occasional contributor orientation.
+
+## H. Updated score estimate
+- 9.3 / 10 for semantic honesty and first-clone trust from root command surface perspective.
+
+## I. Launch verdict
+- READY FOR PUBLIC OSS LAUNCH

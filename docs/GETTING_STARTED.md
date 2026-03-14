@@ -1,83 +1,38 @@
 # Getting Started
 
-This guide is the fastest realistic path to a working local development setup.
+This is the canonical first-clone path for OSS contributors.
 
-## 1) Requirements
+## Prerequisites
 
-- Node.js 20.11+
-- pnpm 8+
-- CMake + C++20-compatible compiler for core build/test flows
+- Node.js >= 20.11.0
+- pnpm >= 8.15.0 (`packageManager` is pinned to `pnpm@8.15.0`)
+- CMake >= 3.20.0
+- C++20-capable compiler (GCC 11+, Clang 14+, or MSVC 2022+)
 
-## 2) Clone and install
+## First-clone flow
 
 ```bash
 git clone https://github.com/reachhq/requiem.git
 cd requiem
 pnpm install --frozen-lockfile
+pnpm run doctor
+pnpm run verify:all
+pnpm run dev
 ```
 
-## 3) Build
+## Canonical root commands
 
-```bash
-pnpm build
-```
+- `pnpm run dev` starts ReadyLayer local development.
+- `pnpm run build` builds engine + web surfaces.
+- `pnpm run test` runs engine smoke tests (`test:smoke`).
+- `pnpm run verify:all` is the strongest standard repo gate.
+- `pnpm run doctor` reports missing blockers and engine build state.
 
-## 4) Run baseline checks
-
-```bash
-pnpm doctor
-pnpm verify:demo
-```
-
-## 5) Use Reach CLI locally
-
-```bash
-pnpm rl --help
-pnpm rl doctor
-```
-
-## 6) Verify core project health
-
-```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm verify:determinism
-```
-
-## 7) Contribute
-
-- Review [../CONTRIBUTING.md](../CONTRIBUTING.md)
-- Follow [DOCS_GOVERNANCE.md](./DOCS_GOVERNANCE.md) for doc additions/updates
-- Open PR with command evidence and scope summary
-
-## What works locally vs hosted enterprise context
-
-Local OSS workflows in this repo support development, deterministic checks, and CLI-driven execution/testing.
-
-ReadyLayer Cloud hosted control-plane operation is enterprise/commercial context and not required for OSS local development.
-## 1) Install
-
-```bash
-pnpm install --frozen-lockfile
-```
-
-## 2) Build
-
-```bash
-pnpm run build
-```
-
-## 3) Secretless verification (OSS path)
+## Focused OSS iteration (when full gate is unnecessary)
 
 ```bash
 pnpm run verify:routes
-pnpm --filter ready-layer test -- --run ready-layer/tests/auth-mode.test.ts ready-layer/tests/mcp-route-degraded.test.ts
+pnpm run test
 ```
 
-## 4) Full verification
-
-```bash
-pnpm run doctor
-pnpm run verify:ci
-```
+Use full `verify:all` before submitting changes.

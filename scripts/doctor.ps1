@@ -1,74 +1,116 @@
 #!/usr/bin/env pwsh
-#
-# Requiem Environment Doctor (Windows)
-# Validates all required dependencies for building and running Requiem
-#
-# Usage:
-#   .\doctor.ps1          # Run all checks and print human-readable output
-#   .\doctor.ps1 --json   # Output results as JSON for machine parsing
-#
-
 param(
     [switch]$Json
 )
 
-$ErrorActionPreference = "Continue"
+$requiredNode = [Version]"20.11.0"
+$requiredPnpm = [Version]"8.15.0"
+$requiredCmake = [Version]"3.20.0"
+$requiredGcc = [Version]"11.0.0"
+$requiredClang = [Version]"14.0.0"
 
-$ERR_MISSING_DEP = 1
-$ERR_VERSION_MISMATCH = 2
-$ERR_ENGINE_NOT_BUILT = 3
+$script:passed = 0
+$script:failed = 0
+$script:warnings = 0
+$results = New-Object System.Collections.Generic.List[object]
 
-$check_passed = 0
-$check_failed = 0
-$results = @()
+function Write-Log($Level, $Message) {
+    if ($Json) { return }
+    switch ($Level) {
+        "INFO" { Write-Host "[INFO] $Message" -ForegroundColor Green }
+        "WARN" { Write-Host "[WARN] $Message" -ForegroundColor Yellow }
+        "ERROR" { Write-Host "[ERROR] $Message" -ForegroundColor Red }
+        default { Write-Host $Message }
+    }
+}
 
-function Add-Result($status, $name, $message) {
-    $results += [PSCustomObject]@{
-        status = $status
-        check = $name
+function Add-Result($ok, $check, $message, $remediation = "") {
+    $results.Add([PSCustomObject]@{
+        ok = $ok
+        check = $check
         message = $message
-    }
+        remediation = $remediation
+    })
 }
 
-function Test-Command($cmd, $name) {
-    $found = Get-Command $cmd -ErrorAction SilentlyContinue
-    if ($found) {
-        if (-not $Json) { Write-Host "[INFO] $name found: $($found.Source)" -ForegroundColor Green }
-        $script:check_passed++
-        return $true
+function Parse-Version([string]$Output) {
+    $match = [regex]::Match($Output, '(\d+\.\d+(?:\.\d+)?)')
+    if ($match.Success) { return [Version]$match.Groups[1].Value }
+    return $null
+}
+
+function Test-ToolVersion($Command, $Name, [Version]$Minimum, $Remediation) {
+    $tool = Get-Command $Command -ErrorAction SilentlyContinue
+    if (-not $tool) {
+        $script:failed++
+        Add-Result $false $Name "Missing from PATH." $Remediation
+        Write-Log "ERROR" "$Name missing from PATH. $Remediation"
+        return
+    }
+
+    $versionOutput = (& $Command --version 2>&1 | Select-Object -First 1)
+    $parsedVersion = Parse-Version $versionOutput
+
+    if (-not $parsedVersion) {
+        $script:warnings++
+        Add-Result $true $Name "Found, but version could not be parsed from: $versionOutput"
+        Write-Log "WARN" "$Name found but version could not be parsed ($versionOutput)."
+        return
+    }
+
+    if ($parsedVersion -ge $Minimum) {
+        $script:passed++
+        Add-Result $true $Name "Version $parsedVersion satisfies >= $Minimum."
+        Write-Log "INFO" "$Name version OK: $parsedVersion (>= $Minimum)"
     } else {
-        if (-not $Json) { Write-Host "[ERROR] $name not found in PATH" -ForegroundColor Red }
-        $script:check_failed++
-        return $false
+        $script:failed++
+        Add-Result $false $Name "Version $parsedVersion is below required $Minimum." $Remediation
+        Write-Log "ERROR" "$Name version too old: $parsedVersion (requires >= $Minimum). $Remediation"
     }
 }
 
-function Test-Version($cmd, $minVersion, $name) {
-    try {
-        $output = & $cmd --version 2>&1 | Select-Object -First 1
-        $version = [regex]::Match($output, '(\d+\.\d+(?:\.\d+)?)').Groups[1].Value
-        
-        if (-not $version) {
-            if (-not $Json) { Write-Host "[WARN] Could not determine $name version" -ForegroundColor Yellow }
-            return $false
-        }
-        
-        $current = [Version]$version
-        $required = [Version]$minVersion
-        
-        if ($current -ge $required) {
-            if (-not $Json) { Write-Host "[INFO] $name version OK: $version (>= $minVersion)" -ForegroundColor Green }
-            $script:check_passed++
-            return $true
-        } else {
-            if (-not $Json) { Write-Host "[ERROR] $name version too old: $version (requires >= $minVersion)" -ForegroundColor Red }
-            $script:check_failed++
-            return $false
-        }
-    } catch {
-        if (-not $Json) { Write-Host "[WARN] Could not check $name version" -ForegroundColor Yellow }
-        return $false
+function Test-Compiler {
+    $remediation = "Install a C++20 compiler and rerun: pnpm run doctor"
+
+    if (Get-Command cl -ErrorAction SilentlyContinue) {
+        $script:passed++
+        Add-Result $true "MSVC" "MSVC compiler detected."
+        Write-Log "INFO" "MSVC compiler detected."
+        return
     }
+
+    if (Get-Command g++ -ErrorAction SilentlyContinue) {
+        Test-ToolVersion "g++" "GCC/G++" $requiredGcc $remediation
+        return
+    }
+
+    if (Get-Command clang++ -ErrorAction SilentlyContinue) {
+        Test-ToolVersion "clang++" "Clang" $requiredClang $remediation
+        return
+    }
+
+    $script:failed++
+    Add-Result $false "C++ compiler" "No supported compiler found (MSVC, g++, or clang++)." $remediation
+    Write-Log "ERROR" "No supported C++ compiler found (MSVC, g++ >= $requiredGcc, or clang++ >= $requiredClang). $remediation"
+}
+
+function Test-EngineBinary {
+    $release = Join-Path $PSScriptRoot "..\build\Release\requiem.exe"
+    $debug = Join-Path $PSScriptRoot "..\build\Debug\requiem.exe"
+
+    if ((Test-Path $release) -or (Test-Path $debug)) {
+        $path = if (Test-Path $release) { $release } else { $debug }
+        $script:passed++
+        Add-Result $true "Engine binary" "Found at $path."
+        Write-Log "INFO" "Requiem engine binary found: $path"
+        return
+    }
+
+    $script:warnings++
+    Add-Result $true "Engine binary" "Missing local engine build artifact." "Run: pnpm run build:engine"
+    Write-Log "WARN" "Engine binary missing from build output."
+    Write-Log "INFO" "Run: pnpm run build:engine"
+    Write-Log "INFO" "If build fails, confirm CMake and a supported C++ toolchain are installed."
 }
 
 if (-not $Json) {
@@ -78,110 +120,34 @@ if (-not $Json) {
     Write-Host ""
 }
 
-# Check Node.js
-if (-not $Json) { Write-Host "Checking Node.js..." -ForegroundColor Green }
-if (Test-Command "node" "Node.js") {
-    Test-Version "node" "18.0.0" "Node.js"
-}
-if (-not $Json) { Write-Host "" }
+Write-Log "INFO" "Checking required toolchain..."
+Test-ToolVersion "node" "Node.js" $requiredNode "Install Node.js >= 20.11.0 and rerun: pnpm install --frozen-lockfile"
+Test-ToolVersion "pnpm" "pnpm" $requiredPnpm "Install pnpm >= 8.15.0 (packageManager: pnpm@8.15.0) and rerun: pnpm install --frozen-lockfile"
+Test-ToolVersion "cmake" "CMake" $requiredCmake "Install CMake >= 3.20.0 and rerun: pnpm run build:engine"
+Test-Compiler
+Write-Log "INFO" "Checking local engine build state..."
+Test-EngineBinary
 
-# Check pnpm
-if (-not $Json) { Write-Host "Checking pnpm..." -ForegroundColor Green }
-if (Test-Command "pnpm" "pnpm") {
-    Test-Version "pnpm" "8.0.0" "pnpm"
-}
-if (-not $Json) { Write-Host "" }
-
-# Check CMake
-if (-not $Json) { Write-Host "Checking CMake..." -ForegroundColor Green }
-if (Test-Command "cmake" "CMake") {
-    Test-Version "cmake" "3.20.0" "CMake"
-}
-if (-not $Json) { Write-Host "" }
-
-# Check C++ compiler
-if (-not $Json) { Write-Host "Checking C++ compiler..." -ForegroundColor Green }
-$hasCompiler = $false
-if (Get-Command cl -ErrorAction SilentlyContinue) {
-    if (-not $Json) { Write-Host "[INFO] MSVC found" -ForegroundColor Green }
-    $script:check_passed++
-    $hasCompiler = $true
-} elseif (Get-Command g++ -ErrorAction SilentlyContinue) {
-    Test-Version "g++" "11.0.0" "GCC"
-    $hasCompiler = $true
-} elseif (Get-Command clang++ -ErrorAction SilentlyContinue) {
-    Test-Version "clang++" "13.0.0" "Clang"
-    $hasCompiler = $true
-} else {
-    # Check if cmake can find a compiler (handles VS Developer Prompt)
-    $cmakeCompiler = cmake --system-information 2>$null | Select-String "CMAKE_CXX_COMPILER" | Select-Object -First 1
-    if ($cmakeCompiler) {
-        if (-not $Json) { Write-Host "[INFO] C++ compiler found via CMake" -ForegroundColor Green }
-        $script:check_passed++
-        $hasCompiler = $true
-    }
+if ($Json) {
+    [PSCustomObject]@{
+        passed = $script:passed
+        failed = $script:failed
+        warnings = $script:warnings
+        results = $results
+    } | ConvertTo-Json -Depth 4
+    exit $script:failed
 }
 
-if (-not $hasCompiler) {
-    if (-not $Json) { Write-Host "[ERROR] No C++ compiler found" -ForegroundColor Red }
-    $script:check_failed++
-}
-if (-not $Json) { Write-Host "" }
+Write-Host ""
+Write-Host "====================================="
+Write-Host "Summary: $script:passed passed, $script:failed failed, $script:warnings warnings"
+Write-Host "====================================="
 
-# Check for optional tools
-if (-not $Json) { Write-Host "Checking optional tools..." -ForegroundColor Green }
-if (Get-Command git -ErrorAction SilentlyContinue) {
-    $gitVersion = git --version
-    if (-not $Json) { Write-Host "[INFO] Git found: $gitVersion" -ForegroundColor Green }
-} else {
-    if (-not $Json) { Write-Host "[WARN] Git not found (recommended for development)" -ForegroundColor Yellow }
+if ($script:failed -eq 0) {
+    Write-Log "INFO" "Doctor found no blocking prerequisites."
+    exit 0
 }
 
-if (Get-Command python -ErrorAction SilentlyContinue) {
-    $pyVersion = python --version 2>&1
-    if (-not $Json) { Write-Host "[INFO] Python found: $pyVersion" -ForegroundColor Green }
-} else {
-    if (-not $Json) { Write-Host "[WARN] Python not found (recommended for some scripts)" -ForegroundColor Yellow }
-}
-if (-not $Json) { Write-Host "" }
-
-# Check if engine binary exists
-if (-not $Json) {
-    Write-Host "====================================="
-    Write-Host "Checking Requiem engine binary..." -ForegroundColor Green
-}
-$enginePath = Join-Path $PSScriptRoot "..\build\Release\requiem.exe"
-if (Test-Path $enginePath) {
-    if (-not $Json) { Write-Host "[INFO] Requiem engine binary found: $enginePath" -ForegroundColor Green }
-    $check_passed++
-} else {
-    $enginePathDebug = Join-Path $PSScriptRoot "..\build\Debug\requiem.exe"
-    if (Test-Path $enginePathDebug) {
-        if (-not $Json) { Write-Host "[INFO] Requiem engine binary found: $enginePathDebug" -ForegroundColor Green }
-        $check_passed++
-    } else {
-        if (-not $Json) {
-            Write-Host "[WARN] Requiem engine binary not found" -ForegroundColor Yellow
-            Write-Host "[INFO] Run 'make build' or 'pnpm run build' to build the engine" -ForegroundColor Green
-        }
-    }
-}
-if (-not $Json) { Write-Host "" }
-
-# Summary
-if (-not $Json) {
-    Write-Host "====================================="
-    Write-Host "Summary: $check_passed passed, $check_failed failed"
-    Write-Host "====================================="
-
-    if ($check_failed -eq 0) {
-        Write-Host "[INFO] All required dependencies are satisfied!" -ForegroundColor Green
-        exit 0
-    } else {
-        Write-Host "[ERROR] Some required dependencies are missing or incorrect versions" -ForegroundColor Red
-        Write-Host "[INFO] Please install missing dependencies before proceeding" -ForegroundColor Green
-        exit $ERR_MISSING_DEP
-    }
-} else {
-    @{ passed = $check_passed; failed = $check_failed; results = $results } | ConvertTo-Json -Depth 3
-}
+Write-Log "ERROR" "Doctor found blocking prerequisites."
+Write-Log "INFO" "Resolve the errors above, then rerun: pnpm run doctor"
+exit 1
