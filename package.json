@@ -108,7 +108,8 @@
     "test:fault-injection": "node scripts/run-tsx.mjs packages/cli/src/cli.ts test:fault-injection",
     "verify:benchmark-drift": "node scripts/run-tsx.mjs scripts/verify-benchmark-drift.ts",
     "verify:env": "node scripts/verify-deploy-readiness.mjs",
-    "verify:deploy-readiness": "node scripts/verify-deploy-readiness.mjs"
+    "verify:deploy-readiness": "node scripts/verify-deploy-readiness.mjs",
+    "verify:routes-manifest": "node scripts/run-tsx.mjs scripts/generate-routes-manifest.ts && git diff --exit-code -- routes.manifest.json"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

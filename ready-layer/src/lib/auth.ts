@@ -16,10 +16,13 @@ export interface AuthResult {
 const PUBLIC_ROUTES = new Set([
   '/api/health',
   '/api/openapi.json',
+  '/api/status',
   '/',
   '/pricing',
   '/docs',
 ]);
+
+const STRICT_AUTH_ENVS = new Set(['production', 'staging', 'test']);
 
 export function isPublicRoute(pathname: string): boolean {
   if (PUBLIC_ROUTES.has(pathname)) return true;
@@ -28,17 +31,27 @@ export function isPublicRoute(pathname: string): boolean {
 }
 
 function resolveTenantId(req: NextRequest): string | null {
-  return req.headers.get('x-tenant-id') ?? req.headers.get('x-user-id');
+  const tenant = req.headers.get('x-tenant-id');
+  if (tenant && tenant.trim()) return tenant.trim();
+  return null;
+}
+
+function isStrictAuthMode(): boolean {
+  const authMode = process.env.REQUIEM_AUTH_MODE?.toLowerCase();
+  if (authMode === 'strict') return true;
+  if (authMode === 'local-dev') return false;
+  return STRICT_AUTH_ENVS.has(process.env.NODE_ENV ?? 'development');
+}
+
+function allowInsecureDevAuth(): boolean {
+  return process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1' && !isStrictAuthMode();
 }
 
 export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> {
   const tenantHeader = resolveTenantId(req);
   const middlewareAuthenticated = req.headers.get('x-requiem-authenticated') === '1';
 
-  if (
-    middlewareAuthenticated
-    && tenantHeader
-  ) {
+  if (middlewareAuthenticated && tenantHeader) {
     return {
       ok: true,
       tenant: { tenant_id: tenantHeader, auth_token: '' },
@@ -66,15 +79,32 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
   }
 
   const token = auth.slice(7);
+  const secret = process.env.REQUIEM_AUTH_SECRET;
+  const strict = isStrictAuthMode();
 
-  if (!process.env.REQUIEM_AUTH_SECRET) {
+  if (!secret) {
+    if (allowInsecureDevAuth()) {
+      if (!tenantHeader) {
+        return {
+          ok: false,
+          error: 'missing_tenant_id',
+          status: 400,
+        };
+      }
+      return {
+        ok: true,
+        tenant: { tenant_id: tenantHeader, auth_token: token },
+      };
+    }
+
     return {
-      ok: true,
-      tenant: { tenant_id: tenantHeader ?? 'dev-tenant', auth_token: token },
+      ok: false,
+      error: strict ? 'auth_secret_required' : 'missing_auth_secret',
+      status: 503,
     };
   }
 
-  if (token !== process.env.REQUIEM_AUTH_SECRET) {
+  if (token !== secret) {
     return {
       ok: false,
       error: 'invalid_auth',
@@ -103,7 +133,11 @@ function authErrorDetail(code: string): string {
     case 'invalid_auth':
       return 'Invalid bearer token';
     case 'missing_tenant_id':
-      return 'Missing tenant context';
+      return 'Missing tenant context (x-tenant-id)';
+    case 'auth_secret_required':
+      return 'REQUIEM_AUTH_SECRET is required for strict auth mode';
+    case 'missing_auth_secret':
+      return 'REQUIEM_AUTH_SECRET is missing and insecure dev auth is disabled';
     default:
       return code;
   }
@@ -117,7 +151,7 @@ export function authErrorResponse(
   const status = result.status ?? 401;
   return problemResponse({
     status,
-    title: 'Authentication Failed',
+    title: status >= 500 ? 'Authentication Configuration Error' : 'Authentication Failed',
     detail: authErrorDetail(result.error ?? 'auth_failed'),
     code: result.error ?? 'auth_failed',
     traceId,

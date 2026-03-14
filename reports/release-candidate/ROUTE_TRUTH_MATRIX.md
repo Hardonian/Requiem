@@ -1,15 +1,16 @@
 # Route Truth Matrix
 
-Generated: 2026-03-06T03:43:13.471Z
+Generated: 2026-03-14T05:03:39.003Z
 
-- Total routes: **118**
-- Page routes: **67**
-- API routes: **51**
+- Total routes: **127**
+- Page routes: **69**
+- API routes: **58**
 - Dynamic param routes: **12**
 
 | Route | Kind | Bucket | Dynamic Params | Render Mode | Loading | Error Boundary | Not Found Boundary | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `/` | page | marketing/static | no | static-or-isr | no | yes | yes | `ready-layer/src/app/page.tsx` |
+| `/api/agents` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/agents/route.ts` |
 | `/api/audit/logs` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/audit/logs/route.ts` |
 | `/api/budgets` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/budgets/route.ts` |
 | `/api/caps` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/caps/route.ts` |
@@ -17,6 +18,7 @@ Generated: 2026-03-06T03:43:13.471Z
 | `/api/cluster/drift` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/cluster/drift/route.ts` |
 | `/api/cluster/status` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/cluster/status/route.ts` |
 | `/api/cluster/workers` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/cluster/workers/route.ts` |
+| `/api/control-plane/insights` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/control-plane/insights/route.ts` |
 | `/api/decisions` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/decisions/route.ts` |
 | `/api/drift` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/drift/route.ts` |
 | `/api/engine/analyze` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/engine/analyze/route.ts` |
@@ -24,6 +26,7 @@ Generated: 2026-03-06T03:43:13.471Z
 | `/api/engine/diagnostics` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/engine/diagnostics/route.ts` |
 | `/api/engine/metrics` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/engine/metrics/route.ts` |
 | `/api/engine/status` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/engine/status/route.ts` |
+| `/api/failures/analytics` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/failures/analytics/route.ts` |
 | `/api/foundry/artifacts` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/foundry/artifacts/route.ts` |
 | `/api/foundry/artifacts/[id]` | api | api/internal | yes | dynamic | no | no | no | `ready-layer/src/app/api/foundry/artifacts/[id]/route.ts` |
 | `/api/foundry/datasets` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/foundry/datasets/route.ts` |
@@ -52,7 +55,9 @@ Generated: 2026-03-06T03:43:13.471Z
 | `/api/openapi.json` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/openapi.json/route.ts` |
 | `/api/plans` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/plans/route.ts` |
 | `/api/policies` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/policies/route.ts` |
+| `/api/policies/simulate` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/policies/simulate/route.ts` |
 | `/api/registry` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/registry/route.ts` |
+| `/api/replay/lab` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/replay/lab/route.ts` |
 | `/api/replay/verify` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/replay/verify/route.ts` |
 | `/api/routes-probe` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/routes-probe/route.ts` |
 | `/api/runs` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/runs/route.ts` |
@@ -60,6 +65,8 @@ Generated: 2026-03-06T03:43:13.471Z
 | `/api/snapshots` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/snapshots/route.ts` |
 | `/api/spend` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/spend/route.ts` |
 | `/api/status` | api | api/health/status | no | dynamic | no | no | no | `ready-layer/src/app/api/status/route.ts` |
+| `/api/tenants/isolation` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/tenants/isolation/route.ts` |
+| `/api/trust-graph` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/trust-graph/route.ts` |
 | `/api/vector/search` | api | api/internal | no | dynamic | no | no | no | `ready-layer/src/app/api/vector/search/route.ts` |
 | `/app` | page | app/dashboard | no | static-or-isr | no | yes | no | `ready-layer/src/app/app/page.tsx` |
 | `/app/audit` | page | app/dashboard | no | static-or-isr | no | no | no | `ready-layer/src/app/app/audit/page.tsx` |
@@ -97,6 +104,8 @@ Generated: 2026-03-06T03:43:13.471Z
 | `/drift` | page | other | no | static-or-isr | no | no | no | `ready-layer/src/app/drift/page.tsx` |
 | `/drift/[vector]` | page | dynamic entity route | yes | static-or-isr | no | no | no | `ready-layer/src/app/drift/[vector]/page.tsx` |
 | `/enterprise` | page | marketing/static | no | static-or-isr | no | no | no | `ready-layer/src/app/enterprise/page.tsx` |
+| `/enterprise/request-demo` | page | marketing/static | no | static-or-isr | no | no | no | `ready-layer/src/app/enterprise/request-demo/page.tsx` |
+| `/features` | page | other | no | static-or-isr | no | no | no | `ready-layer/src/app/features/page.tsx` |
 | `/intelligence/calibration` | page | other | no | static-or-isr | no | no | no | `ready-layer/src/app/intelligence/calibration/page.tsx` |
 | `/intelligence/calibration/[claim_type]` | page | dynamic entity route | yes | static-or-isr | no | no | no | `ready-layer/src/app/intelligence/calibration/[claim_type]/page.tsx` |
 | `/intelligence/cases` | page | other | no | static-or-isr | no | no | no | `ready-layer/src/app/intelligence/cases/page.tsx` |
