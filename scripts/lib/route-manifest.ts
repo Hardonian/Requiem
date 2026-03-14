@@ -98,7 +98,7 @@ export function generateRouteManifest(repoRoot = process.cwd()): RouteManifest {
   );
   return {
     manifest_version: "2.0.0",
-    generated_at: new Date().toISOString(),
+    generated_at: "1970-01-01T00:00:00.000Z",
     routes,
   };
 }

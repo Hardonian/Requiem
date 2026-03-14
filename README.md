@@ -17,8 +17,7 @@ Requiem ecosystem components:
 git clone https://github.com/reachhq/requiem.git
 cd requiem
 pnpm install --frozen-lockfile
-pnpm build
-pnpm verify:demo
+pnpm run verify:all
 ```
 
 Then review generated artifacts under `demo_artifacts/`.
@@ -41,10 +40,15 @@ pnpm install --frozen-lockfile
 
 ## Example usage
 
-Run representative checks:
+Canonical repository verification (matches CI truth path):
 
 ```bash
-pnpm doctor
+pnpm run verify:all
+```
+
+Additional targeted checks:
+
+```bash
 pnpm verify:determinism
 pnpm verify:replay
 pnpm evidence

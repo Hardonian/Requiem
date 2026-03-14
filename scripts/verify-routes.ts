@@ -11,12 +11,30 @@ const ROOT_DIR = process.cwd();
 const MANIFEST_PATH = path.join(ROOT_DIR, "routes.manifest.json");
 const API_DIR = path.join(ROOT_DIR, "ready-layer/src/app/api");
 
-const EXPLICIT_WRAPPER_EXCEPTIONS = new Set([
-  "/api/status",
-  "/api/mcp/health",
-  "/api/mcp/tools",
-  "/api/mcp/tool/call",
-]);
+const EXPLICIT_WRAPPER_EXCEPTIONS: Record<
+  string,
+  {
+    reason: string;
+    expectedSurface: "public" | "internal";
+  }
+> = {
+  "/api/status": {
+    reason: "public status probe",
+    expectedSurface: "public",
+  },
+  "/api/mcp/health": {
+    reason: "internal probe endpoint",
+    expectedSurface: "public",
+  },
+  "/api/mcp/tools": {
+    reason: "MCP protocol endpoint",
+    expectedSurface: "internal",
+  },
+  "/api/mcp/tool/call": {
+    reason: "MCP protocol endpoint",
+    expectedSurface: "internal",
+  },
+};
 
 function walkApiRoutes(dir: string): string[] {
   const out: string[] = [];
@@ -74,7 +92,7 @@ async function main() {
 
   if (missingFromManifest.length > 0 || extraInManifest.length > 0) {
     console.error(
-      "Route manifest drift detected. Run: pnpm run verify:release-artifacts && commit routes.manifest.json",
+      "Route manifest drift detected. Run: pnpm run route:inventory && commit routes.manifest.json",
     );
     if (missingFromManifest.length > 0) {
       console.error("Missing from manifest:");
@@ -91,9 +109,40 @@ async function main() {
 
   const requiredSurfaces = ["public", "api", "webhook", "internal"];
   const wrappersViolations: string[] = [];
-  for (const file of walkApiRoutes(API_DIR)) {
+  const routeFiles = walkApiRoutes(API_DIR);
+  const routePaths = new Set(routeFiles.map((file) => routePathFromFile(file)));
+  const routeRecords = new Map<string, ManifestRoute[]>();
+  for (const route of generated.routes) {
+    routeRecords.set(route.path, [...(routeRecords.get(route.path) ?? []), route]);
+  }
+
+  for (const [routePath, config] of Object.entries(EXPLICIT_WRAPPER_EXCEPTIONS)) {
+    if (!routePaths.has(routePath)) {
+      console.error(
+        `Route conformance failure: wrapper exception configured for missing route ${routePath}`,
+      );
+      process.exit(1);
+    }
+    const manifestRoutes = routeRecords.get(routePath) ?? [];
+    if (manifestRoutes.length === 0) {
+      console.error(
+        `Route conformance failure: wrapper exception route ${routePath} is missing from route manifest`,
+      );
+      process.exit(1);
+    }
+    const invalidSurface = manifestRoutes.find(
+      (route) => routeSurface(route) !== config.expectedSurface,
+    );
+    if (invalidSurface) {
+      console.error(
+        `Route conformance failure: ${routePath} expected surface=${config.expectedSurface} (${config.reason}) but found surface=${routeSurface(invalidSurface)}`,
+      );
+      process.exit(1);
+    }
+  }
+  for (const file of routeFiles) {
     const routePath = routePathFromFile(file);
-    if (EXPLICIT_WRAPPER_EXCEPTIONS.has(routePath)) continue;
+    if (routePath in EXPLICIT_WRAPPER_EXCEPTIONS) continue;
     if (!routeUsesTenantContext(file)) {
       wrappersViolations.push(
         `${routePath} (${path.relative(ROOT_DIR, file)})`,

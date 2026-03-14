@@ -204,7 +204,7 @@ if [ -f "$ENGINE_PATH" ]; then
   ((check_passed++))
 else
   log_warn "Requiem engine binary not found at $ENGINE_PATH"
-  log_info "Run 'npm run build' to build the engine"
+  log_info "Run 'pnpm run build:engine' to build the engine (tests auto-build when needed)"
 fi
 echo ""
 

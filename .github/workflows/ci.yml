@@ -298,6 +298,27 @@ jobs:
             artifacts/reports/deps_snapshot.json
 
   # ---------------------------------------------------------------------------
+  # Canonical repo verification path (README + CI truth alignment)
+  # ---------------------------------------------------------------------------
+  verify-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: system deps (engine build)
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev libzstd-dev
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: install deps
+        run: pnpm install --frozen-lockfile
+      - name: canonical verification
+        run: pnpm run verify:all
+
+  # ---------------------------------------------------------------------------
   # ASAN nightly — Phase L
   # ---------------------------------------------------------------------------
   asan-nightly:
