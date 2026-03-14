@@ -1,310 +1,86 @@
 #!/usr/bin/env tsx
-/**
- * Route Manifest Verifier for ReadyLayer
- *
- * This script:
- * 1. Enumerates all app routes in ready-layer/src/app
- * 2. Validates against routes.manifest.json
- * 3. Ensures required static routes exist
- * 4. Checks no unexpected 500s would occur on build
- */
+import fs from 'node:fs';
+import path from 'node:path';
+import { generateRouteManifest, readRouteManifest, type ManifestRoute } from './lib/route-manifest';
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const ROOT_DIR = path.resolve(__dirname, '..');
-const READY_LAYER_DIR = path.join(ROOT_DIR, 'ready-layer');
-const APP_DIR = path.join(READY_LAYER_DIR, 'src', 'app');
+const ROOT_DIR = process.cwd();
 const MANIFEST_PATH = path.join(ROOT_DIR, 'routes.manifest.json');
+const API_DIR = path.join(ROOT_DIR, 'ready-layer/src/app/api');
 
-interface RouteInfo {
-  path: string;
-  file: string;
-  type: 'page' | 'layout' | 'api' | 'error' | 'not-found';
-  isStatic?: boolean;
-}
+const EXPLICIT_WRAPPER_EXCEPTIONS = new Set([
+  '/api/status',
+  '/api/mcp/health',
+  '/api/mcp/tools',
+  '/api/mcp/tool/call',
+]);
 
-interface ManifestRoute {
-  path: string;
-  method?: string;
-  file?: string;
-  auth_required?: boolean;
-  probe?: boolean;
-  description?: string;
-}
-
-interface RouteManifest {
-  manifest_version: string;
-  routes: ManifestRoute[];
-}
-
-// Colors for output
-const GREEN = '\x1b[32m';
-const RED = '\x1b[31m';
-const YELLOW = '\x1b[33m';
-const RESET = '\x1b[0m';
-
-function log(message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') {
-  const color = type === 'success' ? GREEN : type === 'error' ? RED : type === 'warning' ? YELLOW : '';
-  console.log(`${color}${message}${RESET}`);
-}
-
-/**
- * Recursively scan the app directory for routes
- */
-function scanAppRoutes(dir: string, basePath: string = ''): RouteInfo[] {
-  const routes: RouteInfo[] = [];
-
-  if (!fs.existsSync(dir)) {
-    log(`App directory not found: ${dir}`, 'error');
-    return routes;
-  }
-
+function walkApiRoutes(dir: string): string[] {
+  const out: string[] = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
-
   for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    const relativePath = path.join(basePath, entry.name);
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walkApiRoutes(full));
+    else if (entry.isFile() && entry.name === 'route.ts') out.push(full);
+  }
+  return out;
+}
 
-    if (entry.isDirectory()) {
-      // Skip special directories
-      if (entry.name.startsWith('_') || entry.name.startsWith('.')) {
-        continue;
-      }
+function routePathFromFile(file: string): string {
+  const rel = path.relative(API_DIR, path.dirname(file)).replace(/\\/g, '/');
+  return rel ? `/api/${rel}` : '/api';
+}
 
-      // Recursively scan subdirectories
-      routes.push(...scanAppRoutes(fullPath, relativePath));
-    } else if (entry.isFile()) {
-      const ext = path.extname(entry.name);
-      if (ext !== '.ts' && ext !== '.tsx') continue;
+function routeUsesTenantContext(file: string): boolean {
+  const source = fs.readFileSync(file, 'utf8');
+  return source.includes('withTenantContext(') && source.includes("@/lib/big4-http");
+}
 
-      const baseName = path.basename(entry.name, ext);
-      const filePath = path.relative(ROOT_DIR, fullPath);
+function key(route: Pick<ManifestRoute, 'path' | 'method'>): string {
+  return `${route.method} ${route.path}`;
+}
 
-      // Determine route type
-      let type: RouteInfo['type'] = 'page';
-      if (baseName === 'route') type = 'api';
-      else if (baseName === 'error') type = 'error';
-      else if (baseName === 'not-found') type = 'not-found';
-      else if (baseName === 'layout') type = 'layout';
-      else if (baseName !== 'page') {
-        continue; // Skip other files
-      }
+async function main() {
+  const generated = generateRouteManifest(ROOT_DIR);
+  const committed = readRouteManifest(MANIFEST_PATH);
 
-      // Calculate route path - remove 'app' prefix since src/app is the app root
-      // Files in src/app/X/page.tsx -> route /X
-      // Files in src/app/app/X/page.tsx -> route /app/X (nested app directory)
-      let routePath = basePath
-        .replace(/\\/g, '/')
-        .replace(/^app/, '') // Remove leading 'app' from src/app
-        .replace(/\([^)]+\)/g, '') // Remove route groups
-        .replace(/\/+/g, '/');
+  const generatedSet = new Set(generated.routes.map(key));
+  const committedSet = new Set(committed.routes.map(key));
 
-      if (!routePath) routePath = '/';
+  const missingFromManifest = generated.routes.filter((route) => !committedSet.has(key(route)));
+  const extraInManifest = committed.routes.filter((route) => !generatedSet.has(key(route)));
 
-      routes.push({
-        path: routePath,
-        file: filePath,
-        type,
-      });
+  if (missingFromManifest.length > 0 || extraInManifest.length > 0) {
+    console.error('Route manifest drift detected. Run: pnpm run verify:release-artifacts && commit routes.manifest.json');
+    if (missingFromManifest.length > 0) {
+      console.error('Missing from manifest:');
+      for (const route of missingFromManifest) console.error(`  - ${key(route)} (${route.file})`);
     }
-  }
-
-  return routes;
-}
-
-/**
- * Check if a page file has explicit static generation config
- */
-function checkStaticGeneration(filePath: string): boolean {
-  try {
-    const content = fs.readFileSync(filePath, 'utf-8');
-
-    // Check for static export indicators
-    const hasStaticExport =
-      content.includes("export const dynamic = 'force-static'") ||
-      content.includes('export const dynamic = "force-static"') ||
-      content.includes('generateStaticParams');
-
-    return hasStaticExport;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Load and validate the route manifest
- */
-
-
-function routeUsesTenantContext(fullPath: string): boolean {
-  try {
-    const source = fs.readFileSync(fullPath, 'utf-8');
-    return source.includes("withTenantContext") && source.includes("@/lib/big4-http");
-  } catch {
-    return false;
-  }
-}
-
-function loadManifest(): RouteManifest | null {
-  try {
-    const content = fs.readFileSync(MANIFEST_PATH, 'utf-8');
-    return JSON.parse(content) as RouteManifest;
-  } catch (error) {
-    log(`Failed to load manifest: ${error}`, 'error');
-    return null;
-  }
-}
-
-/**
- * Main verification function
- */
-async function verifyRoutes() {
-  log('\n🔍 Route Manifest Verifier', 'info');
-  log('==========================\n', 'info');
-
-  // 1. Scan app routes
-  log('Scanning app routes...', 'info');
-  const appRoutes = scanAppRoutes(APP_DIR);
-  log(`  Found ${appRoutes.length} route files`, 'success');
-
-  // 2. Load manifest
-  log('\nLoading route manifest...', 'info');
-  const manifest = loadManifest();
-  if (!manifest) {
+    if (extraInManifest.length > 0) {
+      console.error('Stale in manifest:');
+      for (const route of extraInManifest) console.error(`  - ${key(route)} (${route.file})`);
+    }
     process.exit(1);
   }
-  log(`  Manifest version: ${manifest.manifest_version}`, 'success');
-  log(`  Manifest routes: ${manifest.routes.length}`, 'success');
 
-  // 3. Check for required static routes
-  log('\nChecking static routes...', 'info');
-  const requiredStaticRoutes = [
-    '/',
-    '/executions',
-    '/metrics',
-    '/diagnostics',
-    '/cas',
-    '/replay',
-    '/tenants',
-  ];
-
-  const foundPageRoutes = new Set(
-    appRoutes
-      .filter(r => r.type === 'page')
-      .map(r => r.path)
-  );
-
-  let missingRoutes = 0;
-  for (const route of requiredStaticRoutes) {
-    if (foundPageRoutes.has(route)) {
-      log(`  ✓ ${route}`, 'success');
-    } else {
-      log(`  ✗ ${route} (MISSING)`, 'error');
-      missingRoutes++;
+  const wrappersViolations: string[] = [];
+  for (const file of walkApiRoutes(API_DIR)) {
+    const routePath = routePathFromFile(file);
+    if (EXPLICIT_WRAPPER_EXCEPTIONS.has(routePath)) continue;
+    if (!routeUsesTenantContext(file)) {
+      wrappersViolations.push(`${routePath} (${path.relative(ROOT_DIR, file)})`);
     }
   }
 
-  // 4. Check for error boundaries
-  log('\nChecking error boundaries...', 'info');
-  const hasErrorBoundary = appRoutes.some(r => r.type === 'error');
-  const hasNotFound = appRoutes.some(r => r.type === 'not-found');
-
-  if (hasErrorBoundary) {
-    log('  ✓ error.tsx found', 'success');
-  } else {
-    log('  ✗ error.tsx not found', 'error');
+  if (wrappersViolations.length > 0) {
+    console.error('Route conformance failure: API routes bypassing withTenantContext');
+    wrappersViolations.forEach((v) => console.error(`  - ${v}`));
+    process.exit(1);
   }
 
-  if (hasNotFound) {
-    log('  ✓ not-found.tsx found', 'success');
-  } else {
-    log('  ✗ not-found.tsx not found', 'error');
-  }
-
-  // 5. Verify manifest alignment
-  log('\nVerifying manifest alignment...', 'info');
-  const apiRoutes = appRoutes.filter(r => r.type === 'api');
-  const manifestApiRoutes = manifest.routes.filter(r => r.path.startsWith('/api'));
-
-  log(`  API routes in filesystem: ${apiRoutes.length}`, 'info');
-  log(`  API routes in manifest: ${manifestApiRoutes.length}`, 'info');
-
-  // 6. Check for hard-500 prevention
-  log('\nChecking hard-500 prevention...', 'info');
-  let hard500Risk = 0;
-
-  for (const route of apiRoutes) {
-    const fullPath = path.join(ROOT_DIR, route.file);
-    try {
-      const content = fs.readFileSync(fullPath, 'utf-8');
-
-      // Check for error handling
-      const hasTryCatch = content.includes('try') && content.includes('catch');
-      const hasErrorBoundary = content.includes('error') || content.includes('Error');
-
-      if (!hasTryCatch && !hasErrorBoundary) {
-        log(`  ⚠ ${route.path} may lack error handling`, 'warning');
-        hard500Risk++;
-      }
-    } catch {
-      // Skip files we can't read
-    }
-  }
-
-  if (hard500Risk === 0) {
-    log('  ✓ No obvious hard-500 risks detected', 'success');
-  }
-
-  // 7. Enforce tenant context middleware on external BIG4 routes
-  log('\nChecking tenant context middleware usage...', 'info');
-  const requiredContextRoutes = new Set([
-    '/api/runs',
-    '/api/runs/[runId]/diff',
-    '/api/cluster/drift',
-    '/api/registry',
-    '/api/spend',
-    '/api/drift',
-  ]);
-
-  let missingContext = 0;
-  for (const route of apiRoutes) {
-    if (!requiredContextRoutes.has(route.path)) continue;
-    const fullPath = path.join(ROOT_DIR, route.file);
-    if (routeUsesTenantContext(fullPath)) {
-      log(`  ✓ ${route.path} uses withTenantContext`, 'success');
-    } else {
-      log(`  ✗ ${route.path} missing withTenantContext`, 'error');
-      missingContext++;
-    }
-  }
-
-  // 7. Summary
-  log('\n==========================', 'info');
-  log('Verification Summary', 'info');
-  log('==========================\n', 'info');
-
-  if (missingRoutes === 0 && hasErrorBoundary && hasNotFound && missingContext === 0) {
-    log('✓ All checks passed!', 'success');
-    return 0;
-  } else {
-    log(`✗ Issues found:`, 'error');
-    if (missingRoutes > 0) log(`  - ${missingRoutes} missing routes`, 'error');
-    if (!hasErrorBoundary) log(`  - Missing error boundary`, 'error');
-    if (!hasNotFound) log(`  - Missing not-found page`, 'error');
-    if (missingContext > 0) log(`  - ${missingContext} external API routes missing withTenantContext`, 'error');
-    return 1;
-  }
+  console.log(`verify-routes passed (${generated.routes.length} manifest routes, wrapper conformance OK)`);
 }
 
-// Run verification
-verifyRoutes()
-  .then(code => process.exit(code))
-  .catch(error => {
-    log(`Unexpected error: ${error}`, 'error');
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});

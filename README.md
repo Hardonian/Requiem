@@ -15,7 +15,7 @@ It matters when logs are not enough: you need repeatable runs, explicit policy g
 - **Policy gates** evaluated during execution, not only in post-hoc analysis.
 - **Proof/evidence surfaces** (`proofpack`, receipts, benchmark artifacts) for audit and incident review.
 
-## Quickstart (first successful run)
+## Quickstart (canonical)
 
 ```bash
 git clone https://github.com/reachhq/requiem.git
@@ -53,12 +53,12 @@ pnpm evidence
 
 ## Architecture and deeper docs
 
-- Architecture overview: [docs/architecture-overview.md](./docs/architecture-overview.md)
-- Quickstart (canonical path): [docs/quickstart.md](./docs/quickstart.md)
-- First 10 minutes guide: [docs/first-10-minutes.md](./docs/first-10-minutes.md)
-- Demo pack: [docs/demo-walkthrough.md](./docs/demo-walkthrough.md)
-- Technical diligence pack: [docs/diligence.md](./docs/diligence.md)
-- Comparison + positioning: [docs/comparison.md](./docs/comparison.md), [docs/positioning.md](./docs/positioning.md)
+- Getting started: [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)
+- Repository structure: [docs/REPO_STRUCTURE.md](./docs/REPO_STRUCTURE.md)
+- API governance: [docs/API_GOVERNANCE.md](./docs/API_GOVERNANCE.md)
+- Verified claims: [docs/VERIFIED_CLAIMS.md](./docs/VERIFIED_CLAIMS.md)
+- Operator runbook: [docs/OPERATOR_RUNBOOK.md](./docs/OPERATOR_RUNBOOK.md)
+- Docs governance + archive: [docs/DOCS_GOVERNANCE.md](./docs/DOCS_GOVERNANCE.md), [docs/ARCHIVE_INDEX.md](./docs/ARCHIVE_INDEX.md)
 
 ## Launch status
 

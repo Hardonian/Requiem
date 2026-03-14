@@ -68,14 +68,13 @@ describe('MCP route degraded-mode handling', () => {
         ok: boolean;
         code: string;
         message: string;
-        error: string;
       };
 
       expect(response.status).toBe(503);
       expect(body.ok).toBe(false);
       expect(body.code).toBe('MCP_INIT_FAILED');
       expect(body.message).toBe(spec.degradedMessage);
-      expect(body.error).toContain('bootstrap unavailable in test');
+      expect((body as Record<string, unknown>).error).toBeUndefined();
     });
   }
 });

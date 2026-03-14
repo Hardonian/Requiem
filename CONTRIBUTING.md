@@ -1,121 +1,54 @@
 # Contributing to Requiem
 
-> **Mission:** Increase structural coherence. Reduce accidental complexity.
+This repository is **pnpm-first** and split across two primary surfaces:
+- Requiem engine (C++20)
+- ReadyLayer console/runtime APIs (TypeScript/Next.js)
 
-We welcome contributions that improve the reliability, performance, and provability of the Requiem engine. Before you start, please read our [Architecture Guide](./docs/ARCHITECTURE.md).
+## Prerequisites
 
----
+- Node.js >= 20.11
+- pnpm 8.15.x
+- CMake >= 3.20
+- C++20 compiler (GCC 11+, Clang 14+, or MSVC 2022+)
 
-## The Antigravity Principle
-
-Every modification to this repository must answer one question:
-**Does this reduce entropy or increase it?**
-
-We prioritize:
-1. **Determinism**: No hidden randomness.
-2. **Minimal Diffs**: Modify only what is required.
-3. **No Silent Failures**: All errors must be explicit and structured.
-4. **Performance**: No unnecessary dependencies or bundle bloat.
-
----
-
-## Development Workflow
-
-### 1. Setup
-```bash
-pnpm install
-pnpm build
-```
-
-### 2. Branching
-Create a feature branch from `main`. Use descriptive names: `feat/cas-v3` or `fix/merkle-root-leak`.
-
-### 3. Verification
-Before opening a PR, your branch **must** pass the full verification suite:
-```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm doctor
-```
-
-### 4. PR Guidelines
-- **No Placeholders**: Do not leave `TODO` or placeholder comments.
-- **Audit Compliance**: If you add a security-critical feature, update [docs/THEATRE_AUDIT.md](./docs/THEATRE_AUDIT.md).
-- **Atomic Commits**: Group related changes into single, well-described commits.
-
----
-
-## Coding Standards
-
-- **TypeScript**: Strict mode enabled. Use functional patterns where possible.
-- **C++**: C++17. Follow the existing style (see `.clang-format`).
-- **CSS**: Vanilla CSS or Tailwind primitives only. No ad-hoc utility classes.
-
----
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the project's [Apache-2.0 License](./LICENSE).
-
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## How Can I Contribute?
-
-
-- **Check if the bug is already reported** in the [issues](https://github.com/reachhq/requiem/issues).
-- **Use the Bug Report template** when creating a new issue.
-- **Provide a reproduction** if possible. Use `requiem doctor` to collect environment info.
-
-### Suggesting Enhancements
-
-- **Check if the feature has already been suggested**.
-- **Use the Feature Request template**.
-- **Describe the use case** and how it fits into Requiem's focus on determinism and performance.
-
-### Pull Requests
-
-1. **Fork the repository**.
-2. **Create a branch** for your fix or feature (e.g., `fix/determinism-drift` or `feat/cli-colors`).
-3. **Follow the coding style** defined in `.editorconfig`.
-4. **Ensure all tests pass** by running `npm run verify`.
-5. **Update documentation** if relevant.
-6. **Submit a Merge Request** against the `main` branch.
-
-## Development Workflow
-
-### Requirements
-
-- CMake 3.20+
-- C++20 compatible compiler (GCC 11+, Clang 14+, MSVC 2022+)
-- Node.js 18+ (for UI components)
-- pnpm or npm
-
-### Building
+## Fast local path (no secrets)
 
 ```bash
-# Build C++ engine
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-
-# Build UI packages
-npm run build:ui
+pnpm install --frozen-lockfile
+pnpm run verify:routes
+pnpm --filter ready-layer test -- --run ready-layer/tests/auth-mode.test.ts ready-layer/tests/mcp-route-degraded.test.ts
 ```
 
-### Verification
+Use this path for OSS contributions that do not require private infra.
 
-Before submitting a PR, ensure all checks pass:
+## Full verification path
 
 ```bash
-npm run verify
+pnpm run doctor
+pnpm run verify:ci
 ```
 
-This runs:
+## Auth mode contract (ReadyLayer API)
 
-- C++ build and unit tests
-- UI typechecks and linting
-- Determinism and contract validation
+- `REQUIEM_AUTH_MODE=strict` (or `NODE_ENV=production|staging|test`) requires `REQUIEM_AUTH_SECRET`.
+- Local insecure auth requires explicit opt-in:
+  - `REQUIEM_AUTH_MODE=local-dev`
+  - `REQUIEM_ALLOW_INSECURE_DEV_AUTH=1`
+- Protected routes must include `x-tenant-id`; `x-user-id` is not accepted as tenant context.
 
-## Security
+## Route truth contract
 
-Please report security vulnerabilities to [security@reach.com](mailto:security@reach.com) instead of opening a public issue. See [SECURITY.md](SECURITY.md) for more details.
+- `routes.manifest.json` is generated from filesystem API routes and exported methods.
+- Regenerate with:
+
+```bash
+pnpm run verify:release-artifacts
+```
+
+- `pnpm run verify:routes` fails if manifest drift exists or if routes bypass `withTenantContext` without an approved exception.
+
+## Pull Requests
+
+- Keep diffs minimal and test-backed.
+- Include commands you ran and results.
+- Update docs when behavior contracts change.

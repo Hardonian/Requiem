@@ -48,7 +48,7 @@
     "verify:boundaries": "node scripts/verify-ui-boundaries.mjs",
     "verify:dependencies": "node scripts/run-tsx.mjs scripts/verify-dependency-graph.ts",
     "verify:routes": "node scripts/run-tsx.mjs scripts/verify-routes.ts && node scripts/run-tsx.mjs scripts/verify-problem-json.ts && node scripts/run-tsx.mjs scripts/verify-tenant-body.ts && node scripts/run-tsx.mjs scripts/verify-routes-runtime.ts",
-    "verify:release-artifacts": "node scripts/run-tsx.mjs scripts/generate-route-truth.ts",
+    "verify:release-artifacts": "node scripts/run-tsx.mjs scripts/generate-route-truth.ts && node scripts/run-tsx.mjs scripts/generate-routes-manifest.ts",
     "verify:integrity": "pnpm --filter ready-layer verify:integrity",
     "verify:policy": "pnpm --filter ready-layer verify:policy",
     "verify:replay": "pnpm --filter ready-layer verify:replay",
@@ -107,7 +107,8 @@
     "test:fault-injection": "node scripts/run-tsx.mjs packages/cli/src/cli.ts test:fault-injection",
     "verify:benchmark-drift": "node scripts/run-tsx.mjs scripts/verify-benchmark-drift.ts",
     "verify:env": "node scripts/verify-deploy-readiness.mjs",
-    "verify:deploy-readiness": "node scripts/verify-deploy-readiness.mjs"
+    "verify:deploy-readiness": "node scripts/verify-deploy-readiness.mjs",
+    "verify:routes-manifest": "node scripts/run-tsx.mjs scripts/generate-routes-manifest.ts && git diff --exit-code -- routes.manifest.json"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
