@@ -20,6 +20,30 @@ interface QuickstartResult {
   error?: string;
 }
 
+const MIN_NODE_MAJOR = 20;
+const MIN_NODE_MINOR = 11;
+
+export function isNodeVersionSupported(nodeVersion: string): boolean {
+  const version = nodeVersion.startsWith('v') ? nodeVersion.slice(1) : nodeVersion;
+  const [majorRaw, minorRaw] = version.split('.');
+  const major = Number.parseInt(majorRaw ?? '', 10);
+  const minor = Number.parseInt(minorRaw ?? '', 10);
+
+  if (!Number.isInteger(major) || !Number.isInteger(minor)) {
+    return false;
+  }
+
+  if (major > MIN_NODE_MAJOR) {
+    return true;
+  }
+
+  if (major < MIN_NODE_MAJOR) {
+    return false;
+  }
+
+  return minor >= MIN_NODE_MINOR;
+}
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
@@ -44,21 +68,22 @@ export const quickstart = new Command('quickstart')
     };
 
     try {
-      console.log('');
-      console.log('┌────────────────────────────────────────────────────────────┐');
-      console.log('│ REQUIEM — Provable AI Runtime                              │');
-      console.log('│ 10-Minute Proof: install, run, verify                      │');
-      console.log('└────────────────────────────────────────────────────────────┘');
-      console.log('');
+      if (!options.json) {
+        console.log('');
+        console.log('┌────────────────────────────────────────────────────────────┐');
+        console.log('│ REQUIEM — Provable AI Runtime                              │');
+        console.log('│ 10-Minute Proof: install, run, verify                      │');
+        console.log('└────────────────────────────────────────────────────────────┘');
+        console.log('');
+      }
 
       // Step 1: Environment validation
       if (!options.skipChecks) {
         logStep('Step 1: Validating environment...', !!options.json);
 
         const nodeVersion = process.version;
-        const requiredNode = '20.';
-        if (!nodeVersion.startsWith(requiredNode)) {
-          const msg = `Node.js ${requiredNode}x required, found ${nodeVersion}`;
+        if (!isNodeVersionSupported(nodeVersion)) {
+          const msg = `Node.js >=${MIN_NODE_MAJOR}.${MIN_NODE_MINOR}.0 required, found ${nodeVersion}`;
           fail(msg, options.json, results);
         }
         success(`Node.js ${nodeVersion}`, options.json, results, 'node_version');
@@ -76,9 +101,9 @@ export const quickstart = new Command('quickstart')
             success(`${name} available`, options.json, results, cmd);
           } catch {
             if (cmd === 'docker') {
-              console.log(`⚠ Docker not found. You will need Docker for the database.`);
+              warning('Docker not found. You will need Docker for the database.', options.json, results, cmd);
             } else {
-              console.log(`⚠ ${name} not found.`);
+              warning(`${name} not found.`, options.json, results, cmd);
             }
           }
         }
@@ -164,18 +189,22 @@ export const quickstart = new Command('quickstart')
         }
       }
 
-      console.log('');
-      console.log('┌────────────────────────────────────────────────────────────┐');
-      console.log('│ PROOF COMPLETE                                             │');
-      console.log('├────────────────────────────────────────────────────────────┤');
-      console.log('│  Determinism:  verified                                    │');
-      console.log('│  Policy:       enforced (deny-by-default)                  │');
-      console.log('│  Replay:       available                                   │');
-      console.log('│                                                            │');
-      console.log('│  Next: reach run <tool> <input>                            │');
-      console.log('│        reach stats                                         │');
-      console.log('│        reach replay diff <run1> <run2>                     │');
-      console.log('└────────────────────────────────────────────────────────────┘');
+      if (options.json) {
+        console.log(JSON.stringify(results, null, 2));
+      } else {
+        console.log('');
+        console.log('┌────────────────────────────────────────────────────────────┐');
+        console.log('│ PROOF COMPLETE                                             │');
+        console.log('├────────────────────────────────────────────────────────────┤');
+        console.log('│  Determinism:  verified                                    │');
+        console.log('│  Policy:       enforced (deny-by-default)                  │');
+        console.log('│  Replay:       available                                   │');
+        console.log('│                                                            │');
+        console.log('│  Next: reach run <tool> <input>                            │');
+        console.log('│        reach stats                                         │');
+        console.log('│        reach replay diff <run1> <run2>                     │');
+        console.log('└────────────────────────────────────────────────────────────┘');
+      }
       rl.close();
       process.exit(0);
 
@@ -218,3 +247,10 @@ function fail(message: string, isJson: boolean | undefined, results: QuickstartR
   process.exit(1);
 }
 
+function warning(message: string, isJson: boolean | undefined, results: QuickstartResult, stepName: string) {
+  if (isJson) {
+    results.steps.push({ step: stepName, status: 'warning', warning: message });
+  } else {
+    console.log(`⚠ ${message}`);
+  }
+}
