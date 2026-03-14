@@ -10,11 +10,30 @@ if (existsSync(BUILD_DIR) && existsSync(ENGINE_BIN)) {
   process.exit(0);
 }
 
-console.log(`engine binary not found at ${ENGINE_BIN}; building engine with \"pnpm run build:engine\"`);
+const partialBuild = existsSync(BUILD_DIR) && !existsSync(ENGINE_BIN);
+if (partialBuild) {
+  console.warn(
+    `engine build appears incomplete: found ${BUILD_DIR} but missing ${ENGINE_BIN}; rebuilding with "pnpm run build:engine"`,
+  );
+} else {
+  console.log(`engine binary missing at ${ENGINE_BIN}; running "pnpm run build:engine"`);
+}
+
 const result = spawnSync("pnpm", ["run", "build:engine"], {
   stdio: "inherit",
   shell: process.platform === "win32",
 });
 
-if (typeof result.status === "number") process.exit(result.status);
+if (typeof result.status === "number") {
+  if (result.status !== 0) {
+    console.error(
+      `engine build failed with exit code ${result.status}. Fix build errors and rerun "pnpm run build:engine".`,
+    );
+  }
+  process.exit(result.status);
+}
+
+if (result.error) {
+  console.error(`engine build invocation failed: ${result.error.message}`);
+}
 process.exit(1);

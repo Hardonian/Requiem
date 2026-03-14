@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+
+const originalEnv = { ...process.env };
 
 function authHeaders(tenantId = 'tenant-contract-1'): Record<string, string> {
   return {
@@ -9,6 +11,11 @@ function authHeaders(tenantId = 'tenant-contract-1'): Record<string, string> {
     'x-trace-id': 'trace-contract',
   };
 }
+
+afterEach(() => {
+  vi.resetModules();
+  process.env = { ...originalEnv };
+});
 
 describe('API contract routes', () => {
   it('GET /api/health returns 200 with health shape', async () => {
@@ -34,6 +41,10 @@ describe('API contract routes', () => {
   });
 
   it('GET /api/budgets ignores tenant query override and uses auth tenant', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'contract-token',
+    });
     const { GET } = await import('../src/app/api/budgets/route');
     const req = new NextRequest('http://localhost/api/budgets?tenant=evil-tenant', {
       headers: authHeaders('tenant-good'),
@@ -49,6 +60,10 @@ describe('API contract routes', () => {
   });
 
   it('POST /api/budgets invalid action returns 400 Problem+JSON', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'contract-token',
+    });
     const { POST } = await import('../src/app/api/budgets/route');
     const req = new NextRequest('http://localhost/api/budgets', {
       method: 'POST',
@@ -68,6 +83,10 @@ describe('API contract routes', () => {
   });
 
   it('POST /api/vector/search missing query returns 400 Problem+JSON', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'contract-token',
+    });
     const { POST } = await import('../src/app/api/vector/search/route');
     const req = new NextRequest('http://localhost/api/vector/search', {
       method: 'POST',
