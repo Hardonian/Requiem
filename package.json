@@ -86,8 +86,8 @@
     "verify:foundry:models": "node scripts/run-tsx.mjs scripts/verify-foundry.ts",
     "ingest:lineage": "node scripts/run-tsx.mjs packages/cli/src/cli.ts ingest lineage",
     "verify:sovereignty": "node scripts/verify-sovereignty.mjs",
-    "test:smoke": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure -E stress_harness",
-    "test:stress": "node -e \"const fs=require('fs'); if(!fs.existsSync('build')){console.error('ERROR: build/ not found. Run: pnpm run build:cpp'); process.exit(1);}\" && ctest --test-dir build -C Release --output-on-failure -R stress_harness",
+    "test:smoke": "node scripts/ensure-engine-build.mjs && ctest --test-dir build -C Release --output-on-failure -E stress_harness",
+    "test:stress": "node scripts/ensure-engine-build.mjs && ctest --test-dir build -C Release --output-on-failure -R stress_harness",
     "verify:errors": "node scripts/run-tsx.mjs scripts/verify-problem-json.ts",
     "verify:tenant-body": "node scripts/run-tsx.mjs scripts/verify-tenant-body.ts",
     "verify:determinism-smoke": "DETERMINISM_RUNS=5 bash scripts/verify_determinism.sh",
@@ -110,7 +110,9 @@
     "verify:env": "node scripts/verify-deploy-readiness.mjs",
     "verify:deploy-readiness": "node scripts/verify-deploy-readiness.mjs",
     "verify:routes-manifest": "pnpm run route:inventory && git diff --exit-code -- routes.manifest.json",
-    "route:inventory": "node scripts/run-tsx.mjs scripts/route-inventory.ts"
+    "route:inventory": "node scripts/run-tsx.mjs scripts/route-inventory.ts",
+    "build:engine": "bash scripts/cmake-build.sh",
+    "verify:all": "npm-run-all doctor route:inventory verify:routes lint typecheck build test"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
