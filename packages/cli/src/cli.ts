@@ -83,6 +83,10 @@ CONTROL COMMANDS (Deterministic Execution):
 OPERATOR PLATFORM COMMANDS:
   run|replay|inspect|graph|diff        Operator-grade execution and analysis commands
   verify|policy|learn|doctor|status    Deterministic verification and diagnostics
+  proof:inspect <proofpack>            Inspect proofpack required fields and hashes
+  proof:sign <proofpack> --key <pem>   Sign proofpack manifest digest (Ed25519)
+  proof:verify <proofpack> --key <pem> Verify proofpack signature set
+  security:scan [--sbom <path>]        Generate SBOM + dependency denylist scan
   pipeline <create|run|inspect|graph>  Manage pipeline lifecycle
   artifact <list|verify|gc>            Artifact inventory and integrity workflows
   trust <show|verify|rotate>           Append-only trust ledger operations
@@ -371,6 +375,38 @@ async function main(): Promise<number> {
       case 'verify': {
         const { runVerifyCommand } = await loadCommand('./commands/verify.js') as { runVerifyCommand: (args: string[], ctx: CommandContext) => Promise<number> };
         result = await runVerifyCommand(subArgs, ctx);
+        break;
+      }
+
+      case 'proof:inspect': {
+        const { runProofInspectCommand } = await loadCommand('./commands/proof-security.js') as {
+          runProofInspectCommand: (args: string[], json: boolean) => Promise<number>;
+        };
+        result = await runProofInspectCommand(subArgs, json);
+        break;
+      }
+
+      case 'proof:sign': {
+        const { runProofSignCommand } = await loadCommand('./commands/proof-security.js') as {
+          runProofSignCommand: (args: string[], json: boolean) => Promise<number>;
+        };
+        result = await runProofSignCommand(subArgs, json);
+        break;
+      }
+
+      case 'proof:verify': {
+        const { runProofVerifyCommand } = await loadCommand('./commands/proof-security.js') as {
+          runProofVerifyCommand: (args: string[], json: boolean) => Promise<number>;
+        };
+        result = await runProofVerifyCommand(subArgs, json);
+        break;
+      }
+
+      case 'security:scan': {
+        const { runSecurityScanCommand } = await loadCommand('./commands/proof-security.js') as {
+          runSecurityScanCommand: (args: string[], json: boolean) => Promise<number>;
+        };
+        result = await runSecurityScanCommand(subArgs, json);
         break;
       }
 
