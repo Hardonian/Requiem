@@ -1,0 +1,8 @@
+{
+  "name": "sample-transform",
+  "version": "1.0.0",
+  "enabledByDefault": false,
+  "adapters": {
+    "plugin.upper": { "type": "echo", "prefix": "UPPER:" }
+  }
+}

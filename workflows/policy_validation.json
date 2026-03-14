@@ -1,0 +1,9 @@
+{
+  "metadata": { "name": "policy_validation", "version": "1.0.0" },
+  "inputs_schema": { "required": ["value"], "properties": { "value": { "type": "string" } } },
+  "execution_graph": [
+    { "id": "validate", "type": "task", "action": "set", "inputs": { "value": "$value" }, "policy_hook": "allow_policy", "output_key": "decision" }
+  ],
+  "policy_hooks": { "allow_policy": { "effect": "allow", "reason": "policy validation path" } },
+  "expected_outputs": ["decision"]
+}
