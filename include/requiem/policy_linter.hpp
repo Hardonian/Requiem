@@ -33,8 +33,8 @@ public:
 
   /**
    * @brief Parses a JSON string into a PolicyRegistry structure.
-   * Supports the schema defined in policies/*.json (policies, constraints, map,
-   * conflicts).
+   * Supports the schema defined in policies/ (JSON files with policies,
+   * constraints, map, conflicts).
    */
   static PolicyRegistry LoadFromJson(const std::string &json_content);
 };

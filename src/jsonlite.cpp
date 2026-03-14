@@ -372,7 +372,7 @@ std::string to_json_impl(const Value &v) {
 std::string to_json(const Value &v) { return to_json_impl(v); }
 
 std::optional<JsonError> validate_strict(const std::string &text) {
-  Parser p{text};
+  Parser p{text, 0, std::nullopt};
   auto v = p.parse_value();
   (void)v;
   p.ws();
@@ -383,7 +383,7 @@ std::optional<JsonError> validate_strict(const std::string &text) {
 
 std::string canonicalize_json(const std::string &text,
                               std::optional<JsonError> *error) {
-  Parser p{text};
+  Parser p{text, 0, std::nullopt};
   auto v = p.parse_value();
   p.ws();
   if (!p.err && p.i != text.size())
@@ -404,7 +404,7 @@ std::string hash_json_canonical(const std::string &text,
 }
 
 Object parse(const std::string &text, std::optional<JsonError> *error) {
-  Parser p{text};
+  Parser p{text, 0, std::nullopt};
   auto v = p.parse_value();
   p.ws();
   if (!p.err && p.i != text.size())
