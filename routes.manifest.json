@@ -1,265 +1,302 @@
 {
   "manifest_version": "2.0.0",
-  "generated_at": "2026-03-14T05:03:39.474Z",
+  "generated_at": "2026-03-14T05:36:47.922Z",
   "routes": [
     {
       "path": "/api/agents",
       "method": "GET",
       "file": "ready-layer/src/app/api/agents/route.ts",
       "auth_required": true,
-      "description": "GET /api/agents handler"
+      "description": "GET /api/agents handler",
+      "surface": "api"
     },
     {
       "path": "/api/audit/logs",
       "method": "GET",
       "file": "ready-layer/src/app/api/audit/logs/route.ts",
       "auth_required": true,
-      "description": "GET /api/audit/logs handler"
+      "description": "GET /api/audit/logs handler",
+      "surface": "api"
     },
     {
       "path": "/api/budgets",
       "method": "GET",
       "file": "ready-layer/src/app/api/budgets/route.ts",
       "auth_required": true,
-      "description": "GET /api/budgets handler"
+      "description": "GET /api/budgets handler",
+      "surface": "api"
     },
     {
       "path": "/api/budgets",
       "method": "POST",
       "file": "ready-layer/src/app/api/budgets/route.ts",
       "auth_required": true,
-      "description": "POST /api/budgets handler"
+      "description": "POST /api/budgets handler",
+      "surface": "api"
     },
     {
       "path": "/api/caps",
       "method": "GET",
       "file": "ready-layer/src/app/api/caps/route.ts",
       "auth_required": true,
-      "description": "GET /api/caps handler"
+      "description": "GET /api/caps handler",
+      "surface": "api"
     },
     {
       "path": "/api/caps",
       "method": "POST",
       "file": "ready-layer/src/app/api/caps/route.ts",
       "auth_required": true,
-      "description": "POST /api/caps handler"
+      "description": "POST /api/caps handler",
+      "surface": "api"
     },
     {
       "path": "/api/cas/integrity",
       "method": "GET",
       "file": "ready-layer/src/app/api/cas/integrity/route.ts",
       "auth_required": true,
-      "description": "GET /api/cas/integrity handler"
+      "description": "GET /api/cas/integrity handler",
+      "surface": "api"
     },
     {
       "path": "/api/cluster/drift",
       "method": "GET",
       "file": "ready-layer/src/app/api/cluster/drift/route.ts",
       "auth_required": true,
-      "description": "GET /api/cluster/drift handler"
+      "description": "GET /api/cluster/drift handler",
+      "surface": "api"
     },
     {
       "path": "/api/cluster/status",
       "method": "GET",
       "file": "ready-layer/src/app/api/cluster/status/route.ts",
       "auth_required": true,
-      "description": "GET /api/cluster/status handler"
+      "description": "GET /api/cluster/status handler",
+      "surface": "api"
     },
     {
       "path": "/api/cluster/workers",
       "method": "GET",
       "file": "ready-layer/src/app/api/cluster/workers/route.ts",
       "auth_required": true,
-      "description": "GET /api/cluster/workers handler"
+      "description": "GET /api/cluster/workers handler",
+      "surface": "api"
     },
     {
       "path": "/api/control-plane/insights",
       "method": "GET",
       "file": "ready-layer/src/app/api/control-plane/insights/route.ts",
       "auth_required": true,
-      "description": "GET /api/control-plane/insights handler"
+      "description": "GET /api/control-plane/insights handler",
+      "surface": "api"
     },
     {
       "path": "/api/decisions",
       "method": "GET",
       "file": "ready-layer/src/app/api/decisions/route.ts",
       "auth_required": true,
-      "description": "GET /api/decisions handler"
+      "description": "GET /api/decisions handler",
+      "surface": "api"
     },
     {
       "path": "/api/drift",
       "method": "GET",
       "file": "ready-layer/src/app/api/drift/route.ts",
       "auth_required": true,
-      "description": "GET /api/drift handler"
+      "description": "GET /api/drift handler",
+      "surface": "api"
     },
     {
       "path": "/api/drift",
       "method": "POST",
       "file": "ready-layer/src/app/api/drift/route.ts",
       "auth_required": true,
-      "description": "POST /api/drift handler"
+      "description": "POST /api/drift handler",
+      "surface": "api"
     },
     {
       "path": "/api/engine/analyze",
       "method": "GET",
       "file": "ready-layer/src/app/api/engine/analyze/route.ts",
       "auth_required": true,
-      "description": "GET /api/engine/analyze handler"
+      "description": "GET /api/engine/analyze handler",
+      "surface": "api"
     },
     {
       "path": "/api/engine/autotune",
       "method": "GET",
       "file": "ready-layer/src/app/api/engine/autotune/route.ts",
       "auth_required": true,
-      "description": "GET /api/engine/autotune handler"
+      "description": "GET /api/engine/autotune handler",
+      "surface": "api"
     },
     {
       "path": "/api/engine/autotune",
       "method": "POST",
       "file": "ready-layer/src/app/api/engine/autotune/route.ts",
       "auth_required": true,
-      "description": "POST /api/engine/autotune handler"
+      "description": "POST /api/engine/autotune handler",
+      "surface": "api"
     },
     {
       "path": "/api/engine/diagnostics",
       "method": "GET",
       "file": "ready-layer/src/app/api/engine/diagnostics/route.ts",
       "auth_required": true,
-      "description": "GET /api/engine/diagnostics handler"
+      "description": "GET /api/engine/diagnostics handler",
+      "surface": "api"
     },
     {
       "path": "/api/engine/metrics",
       "method": "GET",
       "file": "ready-layer/src/app/api/engine/metrics/route.ts",
       "auth_required": true,
-      "description": "GET /api/engine/metrics handler"
+      "description": "GET /api/engine/metrics handler",
+      "surface": "api"
     },
     {
       "path": "/api/engine/status",
       "method": "GET",
       "file": "ready-layer/src/app/api/engine/status/route.ts",
       "auth_required": true,
-      "description": "GET /api/engine/status handler"
+      "description": "GET /api/engine/status handler",
+      "surface": "api"
     },
     {
       "path": "/api/failures/analytics",
       "method": "GET",
       "file": "ready-layer/src/app/api/failures/analytics/route.ts",
       "auth_required": true,
-      "description": "GET /api/failures/analytics handler"
+      "description": "GET /api/failures/analytics handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/artifacts",
       "method": "GET",
       "file": "ready-layer/src/app/api/foundry/artifacts/route.ts",
       "auth_required": true,
-      "description": "GET /api/foundry/artifacts handler"
+      "description": "GET /api/foundry/artifacts handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/artifacts/[id]",
       "method": "DELETE",
       "file": "ready-layer/src/app/api/foundry/artifacts/[id]/route.ts",
       "auth_required": true,
-      "description": "DELETE /api/foundry/artifacts/[id] handler"
+      "description": "DELETE /api/foundry/artifacts/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/artifacts/[id]",
       "method": "GET",
       "file": "ready-layer/src/app/api/foundry/artifacts/[id]/route.ts",
       "auth_required": true,
-      "description": "GET /api/foundry/artifacts/[id] handler"
+      "description": "GET /api/foundry/artifacts/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/datasets",
       "method": "GET",
       "file": "ready-layer/src/app/api/foundry/datasets/route.ts",
       "auth_required": true,
-      "description": "GET /api/foundry/datasets handler"
+      "description": "GET /api/foundry/datasets handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/datasets",
       "method": "POST",
       "file": "ready-layer/src/app/api/foundry/datasets/route.ts",
       "auth_required": true,
-      "description": "POST /api/foundry/datasets handler"
+      "description": "POST /api/foundry/datasets handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/datasets/[id]",
       "method": "DELETE",
       "file": "ready-layer/src/app/api/foundry/datasets/[id]/route.ts",
       "auth_required": true,
-      "description": "DELETE /api/foundry/datasets/[id] handler"
+      "description": "DELETE /api/foundry/datasets/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/datasets/[id]",
       "method": "GET",
       "file": "ready-layer/src/app/api/foundry/datasets/[id]/route.ts",
       "auth_required": true,
-      "description": "GET /api/foundry/datasets/[id] handler"
+      "description": "GET /api/foundry/datasets/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/datasets/[id]",
       "method": "PATCH",
       "file": "ready-layer/src/app/api/foundry/datasets/[id]/route.ts",
       "auth_required": true,
-      "description": "PATCH /api/foundry/datasets/[id] handler"
+      "description": "PATCH /api/foundry/datasets/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/datasets/[id]",
       "method": "POST",
       "file": "ready-layer/src/app/api/foundry/datasets/[id]/route.ts",
       "auth_required": true,
-      "description": "POST /api/foundry/datasets/[id] handler"
+      "description": "POST /api/foundry/datasets/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/generators",
       "method": "GET",
       "file": "ready-layer/src/app/api/foundry/generators/route.ts",
       "auth_required": true,
-      "description": "GET /api/foundry/generators handler"
+      "description": "GET /api/foundry/generators handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/generators",
       "method": "POST",
       "file": "ready-layer/src/app/api/foundry/generators/route.ts",
       "auth_required": true,
-      "description": "POST /api/foundry/generators handler"
+      "description": "POST /api/foundry/generators handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/runs",
       "method": "GET",
       "file": "ready-layer/src/app/api/foundry/runs/route.ts",
       "auth_required": true,
-      "description": "GET /api/foundry/runs handler"
+      "description": "GET /api/foundry/runs handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/runs",
       "method": "POST",
       "file": "ready-layer/src/app/api/foundry/runs/route.ts",
       "auth_required": true,
-      "description": "POST /api/foundry/runs handler"
+      "description": "POST /api/foundry/runs handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/runs/[id]",
       "method": "GET",
       "file": "ready-layer/src/app/api/foundry/runs/[id]/route.ts",
       "auth_required": true,
-      "description": "GET /api/foundry/runs/[id] handler"
+      "description": "GET /api/foundry/runs/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/runs/[id]",
       "method": "PATCH",
       "file": "ready-layer/src/app/api/foundry/runs/[id]/route.ts",
       "auth_required": true,
-      "description": "PATCH /api/foundry/runs/[id] handler"
+      "description": "PATCH /api/foundry/runs/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/foundry/runs/[id]",
       "method": "POST",
       "file": "ready-layer/src/app/api/foundry/runs/[id]/route.ts",
       "auth_required": true,
-      "description": "POST /api/foundry/runs/[id] handler"
+      "description": "POST /api/foundry/runs/[id] handler",
+      "surface": "api"
     },
     {
       "path": "/api/health",
@@ -267,112 +304,128 @@
       "file": "ready-layer/src/app/api/health/route.ts",
       "auth_required": false,
       "probe": true,
-      "description": "GET /api/health handler"
+      "description": "GET /api/health handler",
+      "surface": "public"
     },
     {
       "path": "/api/intelligence/calibration",
       "method": "GET",
       "file": "ready-layer/src/app/api/intelligence/calibration/route.ts",
       "auth_required": true,
-      "description": "GET /api/intelligence/calibration handler"
+      "description": "GET /api/intelligence/calibration handler",
+      "surface": "api"
     },
     {
       "path": "/api/intelligence/calibration/[claim_type]",
       "method": "GET",
       "file": "ready-layer/src/app/api/intelligence/calibration/[claim_type]/route.ts",
       "auth_required": true,
-      "description": "GET /api/intelligence/calibration/[claim_type] handler"
+      "description": "GET /api/intelligence/calibration/[claim_type] handler",
+      "surface": "api"
     },
     {
       "path": "/api/intelligence/cases",
       "method": "GET",
       "file": "ready-layer/src/app/api/intelligence/cases/route.ts",
       "auth_required": true,
-      "description": "GET /api/intelligence/cases handler"
+      "description": "GET /api/intelligence/cases handler",
+      "surface": "api"
     },
     {
       "path": "/api/intelligence/outcomes",
       "method": "GET",
       "file": "ready-layer/src/app/api/intelligence/outcomes/route.ts",
       "auth_required": true,
-      "description": "GET /api/intelligence/outcomes handler"
+      "description": "GET /api/intelligence/outcomes handler",
+      "surface": "api"
     },
     {
       "path": "/api/intelligence/predictions",
       "method": "GET",
       "file": "ready-layer/src/app/api/intelligence/predictions/route.ts",
       "auth_required": true,
-      "description": "GET /api/intelligence/predictions handler"
+      "description": "GET /api/intelligence/predictions handler",
+      "surface": "api"
     },
     {
       "path": "/api/intelligence/signals",
       "method": "GET",
       "file": "ready-layer/src/app/api/intelligence/signals/route.ts",
       "auth_required": true,
-      "description": "GET /api/intelligence/signals handler"
+      "description": "GET /api/intelligence/signals handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/calibrate",
       "method": "POST",
       "file": "ready-layer/src/app/api/learning/calibrate/route.ts",
       "auth_required": true,
-      "description": "POST /api/learning/calibrate handler"
+      "description": "POST /api/learning/calibrate handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/crosstabs",
       "method": "GET",
       "file": "ready-layer/src/app/api/learning/crosstabs/route.ts",
       "auth_required": true,
-      "description": "GET /api/learning/crosstabs handler"
+      "description": "GET /api/learning/crosstabs handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/crosstabs",
       "method": "POST",
       "file": "ready-layer/src/app/api/learning/crosstabs/route.ts",
       "auth_required": true,
-      "description": "POST /api/learning/crosstabs handler"
+      "description": "POST /api/learning/crosstabs handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/dashboard",
       "method": "GET",
       "file": "ready-layer/src/app/api/learning/dashboard/route.ts",
       "auth_required": true,
-      "description": "GET /api/learning/dashboard handler"
+      "description": "GET /api/learning/dashboard handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/error-bands",
       "method": "GET",
       "file": "ready-layer/src/app/api/learning/error-bands/route.ts",
       "auth_required": true,
-      "description": "GET /api/learning/error-bands handler"
+      "description": "GET /api/learning/error-bands handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/error-bands",
       "method": "POST",
       "file": "ready-layer/src/app/api/learning/error-bands/route.ts",
       "auth_required": true,
-      "description": "POST /api/learning/error-bands handler"
+      "description": "POST /api/learning/error-bands handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/outcomes",
       "method": "POST",
       "file": "ready-layer/src/app/api/learning/outcomes/route.ts",
       "auth_required": true,
-      "description": "POST /api/learning/outcomes handler"
+      "description": "POST /api/learning/outcomes handler",
+      "surface": "api"
     },
     {
       "path": "/api/learning/train",
       "method": "POST",
       "file": "ready-layer/src/app/api/learning/train/route.ts",
       "auth_required": true,
-      "description": "POST /api/learning/train handler"
+      "description": "POST /api/learning/train handler",
+      "surface": "api"
     },
     {
       "path": "/api/logs",
       "method": "GET",
       "file": "ready-layer/src/app/api/logs/route.ts",
       "auth_required": true,
-      "description": "GET /api/logs handler"
+      "description": "GET /api/logs handler",
+      "surface": "api"
     },
     {
       "path": "/api/mcp/health",
@@ -380,196 +433,224 @@
       "file": "ready-layer/src/app/api/mcp/health/route.ts",
       "auth_required": false,
       "probe": true,
-      "description": "GET /api/mcp/health handler"
+      "description": "GET /api/mcp/health handler",
+      "surface": "public"
     },
     {
       "path": "/api/mcp/tool/call",
       "method": "POST",
       "file": "ready-layer/src/app/api/mcp/tool/call/route.ts",
       "auth_required": true,
-      "description": "POST /api/mcp/tool/call handler"
+      "description": "POST /api/mcp/tool/call handler",
+      "surface": "internal"
     },
     {
       "path": "/api/mcp/tools",
       "method": "GET",
       "file": "ready-layer/src/app/api/mcp/tools/route.ts",
       "auth_required": true,
-      "description": "GET /api/mcp/tools handler"
+      "description": "GET /api/mcp/tools handler",
+      "surface": "internal"
     },
     {
       "path": "/api/objects",
       "method": "GET",
       "file": "ready-layer/src/app/api/objects/route.ts",
       "auth_required": true,
-      "description": "GET /api/objects handler"
+      "description": "GET /api/objects handler",
+      "surface": "api"
     },
     {
       "path": "/api/objects",
       "method": "HEAD",
       "file": "ready-layer/src/app/api/objects/route.ts",
       "auth_required": true,
-      "description": "HEAD /api/objects handler"
+      "description": "HEAD /api/objects handler",
+      "surface": "api"
     },
     {
       "path": "/api/openapi.json",
       "method": "GET",
       "file": "ready-layer/src/app/api/openapi.json/route.ts",
       "auth_required": false,
-      "description": "GET /api/openapi.json handler"
+      "description": "GET /api/openapi.json handler",
+      "surface": "public"
     },
     {
       "path": "/api/plans",
       "method": "GET",
       "file": "ready-layer/src/app/api/plans/route.ts",
       "auth_required": true,
-      "description": "GET /api/plans handler"
+      "description": "GET /api/plans handler",
+      "surface": "api"
     },
     {
       "path": "/api/plans",
       "method": "POST",
       "file": "ready-layer/src/app/api/plans/route.ts",
       "auth_required": true,
-      "description": "POST /api/plans handler"
+      "description": "POST /api/plans handler",
+      "surface": "api"
     },
     {
       "path": "/api/policies",
       "method": "GET",
       "file": "ready-layer/src/app/api/policies/route.ts",
       "auth_required": true,
-      "description": "GET /api/policies handler"
+      "description": "GET /api/policies handler",
+      "surface": "api"
     },
     {
       "path": "/api/policies",
       "method": "POST",
       "file": "ready-layer/src/app/api/policies/route.ts",
       "auth_required": true,
-      "description": "POST /api/policies handler"
+      "description": "POST /api/policies handler",
+      "surface": "api"
     },
     {
       "path": "/api/policies/simulate",
       "method": "POST",
       "file": "ready-layer/src/app/api/policies/simulate/route.ts",
       "auth_required": true,
-      "description": "POST /api/policies/simulate handler"
+      "description": "POST /api/policies/simulate handler",
+      "surface": "api"
     },
     {
       "path": "/api/registry",
       "method": "GET",
       "file": "ready-layer/src/app/api/registry/route.ts",
       "auth_required": true,
-      "description": "GET /api/registry handler"
+      "description": "GET /api/registry handler",
+      "surface": "api"
     },
     {
       "path": "/api/registry",
       "method": "POST",
       "file": "ready-layer/src/app/api/registry/route.ts",
       "auth_required": true,
-      "description": "POST /api/registry handler"
+      "description": "POST /api/registry handler",
+      "surface": "api"
     },
     {
       "path": "/api/replay/lab",
       "method": "GET",
       "file": "ready-layer/src/app/api/replay/lab/route.ts",
       "auth_required": true,
-      "description": "GET /api/replay/lab handler"
+      "description": "GET /api/replay/lab handler",
+      "surface": "api"
     },
     {
       "path": "/api/replay/verify",
       "method": "GET",
       "file": "ready-layer/src/app/api/replay/verify/route.ts",
       "auth_required": true,
-      "description": "GET /api/replay/verify handler"
+      "description": "GET /api/replay/verify handler",
+      "surface": "api"
     },
     {
       "path": "/api/routes-probe",
       "method": "GET",
       "file": "ready-layer/src/app/api/routes-probe/route.ts",
       "auth_required": true,
-      "description": "GET /api/routes-probe handler"
+      "description": "GET /api/routes-probe handler",
+      "surface": "api"
     },
     {
       "path": "/api/routes-probe",
       "method": "POST",
       "file": "ready-layer/src/app/api/routes-probe/route.ts",
       "auth_required": true,
-      "description": "POST /api/routes-probe handler"
+      "description": "POST /api/routes-probe handler",
+      "surface": "api"
     },
     {
       "path": "/api/runs",
       "method": "GET",
       "file": "ready-layer/src/app/api/runs/route.ts",
       "auth_required": true,
-      "description": "GET /api/runs handler"
+      "description": "GET /api/runs handler",
+      "surface": "api"
     },
     {
       "path": "/api/runs/[runId]/diff",
       "method": "GET",
       "file": "ready-layer/src/app/api/runs/[runId]/diff/route.ts",
       "auth_required": true,
-      "description": "GET /api/runs/[runId]/diff handler"
+      "description": "GET /api/runs/[runId]/diff handler",
+      "surface": "api"
     },
     {
       "path": "/api/snapshots",
       "method": "GET",
       "file": "ready-layer/src/app/api/snapshots/route.ts",
       "auth_required": true,
-      "description": "GET /api/snapshots handler"
+      "description": "GET /api/snapshots handler",
+      "surface": "api"
     },
     {
       "path": "/api/snapshots",
       "method": "POST",
       "file": "ready-layer/src/app/api/snapshots/route.ts",
       "auth_required": true,
-      "description": "POST /api/snapshots handler"
+      "description": "POST /api/snapshots handler",
+      "surface": "api"
     },
     {
       "path": "/api/spend",
       "method": "GET",
       "file": "ready-layer/src/app/api/spend/route.ts",
       "auth_required": true,
-      "description": "GET /api/spend handler"
+      "description": "GET /api/spend handler",
+      "surface": "api"
     },
     {
       "path": "/api/spend",
       "method": "POST",
       "file": "ready-layer/src/app/api/spend/route.ts",
       "auth_required": true,
-      "description": "POST /api/spend handler"
+      "description": "POST /api/spend handler",
+      "surface": "api"
     },
     {
       "path": "/api/status",
       "method": "GET",
       "file": "ready-layer/src/app/api/status/route.ts",
       "auth_required": false,
-      "description": "GET /api/status handler"
+      "description": "GET /api/status handler",
+      "surface": "public"
     },
     {
       "path": "/api/tenants/isolation",
       "method": "GET",
       "file": "ready-layer/src/app/api/tenants/isolation/route.ts",
       "auth_required": true,
-      "description": "GET /api/tenants/isolation handler"
+      "description": "GET /api/tenants/isolation handler",
+      "surface": "api"
     },
     {
       "path": "/api/trust-graph",
       "method": "GET",
       "file": "ready-layer/src/app/api/trust-graph/route.ts",
       "auth_required": true,
-      "description": "GET /api/trust-graph handler"
+      "description": "GET /api/trust-graph handler",
+      "surface": "api"
     },
     {
       "path": "/api/vector/search",
       "method": "GET",
       "file": "ready-layer/src/app/api/vector/search/route.ts",
       "auth_required": true,
-      "description": "GET /api/vector/search handler"
+      "description": "GET /api/vector/search handler",
+      "surface": "api"
     },
     {
       "path": "/api/vector/search",
       "method": "POST",
       "file": "ready-layer/src/app/api/vector/search/route.ts",
       "auth_required": true,
-      "description": "POST /api/vector/search handler"
+      "description": "POST /api/vector/search handler",
+      "surface": "api"
     }
   ]
 }
