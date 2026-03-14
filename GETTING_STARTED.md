@@ -2,14 +2,15 @@
 
 Primary onboarding is `docs/GETTING_STARTED.md` and `README.md`.
 
-Fast contributor path:
+## First-clone path (recommended)
 
-1. `pnpm install`
-2. `pnpm run verify:routes` (quick route/auth contract check)
+1. `pnpm install --frozen-lockfile`
+2. `pnpm run verify:all`
 3. `pnpm run dev`
 
-Full verification path:
+## Focused local iteration path
 
-1. `pnpm run verify`
-2. `pnpm run test`
-3. `pnpm run build`
+1. `pnpm run doctor`
+2. `pnpm run verify:routes`
+3. `pnpm run test`
+4. `pnpm run build`
