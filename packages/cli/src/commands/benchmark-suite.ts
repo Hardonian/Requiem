@@ -10,6 +10,8 @@ const ROOT = path.resolve(process.cwd());
 const BENCH_DIR = path.join(ROOT, 'bench');
 const EVIDENCE_DIR = path.join(BENCH_DIR, 'evidence');
 const DURABILITY_DIR = path.join(BENCH_DIR, 'durability');
+const BENCH_HISTORY_DIR = path.join(BENCH_DIR, 'history');
+const BENCH_STORAGE_MATRIX_DIR = path.join(BENCH_DIR, 'storage-matrix');
 
 interface WorkflowGraph {
   id: string;
@@ -37,6 +39,11 @@ function stable(value: unknown): string {
 function writeBenchJson(name: string, value: unknown): void {
   mkdirSync(BENCH_DIR, { recursive: true });
   writeFileSync(path.join(BENCH_DIR, name), `${stable(value)}\n`, 'utf8');
+}
+
+function writeBenchSubdirJson(dir: string, name: string, value: unknown): void {
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path.join(dir, name), `${stable(value)}\n`, 'utf8');
 }
 
 function executeWorkflow(graph: WorkflowGraph, payloadSize: number, runId: number, adapterRecords?: AdapterInvocationRecord[]): ExecutionResult {
@@ -360,6 +367,14 @@ export async function runBenchmarkSuite(ctx: CommandContext): Promise<number> {
     adapters: runAdapterSuite(),
   };
 
+  const summary = {
+    generated_at: new Date().toISOString(),
+    determinism_rate: Number(results.determinism.determinism_rate),
+    replay_success_rate: Number(results.replay.replay_success_rate),
+    p95_latency_ms: Number(results.performance.p95_latency_ms),
+  };
+  writeBenchSubdirJson(BENCH_HISTORY_DIR, 'latest.json', summary);
+
   writeBenchmarkDocs(results as unknown as Record<string, Record<string, unknown>>);
   bundleEvidence();
 
@@ -599,6 +614,8 @@ export async function runDurabilityTestCommand(): Promise<number> {
   };
 
   writeBenchJson('recovery-report.json', report);
+  writeBenchSubdirJson(BENCH_STORAGE_MATRIX_DIR, `durability-${new Date().toISOString().replace(/[:.]/g, '-')}.json`, report);
+  writeBenchSubdirJson(BENCH_STORAGE_MATRIX_DIR, 'latest.json', report);
   process.stdout.write('Durability artifact refreshed in bench/recovery-report.json.\n');
   return 0;
 }

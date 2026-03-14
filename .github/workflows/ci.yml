@@ -498,3 +498,43 @@ jobs:
         run: pnpm verify:calibration-window
       - name: verify:drift-suite (CRITICAL gate)
         run: pnpm verify:drift-suite
+
+  # ---------------------------------------------------------------------------
+  # Continuous verification gates (determinism/replay/CAS/durability)
+  # ---------------------------------------------------------------------------
+  continuous-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: install
+        run: pnpm install --frozen-lockfile
+      - name: requiem benchmark
+        run: pnpm run benchmark
+      - name: benchmark drift gate
+        run: pnpm run verify:benchmark-drift
+      - name: requiem test:durability
+        run: pnpm run test:durability
+      - name: requiem test:fault-injection
+        run: pnpm run test:fault-injection
+      - name: upload verification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: continuous-verification-artifacts
+          path: |
+            bench/determinism-report.json
+            bench/replay-verification.json
+            bench/cas-integrity-report.json
+            bench/performance-report.json
+            bench/recovery-report.json
+            bench/crash-matrix-report.json
+            bench/history/latest.json
+            bench/storage-matrix/latest.json
+          if-no-files-found: warn
