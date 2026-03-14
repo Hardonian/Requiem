@@ -1,227 +1,169 @@
 #!/bin/bash
-#
-# Requiem Environment Doctor
-# Validates all required dependencies for building and running Requiem
-#
-# Usage:
-#   ./doctor.sh          # Run all checks and print human-readable output
-#   ./doctor.sh --json  # Output results as JSON for machine parsing
-#
-
-set -e
+set -euo pipefail
 
 JSON_OUTPUT=false
 if [[ "${1:-}" == "--json" ]]; then
   JSON_OUTPUT=true
 fi
 
-ERR_MISSING_DEP=1
-ERR_VERSION_MISMATCH=2
-ERR_ENGINE_NOT_BUILT=3
+REQUIRED_NODE="20.11.0"
+REQUIRED_PNPM="8.15.0"
+REQUIRED_CMAKE="3.20.0"
+REQUIRED_GCC="11.0.0"
+REQUIRED_CLANG="14.0.0"
+
+ENGINE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/build/requiem"
+
+passed=0
+failed=0
+warnings=0
+check_results=()
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-check_passed=0
-check_failed=0
-
-# JSON array for results
-results_json="[]"
-
-log_info() {
-  if [ "$JSON_OUTPUT" = false ]; then
-    echo -e "${GREEN}[INFO]${NC} $1"
-  fi
+record_result() {
+  check_results+=("$1|$2|$3|$4")
 }
 
-log_warn() {
-  if [ "$JSON_OUTPUT" = false ]; then
-    echo -e "${YELLOW}[WARN]${NC} $1"
+log() {
+  local level="$1"
+  local message="$2"
+  if [[ "$JSON_OUTPUT" == true ]]; then
+    return
   fi
+
+  case "$level" in
+    INFO) echo -e "${GREEN}[INFO]${NC} $message" ;;
+    WARN) echo -e "${YELLOW}[WARN]${NC} $message" ;;
+    ERROR) echo -e "${RED}[ERROR]${NC} $message" ;;
+    *) echo "$message" ;;
+  esac
 }
 
-log_error() {
-  if [ "$JSON_OUTPUT" = false ]; then
-    echo -e "${RED}[ERROR]${NC} $1"
-  fi
+extract_version() {
+  local raw="$1"
+  echo "$raw" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1
 }
 
-add_result() {
-  local status=$1
-  local name=$2
-  local message=$3
-  if [ "$JSON_OUTPUT" = true ]; then
-    results_json=$(echo "$results_json" | jq --argjson s "$status" --arg n "$name" --arg m "$message" '. += [{"status": $s, "check": $n, "message": $m}]')
-  fi
+version_ge() {
+  local current="$1"
+  local required="$2"
+  [[ "$(printf '%s\n' "$required" "$current" | sort -V | head -n1)" == "$required" ]]
 }
 
-check_command() {
-  local cmd=$1
-  local name=$2
-  
-  if command -v "$cmd" &> /dev/null; then
-    log_info "$name found: $(which $cmd)"
-    ((check_passed++))
-    return 0
+check_tool_with_version() {
+  local cmd="$1"
+  local label="$2"
+  local required="$3"
+  local remediation="$4"
+
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    ((failed+=1))
+    record_result false "$label" "Missing from PATH." "$remediation"
+    log ERROR "$label missing from PATH. $remediation"
+    return
+  fi
+
+  local version_raw version
+  version_raw="$($cmd --version 2>&1 | head -1 || true)"
+  version="$(extract_version "$version_raw")"
+
+  if [[ -z "$version" ]]; then
+    ((warnings+=1))
+    record_result true "$label" "Found, but version could not be parsed from: $version_raw" ""
+    log WARN "$label found but version could not be parsed ($version_raw)."
+    return
+  fi
+
+  if version_ge "$version" "$required"; then
+    ((passed+=1))
+    record_result true "$label" "Version $version satisfies >= $required." ""
+    log INFO "$label version OK: $version (>= $required)"
   else
-    log_error "$name not found in PATH"
-    ((check_failed++))
-    return 1
+    ((failed+=1))
+    record_result false "$label" "Version $version is below required $required." "$remediation"
+    log ERROR "$label version too old: $version (requires >= $required). $remediation"
   fi
 }
 
-check_version() {
-  local cmd=$1
-  local min_version=$2
-  local version_flag=${3:---version}
-  local name=$4
-  
-  local current_version
-  current_version=$($cmd $version_flag 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
-  
-  if [ -z "$current_version" ]; then
-    log_warn "Could not determine $name version"
-    return 1
+check_compiler() {
+  local remediation="Install a C++20 compiler and rerun: pnpm run doctor"
+
+  if command -v g++ >/dev/null 2>&1; then
+    check_tool_with_version "g++" "GCC/G++" "$REQUIRED_GCC" "$remediation"
+    return
   fi
-  
-  # Simple version comparison (assumes X.Y or X.Y.Z format)
-  if [ "$(printf '%s\n' "$min_version" "$current_version" | sort -V | head -n1)" = "$min_version" ]; then
-    log_info "$name version OK: $current_version (>= $min_version)"
-    ((check_passed++))
-    return 0
-  else
-    log_error "$name version too old: $current_version (requires >= $min_version)"
-    ((check_failed++))
-    return 1
+
+  if command -v clang++ >/dev/null 2>&1; then
+    check_tool_with_version "clang++" "Clang" "$REQUIRED_CLANG" "$remediation"
+    return
   fi
+
+  ((failed+=1))
+  record_result false "C++ compiler" "No supported compiler found (g++ or clang++)." "$remediation"
+  log ERROR "No supported C++ compiler found (g++ >= $REQUIRED_GCC or clang++ >= $REQUIRED_CLANG). $remediation"
 }
 
-check_header() {
-  local header=$1
-  local name=$2
-  
-  # Check for OpenSSL headers in common locations
-  if [ -f "/usr/include/$header" ] || [ -f "/usr/local/include/$header" ] || [ -f "/opt/homebrew/include/$header" ]; then
-    log_info "$name headers found"
-    ((check_passed++))
-    return 0
-  else
-    log_error "$name headers not found (looked for $header)"
-    ((check_failed++))
-    return 1
+check_engine_binary() {
+  if [[ -f "$ENGINE_PATH" ]]; then
+    ((passed+=1))
+    record_result true "Engine binary" "Found at $ENGINE_PATH." ""
+    log INFO "Requiem engine binary found: $ENGINE_PATH"
+    return
   fi
+
+  ((warnings+=1))
+  record_result true "Engine binary" "Missing at $ENGINE_PATH." "Run: pnpm run build:engine"
+  log WARN "Engine binary missing at $ENGINE_PATH."
+  log INFO "Run: pnpm run build:engine"
+  log INFO "If build fails, confirm CMake and a supported C++ toolchain are installed."
 }
 
-check_library() {
-  local lib=$1
-  local name=$2
-  
-  if [ -f "/usr/lib/lib$lib.so" ] || [ -f "/usr/local/lib/lib$lib.so" ] || [ -f "/opt/homebrew/lib/lib$lib.dylib" ] || [ -f "/usr/lib/x86_64-linux-gnu/lib$lib.so" ]; then
-    log_info "$name library found"
-    ((check_passed++))
-    return 0
-  else
-    log_error "$name library not found (looked for lib$lib)"
-    ((check_failed++))
-    return 1
-  fi
-}
-
-echo "====================================="
-echo "Requiem Environment Doctor"
-echo "====================================="
-echo ""
-
-# Check Node.js
-log_info "Checking Node.js..."
-if check_command "node" "Node.js"; then
-  check_version "node" "18.0.0" "--version" "Node.js"
-fi
-echo ""
-
-# Check pnpm
-log_info "Checking pnpm..."
-if check_command "pnpm" "pnpm"; then
-  check_version "pnpm" "8.0.0" "--version" "pnpm"
-fi
-echo ""
-
-# Check CMake
-log_info "Checking CMake..."
-if check_command "cmake" "CMake"; then
-  check_version "cmake" "3.20.0" "--version" "CMake"
-fi
-echo ""
-
-# Check C++ compiler
-log_info "Checking C++ compiler..."
-if check_command "g++" "GCC/G++"; then
-  check_version "g++" "11.0.0" "--version" "GCC"
-elif check_command "clang++" "Clang"; then
-  check_version "clang++" "13.0.0" "--version" "Clang"
-else
-  log_error "No C++ compiler found (need g++ >= 11 or clang++ >= 13)"
-  ((check_failed++))
-fi
-echo ""
-
-# Check OpenSSL headers
-log_info "Checking OpenSSL..."
-check_header "openssl/ssl.h" "OpenSSL"
-check_header "openssl/evp.h" "OpenSSL EVP"
-echo ""
-
-# Check zstd
-log_info "Checking zstd..."
-check_library "zstd" "zstd"
-echo ""
-
-# Check for optional but recommended tools
-log_info "Checking optional tools..."
-if command -v "git" &> /dev/null; then
-  log_info "Git found: $(git --version)"
-else
-  log_warn "Git not found (recommended for development)"
-fi
-
-if command -v "python3" &> /dev/null; then
-  log_info "Python 3 found: $(python3 --version)"
-else
-  log_warn "Python 3 not found (recommended for some scripts)"
-fi
-echo ""
-
-# Check if engine binary exists
-echo "====================================="
-log_info "Checking Requiem engine binary..."
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENGINE_PATH="$SCRIPT_DIR/../build/requiem"
-
-if [ -f "$ENGINE_PATH" ]; then
-  log_info "Requiem engine binary found: $ENGINE_PATH"
-  ((check_passed++))
-else
-  log_warn "Requiem engine binary not found at $ENGINE_PATH"
-  log_info "Run 'pnpm run build:engine' to build the engine (tests auto-build when needed)"
-fi
-echo ""
-
-# Summary
-echo "====================================="
-if [ "$JSON_OUTPUT" = true ]; then
-  echo "{\"passed\": $check_passed, \"failed\": $check_failed, \"results\": $results_json}"
-else
-  echo "Summary: $check_passed passed, $check_failed failed"
+if [[ "$JSON_OUTPUT" == false ]]; then
   echo "====================================="
-
-  if [ $check_failed -eq 0 ]; then
-    log_info "All required dependencies are satisfied!"
-    exit 0
-  else
-    log_error "Some required dependencies are missing or incorrect versions"
-    log_info "Please install missing dependencies before proceeding"
-    exit $ERR_MISSING_DEP
-  fi
+  echo "Requiem Environment Doctor"
+  echo "====================================="
+  echo ""
 fi
+
+log INFO "Checking required toolchain..."
+check_tool_with_version "node" "Node.js" "$REQUIRED_NODE" "Install Node.js >= $REQUIRED_NODE and rerun: pnpm install --frozen-lockfile"
+check_tool_with_version "pnpm" "pnpm" "$REQUIRED_PNPM" "Install pnpm >= $REQUIRED_PNPM (packageManager: pnpm@8.15.0) and rerun: pnpm install --frozen-lockfile"
+check_tool_with_version "cmake" "CMake" "$REQUIRED_CMAKE" "Install CMake >= $REQUIRED_CMAKE and rerun: pnpm run build:engine"
+check_compiler
+log INFO "Checking local engine build state..."
+check_engine_binary
+
+if [[ "$JSON_OUTPUT" == true ]]; then
+  printf '{"passed":%d,"failed":%d,"warnings":%d,"results":[' "$passed" "$failed" "$warnings"
+  for i in "${!check_results[@]}"; do
+    IFS='|' read -r ok name message remediation <<< "${check_results[$i]}"
+    if [[ "$i" -gt 0 ]]; then
+      printf ','
+    fi
+    printf '{"ok":%s,"check":"%s","message":"%s","remediation":"%s"}' \
+      "$ok" \
+      "$(echo "$name" | sed 's/"/\\"/g')" \
+      "$(echo "$message" | sed 's/"/\\"/g')" \
+      "$(echo "$remediation" | sed 's/"/\\"/g')"
+  done
+  printf ']}'
+  exit $failed
+fi
+
+echo ""
+echo "====================================="
+echo "Summary: $passed passed, $failed failed, $warnings warnings"
+echo "====================================="
+
+if [[ $failed -eq 0 ]]; then
+  log INFO "Doctor found no blocking prerequisites."
+  exit 0
+fi
+
+log ERROR "Doctor found blocking prerequisites."
+log INFO "Resolve the errors above, then rerun: pnpm run doctor"
+exit 1
