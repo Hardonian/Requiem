@@ -28,9 +28,10 @@ let _activeAlgorithm: 'blake3' | 'sha256' = 'blake3';
 function getHashFn(): HashFn {
   if (_hashFn) return _hashFn;
   try {
-    // Dynamic import check — blake3 native module
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const blake3 = require('blake3');
+    // Runtime require via eval prevents webpack from trying to bundle blake3's ESM entry.
+    // eslint-disable-next-line no-eval
+    const runtimeRequire = eval('require') as NodeJS.Require;
+    const blake3 = runtimeRequire('blake3');
     _hashFn = (input: string | Buffer): string => {
       const buf = typeof input === 'string' ? Buffer.from(input) : input;
       return blake3.hash(buf).toString('hex');

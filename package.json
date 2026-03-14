@@ -32,7 +32,7 @@
     "verify:no-stack-leaks": "node scripts/run-tsx.mjs scripts/verify-no-stack-leaks.ts",
     "verify:demo": "node scripts/run-tsx.mjs scripts/demo-doctor.ts && node scripts/run-tsx.mjs scripts/demo-run.ts",
     "verify": "npm-run-all --parallel lint typecheck verify:boundaries verify:sovereignty verify:learning",
-    "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:nosecrets verify:no-stack-leaks verify:demo verify:ratchet verify:entropy verify:mcp-routes verify:repo",
+    "verify:ci": "npm-run-all verify verify:cpp verify:ai verify:routes verify:contracts verify:nosecrets verify:no-stack-leaks verify:demo verify:ratchet verify:entropy verify:mcp-routes verify:repo verify:deploy-readiness",
     "verify:entropy": "node scripts/run-tsx.mjs scripts/final-enforcement.ts",
     "verify:deps-graph": "node scripts/run-tsx.mjs scripts/verify-dependency-graph.ts",
     "verify:sbom": "node scripts/run-tsx.mjs scripts/generate-sbom.ts",
@@ -105,7 +105,9 @@
     "evidence": "node scripts/run-tsx.mjs packages/cli/src/cli.ts evidence",
     "test:durability": "node scripts/run-tsx.mjs packages/cli/src/cli.ts test:durability",
     "test:fault-injection": "node scripts/run-tsx.mjs packages/cli/src/cli.ts test:fault-injection",
-    "verify:benchmark-drift": "node scripts/run-tsx.mjs scripts/verify-benchmark-drift.ts"
+    "verify:benchmark-drift": "node scripts/run-tsx.mjs scripts/verify-benchmark-drift.ts",
+    "verify:env": "node scripts/verify-deploy-readiness.mjs",
+    "verify:deploy-readiness": "node scripts/verify-deploy-readiness.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

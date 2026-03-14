@@ -99,8 +99,12 @@ function runCommand(cmd: string, args: string[]): Promise<string> {
 }
 
 async function checkCliOutput(): Promise<LeakCheck> {
-  const cliPath = path.join(ROOT_DIR, "build", "Release", "requiem.exe");
-  if (!fs.existsSync(cliPath)) {
+  const cliCandidates = [
+    path.join(ROOT_DIR, "build", "requiem"),
+    path.join(ROOT_DIR, "build", "Release", "requiem.exe"),
+  ];
+  const cliPath = cliCandidates.find(candidate => fs.existsSync(candidate));
+  if (!cliPath) {
     return { name: "cli_output", ok: true }; // Skip if not built
   }
 
@@ -243,6 +247,9 @@ async function checkSourceCode(): Promise<LeakCheck> {
         const fullPath = path.join(dir, entry);
         const stat = fs.statSync(fullPath);
         if (stat.isDirectory()) {
+          if (["node_modules", ".next", "dist", "build", "coverage"].includes(entry)) {
+            continue;
+          }
           walkDir(fullPath);
         } else {
           checkFile(fullPath);

@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "cd ready-layer && pnpm build"
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter ready-layer build"
 }

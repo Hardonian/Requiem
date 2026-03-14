@@ -35,12 +35,18 @@ interface ContractReport {
 
 // CLI binary path
 function getCliPath(): string {
-  const releasePath = path.join(ROOT_DIR, "build", "Release", "requiem.exe");
-  const debugPath = path.join(ROOT_DIR, "build", "Debug", "requiem.exe");
-  
-  if (fs.existsSync(releasePath)) return releasePath;
-  if (fs.existsSync(debugPath)) return debugPath;
-  
+  const candidates = [
+    path.join(ROOT_DIR, "build", "requiem"),
+    path.join(ROOT_DIR, "build", "Release", "requiem.exe"),
+    path.join(ROOT_DIR, "build", "Debug", "requiem.exe"),
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
   return "requiem";
 }
 
