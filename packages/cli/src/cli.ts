@@ -16,7 +16,7 @@
  * All heavy modules (logger, db, providers, signing) are lazy loaded.
  */
 
-import { formatError, ErrorCodes, ErrorHints, deterministicJson } from './core/cli-helpers.js';
+import { formatError, ErrorCodes, ErrorHints } from './core/cli-helpers.js';
 
 const VERSION = '0.2.0';
 
@@ -87,6 +87,16 @@ OPERATOR PLATFORM COMMANDS:
   proof:sign <proofpack> --key <pem>   Sign proofpack manifest digest (Ed25519)
   proof:verify <proofpack> --key <pem> Verify proofpack signature set
   security:scan [--sbom <path>]        Generate SBOM + dependency denylist scan
+  workflow:list                       List available deterministic workflows
+  workflow:inspect <workflow>         Show workflow metadata, graph, and policy hooks
+  workflow:run <workflow> [--input]   Execute workflow and emit proofpack
+  plugin:list                         List discoverable plugins
+  plugin:install <path>               Install plugin from local path
+  plugin:enable <name>                Enable plugin adapters/workflows
+  plugin:disable <name>               Disable plugin adapters/workflows
+  worker:start [id] [--drain]         Start deterministic worker loop
+  worker:status                       Show worker health and processed task counts
+  cluster:status                      Show distributed execution coordinator status
   pipeline <create|run|inspect|graph>  Manage pipeline lifecycle
   artifact <list|verify|gc>            Artifact inventory and integrity workflows
   trust <show|verify|rotate>           Append-only trust ledger operations
@@ -196,7 +206,8 @@ ADMIN COMMANDS:
   bench                               Sub-millisecond latency baseline
   benchmark                           Full evidence benchmark suite
   test:determinism                    Generate determinism + replay artifacts
-  test:crash                          Generate crash recovery artifact
+  test:durability                     Generate durability/recovery artifact
+  test:fault-injection                Generate crash matrix artifact
   test:adapters                       Generate adapter determinism artifact
   evidence                            Bundle benchmark artifacts under bench/evidence
   fast-start [--minimal]              Cached skip of engine/DB checks
@@ -661,9 +672,15 @@ async function main(): Promise<number> {
         break;
       }
 
-      case 'test:crash': {
-        const { runCrashTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runCrashTestCommand: () => Promise<number> };
-        result = await runCrashTestCommand();
+      case 'test:durability': {
+        const { runDurabilityTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runDurabilityTestCommand: () => Promise<number> };
+        result = await runDurabilityTestCommand();
+        break;
+      }
+
+      case 'test:fault-injection': {
+        const { runFaultInjectionTestCommand } = await loadCommand('./commands/benchmark-suite.js') as { runFaultInjectionTestCommand: () => Promise<number> };
+        result = await runFaultInjectionTestCommand();
         break;
       }
 
@@ -896,12 +913,26 @@ async function main(): Promise<number> {
         break;
       }
 
+      case 'workflow:list':
+      case 'workflow:inspect':
+      case 'workflow:run':
+      case 'workflow:enqueue':
+      case 'plugin:list':
+      case 'plugin:install':
+      case 'plugin:enable':
+      case 'plugin:disable':
+      case 'worker:start':
+      case 'worker:status':
+      case 'cluster:status': {
+        const { runWorkflowPlatformCommand } = await loadCommand('./commands/platform-expansion.js') as { runWorkflowPlatformCommand: (command: string, args: string[]) => Promise<number> };
+        result = await runWorkflowPlatformCommand(command, subArgs);
+        break;
+      }
+
       // Note: help/version are handled at top of main() for fast path
       // Also included here for completeness and verification
 
 
-      case 'inspect':
-      case 'graph':
       case 'pipeline':
       case 'artifact':
       case 'trust':

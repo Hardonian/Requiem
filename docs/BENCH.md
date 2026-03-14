@@ -380,3 +380,22 @@ jobs:
           name: benchmark-baseline
           path: results.json
 ```
+
+
+## Durability + Fault Injection Evidence
+
+The durability suite now uses real disk-backed writes with deterministic failpoints in write boundaries.
+
+```bash
+requiem test:durability
+requiem test:fault-injection
+requiem doctor
+requiem evidence
+```
+
+Primary artifacts:
+
+- `bench/recovery-report.json`
+- `bench/crash-matrix-report.json`
+
+These artifacts provide tested guarantees only for executed backend/interruption cases and explicitly bound residual risk for unexecuted scenarios.

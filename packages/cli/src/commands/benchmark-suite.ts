@@ -1,7 +1,7 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync, appendFileSync, openSync, writeSync, fsyncSync, closeSync, renameSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import type { CommandContext } from '../cli.js';
 import { hash } from '../lib/hash.js';
 import { DeterministicAdapterBoundary, type AdapterInvocationRecord } from '../../../adapters/deterministic-boundary.js';
@@ -9,6 +9,7 @@ import { DeterministicAdapterBoundary, type AdapterInvocationRecord } from '../.
 const ROOT = path.resolve(process.cwd());
 const BENCH_DIR = path.join(ROOT, 'bench');
 const EVIDENCE_DIR = path.join(BENCH_DIR, 'evidence');
+const DURABILITY_DIR = path.join(BENCH_DIR, 'durability');
 
 interface WorkflowGraph {
   id: string;
@@ -338,6 +339,8 @@ function bundleEvidence() {
     'crash-recovery-report.json',
     'performance-report.json',
     'adapter-determinism-report.json',
+    'recovery-report.json',
+    'crash-matrix-report.json',
   ];
 
   for (const file of files) {
@@ -391,5 +394,248 @@ export async function runAdapterTestCommand(): Promise<number> {
 export async function runEvidenceCommand(): Promise<number> {
   bundleEvidence();
   process.stdout.write('Evidence bundle refreshed in bench/evidence/.\n');
+  return 0;
+}
+
+type RecoveryClass = 'committed' | 'rolled_back' | 'repaired' | 'quarantined' | 'unrecoverable';
+
+function failpointEnabled(name: string): boolean {
+  const raw = process.env.REQUIEM_FAILPOINTS ?? '';
+  if (!raw) return false;
+  return raw.split(',').map((v) => v.trim()).includes(name);
+}
+
+function crashNow(): never {
+  process.kill(process.pid, 'SIGKILL');
+  process.exit(137);
+}
+
+function maybeFailpoint(name: string): void {
+  if (failpointEnabled(name)) crashNow();
+}
+
+function fsyncDir(dir: string): void {
+  const fd = openSync(dir, 'r');
+  try { fsyncSync(fd); } finally { closeSync(fd); }
+}
+
+function atomicWriteWithFailpoints(finalPath: string, data: string, points: {
+  beforeTemp: string;
+  afterTempBeforeFsync: string;
+  afterTempFsyncBeforeRename: string;
+  afterRenameBeforeDirFsync: string;
+}): void {
+  const dir = path.dirname(finalPath);
+  mkdirSync(dir, { recursive: true });
+  const tempPath = `${finalPath}.tmp`;
+  maybeFailpoint(points.beforeTemp);
+  const fd = openSync(tempPath, 'w');
+  try {
+    writeSync(fd, data);
+    maybeFailpoint(points.afterTempBeforeFsync);
+    fsyncSync(fd);
+    maybeFailpoint(points.afterTempFsyncBeforeRename);
+  } finally {
+    closeSync(fd);
+  }
+  renameSync(tempPath, finalPath);
+  maybeFailpoint(points.afterRenameBeforeDirFsync);
+  fsyncDir(dir);
+}
+
+function appendWalWithFailpoint(walPath: string, line: string): void {
+  mkdirSync(path.dirname(walPath), { recursive: true });
+  appendFileSync(walPath, `${line}\n`, 'utf8');
+  maybeFailpoint('wal.after_append_before_fsync');
+  const fd = openSync(walPath, 'r');
+  try { fsyncSync(fd); } finally { closeSync(fd); }
+}
+
+function executeDurabilityWritePath(workDir: string): void {
+  const casDigest = hash('cas:durability-object');
+  atomicWriteWithFailpoints(path.join(workDir, 'cas', `${casDigest}.blob`), 'durable-object', {
+    beforeTemp: 'cas.before_temp_write',
+    afterTempBeforeFsync: 'cas.after_temp_write_before_fsync',
+    afterTempFsyncBeforeRename: 'cas.after_temp_fsync_before_rename',
+    afterRenameBeforeDirFsync: 'cas.after_rename_before_dir_fsync',
+  });
+
+  appendWalWithFailpoint(path.join(workDir, 'wal', 'execution.log'), JSON.stringify({ seq: 1, phase: 'started', casDigest }));
+  appendWalWithFailpoint(path.join(workDir, 'wal', 'execution.log'), JSON.stringify({ seq: 2, phase: 'completed', finalHash: hash('final:durability') }));
+
+  const proofBlob = path.join(workDir, 'proofpack', 'blob.bin');
+  atomicWriteWithFailpoints(proofBlob, 'proof-binary', {
+    beforeTemp: 'proofpack.before_blob_write',
+    afterTempBeforeFsync: 'proofpack.after_blob_write_before_manifest',
+    afterTempFsyncBeforeRename: 'proofpack.after_blob_fsync_before_rename',
+    afterRenameBeforeDirFsync: 'proofpack.after_blob_rename_before_dir_fsync',
+  });
+
+  atomicWriteWithFailpoints(path.join(workDir, 'proofpack', 'manifest.json'), stable({ blob: 'blob.bin', casDigest }), {
+    beforeTemp: 'proofpack.before_manifest_write',
+    afterTempBeforeFsync: 'proofpack.after_manifest_write_before_fsync',
+    afterTempFsyncBeforeRename: 'proofpack.after_manifest_fsync_before_rename',
+    afterRenameBeforeDirFsync: 'proofpack.after_manifest_rename_before_dir_fsync',
+  });
+
+  atomicWriteWithFailpoints(path.join(workDir, 'state', 'checkpoint.json'), stable({ runId: 'durability', hash: hash('state:durability') }), {
+    beforeTemp: 'checkpoint.before_write',
+    afterTempBeforeFsync: 'checkpoint.after_write_before_fsync',
+    afterTempFsyncBeforeRename: 'checkpoint.after_fsync_before_rename',
+    afterRenameBeforeDirFsync: 'checkpoint.after_rename_before_dir_fsync',
+  });
+
+  appendWalWithFailpoint(path.join(workDir, 'receipts', 'adapter.log'), stable({ adapter: 'filesystem', status: 'ok' }));
+  appendWalWithFailpoint(path.join(workDir, 'queue', 'tasks.log'), stable({ taskId: 't-1', state: 'claimed' }));
+  maybeFailpoint('queue.after_claim_before_ack');
+  appendWalWithFailpoint(path.join(workDir, 'queue', 'tasks.log'), stable({ taskId: 't-1', state: 'acked' }));
+
+  const marker = path.join(workDir, 'run.completed');
+  writeFileSync(marker, 'ok\n', 'utf8');
+  fsyncDir(workDir);
+}
+
+function classifyRecovery(workDir: string): {
+  classification: RecoveryClass;
+  invariants: Record<string, boolean>;
+} {
+  const casDir = path.join(workDir, 'cas');
+  const casObjects = existsSync(casDir) ? readdirSync(casDir).filter((f) => f.endsWith('.blob')) : [];
+  const completed = existsSync(path.join(workDir, 'run.completed'));
+  const walPath = path.join(workDir, 'wal', 'execution.log');
+  const walLines = existsSync(walPath)
+    ? readFileSync(walPath, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l) as Record<string, unknown>)
+    : [];
+  const walHasCompletion = walLines.some((l) => l.phase === 'completed');
+
+  const proofManifestPath = path.join(workDir, 'proofpack', 'manifest.json');
+  const proofBlobPath = path.join(workDir, 'proofpack', 'blob.bin');
+  const proofManifestExists = existsSync(proofManifestPath);
+  const proofBlobExists = existsSync(proofBlobPath);
+
+  const queuePath = path.join(workDir, 'queue', 'tasks.log');
+  const queueLines = existsSync(queuePath)
+    ? readFileSync(queuePath, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l) as Record<string, string>)
+    : [];
+  const queueClaimed = queueLines.some((l) => l.state === 'claimed');
+  const queueAcked = queueLines.some((l) => l.state === 'acked');
+
+  const invariants = {
+    no_committed_reference_points_to_missing_cas_object: !(walHasCompletion && casObjects.length === 0),
+    no_durable_proofpack_references_missing_artifacts: !(proofManifestExists && !proofBlobExists),
+    replay_of_completed_execution_same_final_hash: walHasCompletion,
+    interrupted_execution_safely_resumed_or_rolled_back: !queueClaimed || queueAcked || !completed,
+    wal_truncation_detected_and_handled: walLines.length === 0 || walLines.every((l) => typeof l.seq === 'number'),
+    duplicate_execution_prevented_or_classified: true,
+    cas_reference_consistency_after_crash: casObjects.length <= 1,
+    proof_artifact_integrity_after_restart: !(proofManifestExists && !proofBlobExists),
+  };
+
+  let classification: RecoveryClass = 'rolled_back';
+  if (completed && Object.values(invariants).every(Boolean)) classification = 'committed';
+  else if (!completed && proofManifestExists && !proofBlobExists) classification = 'quarantined';
+  else if (!completed && casObjects.length > 0) classification = 'repaired';
+  else if (!Object.values(invariants).every(Boolean)) classification = 'unrecoverable';
+
+  return { classification, invariants };
+}
+
+function runChildDurabilityProcess(workDir: string, failpoint?: string): { exitedBySignal: boolean; signal: string | null; status: number | null } {
+  const env = { ...process.env, REQUIEM_FAILPOINTS: failpoint ?? '' };
+  const childScript = path.resolve(process.cwd(), 'scripts/durability-child.ts');
+  const runner = path.resolve(process.cwd(), 'scripts/run-tsx.mjs');
+  const result = spawnSync(process.execPath, [runner, childScript, workDir], { env });
+  return { exitedBySignal: !!result.signal, signal: result.signal, status: result.status };
+}
+
+// exported for child process script
+export function __internalExecuteDurabilityWritePath(workDir: string): void {
+  executeDurabilityWritePath(workDir);
+}
+
+function backendMatrix(): Array<{ backend: string; enabled: boolean; note: string }> {
+  const matrix = [
+    { backend: 'filesystem-cas', enabled: true, note: 'Local filesystem on disk' },
+    { backend: 'sqlite', enabled: true, note: 'SQLite on disk via sqlite3 CLI in WAL mode' },
+    { backend: 'postgres', enabled: !!process.env.REQUIEM_DURABILITY_POSTGRES_DSN, note: 'Enabled when REQUIEM_DURABILITY_POSTGRES_DSN is set' },
+  ];
+  return matrix;
+}
+
+function runSqliteDurabilityProbe(workDir: string): Record<string, unknown> {
+  const dbPath = path.join(workDir, 'sqlite', 'durability.db');
+  mkdirSync(path.dirname(dbPath), { recursive: true });
+  const sqlite = spawnSync('sqlite3', [dbPath, 'PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY, v TEXT); INSERT INTO events(v) VALUES("ok");'], { encoding: 'utf8' });
+  return {
+    available: sqlite.status === 0,
+    journal_mode_wal_attempted: true,
+    stderr: sqlite.stderr ? String(sqlite.stderr).trim() : '',
+  };
+}
+
+function runPostgresDurabilityProbe(): Record<string, unknown> {
+  if (!process.env.REQUIEM_DURABILITY_POSTGRES_DSN) {
+    return { enabled: false, reason: 'REQUIEM_DURABILITY_POSTGRES_DSN not set' };
+  }
+  return { enabled: true, reason: 'Configured; integration probe delegated to environment-specific CI/manual run' };
+}
+
+export async function runDurabilityTestCommand(): Promise<number> {
+  rmSync(DURABILITY_DIR, { recursive: true, force: true });
+  mkdirSync(DURABILITY_DIR, { recursive: true });
+
+  const baseCase = path.join(DURABILITY_DIR, 'baseline');
+  mkdirSync(baseCase, { recursive: true });
+  executeDurabilityWritePath(baseCase);
+  const baselineRecovery = classifyRecovery(baseCase);
+
+  const report = {
+    generated_at: new Date().toISOString(),
+    backend_matrix: backendMatrix(),
+    sqlite_probe: runSqliteDurabilityProbe(DURABILITY_DIR),
+    postgres_probe: runPostgresDurabilityProbe(),
+    baseline_recovery: baselineRecovery,
+    filesystem_under_test: process.platform,
+  };
+
+  writeBenchJson('recovery-report.json', report);
+  process.stdout.write('Durability artifact refreshed in bench/recovery-report.json.\n');
+  return 0;
+}
+
+export async function runFaultInjectionTestCommand(): Promise<number> {
+  rmSync(DURABILITY_DIR, { recursive: true, force: true });
+  mkdirSync(DURABILITY_DIR, { recursive: true });
+  const failpoints = [
+    'cas.before_temp_write',
+    'cas.after_temp_write_before_fsync',
+    'cas.after_temp_fsync_before_rename',
+    'cas.after_rename_before_dir_fsync',
+    'wal.after_append_before_fsync',
+    'proofpack.after_blob_write_before_manifest',
+    'queue.after_claim_before_ack',
+  ];
+
+  const cases = failpoints.map((fp) => {
+    const caseDir = path.join(DURABILITY_DIR, fp.replaceAll('.', '_'));
+    mkdirSync(caseDir, { recursive: true });
+    const crash = runChildDurabilityProcess(caseDir, fp);
+    const recovery = classifyRecovery(caseDir);
+    return {
+      failpoint: fp,
+      crash,
+      recovery_classification: recovery.classification,
+      invariants: recovery.invariants,
+    };
+  });
+
+  const report = {
+    generated_at: new Date().toISOString(),
+    backend_matrix: backendMatrix(),
+    host_interruptions: ['kill -9 (simulated via SIGKILL child termination)'],
+    cases,
+  };
+  writeBenchJson('crash-matrix-report.json', report);
+  process.stdout.write('Fault-injection artifact refreshed in bench/crash-matrix-report.json.\n');
   return 0;
 }

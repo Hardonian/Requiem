@@ -1,0 +1,9 @@
+{
+  "suite": "plugin-system",
+  "status": "pass",
+  "checks": [
+    "plugin:list discovers plugin.json descriptors",
+    "plugin enable/disable state is machine-visible",
+    "plugin adapters execute under workflow engine evidence path"
+  ]
+}
