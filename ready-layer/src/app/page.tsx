@@ -87,6 +87,12 @@ export default function LandingPage() {
                 </svg>
                 View GitHub
               </a>
+              <Link
+                href="/features"
+                className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors"
+              >
+                Explore Features
+              </Link>
             </div>
           </div>
         </div>
