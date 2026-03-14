@@ -20,6 +20,10 @@
 #include <cstdio>
 #include <deque>
 #include <filesystem>
+#ifndef _WIN32
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 #include <fstream>
 #include <iomanip>
 #include <iterator>
@@ -71,8 +75,9 @@ std::string make_tmp_name(const fs::path &dir) {
   return (dir / (".tmp_" + std::to_string(dist(rng)))).string();
 }
 
-// Atomic write: write to temp file, then rename into place.
-// On POSIX, rename() is atomic within the same filesystem.
+// Atomic write with durability barriers: write temp, fsync temp, rename,
+// then fsync directory. On POSIX, rename() is atomic within the same
+// filesystem.
 bool atomic_write(const fs::path &target, const std::string &data) {
   fs::create_directories(target.parent_path());
   const std::string tmp = make_tmp_name(target.parent_path());
@@ -85,13 +90,44 @@ bool atomic_write(const fs::path &target, const std::string &data) {
       std::remove(tmp.c_str());
       return false;
     }
+    ofs.flush();
+    if (!ofs) {
+      std::remove(tmp.c_str());
+      return false;
+    }
   }
+#ifndef _WIN32
+  {
+    int tfd = ::open(tmp.c_str(), O_RDONLY);
+    if (tfd < 0) {
+      std::remove(tmp.c_str());
+      return false;
+    }
+    const int ok = ::fsync(tfd);
+    ::close(tfd);
+    if (ok != 0) {
+      std::remove(tmp.c_str());
+      return false;
+    }
+  }
+#endif
   std::error_code ec;
   fs::rename(tmp, target, ec);
   if (ec) {
     std::remove(tmp.c_str());
     return false;
   }
+#ifndef _WIN32
+  {
+    int dfd = ::open(target.parent_path().c_str(), O_RDONLY | O_DIRECTORY);
+    if (dfd >= 0) {
+      const int ok = ::fsync(dfd);
+      ::close(dfd);
+      if (ok != 0)
+        return false;
+    }
+  }
+#endif
   return true;
 }
 
@@ -323,8 +359,21 @@ void CasStore::save_index_entry(const CasObjectInfo &info) const {
       ",\"stored_size\":" + std::to_string(info.stored_size) +
       ",\"stored_blob_hash\":\"" + info.stored_blob_hash +
       "\",\"created_at\":" + std::to_string(info.created_at_unix_ts) + "}\n";
-  std::ofstream ofs(index_path(), std::ios::binary | std::ios::app);
-  ofs.write(line.data(), line.size());
+  const std::string ip = index_path();
+  {
+    std::ofstream ofs(ip, std::ios::binary | std::ios::app);
+    ofs.write(line.data(), static_cast<std::streamsize>(line.size()));
+    ofs.flush();
+  }
+#ifndef _WIN32
+  {
+    int fd = ::open(ip.c_str(), O_RDONLY);
+    if (fd >= 0) {
+      (void)::fsync(fd);
+      ::close(fd);
+    }
+  }
+#endif
 }
 
 std::string CasStore::put(const std::string &data,

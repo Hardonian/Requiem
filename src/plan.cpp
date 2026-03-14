@@ -3,6 +3,7 @@
 #include "requiem/jsonlite.hpp"
 #include "requiem/receipt.hpp"
 #include "requiem/runtime.hpp"
+#include "requiem/cas.hpp"
 
 #include <chrono>
 #include <map>
@@ -361,15 +362,33 @@ PlanRunResult plan_execute(const Plan &plan, const std::string &workspace_root,
       sr.result_digest = exec_result.result_digest;
       sr.error_code = exec_result.error_code;
     } else if (step.kind == "gate") {
-      // Gate: check condition. For now, always pass.
-      sr.ok = true;
-      sr.result_digest = hash_domain("plan:", "gate:" + step_id + ":pass");
+      // Deterministic gate evaluation: empty/"pass"/"true" => pass,
+      // "deny"/"false" => deny, any other non-empty payload is hashed and
+      // considered pass to keep behavior deterministic + explicit.
+      const std::string gate_data = step.config.data;
+      const bool gate_pass = gate_data.empty() || gate_data == "pass" ||
+                             gate_data == "true";
+      const bool gate_deny = gate_data == "deny" || gate_data == "false";
+      sr.ok = gate_pass || !gate_deny;
+      sr.error_code = sr.ok ? "" : "gate_denied";
+      sr.result_digest = hash_domain("plan:", "gate:" + step_id + ":" +
+                                                 (sr.ok ? "pass" : "deny") +
+                                                 ":" + gate_data);
     } else if (step.kind == "cas_put") {
-      // Stub: CAS put via plan step.
-      sr.ok = !step.config.data.empty();
-      sr.result_digest = hash_domain("cas:", step.config.data);
-      if (!sr.ok)
+      const std::string cas_root =
+          (workspace_root.empty() ? step.config.workspace_root : workspace_root) +
+          "/.requiem_cas";
+      CasStore cas(cas_root);
+      if (step.config.data.empty()) {
+        sr.ok = false;
         sr.error_code = "empty_data";
+      } else {
+        const std::string digest = cas.put(step.config.data);
+        sr.ok = !digest.empty();
+        sr.result_digest = digest;
+        if (!sr.ok)
+          sr.error_code = "cas_put_failed";
+      }
     } else {
       sr.ok = false;
       sr.error_code = "unknown_step_kind:" + step.kind;

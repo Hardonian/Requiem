@@ -290,6 +290,11 @@ target_link_libraries(kernel_tests PRIVATE requiem)
 add_test(NAME kernel_tests COMMAND kernel_tests
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+add_executable(hash_parity_vectors_test tests/hash-parity-vectors.test.cpp)
+target_link_libraries(hash_parity_vectors_test PRIVATE requiem)
+add_test(NAME hash_parity_vectors_test COMMAND hash_parity_vectors_test
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # ---------------------------------------------------------------------------
 # Production hardening harnesses (Phases 1-7)
 # ---------------------------------------------------------------------------
