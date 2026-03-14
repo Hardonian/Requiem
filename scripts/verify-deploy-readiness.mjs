@@ -48,8 +48,12 @@ if (vercelConfig.installCommand !== 'pnpm install --frozen-lockfile') {
   fail(`vercel installCommand must be 'pnpm install --frozen-lockfile' (found: ${vercelConfig.installCommand ?? 'missing'})`);
 }
 
-if (vercelConfig.buildCommand !== 'pnpm --filter ready-layer build') {
-  fail(`vercel buildCommand must be 'pnpm --filter ready-layer build' (found: ${vercelConfig.buildCommand ?? 'missing'})`);
+if (vercelConfig.buildCommand !== 'pnpm run build:vercel') {
+  fail(`vercel buildCommand must be 'pnpm run build:vercel' (found: ${vercelConfig.buildCommand ?? 'missing'})`);
+}
+
+if (/(^|\s)(pnpm\s+install|npm\s+install|yarn\s+install)($|\s)/.test(vercelConfig.buildCommand)) {
+  fail(`vercel buildCommand must not run a second install (found: ${vercelConfig.buildCommand})`);
 }
 
 if (!existsSync('ready-layer/.env.example')) {
@@ -65,6 +69,16 @@ for (const requiredKey of ['REQUIEM_API_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_
 
 if (!webPackage.scripts?.build?.includes('next build')) {
   fail('ready-layer build script must execute next build');
+}
+
+
+const vercelBuildScript = rootPackage.scripts?.['build:vercel'];
+if (vercelBuildScript !== 'pnpm --filter @requiem/ai build && pnpm --filter ready-layer build') {
+  fail(`root scripts.build:vercel must preserve deterministic package order (found: ${vercelBuildScript ?? 'missing'})`);
+}
+
+if (/(^|\s)(pnpm\s+install|npm\s+install|yarn\s+install)($|\s)/.test(vercelBuildScript)) {
+  fail('root scripts.build:vercel must not run install commands');
 }
 
 console.log('✅ Deploy readiness contract is valid (local/CI/Vercel parity checks passed)');
