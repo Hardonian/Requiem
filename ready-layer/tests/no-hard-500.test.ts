@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { withTenantContext } from '../src/lib/big4-http';
 
@@ -11,9 +11,16 @@ function authHeaders(tenantId = 'tenant-hard500-1'): Record<string, string> {
   };
 }
 
+beforeEach(() => {
+  // REQUIEM_ROUTE_VERIFY_MODE bypasses the missing-secret 503 so exception-handling
+  // and downstream-failure behaviour is reachable in test without a real secret.
+  process.env.REQUIEM_ROUTE_VERIFY_MODE = '1';
+});
+
 afterEach(() => {
   vi.resetModules();
   vi.unmock('@/lib/engine-client');
+  delete process.env.REQUIEM_ROUTE_VERIFY_MODE;
 });
 
 describe('No hard 500 behavior', () => {

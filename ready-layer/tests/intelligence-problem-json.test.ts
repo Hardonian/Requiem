@@ -1,7 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { NextRequest } from 'next/server';
 import { withTenantContext } from '../src/lib/big4-http';
 import { authErrorResponse } from '../src/lib/auth';
+
+beforeEach(() => {
+  // Allow auth to pass in test env so policy-eval is actually reached.
+  process.env.REQUIEM_ROUTE_VERIFY_MODE = '1';
+});
+
+afterEach(() => {
+  delete process.env.REQUIEM_ROUTE_VERIFY_MODE;
+});
 
 describe('Problem+JSON contracts for denied policy/auth paths', () => {
   it('withTenantContext returns Problem+JSON on policy deny', async () => {
