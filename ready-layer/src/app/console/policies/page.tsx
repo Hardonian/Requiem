@@ -2,43 +2,40 @@
 
 /**
  * Console Policies Page - Policy management and evaluation
- * 
+ *
  * What: View and manage enforcement policies.
  * Why: Policies provide deny-by-default governance for all operations.
  * What you can do: View policy rules, check decision history.
+ *
+ * Policies API: GET /api/policies → { v:1, kind:'policies.list', data:{ok:true, data:[{hash,size,created_at_unix_ms}], total:N} }
+ * Decisions API: GET /api/decisions → { ok:true, data:[], total:0, trace_id }
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  PageHeader, 
-  LoadingState, 
+import {
+  PageHeader,
+  LoadingState,
   EmptyState,
   HashDisplay,
   ErrorDisplay,
-  SectionHeader 
+  SectionHeader,
 } from '@/components/ui';
 
-interface Policy {
-  name: string;
-  type: string;
-  ruleCount: number;
-  activeVersion: string;
-  description?: string;
-  lastEvaluated?: string;
+interface PolicyListItem {
+  hash: string;
+  size: number;
+  created_at_unix_ms: number;
 }
 
 interface PolicyDecision {
   id: string;
-  policyName: string;
-  inputHash: string;
-  outputHash: string;
-  proofHash: string;
-  decision: 'allow' | 'deny';
-  timestamp: string;
+  policy_id: string;
+  result: string;
+  timestamp: number;
 }
 
 export default function ConsolePoliciesPage() {
-  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [policies, setPolicies] = useState<PolicyListItem[]>([]);
   const [decisions, setDecisions] = useState<PolicyDecision[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ code: string; message: string; traceId?: string } | null>(null);
@@ -48,21 +45,24 @@ export default function ConsolePoliciesPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const [policiesRes, decisionsRes] = await Promise.all([
         fetch('/api/policies'),
         fetch('/api/decisions?limit=10'),
       ]);
-      
-      const policiesData = await policiesRes.json();
-      const decisionsData = await decisionsRes.json();
-      
-      if (policiesData.ok) {
-        setPolicies(policiesData.policies || []);
+
+      const policiesEnvelope = await policiesRes.json();
+      const decisionsEnvelope = await decisionsRes.json();
+
+      // Policies: { v:1, kind, data:{ok:true, data:[...PolicyListItem], total:N} }
+      const policiesInner = policiesEnvelope.data;
+      if (policiesInner?.ok) {
+        setPolicies(Array.isArray(policiesInner.data) ? policiesInner.data : []);
       }
-      
-      if (decisionsData.ok) {
-        setDecisions(decisionsData.decisions || []);
+
+      // Decisions: { ok:true, data:[...Decision], total:N, trace_id }
+      if (decisionsEnvelope.ok) {
+        setDecisions(Array.isArray(decisionsEnvelope.data) ? decisionsEnvelope.data : []);
       }
     } catch (err) {
       setError({
@@ -78,14 +78,14 @@ export default function ConsolePoliciesPage() {
     fetchData();
   }, [fetchData]);
 
-  const getTypeColor = (type: string) => {
-    switch (type?.toLowerCase()) {
+  const getDecisionColor = (result: string) => {
+    switch (result?.toLowerCase()) {
       case 'allow':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+        return 'bg-success/10 text-success border border-success/20';
       case 'deny':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+        return 'bg-destructive/10 text-destructive border border-destructive/20';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
+        return 'bg-surface-elevated text-muted border border-border';
     }
   };
 
@@ -97,30 +97,26 @@ export default function ConsolePoliciesPage() {
       />
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="mb-6 border-b border-border">
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('policies')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm transition-colors
-              ${activeTab === 'policies'
-                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
-              }
-            `}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'policies'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-muted hover:text-foreground hover:border-border'
+            }`}
             type="button"
           >
             Policies
           </button>
           <button
             onClick={() => setActiveTab('decisions')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm transition-colors
-              ${activeTab === 'decisions'
-                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
-              }
-            `}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'decisions'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-muted hover:text-foreground hover:border-border'
+            }`}
             type="button"
           >
             Recent Decisions
@@ -131,12 +127,7 @@ export default function ConsolePoliciesPage() {
       {/* Error */}
       {error && (
         <div className="mb-6">
-          <ErrorDisplay
-            code={error.code}
-            message={error.message}
-            traceId={error.traceId}
-            onRetry={fetchData}
-          />
+          <ErrorDisplay code={error.code} message={error.message} traceId={error.traceId} onRetry={fetchData} />
         </div>
       )}
 
@@ -150,126 +141,89 @@ export default function ConsolePoliciesPage() {
             description="Use the CLI to add policies: requiem policy add <policy-file>"
           />
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Rules
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Version
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {policies.map((policy, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {policy.name}
-                        </div>
-                        {policy.description && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {policy.description}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(policy.type)}`}>
-                        {policy.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {policy.ruleCount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <HashDisplay hash={policy.activeVersion} length={16} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      ) : (
-        decisions.length === 0 ? (
-          <EmptyState
-            title="No decisions recorded"
-            description="Policy decisions will appear here when operations are evaluated."
-          />
-        ) : (
-          <div className="space-y-4">
-            <SectionHeader
-              title="Recent Policy Decisions"
-              description="Input hash, output hash, proof hash, and allow/deny status for each evaluation."
-            />
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-900">
+          <>
+            <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+              <table className="stitch-table">
+                <thead>
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Policy
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Decision
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Input Hash
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Output Hash
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Proof Hash
-                    </th>
+                    <th>Policy Hash</th>
+                    <th>Size</th>
+                    <th>Created</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {decisions.map((decision) => (
-                    <tr key={decision.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {decision.policyName}
+                <tbody>
+                  {policies.map((policy) => (
+                    <tr key={policy.hash}>
+                      <td>
+                        <HashDisplay hash={policy.hash} length={32} />
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          decision.decision === 'allow' 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                        }`}>
-                          {decision.decision.toUpperCase()}
-                        </span>
+                      <td className="text-sm text-muted font-mono">
+                        {policy.size ? `${policy.size.toLocaleString()} B` : '—'}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <HashDisplay hash={decision.inputHash} length={16} />
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <HashDisplay hash={decision.outputHash} length={16} />
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <HashDisplay hash={decision.proofHash} length={16} />
+                      <td className="text-sm text-muted">
+                        {policy.created_at_unix_ms
+                          ? new Date(policy.created_at_unix_ms).toLocaleString()
+                          : '—'}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
+            <p className="mt-4 text-sm text-muted">
+              Total: {policies.length} polic{policies.length !== 1 ? 'ies' : 'y'}
+            </p>
+          </>
         )
-      )}
-
-      {/* Total count */}
-      {!loading && activeTab === 'policies' && policies.length > 0 && (
-        <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-          Total: {policies.length} polic{policies.length !== 1 ? 'ies' : 'y'}
+      ) : decisions.length === 0 ? (
+        <EmptyState
+          title="No decisions recorded"
+          description="Policy decisions will appear here when operations are evaluated."
+        />
+      ) : (
+        <div className="space-y-4">
+          <SectionHeader
+            title="Recent Policy Decisions"
+            description="Policy ID, result, and evaluation timestamp for each decision."
+          />
+          <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+            <table className="stitch-table">
+              <thead>
+                <tr>
+                  <th>Decision ID</th>
+                  <th>Policy ID</th>
+                  <th>Result</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {decisions.map((decision) => (
+                  <tr key={decision.id}>
+                    <td>
+                      <HashDisplay hash={decision.id} length={16} />
+                    </td>
+                    <td>
+                      <HashDisplay hash={decision.policy_id} length={16} />
+                    </td>
+                    <td>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getDecisionColor(
+                          decision.result,
+                        )}`}
+                      >
+                        {decision.result?.toUpperCase() || '—'}
+                      </span>
+                    </td>
+                    <td className="text-sm text-muted">
+                      {decision.timestamp
+                        ? new Date(decision.timestamp).toLocaleString()
+                        : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
