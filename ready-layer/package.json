@@ -31,8 +31,8 @@
     "verify:all": "pnpm run verify:web && pnpm run verify:boundaries && pnpm run verify:integrity && pnpm run verify:policy && pnpm run verify:replay",
     "smoke:api": "bash scripts/smoke-api.sh",
     "test:mcp-routes": "vitest run tests/mcp-route*.test.ts",
-    "verify:route-map": "node ../scripts/run-tsx.mjs scripts/route-map-check.ts && pnpm run verify:route-maturity",
-    "verify:route-maturity": "node ../scripts/run-tsx.mjs scripts/verify-route-maturity.ts"
+    "verify:route-map": "node ../scripts/run-tsx.mjs scripts/route-map-check.ts",
+    "generate:auth-truth": "node ../scripts/run-tsx.mjs scripts/generate-auth-truth-matrices.ts"
   },
   "dependencies": {
     "@babel/parser": "^7.28.6",
