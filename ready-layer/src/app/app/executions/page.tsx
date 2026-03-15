@@ -37,13 +37,13 @@ async function ExecutionsList() {
           <p className="text-muted text-sm mt-1">Monitor and verify deterministic AI tool invocations.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-success/10 border border-success/20 rounded-full text-xs font-medium text-success">
-            <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" aria-hidden="true" />
-            Determinism Enforced
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent/10 border border-accent/20 rounded-full text-xs font-medium text-accent">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-elevated border border-border rounded-full text-xs font-medium text-muted">
             <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
-            Replay Verified
+            Determinism status requires runtime evidence
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-elevated border border-border rounded-full text-xs font-medium text-muted">
+            <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
+            Replay status requires backend data
           </span>
         </div>
       </div>

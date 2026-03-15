@@ -6,7 +6,13 @@ interface TruthActionButtonProps {
   pending?: boolean;
   disabled?: boolean;
   disabledReason?: string;
-  semantics: 'runtime-backed' | 'local-only' | 'navigation-only' | 'informational';
+  semantics:
+    | 'runtime-backed'
+    | 'local-only'
+    | 'navigation-only'
+    | 'informational'
+    | 'dialog-only'
+    | 'dev-verify-only';
 }
 
 const semanticsCopy: Record<TruthActionButtonProps['semantics'], string> = {
@@ -14,6 +20,8 @@ const semanticsCopy: Record<TruthActionButtonProps['semantics'], string> = {
   'local-only': 'local-only action',
   'navigation-only': 'navigation only',
   informational: 'informational control',
+  'dialog-only': 'opens local dialog/panel only',
+  'dev-verify-only': 'dev-verify-only action (synthetic auth context)',
 };
 
 export function TruthActionButton({

@@ -14,6 +14,7 @@ This document is the canonical reviewer artifact for authenticated UX truth in t
   - `NODE_ENV !== production`
 - Middleware injects synthetic auth headers (`x-requiem-authenticated`, `x-user-id`, `x-tenant-id`) for local validation.
 - All protected shells now render a screenshot-visible warning banner: **“Synthetic authentication active (dev verification only)”**.
+- Protected shells now also render a shared per-route truth card that classifies route maturity and backend dependency status directly in-product.
 - Production auth behavior is unchanged.
 
 ## 2) Degraded-state legend
@@ -84,8 +85,8 @@ Legend: `I`=informational/static, `M`=mixed, `R`=runtime-backed, `L`=local/dev-s
 | `/app/replay` | `Verify` button | trigger replay verification | calls `/api/replay/verify`; surfaces result/error text | runtime-backed |
 | `/app/replay` | `Open /console/runs` link | navigate to run list | client navigation only | informational navigation |
 | `/app/audit` | export links (`json/csv`) | download audit data | calls `/api/audit/logs?format=*` | runtime-backed |
-| `/app/interop` | `Approve correction proposal` | execute governance change | local/demo interaction only | relabeled by matrix as local-only |
-| `/app/interop` | `Open PR` | open repo workflow | informational external navigation | informational navigation |
+| `/app/interop` | `Approve correction proposal` | execute governance change | explicitly disabled; no approval API wired on this route | disabled truthfully (local-only) |
+| `/app/interop` | `Open PR` | open repo workflow | explicitly disabled; page does not create pull requests | disabled truthfully (informational) |
 | `/console/runs` | row `Verify`/actions + pagination | inspect and verify runs | API-backed list + action handlers | runtime-backed |
 | `/console/policies` | tab switch (`Policies`/`Recent Decisions`) | fetch/swap policy views | client tab + API-backed datasets | mixed truthful |
 | `/console/capabilities` | `Revoke` | revoke capability token | API-backed revoke; disabled while pending | runtime-backed |
@@ -158,3 +159,4 @@ Visit runtime-backed routes (`/app/diagnostics`, `/console/runs`, `/spend`) and 
 
 - Some route capability claims are source-inspected but not fully runtime-proven against a production-like Supabase auth + live backend in this environment.
 - Informational pages still carry static sample/status content by design; they are classified as informational to avoid operational overclaim.
+- Route maturity coverage is incomplete for some protected prefixes (for example `/intelligence/*`); those screens now show a source-inspected warning until cataloged.

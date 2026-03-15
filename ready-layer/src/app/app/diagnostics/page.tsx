@@ -30,7 +30,7 @@ async function DiagnosticsContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">Engine Diagnostics</h1>
-          <p className="text-muted text-sm mt-1">System health monitoring and platform capability verification.</p>
+          <p className="text-muted text-sm mt-1">System health framing with explicit non-probed placeholders unless runtime checks are wired.</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center px-3 py-1 bg-surface-elevated border border-border rounded-full text-[10px] font-bold text-muted uppercase tracking-widest">
@@ -46,10 +46,10 @@ async function DiagnosticsContent() {
             <div className="divide-y divide-border">
               {[
                 { check: 'Engine reachable', status: 'STANDBY', ok: false },
-                { check: 'BLAKE3 hash available', status: 'VERIFIED', ok: true },
-                { check: 'CAS backend accessible', status: 'READY', ok: true },
-                { check: 'Replay log writable', status: 'READY', ok: true },
-                { check: 'Audit log writable', status: 'READY', ok: true },
+                { check: 'BLAKE3 hash available', status: 'SOURCE-INSPECTED', ok: false },
+                { check: 'CAS backend accessible', status: 'NOT PROBED', ok: false },
+                { check: 'Replay log writable', status: 'NOT PROBED', ok: false },
+                { check: 'Audit log writable', status: 'NOT PROBED', ok: false },
               ].map((c) => (
                 <div
                   key={c.check}
@@ -95,6 +95,11 @@ async function DiagnosticsContent() {
             </div>
           </div>
         </section>
+      </div>
+
+
+      <div className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-muted">
+        Statuses marked <span className="font-semibold text-foreground">NOT PROBED</span> or <span className="font-semibold text-foreground">SOURCE-INSPECTED</span> are not runtime health checks in this page.
       </div>
 
       <div className="p-5 bg-surface border border-border rounded-xl flex items-start gap-4">
