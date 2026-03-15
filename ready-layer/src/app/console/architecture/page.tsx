@@ -12,6 +12,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { StitchContainer, StitchCard, StitchActivityItem, StitchIcon } from '@/components/stitch';
+import { RouteMaturityNote } from '@/components/ui';
 
 interface StatusEnvelope {
   backend?: {
@@ -142,6 +143,11 @@ export default function ArchitecturePage() {
       </header>
 
       <StitchContainer maxWidth="md">
+
+        <RouteMaturityNote maturity="runtime-degraded" title="Maturity: runtime route with explicit degraded mode">
+          Topology status is live only when <code className="font-mono">/api/status</code> is reachable. Otherwise this route remains diagnostic-only and intentionally suppresses fabricated subsystem health.
+        </RouteMaturityNote>
+
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2 text-white font-display">Control Plane Topology</h2>
           <p className="text-sm text-[#94a3b8] leading-relaxed">

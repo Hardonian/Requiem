@@ -33,7 +33,7 @@ First-clone flow and troubleshooting: [docs/GETTING_STARTED.md](./docs/GETTING_S
 - **Operate locally:** [docs/OPERATOR_RUNBOOK.md](./docs/OPERATOR_RUNBOOK.md)
 - **Contribute safely:** [CONTRIBUTING.md](./CONTRIBUTING.md)
 - **Understand architecture:** [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
-- **Inspect route maturity + dependencies:** [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md)
+- **Inspect route maturity policy (canonical code source):** [`ready-layer/src/lib/route-maturity.ts`](./ready-layer/src/lib/route-maturity.ts) + [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md)
 
 ## Installation
 
@@ -62,7 +62,7 @@ pnpm install --frozen-lockfile
 
 The route surface intentionally mixes runtime-backed pages with informational and demo-safe pages.
 Do not treat every console route as live backend proof.
-Use [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md) as the source of truth for per-route expectations.
+Use [`ready-layer/src/lib/route-maturity.ts`](./ready-layer/src/lib/route-maturity.ts) as the canonical source of truth, with [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md) as the lightweight index.
 
 ## Verification evidence map
 

@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { RouteMaturityNote } from '@/components/ui';
 import { HashDisplay, VerificationBadge } from '@/components/ui';
 
 // Simulated event types
@@ -121,7 +122,7 @@ export default function DemoPage() {
             <div>
               <h1 className="text-2xl font-bold">60-Second Demo</h1>
               <p className="text-slate-400 text-sm mt-1">
-                See deterministic execution in action
+                Local scripted walkthrough
               </p>
             </div>
             <Link
@@ -135,6 +136,11 @@ export default function DemoPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <RouteMaturityNote maturity="demo" title="Maturity: demo route">
+          This flow replays local scripted events for UX validation. It does not prove backend execution, policy enforcement, or receipt generation against a live runtime.
+        </RouteMaturityNote>
+
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left: Controls & Status */}
           <div className="space-y-6">
