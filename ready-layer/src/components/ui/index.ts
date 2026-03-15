@@ -26,4 +26,5 @@ export {
   EmptyState 
 } from './PageHeader';
 
+export { RouteMaturityNote } from './RouteMaturityNote';
 export { OperationalTruthBanner } from './OperationalTruthBanner';

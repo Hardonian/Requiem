@@ -41,7 +41,7 @@ const platformNavItems: NavItem[] = [
     ),
   },
   {
-    label: 'Replication',
+    label: 'Replication (info)',
     href: '/console/replication',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -72,7 +72,7 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    label: 'Plans',
+    label: 'Plans (demo)',
     href: '/console/plans',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -108,7 +108,7 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    label: 'Snapshots',
+    label: 'Snapshots (demo)',
     href: '/console/snapshots',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

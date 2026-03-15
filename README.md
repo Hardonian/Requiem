@@ -25,7 +25,15 @@ pnpm install --frozen-lockfile
 pnpm run verify:all
 ```
 
-For first clone setup and incremental verification options, see [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md).
+First-clone flow and troubleshooting: [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md).
+
+## Canonical entrypoints
+
+- **Evaluate truth quickly:** this README + `pnpm run verify:all`
+- **Operate locally:** [docs/OPERATOR_RUNBOOK.md](./docs/OPERATOR_RUNBOOK.md)
+- **Contribute safely:** [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **Understand architecture:** [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+- **Inspect route maturity + dependencies:** [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md)
 
 ## Installation
 
@@ -48,6 +56,13 @@ pnpm install --frozen-lockfile
 - `pnpm run test`: runs engine smoke tests (`test:smoke`) for quick feedback.
 - `pnpm run verify:all`: strongest repo confidence gate.
 - `pnpm run doctor`: checks prerequisites and reports engine build state.
+
+
+## ReadyLayer route maturity
+
+The route surface intentionally mixes runtime-backed pages with informational and demo-safe pages.
+Do not treat every console route as live backend proof.
+Use [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md) as the source of truth for per-route expectations.
 
 ## Verification evidence map
 

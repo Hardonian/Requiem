@@ -8,6 +8,7 @@ Use this page as the canonical documentation navigation spine.
 - [GETTING_STARTED.md](./GETTING_STARTED.md)
 - [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md)
 - [OSS_BOUNDARY.md](./OSS_BOUNDARY.md)
+- [Route maturity map](./reference/ROUTE_MATURITY.md)
 
 ## Contributing and governance
 
