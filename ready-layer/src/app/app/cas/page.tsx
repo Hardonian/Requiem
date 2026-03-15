@@ -48,10 +48,10 @@ export default function CASPage() {
   const failure = error ? classifyApiFailure({ status: error.status, code: error.code, message: error.message }) : null;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">CAS Integrity</h1>
-        <p className="text-sm text-muted mt-1">Live integrity response from <code className="font-mono">/api/cas/integrity</code>, with explicit runtime failure classification.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">CAS Integrity</h1>
+        <p className="text-sm text-muted mt-1">Content-addressable storage integrity check. Requires a connected engine node.</p>
       </div>
 
       {loading && <div className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">Loading CAS report…</div>}

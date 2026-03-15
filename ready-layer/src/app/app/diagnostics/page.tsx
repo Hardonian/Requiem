@@ -30,7 +30,7 @@ async function DiagnosticsContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">Engine Diagnostics</h1>
-          <p className="text-muted text-sm mt-1">System health framing with explicit non-probed placeholders unless runtime checks are wired.</p>
+          <p className="text-muted text-sm mt-1">System health checks and build metadata. Live probes require a connected engine node.</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center px-3 py-1 bg-surface-elevated border border-border rounded-full text-[10px] font-bold text-muted uppercase tracking-widest">

@@ -81,7 +81,7 @@ const executionSteps = [
 export default function OverviewPage() {
   const routeMaturity = getRouteMaturity('/console/overview');
   return (
-    <div className="min-h-screen bg-[#101922] flex flex-col pb-20">
+    <div className="min-h-screen bg-background flex flex-col pb-20">
       <StitchHeader title="Requiem Console" />
 
       <StitchContainer maxWidth="md">
@@ -94,12 +94,12 @@ export default function OverviewPage() {
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge>Control Plane</StitchBadge>
 
-          <h2 className="text-white text-3xl font-bold font-display leading-tight">
+          <h2 className="text-foreground text-3xl font-bold font-display leading-tight">
             Control Plane Overview
           </h2>
 
-          <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
-            Runtime claims on this page are bounded by backend reachability and explicit degraded-state messaging.
+          <p className="text-muted text-base font-normal leading-relaxed">
+            Monitor runs, enforce policies, and track execution guarantees.
           </p>
 
           <div className="flex flex-col gap-3 pt-2">
@@ -123,29 +123,29 @@ export default function OverviewPage() {
         {/* System Status — honest standby state */}
         <section className="px-5 pb-8">
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#1c252e] border border-[#2a3441] rounded-xl p-4">
-              <p className="text-[10px] font-semibold text-[#94a3b8] uppercase tracking-wider mb-1">Active Policies</p>
-              <p className="text-2xl font-bold text-white font-display">—</p>
-              <p className="text-xs text-[#94a3b8] mt-1">Connect engine to load</p>
+            <div className="stitch-stat">
+              <p className="stitch-stat-label">Active Policies</p>
+              <p className="stitch-stat-value">&mdash;</p>
+              <p className="stitch-stat-sub">Connect engine to load</p>
             </div>
-            <div className="bg-[#1c252e] border border-[#2a3441] rounded-xl p-4">
-              <p className="text-[10px] font-semibold text-[#94a3b8] uppercase tracking-wider mb-1">Total Executions</p>
-              <p className="text-2xl font-bold text-white font-display">—</p>
-              <p className="text-xs text-[#94a3b8] mt-1">Engine not connected</p>
+            <div className="stitch-stat">
+              <p className="stitch-stat-label">Total Executions</p>
+              <p className="stitch-stat-value">&mdash;</p>
+              <p className="stitch-stat-sub">Engine not connected</p>
             </div>
           </div>
-          <p className="text-xs text-[#94a3b8] mt-3 text-center">
-            Set <code className="bg-[#1c252e] px-1.5 py-0.5 rounded font-mono">REQUIEM_API_URL</code> to show live metrics.
-            Live data available via <Link href="/console/runs" className="text-[#137fec] hover:underline">Runs</Link> and <Link href="/console/policies" className="text-[#137fec] hover:underline">Policies</Link>.
+          <p className="text-xs text-muted mt-3 text-center">
+            Set <code className="bg-surface-elevated px-1.5 py-0.5 rounded font-mono">REQUIEM_API_URL</code> to show live metrics.
+            Live data available via <Link href="/console/runs" className="text-accent hover:underline">Runs</Link> and <Link href="/console/policies" className="text-accent hover:underline">Policies</Link>.
           </p>
         </section>
 
         {/* Control Plane Features */}
         <section className="px-5 pb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white text-lg font-bold font-display">Control Plane Core</h3>
-            <Link href="/console/runs" className="text-[#137fec] text-xs font-bold uppercase tracking-wider hover:text-[#0b5cb5]">
-              View Runs →
+            <h3 className="text-foreground text-lg font-bold font-display">Control Plane Core</h3>
+            <Link href="/console/runs" className="text-accent text-xs font-bold uppercase tracking-wider hover:opacity-80 transition-opacity">
+              View Runs &rarr;
             </Link>
           </div>
           <div className="grid gap-3">
@@ -164,7 +164,7 @@ export default function OverviewPage() {
 
         {/* Execution Flow */}
         <section className="px-5 pb-8">
-          <h3 className="text-white text-lg font-bold font-display mb-4">Execution Flow</h3>
+          <h3 className="text-foreground text-lg font-bold font-display mb-4">Execution Flow</h3>
           <StitchTimeline steps={executionSteps} />
         </section>
       </StitchContainer>

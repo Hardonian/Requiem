@@ -6,100 +6,47 @@ function isVerifyMode(): boolean {
   return process.env.REQUIEM_ROUTE_VERIFY_MODE === '1' && process.env.NODE_ENV !== 'production';
 }
 
-function resolveBackendState(): {
-  label: string;
-  tone: 'warning' | 'neutral';
-  detail: string;
-} {
-  if (!process.env.REQUIEM_API_URL) {
-    return {
-      label: 'Backend not configured',
-      tone: 'warning',
-      detail: 'REQUIEM_API_URL is not set. Runtime-backed pages will show degraded or empty states until configured.',
-    };
-  }
-
-  return {
-    label: 'Backend configured (not reachability-proven)',
-    tone: 'neutral',
-    detail: `REQUIEM_API_URL is set to ${process.env.REQUIEM_API_URL}. Route behavior still depends on backend reachability and data availability.`,
-  };
-}
-
-function resolveAuthState(): {
-  label: string;
-  tone: 'warning' | 'neutral';
-  detail: string;
-} {
-  if (isVerifyMode()) {
-    return {
-      label: 'Dev auth verification mode (synthetic auth)',
-      tone: 'warning',
-      detail: 'Middleware injects synthetic authenticated headers for local route validation only. This is not production-backed authentication.',
-    };
-  }
-
-  return {
-    label: 'Real auth mode (session-enforced)',
-    tone: 'neutral',
-    detail: 'Protected routes require a real Supabase user session in middleware.',
-  };
-}
-
-function resolveReachabilityState(): {
-  label: string;
-  tone: 'warning' | 'neutral';
-  detail: string;
-} {
-  return {
-    label: 'Backend reachability not proven in shell',
-    tone: 'warning',
-    detail:
-      'This shell banner does not perform network probes. Treat backend reachability and data freshness as route-level evidence only.',
-  };
-}
-
-function badgeClass(tone: 'warning' | 'neutral'): string {
-  return tone === 'neutral'
-    ? 'bg-slate-500/10 text-slate-700 border-slate-300'
-    : 'bg-amber-500/10 text-amber-700 border-amber-200';
-}
-
 export function OperationalTruthBanner({ className = '' }: OperationalTruthBannerProps) {
-  const authState = resolveAuthState();
-  const backendState = resolveBackendState();
-  const reachabilityState = resolveReachabilityState();
   const verifyMode = isVerifyMode();
+  const backendConfigured = Boolean(process.env.REQUIEM_API_URL);
+
+  // In normal production operation with backend configured and no synthetic auth:
+  // suppress the banner entirely — it's just noise.
+  if (backendConfigured && !verifyMode) {
+    return null;
+  }
 
   return (
-    <div className={`mx-6 mt-6 rounded-xl border-2 border-border bg-surface p-4 ${className}`}>
+    <div className={`mx-6 mt-6 space-y-2 ${className}`} role="status" aria-label="Operational state notices">
       {verifyMode && (
-        <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
-          Synthetic authentication active (dev verification only) — production authentication is unchanged.
+        <div className="rounded-lg border border-amber-300/50 bg-amber-500/10 px-4 py-2.5 flex items-center gap-3">
+          <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p className="text-xs font-semibold text-amber-700">
+            Dev verification mode — synthetic auth active. Production authentication is unchanged.
+          </p>
         </div>
       )}
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Operational truth (screenshot-visible state contract)</p>
-      <p className="mt-1 text-xs text-muted">Auth/session validity, backend configuration, backend reachability, and data availability are independent signals and must be interpreted separately.</p>
-      <div className="mt-3 grid gap-3 md:grid-cols-3">
-        <div>
-          <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass(authState.tone)}`}>
-            {authState.label}
-          </span>
-          <p className="mt-1 text-sm text-muted">{authState.detail}</p>
+      {!backendConfigured && (
+        <div className="rounded-lg border border-border bg-surface px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-muted/40 shrink-0" aria-hidden="true" />
+            <p className="text-xs text-muted">
+              Engine not connected.{' '}
+              <code className="font-mono bg-surface-elevated px-1 py-0.5 rounded text-[11px]">REQUIEM_API_URL</code>
+              {' '}is not set — runtime-backed pages show degraded states.
+            </p>
+          </div>
+          <a
+            href="/docs"
+            className="text-xs font-medium text-muted hover:text-foreground transition-colors shrink-0 flex items-center gap-1"
+          >
+            Setup guide
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </a>
         </div>
-        <div>
-          <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass(backendState.tone)}`}>
-            {backendState.label}
-          </span>
-          <p className="mt-1 text-sm text-muted">{backendState.detail}</p>
-        </div>
-        <div>
-          <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass(reachabilityState.tone)}`}>
-            {reachabilityState.label}
-          </span>
-          <p className="mt-1 text-sm text-muted">{reachabilityState.detail}</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

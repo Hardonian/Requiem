@@ -74,10 +74,10 @@ async function ExecutionsList() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Executions', value: '0', sub: 'Last 24h: 0' },
-          { label: 'Avg Determinism', value: '100', unit: '%', sub: 'No drift detected' },
-          { label: 'Policy Enforced', value: '0', sub: 'Deny-by-default' },
-          { label: 'Storage Used', value: '0', unit: 'MB', sub: 'CAS v2 Optimized' },
+          { label: 'Total Executions', value: '\u2014', sub: 'Requires connected engine' },
+          { label: 'Determinism Rate', value: '\u2014', unit: '%', sub: 'BLAKE3-v1 verified' },
+          { label: 'Policy Enforced', value: '\u2014', sub: 'Deny-by-default' },
+          { label: 'Storage Used', value: '\u2014', sub: 'CAS-v2 backend' },
         ].map((m) => (
           <div key={m.label} className="stitch-stat">
             <p className="stitch-stat-label">{m.label}</p>

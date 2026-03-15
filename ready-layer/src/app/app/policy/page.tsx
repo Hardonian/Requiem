@@ -118,31 +118,20 @@ async function PolicyContent() {
 
           {/* Audit Settings */}
           <div className="bg-surface rounded-xl border border-border p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-foreground mb-4">Audit Settings</h2>
+            <h2 className="text-sm font-semibold text-foreground mb-1">Audit Settings</h2>
+            <p className="text-xs text-muted mb-4">Read-only. Configure via engine config or API.</p>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-xs text-muted font-medium" id="capture-inputs-label">Capture Inputs</label>
-                <div
-                  className="w-8 h-4 bg-accent rounded-full relative cursor-pointer"
-                  role="switch"
-                  aria-checked="true"
-                  aria-labelledby="capture-inputs-label"
-                  tabIndex={0}
-                >
-                  <div className="absolute right-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" />
-                </div>
+                <span className="text-xs text-muted font-medium">Capture Inputs</span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-success/10 border border-success/20 rounded-full text-[10px] font-bold text-success uppercase tracking-wider">
+                  Enabled
+                </span>
               </div>
-              <div className="flex items-center justify-between opacity-60">
-                <label className="text-xs text-muted font-medium" id="anonymize-pii-label">Anonymize PII</label>
-                <div
-                  className="w-8 h-4 bg-border rounded-full relative cursor-pointer"
-                  role="switch"
-                  aria-checked="false"
-                  aria-labelledby="anonymize-pii-label"
-                  tabIndex={0}
-                >
-                  <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" />
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted font-medium">Anonymize PII</span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-surface-elevated border border-border rounded-full text-[10px] font-bold text-muted uppercase tracking-wider">
+                  Disabled
+                </span>
               </div>
             </div>
           </div>

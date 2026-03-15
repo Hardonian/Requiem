@@ -46,10 +46,10 @@ export default function TenantsPage() {
   const failure = error ? classifyApiFailure({ status: error.status, code: error.code, message: error.message }) : null;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Tenants</h1>
-        <p className="text-sm text-muted mt-1">Runtime tenant-isolation view with explicit distinction between missing backend, unreachable backend, forbidden, and no-data states.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">Tenant Isolation</h1>
+        <p className="text-sm text-muted mt-1">Runtime tenant isolation status. Requires a connected engine node.</p>
       </div>
 
       {loading && <div className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">Loading tenant isolation data…</div>}
