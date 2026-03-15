@@ -15,7 +15,8 @@ import {
   EmptyState,
   HashDisplay,
   ErrorDisplay,
-  VerificationBadge 
+  VerificationBadge,
+  RouteMaturityNote 
 } from '@/components/ui';
 
 interface Snapshot {
@@ -110,6 +111,11 @@ export default function ConsoleSnapshotsPage() {
         description="State snapshots for rollback, migration, and disaster recovery. Each snapshot is checksummed for integrity verification."
       />
 
+
+      <RouteMaturityNote maturity="demo" title="Maturity: demo-backed route">
+        Snapshot list and restore actions currently hit demo-safe API behavior. Use this page for workflow verification, not as proof of connected production snapshot orchestration.
+      </RouteMaturityNote>
+
       {/* Error */}
       {error && (
         <div className="mb-6">
@@ -139,7 +145,7 @@ export default function ConsoleSnapshotsPage() {
       ) : snapshots.length === 0 ? (
         <EmptyState
           title="No snapshots found"
-          description="Use the CLI to create snapshots: reach snapshots create --name <name>"
+          description="No snapshots were returned. This is expected in local/demo mode unless a backend implementation is attached."
         />
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">

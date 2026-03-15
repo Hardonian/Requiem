@@ -13,7 +13,8 @@ import {
   PageHeader, 
   LoadingState, 
   EmptyState,
-  ErrorDisplay 
+  ErrorDisplay,
+  RouteMaturityNote 
 } from '@/components/ui';
 
 interface Plan {
@@ -80,6 +81,11 @@ export default function ConsolePlansPage() {
         description="Plan definitions and execution workflows. Plans define structured, policy-enforced execution paths."
       />
 
+
+      <RouteMaturityNote maturity="demo" title="Maturity: demo-backed route">
+        This page reads from <code className="font-mono">/api/plans</code> demo responses in this repo. It is useful for UI and response-shape validation, but it does not prove a live plan engine is attached.
+      </RouteMaturityNote>
+
       {/* Error */}
       {error && (
         <div className="mb-6">
@@ -98,7 +104,7 @@ export default function ConsolePlansPage() {
       ) : plans.length === 0 ? (
         <EmptyState
           title="No plans found"
-          description="Create a plan using the CLI: reach run <plan-name>"
+          description="No live plans were returned. In local/demo mode this can be expected; use verify:all plus engine wiring to validate end-to-end plan execution."
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
