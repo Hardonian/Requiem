@@ -159,4 +159,4 @@ Visit runtime-backed routes (`/app/diagnostics`, `/console/runs`, `/spend`) and 
 
 - Some route capability claims are source-inspected but not fully runtime-proven against a production-like Supabase auth + live backend in this environment.
 - Informational pages still carry static sample/status content by design; they are classified as informational to avoid operational overclaim.
-- Route maturity coverage is incomplete for some protected prefixes (for example `/intelligence/*`); those screens now show a source-inspected warning until cataloged.
+- Route maturity coverage now includes `/app/*`, `/console/*`, `/intelligence/*`, `/runs`, `/registry`, `/spend`, `/drift`, and `/settings`; unknown protected prefixes still fall back to source-inspected warnings until explicitly cataloged.
