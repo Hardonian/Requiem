@@ -110,3 +110,7 @@ planning/private/
 docs/internal-private/
 **/*.scratch.md
 **/*.brainstorm.md
+
+# Local runtime evidence/cache outputs
+.requiem/
+**/.requiem/
