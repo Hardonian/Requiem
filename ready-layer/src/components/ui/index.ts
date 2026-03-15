@@ -27,3 +27,4 @@ export {
 } from './PageHeader';
 
 export { OperationalTruthBanner } from './OperationalTruthBanner';
+export { ProtectedRouteShell } from './ProtectedRouteShell';
