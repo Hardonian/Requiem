@@ -32,6 +32,7 @@ interface Snapshot {
 
 export default function ConsoleSnapshotsPage() {
   const routeMaturity = getRouteMaturity('/console/snapshots');
+  const restoreRuntimeAvailable = routeMaturity.maturity === 'runtime-backed';
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ code: string; message: string; traceId?: string } | null>(null);
@@ -68,6 +69,15 @@ export default function ConsoleSnapshotsPage() {
   }, [fetchSnapshots]);
 
   const handleRestore = useCallback(async (id: string, name: string) => {
+    if (!restoreRuntimeAvailable) {
+      setRestoreResult({
+        id,
+        success: false,
+        message: 'Restore is disabled on this demo-backed route. Connect a runtime-backed snapshot service before enabling rollback actions.',
+      });
+      return;
+    }
+
     if (!confirm(`Are you sure you want to restore snapshot "${name}"?\n\nThis will replace the current state.`)) return;
     
     setRestoringId(id);
@@ -98,7 +108,7 @@ export default function ConsoleSnapshotsPage() {
     } finally {
       setRestoringId(null);
     }
-  }, [fetchSnapshots]);
+  }, [fetchSnapshots, restoreRuntimeAvailable]);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -209,12 +219,20 @@ export default function ConsoleSnapshotsPage() {
                   <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleRestore(snap.id, snap.name)}
-                      disabled={restoringId === snap.id}
-                      className="text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                      disabled={restoringId === snap.id || !restoreRuntimeAvailable}
+                      title={
+                        restoreRuntimeAvailable
+                          ? 'Runtime-backed snapshot restore'
+                          : 'Unavailable: route is demo-backed and does not perform runtime rollback mutations'
+                      }
+                      className="text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors disabled:cursor-not-allowed"
                       type="button"
                     >
-                      {restoringId === snap.id ? 'Restoring...' : 'Restore'}
+                      {restoringId === snap.id ? 'Restoring...' : restoreRuntimeAvailable ? 'Restore' : 'Restore unavailable'}
                     </button>
+                    {!restoreRuntimeAvailable && (
+                      <p className="mt-1 text-[11px] text-muted">Demo route: rollback mutation disabled.</p>
+                    )}
                   </td>
                 </tr>
               ))}
