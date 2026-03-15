@@ -172,12 +172,17 @@ function Sidebar() {
                       <div
                         className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted/50 cursor-not-allowed"
                         aria-disabled="true"
+                        title="Not available in this plan — contact your administrator to enable"
+                        role="none"
                       >
                         <span className="flex items-center gap-2.5">
                           <NavIcon name={item.icon} className="w-4 h-4 opacity-40" />
                           <span>{item.label}</span>
                         </span>
-                        <span className="text-[9px] bg-surface-elevated border border-border px-1.5 py-0.5 rounded text-muted text-[10px] font-medium">
+                        <span
+                          className="text-[9px] bg-surface-elevated border border-border px-1.5 py-0.5 rounded text-muted text-[10px] font-medium"
+                          aria-hidden="true"
+                        >
                           Pro
                         </span>
                       </div>
@@ -209,22 +214,6 @@ function Sidebar() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border space-y-3">
-        <div className="px-2">
-          <div className="bg-surface-elevated rounded-xl p-3 border border-border">
-            <p className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
-              Engine Status
-            </p>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 rounded-full bg-muted/40" aria-hidden="true" />
-              <span className="text-xs font-mono text-muted">
-                Standby
-              </span>
-            </div>
-            <p className="text-[9px] text-muted/60 mt-1 font-mono">
-              Set REQUIEM_API_URL to connect
-            </p>
-          </div>
-        </div>
 
         <div className="px-2 space-y-1">
           <Link
