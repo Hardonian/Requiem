@@ -58,13 +58,14 @@ export function OperationalTruthBanner({ className = '' }: OperationalTruthBanne
   const verifyMode = isVerifyMode();
 
   return (
-    <div className={`mx-6 mt-6 rounded-xl border border-border bg-surface p-4 ${className}`}>
+    <div className={`mx-6 mt-6 rounded-xl border-2 border-border bg-surface p-4 ${className}`}>
       {verifyMode && (
         <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
           Synthetic authentication active (dev verification only) — production authentication is unchanged.
         </div>
       )}
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Operational truth</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Operational truth (screenshot-visible state contract)</p>
+      <p className="mt-1 text-xs text-muted">Auth/session validity, backend reachability, and data availability are independent signals and must be interpreted separately.</p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <div>
           <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass(authState.tone)}`}>
