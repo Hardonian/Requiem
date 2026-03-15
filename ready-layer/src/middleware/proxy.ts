@@ -50,6 +50,7 @@ const PUBLIC_ROUTES = [
   '/auth/signup',
   '/auth/callback',
   '/auth/reset-password',
+  '/proof/diff',
   '/api/auth',
   '/api/health',
   '/api/ready',
@@ -286,18 +287,28 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
 
   const { client: supabase, error: supabaseError } = createEdgeSupabaseClient(request);
 
-  if (process.env.REQUIEM_ROUTE_VERIFY_MODE === '1' && process.env.NODE_ENV !== 'production' && pathname.startsWith('/api/')) {
+  if (
+    process.env.REQUIEM_ROUTE_VERIFY_MODE === '1'
+    && process.env.NODE_ENV !== 'production'
+    && (pathname.startsWith('/api/') || isProtectedPage)
+  ) {
     const verifyHeaders = new Headers(request.headers);
     verifyHeaders.set('x-trace-id', traceId);
     verifyHeaders.set('x-requiem-authenticated', '1');
     if (!verifyHeaders.get('x-tenant-id')) {
-      verifyHeaders.set('x-tenant-id', 'verify-tenant');
+      verifyHeaders.set('x-tenant-id', process.env.REQUIEM_ROUTE_VERIFY_TENANT ?? 'verify-tenant');
+    }
+    if (!verifyHeaders.get('x-user-id')) {
+      verifyHeaders.set('x-user-id', verifyHeaders.get('x-tenant-id') ?? 'verify-tenant');
     }
     const response = NextResponse.next({
       request: {
         headers: verifyHeaders,
       },
     });
+    response.headers.set('x-tenant-id', verifyHeaders.get('x-tenant-id') ?? 'verify-tenant');
+    response.headers.set('x-user-id', verifyHeaders.get('x-user-id') ?? 'verify-tenant');
+    response.headers.set('x-requiem-authenticated', '1');
     return withTraceHeader(response, traceId);
   }
 
