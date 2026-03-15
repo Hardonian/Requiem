@@ -7,6 +7,7 @@
 import type { Metadata } from 'next';
 import { ReactNode } from 'react';
 import { ConsoleNavigation } from '@/components/ConsoleNavigation';
+import { OperationalTruthBanner } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: {
@@ -26,6 +27,7 @@ export default function ConsoleLayout({ children }: ConsoleLayoutProps) {
     <div className="min-h-screen bg-background flex">
       <ConsoleNavigation />
       <main className="flex-1 overflow-auto" id="console-main">
+        <OperationalTruthBanner />
         {children}
       </main>
     </div>
