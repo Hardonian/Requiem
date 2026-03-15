@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { applyNavLabelPolicy, getRouteMaturityRule } from '@/lib/route-maturity';
 
 interface NavItem {
   label: string;
@@ -171,7 +172,10 @@ function NavLink({ item }: { item: NavItem }) {
       }`}
     >
       <span className={isActive ? 'text-accent' : 'text-muted'}>{item.icon}</span>
-      {item.label}
+      {(() => {
+        const rule = getRouteMaturityRule(item.href);
+        return applyNavLabelPolicy(item.label, rule?.navLabelPolicy ?? 'plain');
+      })()}
     </Link>
   );
 }

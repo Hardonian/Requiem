@@ -22,6 +22,7 @@ import {
   StitchBadge,
   StitchIcon,
 } from '@/components/stitch';
+import { RouteMaturityNote } from '@/components/ui';
 
 interface StatusEnvelope {
   backend?: {
@@ -145,6 +146,9 @@ export default function GuaranteesPage() {
       <StitchHeader title="Execution Guarantees" />
       
       <StitchContainer maxWidth="md">
+        <RouteMaturityNote maturity="runtime-degraded" title="Maturity: runtime route with explicit degraded mode">
+          Guarantee cards describe invariant design intent. Live enforcement confidence depends on backend connectivity; when status checks fail, this route is evidence guidance, not proof of active control-plane enforcement.
+        </RouteMaturityNote>
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge variant={guaranteeStatusBadge.variant}>{guaranteeStatusBadge.text}</StitchBadge>
@@ -154,8 +158,7 @@ export default function GuaranteesPage() {
           </h2>
           
           <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
-            Deterministic AI execution with cryptographic proofs. Policy-enforced at every step. 
-            Verifiable by design, not by promise.
+            Guarantee definitions are stable, while live enforcement evidence depends on backend reachability and verification surfaces.
           </p>
           {!isHealthy && (
             <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-400/20 rounded-md px-3 py-2">

@@ -19,6 +19,7 @@ import {
   StitchIcon,
   StitchTimeline,
 } from '@/components/stitch';
+import { RouteMaturityNote } from '@/components/ui';
 
 const controlPlaneFeatures = [
   {
@@ -82,16 +83,21 @@ export default function OverviewPage() {
       <StitchHeader title="Requiem Console" />
 
       <StitchContainer maxWidth="md">
+
+        <RouteMaturityNote maturity="runtime-degraded" title="Maturity: runtime route with explicit degraded mode">
+          This page is truthful in disconnected setups. Until <code className="font-mono">REQUIEM_API_URL</code> and backend auth are wired, metrics remain standby and links route you to evidence surfaces rather than implying live runtime authority.
+        </RouteMaturityNote>
+
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge>Control Plane</StitchBadge>
 
           <h2 className="text-white text-3xl font-bold font-display leading-tight">
-            Deterministic AI Execution Infrastructure
+            Control Plane Overview
           </h2>
 
           <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
-            Policy-enforced. Signed. Replayable. Verifiable. The control plane for modern AI workloads.
+            Runtime claims on this page are bounded by backend reachability and explicit degraded-state messaging.
           </p>
 
           <div className="flex flex-col gap-3 pt-2">
