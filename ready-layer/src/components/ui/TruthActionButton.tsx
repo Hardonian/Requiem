@@ -1,0 +1,46 @@
+'use client';
+
+interface TruthActionButtonProps {
+  label: string;
+  onClick: () => void;
+  pending?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
+  semantics: 'runtime-backed' | 'local-only' | 'navigation-only' | 'informational';
+}
+
+const semanticsCopy: Record<TruthActionButtonProps['semantics'], string> = {
+  'runtime-backed': 'runtime-backed action',
+  'local-only': 'local-only action',
+  'navigation-only': 'navigation only',
+  informational: 'informational control',
+};
+
+export function TruthActionButton({
+  label,
+  onClick,
+  pending = false,
+  disabled = false,
+  disabledReason,
+  semantics,
+}: TruthActionButtonProps) {
+  const unavailable = disabled || pending;
+
+  return (
+    <div className="space-y-1">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={unavailable}
+        aria-disabled={unavailable}
+        title={disabledReason}
+        className="rounded bg-accent px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {pending ? `${label}…` : label}
+      </button>
+      <p className="text-xs text-muted">
+        {unavailable && disabledReason ? `Unavailable: ${disabledReason}.` : `Semantics: ${semanticsCopy[semantics]}.`}
+      </p>
+    </div>
+  );
+}

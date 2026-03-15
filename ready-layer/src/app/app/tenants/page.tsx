@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { normalizeEnvelope } from '@/lib/api-truth';
+import { classifyApiFailure } from '@/lib/route-truth';
+import { RouteTruthStateCard, TruthActionButton } from '@/components/ui';
 
 type IsolationPayload = {
   ok: boolean;
@@ -12,47 +14,73 @@ type IsolationPayload = {
 
 export default function TenantsPage() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; status?: number; code?: string } | null>(null);
   const [tenant, setTenant] = useState<IsolationPayload | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch('/api/tenants/isolation', { cache: 'no-store' });
-        const envelope = normalizeEnvelope<IsolationPayload>(await response.json());
-        if (!response.ok || !envelope.ok || !envelope.data) {
-          setError(envelope.error?.message ?? `Request failed (${response.status})`);
-          return;
-        }
-        setTenant(envelope.data);
-      } catch (fetchError) {
-        setError(fetchError instanceof Error ? fetchError.message : 'Network error while loading tenant isolation');
-      } finally {
-        setLoading(false);
+  async function loadTenant() {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/tenants/isolation', { cache: 'no-store' });
+      const envelope = normalizeEnvelope<IsolationPayload>(await response.json());
+      if (!response.ok || !envelope.ok || !envelope.data) {
+        setError({
+          message: envelope.error?.message ?? `Request failed (${response.status})`,
+          status: response.status,
+          code: envelope.error?.code,
+        });
+        return;
       }
+      setTenant(envelope.data);
+    } catch (fetchError) {
+      setError({ message: fetchError instanceof Error ? fetchError.message : 'Network error while loading tenant isolation', status: 0 });
+    } finally {
+      setLoading(false);
     }
-    void load();
+  }
+
+  useEffect(() => {
+    void loadTenant();
   }, []);
+
+  const failure = error ? classifyApiFailure({ status: error.status, code: error.code, message: error.message }) : null;
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-foreground">Tenants</h1>
-        <p className="text-sm text-muted mt-1">Operator view of active tenant context and isolation route reachability.</p>
+        <p className="text-sm text-muted mt-1">Runtime tenant-isolation view with explicit distinction between missing backend, unreachable backend, forbidden, and no-data states.</p>
       </div>
 
       {loading && <div className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">Loading tenant isolation data…</div>}
 
-      {!loading && error && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-          <p className="text-sm font-medium text-destructive">Tenant isolation endpoint unreachable</p>
-          <p className="mt-1 text-sm text-muted">{error}</p>
-        </div>
+      {!loading && failure && (
+        <RouteTruthStateCard
+          tone={failure.kind === 'forbidden' ? 'critical' : 'warning'}
+          stateLabel={failure.kind}
+          title={failure.title}
+          detail={`${failure.detail} Raw error: ${error?.message}`}
+          nextStep={failure.nextStep}
+          actions={
+            <TruthActionButton
+              label="Retry tenant isolation query"
+              semantics="runtime-backed"
+              onClick={() => {
+                void loadTenant();
+              }}
+            />
+          }
+        />
       )}
 
-      {!loading && !error && !tenant && <div className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">No tenant data returned.</div>}
+      {!loading && !error && !tenant && (
+        <RouteTruthStateCard
+          stateLabel="no-data"
+          title="No tenant data returned"
+          detail="Request completed successfully but tenant-isolation payload was empty."
+          nextStep="Confirm tenant context headers and backend tenant registration, then retry."
+        />
+      )}
 
       {!loading && !error && tenant && (
         <div className="rounded-xl border border-border bg-surface p-5 space-y-4">
@@ -62,7 +90,7 @@ export default function TenantsPage() {
               {tenant.isolation_status}
             </span>
           </div>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <dl className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
             <div>
               <dt className="text-muted">Tenant ID</dt>
               <dd className="font-mono text-foreground">{tenant.tenant_id}</dd>
@@ -75,7 +103,7 @@ export default function TenantsPage() {
 
           <div className="rounded-lg border border-border bg-surface-elevated p-3">
             <p className="text-xs uppercase tracking-wide text-muted">Scoped storage paths</p>
-            <p className="text-xs text-muted mt-1">Paths are route-reported values only; no filesystem verification is implied.</p>
+            <p className="mt-1 text-xs text-muted">Route-reported values only; no filesystem verification implied.</p>
             <ul className="mt-2 space-y-1 text-xs font-mono text-foreground">
               <li>cas: {tenant.scoped_paths?.cas ?? 'not reported'}</li>
               <li>events: {tenant.scoped_paths?.events ?? 'not reported'}</li>
