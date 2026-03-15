@@ -31,3 +31,5 @@ export { OperationalTruthBanner } from './OperationalTruthBanner';
 export { ProtectedRouteShell } from './ProtectedRouteShell';
 export { RouteTruthStateCard } from './RouteTruthStateCard';
 export { TruthActionButton } from './TruthActionButton';
+
+export { ProtectedRouteTruthCard } from './ProtectedRouteTruthCard';

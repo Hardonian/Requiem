@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { RouteTruthStateCard, TruthActionButton } from '@/components/ui';
 
 export default function InteropPlaygroundPage() {
   const [payload, setPayload] = useState('{"action":"opened","repository":"reachhq/requiem"}');
@@ -25,7 +26,13 @@ export default function InteropPlaygroundPage() {
   return (
     <main className="space-y-4 p-6">
       <h1 className="text-2xl font-semibold">Interop Playground</h1>
-      <p className="text-sm text-gray-600">Read-only preview: external payload → primitive Event + CAS artifacts + receipt timeline.</p>
+      <RouteTruthStateCard
+        stateLabel="local-only interactive route"
+        title="Interop playground is local preview only"
+        detail="This route parses payload JSON and renders a preview event. It does not submit approvals, mutate kernel state, or create pull requests in this repository."
+        nextStep="Use this page for payload shaping only; run real approval or PR workflows from runtime-backed routes/tooling."
+        tone="warning"
+      />
 
       <textarea
         className="h-44 w-full rounded border p-3 font-mono text-sm"
@@ -48,10 +55,23 @@ export default function InteropPlaygroundPage() {
             <option value="qwen">qwen</option>
             <option value="semgrep">semgrep</option>
           </select>
-          <button type="button" className="rounded bg-black px-3 py-1 text-white">Approve correction proposal</button>
-          <button type="button" className="rounded border px-3 py-1">Open PR</button>
         </div>
-        <p className="mt-2 text-xs text-gray-500">Kernel state mutations are not available in this view.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <TruthActionButton
+            label="Approve correction proposal"
+            onClick={() => {}}
+            disabled
+            disabledReason="no approval API is wired for this route"
+            semantics="local-only"
+          />
+          <TruthActionButton
+            label="Open PR"
+            onClick={() => {}}
+            disabled
+            disabledReason="this route does not create pull requests"
+            semantics="informational"
+          />
+        </div>
       </section>
     </main>
   );
