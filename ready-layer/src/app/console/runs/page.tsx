@@ -19,6 +19,7 @@ import {
   ErrorDisplay,
   VerificationBadge,
 } from '@/components/ui';
+import { normalizeArray, normalizeEnvelope } from '@/lib/api-truth';
 
 interface Run {
   run_id: string;
@@ -58,11 +59,10 @@ export default function ConsoleRunsPage() {
         const response = await fetch(
           `/api/runs?limit=${pagination.pageSize}&offset=${(page - 1) * pagination.pageSize}`,
         );
-        const envelope = await response.json();
+        const envelope = normalizeEnvelope<Run[]>(await response.json());
 
-        // API returns { v:1, ok:true, data:[...runs], trace_id }
         if (envelope.ok) {
-          const items: Run[] = Array.isArray(envelope.data) ? envelope.data : [];
+          const items = normalizeArray<Run>(envelope.data);
           setRuns(items);
           setPagination((prev) => ({
             ...prev,
@@ -74,6 +74,7 @@ export default function ConsoleRunsPage() {
           setError({
             code: envelope.error?.code ?? 'E_FETCH_FAILED',
             message: envelope.error?.message ?? 'Failed to fetch runs',
+            traceId: envelope.traceId,
           });
         }
       } catch (err) {

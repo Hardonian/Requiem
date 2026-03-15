@@ -24,6 +24,7 @@ interface ReplayStep {
 
 interface ReplayLabResponse {
   ok: boolean;
+  source: 'stub';
   run_id: string;
   replay_id: string;
   match: boolean;
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
       const result: ReplayLabResponse = {
         ok: true,
+        source: 'stub',
         run_id: runId,
         replay_id: `replay_${Date.now().toString(36)}`,
         match: true,
