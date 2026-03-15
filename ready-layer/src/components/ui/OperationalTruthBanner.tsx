@@ -8,7 +8,7 @@ function isVerifyMode(): boolean {
 
 function resolveBackendState(): {
   label: string;
-  tone: 'warning' | 'success';
+  tone: 'warning' | 'neutral';
   detail: string;
 } {
   if (!process.env.REQUIEM_API_URL) {
@@ -20,15 +20,15 @@ function resolveBackendState(): {
   }
 
   return {
-    label: 'Backend configured (not a reachability guarantee)',
-    tone: 'success',
+    label: 'Backend configured (not reachability-proven)',
+    tone: 'neutral',
     detail: `REQUIEM_API_URL is set to ${process.env.REQUIEM_API_URL}. Route behavior still depends on backend reachability and data availability.`,
   };
 }
 
 function resolveAuthState(): {
   label: string;
-  tone: 'warning' | 'success';
+  tone: 'warning' | 'neutral';
   detail: string;
 } {
   if (isVerifyMode()) {
@@ -40,21 +40,35 @@ function resolveAuthState(): {
   }
 
   return {
-    label: 'Real auth mode',
-    tone: 'success',
+    label: 'Real auth mode (session-enforced)',
+    tone: 'neutral',
     detail: 'Protected routes require a real Supabase user session in middleware.',
   };
 }
 
-function badgeClass(tone: 'warning' | 'success'): string {
-  return tone === 'success'
-    ? 'bg-emerald-500/10 text-emerald-700 border-emerald-200'
+function resolveReachabilityState(): {
+  label: string;
+  tone: 'warning' | 'neutral';
+  detail: string;
+} {
+  return {
+    label: 'Backend reachability not proven in shell',
+    tone: 'warning',
+    detail:
+      'This shell banner does not perform network probes. Treat backend reachability and data freshness as route-level evidence only.',
+  };
+}
+
+function badgeClass(tone: 'warning' | 'neutral'): string {
+  return tone === 'neutral'
+    ? 'bg-slate-500/10 text-slate-700 border-slate-300'
     : 'bg-amber-500/10 text-amber-700 border-amber-200';
 }
 
 export function OperationalTruthBanner({ className = '' }: OperationalTruthBannerProps) {
   const authState = resolveAuthState();
   const backendState = resolveBackendState();
+  const reachabilityState = resolveReachabilityState();
   const verifyMode = isVerifyMode();
 
   return (
@@ -65,8 +79,8 @@ export function OperationalTruthBanner({ className = '' }: OperationalTruthBanne
         </div>
       )}
       <p className="text-xs font-semibold uppercase tracking-wider text-muted">Operational truth (screenshot-visible state contract)</p>
-      <p className="mt-1 text-xs text-muted">Auth/session validity, backend reachability, and data availability are independent signals and must be interpreted separately.</p>
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <p className="mt-1 text-xs text-muted">Auth/session validity, backend configuration, backend reachability, and data availability are independent signals and must be interpreted separately.</p>
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
         <div>
           <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass(authState.tone)}`}>
             {authState.label}
@@ -78,6 +92,12 @@ export function OperationalTruthBanner({ className = '' }: OperationalTruthBanne
             {backendState.label}
           </span>
           <p className="mt-1 text-sm text-muted">{backendState.detail}</p>
+        </div>
+        <div>
+          <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass(reachabilityState.tone)}`}>
+            {reachabilityState.label}
+          </span>
+          <p className="mt-1 text-sm text-muted">{reachabilityState.detail}</p>
         </div>
       </div>
     </div>
