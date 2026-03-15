@@ -9,7 +9,12 @@ This repository also contains the open-source Reach CLI and integration points f
 
 ## Project overview
 
-Requiem ecosystem components:
+This monorepo contains:
+
+- **Requiem engine (C++ runtime):** deterministic execution core under `src/`, `include/requiem/`, and `tests/`.
+- **Reach CLI (TypeScript):** operator and developer entry points under `packages/cli/`.
+- **ReadyLayer web console (Next.js):** local control-plane and API surfaces under `ready-layer/`.
+- **Verification and governance scripts:** root-level `scripts/` tasks used by CI and local confidence gates.
 
 - **Requiem engine** (`src/`, `include/requiem/`, `tests/`): C++20 deterministic execution runtime with BLAKE3 hashing, capability enforcement, sandbox isolation, and replay verification.
 - **Reach CLI** (`packages/cli/`): Developer-facing command-line tool for running plans, managing capabilities and policies, inspecting receipts, and verifying determinism.
@@ -26,9 +31,15 @@ pnpm install --frozen-lockfile
 pnpm run verify:all
 ```
 
-Then review generated artifacts under `demo_artifacts/`.
+First-clone flow and troubleshooting: [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md).
 
-For a full onboarding path, see [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md).
+## Canonical entrypoints
+
+- **Evaluate truth quickly:** this README + `pnpm run verify:all`
+- **Operate locally:** [docs/OPERATOR_RUNBOOK.md](./docs/OPERATOR_RUNBOOK.md)
+- **Contribute safely:** [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **Understand architecture:** [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+- **Inspect route maturity policy (canonical code source):** [`ready-layer/src/lib/route-maturity.ts`](./ready-layer/src/lib/route-maturity.ts) + [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md)
 
 ## Installation
 
@@ -52,20 +63,28 @@ pnpm install --frozen-lockfile
 - `pnpm run verify:all`: strongest repo confidence gate.
 - `pnpm run doctor`: checks prerequisites and reports engine build state.
 
-## Example usage
 
-Canonical repository verification (matches CI truth path):
+## ReadyLayer route maturity
+
+The route surface intentionally mixes runtime-backed pages with informational and demo-safe pages.
+Do not treat every console route as live backend proof.
+Canonical maturity truth is authored in `ready-layer/src/lib/route-maturity.ts`; [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md) explains the taxonomy and enforcement checks.
+Use [`ready-layer/src/lib/route-maturity.ts`](./ready-layer/src/lib/route-maturity.ts) as the canonical source of truth, with [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md) as the lightweight index.
+
+## Verification evidence map
+
+If `pnpm run verify:all` passes, the following are directly proven in this environment:
+
+- Route inventory and route contract checks (`routes.manifest.json` and route verification scripts).
+- ReadyLayer lint/typecheck/build success.
+- Requiem C++ engine build + smoke tests (`ctest` suite in `build/`).
+
+Optional checks (run when needed) include determinism, replay, and policy-focused suites:
 
 ```bash
-pnpm run verify:all
-```
-
-Additional targeted checks:
-
-```bash
-pnpm verify:determinism
-pnpm verify:replay
-pnpm evidence
+pnpm run verify:determinism
+pnpm run verify:replay
+pnpm run verify:policy
 ```
 
 Run Reach CLI commands via the workspace script:
@@ -99,13 +118,13 @@ Contributions are welcome. Start with:
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [GOVERNANCE.md](./GOVERNANCE.md)
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
-
-- Getting started: [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)
-- Repository structure: [docs/REPO_STRUCTURE.md](./docs/REPO_STRUCTURE.md)
-- API governance: [docs/API_GOVERNANCE.md](./docs/API_GOVERNANCE.md)
-- Verified claims: [docs/VERIFIED_CLAIMS.md](./docs/VERIFIED_CLAIMS.md)
-- Operator runbook: [docs/OPERATOR_RUNBOOK.md](./docs/OPERATOR_RUNBOOK.md)
-- Docs governance + archive: [docs/DOCS_GOVERNANCE.md](./docs/DOCS_GOVERNANCE.md), [docs/ARCHIVE_INDEX.md](./docs/ARCHIVE_INDEX.md)
+- [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)
+- [docs/REPO_STRUCTURE.md](./docs/REPO_STRUCTURE.md)
+- [docs/API_GOVERNANCE.md](./docs/API_GOVERNANCE.md)
+- [docs/VERIFIED_CLAIMS.md](./docs/VERIFIED_CLAIMS.md)
+- [docs/OPERATOR_RUNBOOK.md](./docs/OPERATOR_RUNBOOK.md)
+- [docs/DOCS_GOVERNANCE.md](./docs/DOCS_GOVERNANCE.md)
+- [docs/ARCHIVE_INDEX.md](./docs/ARCHIVE_INDEX.md)
 
 This repository is licensed under [Apache-2.0](./LICENSE) unless otherwise stated.
 

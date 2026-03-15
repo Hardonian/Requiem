@@ -8,6 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { RouteMaturityNote } from '@/components/ui';
 import { HashDisplay, VerificationBadge } from '@/components/ui';
 
 interface DemoEvent {
@@ -148,6 +149,11 @@ export default function DemoPage() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <RouteMaturityNote maturity="demo" title="Maturity: demo route">
+          This flow replays local scripted events for UX validation. It does not prove backend execution, policy enforcement, or receipt generation against a live runtime.
+        </RouteMaturityNote>
+
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left: Controls & Status */}
           <div className="space-y-6">

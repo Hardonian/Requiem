@@ -1,0 +1,14 @@
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+npm warn Unknown project config "neverBuiltDependencies". This will stop working in the next major version of npm.
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm.
+--- Claims Linter (Aspirational Claims Check) ---
+[LINT] C:\Users\scott\GitHub\Requiem\docs\contracts\schema_versioning.md:131: Claims must be "verified by [test/command]", not "guaranteed".
+  > Not guaranteed by default validation. New clients may depend on new features.
+[LINT] C:\Users\scott\GitHub\Requiem\private\rfp\SECURITY_QUESTIONNAIRE_TEMPLATE.md:28: Claims of "SOC 2" must specify "designed to support", "Compliance Controls", "audits", "readiness", or a specific criteria (e.g., CC6.1).
+  > - **Q: Are you SOC 2 compliant?**
+[LINT] C:\Users\scott\GitHub\Requiem\private\rfp\SECURITY_QUESTIONNAIRE_TEMPLATE.md:29: Claims of "SOC 2" must specify "designed to support", "Compliance Controls", "audits", "readiness", or a specific criteria (e.g., CC6.1).
+  > - A: We are currently in the audit window for SOC 2 Type II (Anticipated Q3 2026).
+[LINT] C:\Users\scott\GitHub\Requiem\private\rfp\VENDOR_ONBOARDING_CHECKLIST.md:9: Claims of "SOC 2" must specify "designed to support", "Compliance Controls", "audits", "readiness", or a specific criteria (e.g., CC6.1).
+  > - [ ] **Data Processing Agreement (DPA)**: Outlining GDPR and SOC 2 requirements.
+
+Γ¥î Claims linter failed with 4 issues.

@@ -1,0 +1,4 @@
+tenant_id,source_type,source_ref,decision_input,decision_output,status,execution_latency,outcome_status
+import-test,csv,row-1,"{""prompt"":""hello""}","{""response"":""world""}",evaluated,100,success
+import-test,csv,row-2,"{""prompt"":""foo""}","{""response"":""bar""}",evaluated,200,success
+import-test,csv,row-3,"{""prompt"":""error""}","{""error"":""fail""}",evaluated,50,failure

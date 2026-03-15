@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -48,7 +48,7 @@
     "verify:cpp": "bash scripts/cmake-build.sh && ctest --test-dir build -C Release --output-on-failure",
     "verify:boundaries": "node scripts/verify-ui-boundaries.mjs",
     "verify:dependencies": "pnpm run verify:deps-graph",
-    "verify:routes": "pnpm run verify:routes-manifest && node scripts/run-tsx.mjs scripts/verify-routes.ts && node scripts/run-tsx.mjs scripts/verify-problem-json.ts && node scripts/run-tsx.mjs scripts/verify-tenant-body.ts && node scripts/run-tsx.mjs scripts/verify-routes-runtime.ts",
+    "verify:routes": "pnpm run verify:routes-manifest && node scripts/run-tsx.mjs scripts/verify-routes.ts && node scripts/run-tsx.mjs scripts/verify-problem-json.ts && node scripts/run-tsx.mjs scripts/verify-tenant-body.ts && node scripts/run-tsx.mjs scripts/verify-routes-runtime.ts && pnpm --filter ready-layer verify:route-maturity",
     "api:governance": "node scripts/run-tsx.mjs scripts/api-governance-report.ts",
     "verify:release-artifacts": "node scripts/run-tsx.mjs scripts/generate-route-truth.ts",
     "verify:integrity": "pnpm --filter ready-layer verify:integrity",

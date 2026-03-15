@@ -1,0 +1,147 @@
+
+Requiem CLI v0.3.0  —  Control Plane for AI Systems
+
+USAGE:
+  requiem <command> [options]
+  rl <command> [options]         # ReadyLayer operator console (NEW)
+
+CONTROL COMMANDS (Deterministic Execution):
+  run <name> [input]                  Execute a tool with determinism proof
+  verify <hash>                       Verify execution determinism
+  replay run <id>                     Replay an execution with verification
+  replay diff <run1> <run2>           Deterministic diff between two runs
+  fingerprint <hash>                  Generate shareable execution proof
+
+OBSERVABILITY COMMANDS:
+  trace <id>                          Visualize decision trace
+  stats                               Determinism rate, policy events, replay state
+  status                              System health and enforcement state
+  telemetry                           Real-time usage stats
+
+PROOF SURFACE COMMANDS (Microfracture):
+  diff <runA> <runB> [--format]       Deterministic diff between runs
+  lineage <runId> [--depth=N]         Show run ancestry graph
+  simulate <runId> --policy=<name>    Simulate policy evaluation
+  drift --since=<runId> [--window]    Analyze behavior drift over time
+  explain <runId> [--format=md|json]  Generate deterministic explanation
+  share <runId> [--ttl] [--scope]     Create shareable proof link
+  chaos --quick [--format]            Run chaos verification checks
+
+SEMANTIC STATE MACHINE (New Primitive):
+  state list [filters]                List semantic states
+  state show <id>                     Show state details
+  state diff <idA> <idB>              Compare two states
+  state graph                         Generate lineage graph (DOT)
+  state export [--since]              Export semantic ledger
+  state import <file>                 Import semantic ledger
+  state genesis --descriptor <file>   Create genesis state
+  state transition --from <id>        Create state transition
+  state simulate upgrade --from --to  Simulate model migration impact
+
+AUDIT & GOVERNANCE (Differentiators):
+  audit report <state-id>             Generate audit narrative for state
+  audit transition <from> <to>        Generate audit narrative for transition
+  budget define --name <n> [rules]    Define change budget for drift categories
+  budget check <from> <to> --budget   Check if transition is within budget
+  budget list                         List available budget presets
+  budget show <name>                  Show budget rules
+  tool-schema lock <tool> [--state]   Lock tool IO schema to semantic state
+  tool-schema verify <tool> [--input] Verify IO against locked schema
+  tool-schema drift <tool>            Detect schema drift
+  tool-schema list                    List locked tool schemas
+  capsule export <state-id>           Export replay attestation capsule
+  capsule verify <file>               Verify capsule integrity
+  capsule info <file>                 Show capsule summary
+
+GOVERNANCE COMMANDS:
+  learn [--window=7d] [--format]      Show learning signals and diagnoses
+
+  predict list --run <id>             List run predictions
+  predict score --run <id>            Record outcomes + scores for run predictions
+  predict gate --action <a> --claim    Evaluate confidence gate policy
+  calibrate show --claim <type>       Show calibration aggregates
+  calibrate export --format <fmt>     Export calibration bins (json/csv)
+  cases suggest --error-log <path>    Suggest similar solved cases
+  cases apply <case_id> --run <id>     Enforce case-reuse verification policy
+  signals compute --last <window>     Compute perception signals
+  risk score --paths <a,b>            Compute deterministic risk score
+  calibration compute|show [options]  Compute/show calibration metrics
+  realign <patch-id>                  Apply patch in new branch and verify
+  pivot plan <name>                   Plan a strategic pivot
+  rollback <sha|release> [--force]    Rollback to previous release
+  symmetry [--economics]              Show symmetry metrics
+  economics [--alerts|--forecast]    Show economic metrics
+  usage [--format]                    Show tenant usage summary
+  tenant-check [--format]            Verify tenant isolation
+
+ENTERPRISE COMMANDS:
+  decide evaluate --junction <id>     Evaluate a decision for a junction
+  decide explain --junction <id>      Explain why a decision was made
+  decide outcome --id <id>            Record an outcome for a decision
+  junctions scan --since <time>       Scan for junctions (e.g., 7d, 24h)
+  agent serve --tenant <id>           Start MCP stdio server
+  ai tools list                       List all registered AI tools
+  ai skills run <name>                Run an AI skill
+
+TOOL MANAGEMENT:
+  tool list [--json]                  List registered tools with determinism flags
+  tool exec <name> --input <json>     Execute a specific tool
+
+DASHBOARD & SETUP:
+  ui                                  Launch the web dashboard
+  quickstart                          10-minute proof: install, run, verify
+  init                                Initialize configuration
+
+ADMIN COMMANDS:
+  backup                              Dump database to JSON
+  restore                             Restore database from JSON
+  import                              Ingest decision logs from CSV
+  nuke                                Clear database state
+  doctor                              Validate environment setup
+  bugreport                           Generate diagnostic report
+  selftest                            Run comprehensive self-diagnostic checks
+  bench                               Sub-millisecond latency baseline
+  fast-start [--minimal]              Cached skip of engine/DB checks
+
+READYLAYER OPERATOR CONSOLE (rl):
+  rl status                           Show system health and ready state
+  rl doctor                           Validate environment, print fixes
+  rl env                              Show environment configuration
+  rl version                          Show version information
+  rl models list                      List all providers and models
+  rl models show <provider>           Show provider details and throttles
+  rl mode set intensity <level>       Set intensity: minimal|normal|aggressive
+  rl mode set thinking <mode>         Set thinking: fast|balanced|deep
+  rl prompt list                      List prompt packs
+  rl prompt get <name>                Get prompt content
+  rl prompt add <name> <file>         Add a new prompt pack
+  rl prompt run <name> [vars...]      Run a prompt with variables
+  rl run start <prompt> [vars...]     Start a new run with artifact export
+  rl run replay <run_id>              Replay a previous run
+  rl run inspect <run_id>             Inspect run details and artifacts
+  rl run list                         List recent runs
+  rl graph repo                       Show repository lineage graph
+  rl graph run <run_id>               Show run dependency graph
+  rl graph trace <trace_id>           Show trace execution graph
+
+OPTIONS:
+  --json                              Output in JSON format
+  --minimal                           Quiet deterministic output
+  --explain                           Verbose structural reasoning
+  --trace                             Include trace ID in output
+  --help, -h                          Show help for a command
+  --version, -v                       Show version information
+
+EXAMPLES:
+  reach run system.echo "hello"       Execute with determinism proof
+  reach verify sha256abc123...        Verify execution fingerprint
+  reach replay diff run1 run2         Compare two executions
+  reach stats                         View determinism metrics
+  reach ui                            Launch dashboard
+  reach quickstart                    10-minute proof flow
+  
+  rl status                           Check ReadyLayer health
+  rl models list                      Show available AI models
+  rl prompt add review ./review.txt   Add a prompt pack
+  rl run start review file=src.ts     Execute with artifacts
+  rl run inspect run_abc123           View run artifacts

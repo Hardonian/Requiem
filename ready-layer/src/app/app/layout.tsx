@@ -10,6 +10,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { OperationalTruthBanner } from "@/components/ui";
 
 const NAV_SECTIONS = [
   {
@@ -262,6 +263,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
+        <OperationalTruthBanner className="mb-6" />
         <div className="min-h-full">{children}</div>
       </main>
     </div>

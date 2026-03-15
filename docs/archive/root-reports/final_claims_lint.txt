@@ -1,0 +1,18 @@
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+npm warn Unknown project config "neverBuiltDependencies". This will stop working in the next major version of npm.
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm.
+--- Claims Linter (Aspirational Claims Check) ---
+[LINT] C:\Users\scott\GitHub\Requiem\docs\contracts\schema_versioning.md:121: Claims must be "verified by [test/command]", not "guaranteed".
+  > Not guaranteed. New clients may depend on new features.
+[LINT] C:\Users\scott\GitHub\Requiem\docs\enterprise.md:97: Claims of "SOC 2" must specify "designed to support", "Compliance Controls", "audits", "readiness", or a specific criteria (e.g., CC6.1).
+  > | SOC 2 compliance export       | ΓÇö   | ΓÇö   | Γ£à         |
+[LINT] C:\Users\scott\GitHub\Requiem\docs\KERNEL_SPEC.md:54: Claims must be "verified by [test/command]", not "guaranteed".
+  > - Keys sorted lexicographically (guaranteed by `std::map` iteration)
+[LINT] C:\Users\scott\GitHub\Requiem\docs\MEGA_AUDIT_REPORT.md:10: Avoid "perfectly". Use specific performance/invariant metrics.
+  > *   **Fix Plan**: Externalize timestamp generation, or inject `0` if not provided by a verified envelope. Ensure the chain hash input is perfectly reproducible across machines.
+[LINT] C:\Users\scott\GitHub\Requiem\docs\REFACTOR_PLAN.md:33: Avoid "perfectly". Use specific performance/invariant metrics.
+  > *   **API Schemas (ready-layer/...)**: `ApiResponse<T>` wrappers must remain perfectly aligned with UI expectations. No breaking changes to `Envelope` attributes.
+[LINT] C:\Users\scott\GitHub\Requiem\docs\THEATRE_AUDIT.md:86: Claims of "SOC 2" must specify "designed to support", "Compliance Controls", "audits", "readiness", or a specific criteria (e.g., CC6.1).
+  > | **Risk**              | **High** ΓÇö Tool-level audit records are not available after restart or across instances. Compliance requirements (SOC 2, GDPR, etc.) that require audit trails cannot be met with the current sink.                                                               |
+
+Γ¥î Claims linter failed with 6 issues.

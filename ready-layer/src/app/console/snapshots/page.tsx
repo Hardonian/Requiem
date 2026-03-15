@@ -9,14 +9,16 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  PageHeader, 
-  LoadingState, 
+import {
+  PageHeader,
+  LoadingState,
   EmptyState,
   HashDisplay,
   ErrorDisplay,
-  VerificationBadge 
+  VerificationBadge,
+  RouteMaturityNote,
 } from '@/components/ui';
+import { getRouteMaturity, maturityNoteTone } from '@/lib/route-maturity';
 
 interface Snapshot {
   id: string;
@@ -29,6 +31,7 @@ interface Snapshot {
 }
 
 export default function ConsoleSnapshotsPage() {
+  const routeMaturity = getRouteMaturity('/console/snapshots');
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ code: string; message: string; traceId?: string } | null>(null);
@@ -104,11 +107,16 @@ export default function ConsoleSnapshotsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl p-6">
       <PageHeader
         title="Snapshots"
         description="State snapshots for rollback, migration, and disaster recovery. Each snapshot is checksummed for integrity verification."
       />
+
+
+      <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity: demo-backed route">
+        {routeMaturity.degradedBehavior}
+      </RouteMaturityNote>
 
       {/* Error */}
       {error && (
@@ -139,49 +147,49 @@ export default function ConsoleSnapshotsPage() {
       ) : snapshots.length === 0 ? (
         <EmptyState
           title="No snapshots found"
-          description="Use the CLI to create snapshots: reach snapshots create --name <name>"
+          description="No snapshots were returned. This is expected in local/demo mode unless a backend implementation is attached."
         />
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
+        <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-surface-elevated">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
                   ID
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
                   Checksum
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
                   Size
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
                   Gated
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
                   Created
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {snapshots.map((snap) => (
-                <tr key={snap.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                <tr key={snap.id} className="hover:bg-gray-50 hover:bg-surface-elevated">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-foreground">
                     <HashDisplay hash={snap.id} length={16} />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">
                     {snap.name || '-'}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <HashDisplay hash={snap.checksum} length={16} />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-muted">
                     {formatSize(snap.size || 0)}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -195,14 +203,14 @@ export default function ConsoleSnapshotsPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-muted">
                     {snap.createdAt?.substring(0, 10) || '-'}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleRestore(snap.id, snap.name)}
                       disabled={restoringId === snap.id}
-                      className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                      className="text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
                       type="button"
                     >
                       {restoringId === snap.id ? 'Restoring...' : 'Restore'}
@@ -217,7 +225,7 @@ export default function ConsoleSnapshotsPage() {
 
       {/* Summary */}
       {!loading && snapshots.length > 0 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-4 flex items-center justify-between text-sm text-muted">
           <span>
             Total: {snapshots.length} snapshot{snapshots.length !== 1 ? 's' : ''}
           </span>
