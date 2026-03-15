@@ -2,26 +2,29 @@
 
 /**
  * Console Logs Page - Immutable event log with prev-hash chain verification
- * 
+ *
  * What: View and search the immutable event log.
  * Why: Every event is cryptographically linked for tamper-evidence.
  * What you can do: Search events, view details, verify chain integrity.
+ *
+ * API: GET /api/logs → { v:1, kind:'logs.list', data:{ ok:true, data:[...entries], total:N }, error:null }
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  PageHeader, 
-  LoadingState, 
+import {
+  PageHeader,
+  LoadingState,
   EmptyState,
   HashDisplay,
   JsonViewer,
-  ErrorDisplay 
+  ErrorDisplay,
 } from '@/components/ui';
 
 interface LogEntry {
   seq: number;
   prev: string;
-  ts: string;
+  ts_logical?: number;
+  ts?: string;
   event_type: string;
   actor: string;
   data_hash: string;
@@ -49,48 +52,57 @@ export default function ConsoleLogsPage() {
   });
   const [expandedLog, setExpandedLog] = useState<number | null>(null);
 
-  const fetchLogs = useCallback(async (page = 1) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(`/api/logs?limit=${pagination.pageSize}&offset=${(page - 1) * pagination.pageSize}`);
-      const data = await response.json();
-      
-      if (data.ok) {
-        // Sort by logical time (seq) for stable ordering
-        const sortedLogs = (data.data || []).sort((a: LogEntry, b: LogEntry) => b.seq - a.seq);
-        setLogs(sortedLogs);
-        setPagination(prev => ({
-          ...prev,
-          page,
-          total: data.total || 0,
-          totalPages: Math.ceil((data.total || 0) / pagination.pageSize),
-        }));
-      } else {
+  const fetchLogs = useCallback(
+    async (page = 1) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(
+          `/api/logs?limit=${pagination.pageSize}&offset=${(page - 1) * pagination.pageSize}`,
+        );
+        const envelope = await response.json();
+
+        // API returns: { v:1, kind:'logs.list', data:{ ok:true, data:[...], total:N }, error:null }
+        const inner = envelope.data;
+        if (inner?.ok) {
+          const entries: LogEntry[] = Array.isArray(inner.data) ? inner.data : [];
+          const sorted = entries.slice().sort((a, b) => b.seq - a.seq);
+          setLogs(sorted);
+          const total = inner.total ?? entries.length;
+          setPagination((prev) => ({
+            ...prev,
+            page,
+            total,
+            totalPages: Math.max(1, Math.ceil(total / pagination.pageSize)),
+          }));
+        } else {
+          setError({
+            code: envelope.error?.code ?? inner?.error?.code ?? 'E_FETCH_FAILED',
+            message: envelope.error?.message ?? inner?.error?.message ?? 'Failed to fetch logs',
+          });
+        }
+      } catch (err) {
         setError({
-          code: data.error?.code || 'E_FETCH_FAILED',
-          message: data.error?.message || 'Failed to fetch logs',
+          code: 'E_NETWORK_ERROR',
+          message: err instanceof Error ? err.message : 'Network error occurred',
         });
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError({
-        code: 'E_NETWORK_ERROR',
-        message: err instanceof Error ? err.message : 'Network error occurred',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [pagination.pageSize]);
+    },
+    [pagination.pageSize],
+  );
 
   useEffect(() => {
     fetchLogs();
   }, [fetchLogs]);
 
-  const filteredLogs = logs.filter(log => 
-    !searchTerm || 
-    log.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.event_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.actor?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLogs = logs.filter(
+    (log) =>
+      !searchTerm ||
+      log.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.event_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.actor?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handlePageChange = (newPage: number) => {
@@ -107,17 +119,27 @@ export default function ConsoleLogsPage() {
       />
 
       {/* Search */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+      <div className="bg-surface rounded-xl border border-border p-4 mb-6">
         <div className="relative">
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by message, event type, or actor..."
-            className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-accent/20 focus:border-accent text-sm placeholder:text-muted"
           />
-          <svg className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg
+            className="absolute left-3 top-2.5 w-5 h-5 text-muted"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
         </div>
       </div>
@@ -140,94 +162,98 @@ export default function ConsoleLogsPage() {
       ) : filteredLogs.length === 0 ? (
         <EmptyState
           title="No logs found"
-          description={searchTerm ? "Try adjusting your search terms." : "The event log is empty."}
+          description={
+            searchTerm
+              ? 'Try adjusting your search terms.'
+              : 'The event log is empty. Events appear after executions run.'
+          }
         />
       ) : (
         <>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
+          <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+            <table className="stitch-table">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Logical Time
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Event Type
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actor
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Hash
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Message
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th>Seq</th>
+                  <th>Event Type</th>
+                  <th>Actor</th>
+                  <th>Data Hash</th>
+                  <th>Message</th>
+                  <th className="text-center">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody>
                 {filteredLogs.map((log) => (
                   <>
-                    <tr 
-                      key={log.seq} 
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                    <tr
+                      key={log.seq}
+                      className="cursor-pointer"
                       onClick={() => setExpandedLog(expandedLog === log.seq ? null : log.seq)}
                     >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400">
+                      <td className="font-mono text-muted text-sm">
                         #{log.seq.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                          {log.event_type || '-'}
+                      <td>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20">
+                          {log.event_type || '—'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                        {log.actor || '-'}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="text-sm text-foreground">{log.actor || '—'}</td>
+                      <td>
                         <HashDisplay hash={log.data_hash} length={12} />
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate">
-                        {log.message || '-'}
+                      <td className="text-sm text-muted max-w-xs truncate">
+                        {log.message || '—'}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <td className="text-center">
                         <button
                           type="button"
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                          className="text-muted hover:text-foreground transition-colors"
+                          aria-label={expandedLog === log.seq ? 'Collapse' : 'Expand'}
                           onClick={(e) => {
                             e.stopPropagation();
                             setExpandedLog(expandedLog === log.seq ? null : log.seq);
                           }}
                         >
-                          <svg 
-                            className={`w-5 h-5 transform transition-transform ${expandedLog === log.seq ? 'rotate-180' : ''}`} 
-                            fill="none" 
-                            stroke="currentColor" 
+                          <svg
+                            className={`w-5 h-5 transform transition-transform ${
+                              expandedLog === log.seq ? 'rotate-180' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
                             viewBox="0 0 24 24"
                           >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
                           </svg>
                         </button>
                       </td>
                     </tr>
-                    {expandedLog === log.seq && log.payload && (
-                      <tr className="bg-gray-50 dark:bg-gray-900">
+                    {expandedLog === log.seq && (
+                      <tr key={`${log.seq}-expanded`} className="bg-surface-elevated">
                         <td colSpan={6} className="px-4 py-4">
                           <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <span className="text-gray-500 dark:text-gray-400">Previous Hash:</span>
+                                <span className="text-muted text-xs font-semibold uppercase tracking-wider block mb-1">
+                                  Previous Hash
+                                </span>
                                 <HashDisplay hash={log.prev} length={32} />
                               </div>
                               <div>
-                                <span className="text-gray-500 dark:text-gray-400">Timestamp:</span>
-                                <span className="ml-2 text-gray-700 dark:text-gray-300">{log.ts}</span>
+                                <span className="text-muted text-xs font-semibold uppercase tracking-wider block mb-1">
+                                  Logical Time
+                                </span>
+                                <span className="text-foreground font-mono text-sm">
+                                  {log.ts_logical ?? log.ts ?? '—'}
+                                </span>
                               </div>
                             </div>
-                            <JsonViewer data={log.payload} title="Event Payload" />
+                            {log.payload != null && <JsonViewer data={log.payload} title="Event Payload" />}
                           </div>
                         </td>
                       </tr>
@@ -240,25 +266,27 @@ export default function ConsoleLogsPage() {
 
           {/* Pagination */}
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Showing {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total.toLocaleString()} entries
+            <p className="text-sm text-muted">
+              Showing {((pagination.page - 1) * pagination.pageSize) + 1}–
+              {Math.min(pagination.page * pagination.pageSize, pagination.total)} of{' '}
+              {pagination.total.toLocaleString()} entries
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page === 1}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-foreground bg-surface border border-border rounded-lg hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 type="button"
               >
                 Previous
               </button>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-muted">
                 Page {pagination.page} of {pagination.totalPages}
               </span>
               <button
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={pagination.page === pagination.totalPages}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-foreground bg-surface border border-border rounded-lg hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 type="button"
               >
                 Next

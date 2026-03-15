@@ -214,11 +214,14 @@ function Sidebar() {
               Engine Status
             </p>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" aria-hidden="true" />
-              <span className="text-xs font-mono text-foreground/80">
-                v1.2.0-stable
+              <div className="w-2 h-2 rounded-full bg-muted/40" aria-hidden="true" />
+              <span className="text-xs font-mono text-muted">
+                Standby
               </span>
             </div>
+            <p className="text-[9px] text-muted/60 mt-1 font-mono">
+              Set REQUIEM_API_URL to connect
+            </p>
           </div>
         </div>
 

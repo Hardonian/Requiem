@@ -188,7 +188,7 @@ export function ConsoleNavigation() {
             R
           </div>
           <div>
-            <span className="text-base font-bold text-foreground block leading-none">ReadyLayer</span>
+            <span className="text-base font-bold text-foreground block leading-none">Requiem</span>
             <span className="text-[10px] text-muted font-mono uppercase tracking-wider">Console</span>
           </div>
         </Link>
