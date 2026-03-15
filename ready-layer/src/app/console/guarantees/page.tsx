@@ -23,6 +23,7 @@ import {
   StitchIcon,
 } from '@/components/stitch';
 import { RouteMaturityNote } from '@/components/ui';
+import { getRouteMaturity, maturityNoteTone } from '@/lib/route-maturity';
 
 interface StatusEnvelope {
   backend?: {
@@ -71,6 +72,7 @@ const guarantees = [
 ];
 
 export default function GuaranteesPage() {
+  const routeMaturity = getRouteMaturity('/console/guarantees');
   const [status, setStatus] = useState<StatusEnvelope | null>(null);
   const [statusState, setStatusState] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -146,9 +148,11 @@ export default function GuaranteesPage() {
       <StitchHeader title="Execution Guarantees" />
       
       <StitchContainer maxWidth="md">
-        <RouteMaturityNote maturity="runtime-degraded" title="Maturity: runtime route with explicit degraded mode">
-          Guarantee cards describe invariant design intent. Live enforcement confidence depends on backend connectivity; when status checks fail, this route is evidence guidance, not proof of active control-plane enforcement.
-        </RouteMaturityNote>
+        <section className="px-5 pt-6">
+          <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity disclosure">
+            {routeMaturity.degradedBehavior}
+          </RouteMaturityNote>
+        </section>
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge variant={guaranteeStatusBadge.variant}>{guaranteeStatusBadge.text}</StitchBadge>
