@@ -43,8 +43,8 @@ const recentEvents = [
     description: 'us-west-2 caught up to head',
     timestamp: '30s ago',
     icon: <StitchIcon name="check-circle" className="h-4 w-4" />,
-    iconBgClass: 'bg-green-500/10',
-    iconColorClass: 'text-green-500',
+    iconBgClass: 'bg-success/10',
+    iconColorClass: 'text-success',
   },
   {
     id: '2',
@@ -52,8 +52,8 @@ const recentEvents = [
     description: 'eu-west-1 experiencing higher latency',
     timestamp: '2m ago',
     icon: <StitchIcon name="warning" className="h-4 w-4" />,
-    iconBgClass: 'bg-yellow-500/10',
-    iconColorClass: 'text-yellow-500',
+    iconBgClass: 'bg-warning/10',
+    iconColorClass: 'text-warning',
   },
   {
     id: '3',
@@ -61,8 +61,8 @@ const recentEvents = [
     description: 'ap-south-1 received daily snapshot',
     timestamp: '15m ago',
     icon: <StitchIcon name="sync" className="h-4 w-4" />,
-    iconBgClass: 'bg-blue-500/10',
-    iconColorClass: 'text-blue-500',
+    iconBgClass: 'bg-accent/10',
+    iconColorClass: 'text-accent',
   },
 ];
 
@@ -70,7 +70,7 @@ export default function ReplicationPage() {
   const routeMaturity = getRouteMaturity('/console/replication');
 
   return (
-    <div className="min-h-screen bg-[#101922] flex flex-col pb-20">
+    <div className="min-h-screen bg-background flex flex-col pb-20">
       <StitchHeader title="Multi-Region Replication" />
       
       <StitchContainer maxWidth="md">
@@ -84,11 +84,11 @@ export default function ReplicationPage() {
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge variant="success">Replication Surface</StitchBadge>
           
-          <h2 className="text-white text-3xl font-bold font-display leading-tight">
+          <h2 className="text-foreground text-3xl font-bold font-display leading-tight">
             Replication Diagnostics
           </h2>
-          
-          <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
+
+          <p className="text-muted text-base font-normal leading-relaxed">
             Reference topology and synthetic region telemetry for replication workflows. Treat values here as informational until connected backend telemetry is available.
           </p>
         </section>
@@ -109,23 +109,23 @@ export default function ReplicationPage() {
 
         {/* Region Status */}
         <section className="px-5 pb-8">
-          <h3 className="text-white text-lg font-bold font-display mb-4">Region Status</h3>
+          <h3 className="text-foreground text-lg font-bold font-display mb-4">Region Status</h3>
           <div className="grid gap-3">
             {regions.map((region) => (
               <StitchCard key={region.id} padding="md">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full ${
-                      region.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
+                      region.status === 'healthy' ? 'bg-success' : 'bg-warning'
                     }`} />
                     <div>
-                      <div className="text-white font-medium text-sm">{region.name}</div>
-                      <div className="text-[#94a3b8] text-xs">{region.id}</div>
+                      <div className="text-foreground font-medium text-sm">{region.name}</div>
+                      <div className="text-muted text-xs">{region.id}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-white text-sm font-medium">{region.lag}</div>
-                    <div className="text-[#94a3b8] text-xs">{region.throughput}</div>
+                    <div className="text-foreground text-sm font-medium">{region.lag}</div>
+                    <div className="text-muted text-xs">{region.throughput}</div>
                   </div>
                 </div>
               </StitchCard>
@@ -135,20 +135,20 @@ export default function ReplicationPage() {
 
         {/* Replication Topology */}
         <section className="px-5 pb-8">
-          <h3 className="text-white text-lg font-bold font-display mb-4">Topology</h3>
+          <h3 className="text-foreground text-lg font-bold font-display mb-4">Topology</h3>
           <StitchCard padding="lg">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-full p-4 bg-[#137fec]/10 rounded-lg border border-[#137fec]/30 text-center">
-                <StitchIcon name="database" className="text-[#137fec] mx-auto mb-2" />
-                <div className="text-white font-bold text-sm">Primary Ledger</div>
-                <div className="text-[#94a3b8] text-xs">us-east-1</div>
+              <div className="w-full p-4 bg-accent/10 rounded-lg border border-accent/30 text-center">
+                <StitchIcon name="database" className="text-accent mx-auto mb-2" />
+                <div className="text-foreground font-bold text-sm">Primary Ledger</div>
+                <div className="text-muted text-xs">us-east-1</div>
               </div>
-              
+
               <div className="w-full grid grid-cols-3 gap-2">
                 {['us-west-2', 'eu-west-1', 'ap-south-1'].map((region) => (
-                  <div key={region} className="p-3 bg-[#0f172a] rounded-lg border border-[#2a3441] text-center">
-                    <StitchIcon name="sync" className="text-[#94a3b8] mx-auto mb-1" size="sm" />
-                    <div className="text-white text-xs font-medium">{region}</div>
+                  <div key={region} className="p-3 bg-surface-elevated rounded-lg border border-border text-center">
+                    <StitchIcon name="sync" className="text-muted mx-auto mb-1" size="sm" />
+                    <div className="text-foreground text-xs font-medium">{region}</div>
                   </div>
                 ))}
               </div>
@@ -158,8 +158,8 @@ export default function ReplicationPage() {
 
         {/* Recent Events */}
         <section className="px-5 pb-8">
-          <h3 className="text-white text-lg font-bold font-display mb-3">Recent Events</h3>
-          <div className="bg-[#1c252e] rounded-xl border border-[#2a3441] overflow-hidden">
+          <h3 className="text-foreground text-lg font-bold font-display mb-3">Recent Events</h3>
+          <div className="bg-surface rounded-xl border border-border overflow-hidden">
             {recentEvents.map((item, index) => (
               <StitchActivityItem
                 key={item.id}

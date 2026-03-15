@@ -42,10 +42,10 @@ const iconByPath: Record<string, ComponentType<{ className?: string }>> = {
 };
 
 const statusClass: Record<NavStatus, string> = {
-  primary: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
-  degraded: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
-  demo: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
-  info: 'border-slate-500/30 bg-slate-500/10 text-slate-300',
+  primary: 'border-success/30 bg-success/10 text-success',
+  degraded: 'border-warning/30 bg-warning/10 text-warning',
+  demo: 'border-accent/30 bg-accent/10 text-accent',
+  info: 'border-border bg-surface-elevated text-muted',
 };
 
 const statusLabel: Record<NavStatus, string> = {

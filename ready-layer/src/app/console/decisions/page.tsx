@@ -24,9 +24,9 @@ export default function ConsoleDecisionsPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400">Redirecting to Policies...</p>
-          <p className="text-sm text-gray-400 mt-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4"></div>
+          <p className="text-muted">Redirecting to Policies...</p>
+          <p className="text-sm text-muted mt-2">
             Decisions have been consolidated into the Policies page.
           </p>
         </div>

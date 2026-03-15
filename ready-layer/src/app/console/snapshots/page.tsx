@@ -187,9 +187,9 @@ export default function ConsoleSnapshotsPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-border">
               {snapshots.map((snap) => (
-                <tr key={snap.id} className="hover:bg-gray-50 hover:bg-surface-elevated">
+                <tr key={snap.id} className="hover:bg-surface-elevated">
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-foreground">
                     <HashDisplay hash={snap.id} length={16} />
                   </td>
@@ -204,11 +204,11 @@ export default function ConsoleSnapshotsPage() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {snap.gated ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20">
                         Gated
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-elevated text-muted border border-border">
                         Open
                       </span>
                     )}
@@ -225,7 +225,7 @@ export default function ConsoleSnapshotsPage() {
                           ? 'Runtime-backed snapshot restore'
                           : 'Unavailable: route is demo-backed and does not perform runtime rollback mutations'
                       }
-                      className="text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors disabled:cursor-not-allowed"
+                      className="text-accent hover:opacity-80 disabled:opacity-50 transition-colors disabled:cursor-not-allowed"
                       type="button"
                     >
                       {restoringId === snap.id ? 'Restoring...' : restoreRuntimeAvailable ? 'Restore' : 'Restore unavailable'}
