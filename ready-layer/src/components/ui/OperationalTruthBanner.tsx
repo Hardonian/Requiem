@@ -2,6 +2,10 @@ interface OperationalTruthBannerProps {
   className?: string;
 }
 
+function isVerifyMode(): boolean {
+  return process.env.REQUIEM_ROUTE_VERIFY_MODE === '1' && process.env.NODE_ENV !== 'production';
+}
+
 function resolveBackendState(): {
   label: string;
   tone: 'warning' | 'success';
@@ -16,7 +20,7 @@ function resolveBackendState(): {
   }
 
   return {
-    label: 'Backend configured',
+    label: 'Backend configured (not a reachability guarantee)',
     tone: 'success',
     detail: `REQUIEM_API_URL is set to ${process.env.REQUIEM_API_URL}. Route behavior still depends on backend reachability and data availability.`,
   };
@@ -27,11 +31,11 @@ function resolveAuthState(): {
   tone: 'warning' | 'success';
   detail: string;
 } {
-  if (process.env.REQUIEM_ROUTE_VERIFY_MODE === '1' && process.env.NODE_ENV !== 'production') {
+  if (isVerifyMode()) {
     return {
-      label: 'Dev auth verification mode',
+      label: 'Dev auth verification mode (synthetic auth)',
       tone: 'warning',
-      detail: 'Middleware is injecting a synthetic authenticated tenant for local route validation only. Production auth remains unchanged.',
+      detail: 'Middleware injects synthetic authenticated headers for local route validation only. This is not production-backed authentication.',
     };
   }
 
@@ -51,9 +55,15 @@ function badgeClass(tone: 'warning' | 'success'): string {
 export function OperationalTruthBanner({ className = '' }: OperationalTruthBannerProps) {
   const authState = resolveAuthState();
   const backendState = resolveBackendState();
+  const verifyMode = isVerifyMode();
 
   return (
     <div className={`mx-6 mt-6 rounded-xl border border-border bg-surface p-4 ${className}`}>
+      {verifyMode && (
+        <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
+          Synthetic authentication active (dev verification only) — production authentication is unchanged.
+        </div>
+      )}
       <p className="text-xs font-semibold uppercase tracking-wider text-muted">Operational truth</p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <div>

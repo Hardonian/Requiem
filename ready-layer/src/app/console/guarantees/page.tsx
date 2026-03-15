@@ -162,8 +162,7 @@ export default function GuaranteesPage() {
           </h2>
           
           <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
-            Deterministic AI execution with cryptographic proofs. Policy-enforced at every step. 
-            Verifiable by design, not by promise.
+            Guarantee definitions are stable, while live enforcement evidence depends on backend reachability and verification surfaces.
           </p>
           {!isHealthy && (
             <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-400/20 rounded-md px-3 py-2">

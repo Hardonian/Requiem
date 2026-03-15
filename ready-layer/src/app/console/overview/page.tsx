@@ -95,11 +95,11 @@ export default function OverviewPage() {
           <StitchBadge>Control Plane</StitchBadge>
 
           <h2 className="text-white text-3xl font-bold font-display leading-tight">
-            Deterministic AI Execution Infrastructure
+            Control Plane Overview
           </h2>
 
           <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
-            Policy-enforced. Signed. Replayable. Verifiable. The control plane for modern AI workloads.
+            Runtime claims on this page are bounded by backend reachability and explicit degraded-state messaging.
           </p>
 
           <div className="flex flex-col gap-3 pt-2">
