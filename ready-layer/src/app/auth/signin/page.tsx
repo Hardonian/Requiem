@@ -8,6 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default function SignInPage() {
+  const isRouteVerifyMode = process.env.REQUIEM_ROUTE_VERIFY_MODE === '1' && process.env.NODE_ENV !== 'production';
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm">
@@ -24,6 +26,11 @@ export default function SignInPage() {
           <p className="text-sm text-muted text-center">
             Connect your Supabase identity provider to enable authentication.
           </p>
+          {isRouteVerifyMode ? (
+            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              Route verify mode is enabled for local QA. Protected routes can be validated with synthetic auth in middleware, but production authentication is unchanged.
+            </p>
+          ) : null}
         </div>
         <p className="text-center mt-6 text-sm text-muted">
           Need an account?{' '}

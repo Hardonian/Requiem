@@ -25,3 +25,5 @@ export {
   LoadingState, 
   EmptyState 
 } from './PageHeader';
+
+export { OperationalTruthBanner } from './OperationalTruthBanner';
