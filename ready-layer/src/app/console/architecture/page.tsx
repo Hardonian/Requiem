@@ -12,6 +12,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { StitchContainer, StitchCard, StitchActivityItem, StitchIcon } from '@/components/stitch';
+import { RouteMaturityNote } from '@/components/ui';
+import { getRouteMaturity, maturityNoteTone } from '@/lib/route-maturity';
 
 interface StatusEnvelope {
   backend?: {
@@ -24,6 +26,7 @@ interface StatusEnvelope {
 type LoadState = 'loading' | 'ready' | 'error';
 
 export default function ArchitecturePage() {
+  const routeMaturity = getRouteMaturity('/console/architecture');
   const [status, setStatus] = useState<StatusEnvelope | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('loading');
 
@@ -142,6 +145,11 @@ export default function ArchitecturePage() {
       </header>
 
       <StitchContainer maxWidth="md">
+        <section className="px-5 pt-6">
+          <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity disclosure">
+            {routeMaturity.degradedBehavior}
+          </RouteMaturityNote>
+        </section>
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2 text-white font-display">Control Plane Topology</h2>
           <p className="text-sm text-[#94a3b8] leading-relaxed">

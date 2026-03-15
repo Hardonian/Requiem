@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { routeMaturityCatalog } from '../src/lib/route-maturity';
 
 const appRoot = path.resolve(process.cwd(), 'src/app');
 
@@ -24,11 +25,9 @@ describe('route completeness', () => {
     });
   }
 
-  it('console navigation links target implemented pages', () => {
-    const source = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ConsoleNavigation.tsx'), 'utf8');
-    const matches = [...source.matchAll(/href:\s*'([^']+)'/g)].map((m) => m[1]);
-    for (const href of matches) {
-      expect(routeExists(href), `${href} is missing`).toBe(true);
+  it('maturity catalog routes target implemented pages', () => {
+    for (const entry of routeMaturityCatalog) {
+      expect(routeExists(entry.path), `${entry.path} is missing`).toBe(true);
     }
   });
 });

@@ -19,6 +19,8 @@ import {
   StitchIcon,
   StitchTimeline,
 } from '@/components/stitch';
+import { RouteMaturityNote } from '@/components/ui';
+import { getRouteMaturity, maturityNoteTone } from '@/lib/route-maturity';
 
 const controlPlaneFeatures = [
   {
@@ -77,11 +79,17 @@ const executionSteps = [
 ];
 
 export default function OverviewPage() {
+  const routeMaturity = getRouteMaturity('/console/overview');
   return (
     <div className="min-h-screen bg-[#101922] flex flex-col pb-20">
       <StitchHeader title="Requiem Console" />
 
       <StitchContainer maxWidth="md">
+        <section className="px-5 pt-6">
+          <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity disclosure">
+            {routeMaturity.degradedBehavior}
+          </RouteMaturityNote>
+        </section>
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge>Control Plane</StitchBadge>

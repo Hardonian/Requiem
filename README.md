@@ -62,7 +62,7 @@ pnpm install --frozen-lockfile
 
 The route surface intentionally mixes runtime-backed pages with informational and demo-safe pages.
 Do not treat every console route as live backend proof.
-Use [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md) as the source of truth for per-route expectations.
+Canonical maturity truth is authored in `ready-layer/src/lib/route-maturity.ts`; [docs/reference/ROUTE_MATURITY.md](./docs/reference/ROUTE_MATURITY.md) explains the taxonomy and enforcement checks.
 
 ## Verification evidence map
 
