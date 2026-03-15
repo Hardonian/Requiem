@@ -8,10 +8,12 @@ interface TenantIsolationResponse {
   ok: boolean;
   tenant_id: string;
   isolation_status: 'enforced' | 'warning' | 'violation';
+  source: 'stub';
+  configured: boolean;
   quotas: {
-    storage: { used_bytes: number; limit_bytes: number; pct: number };
-    rate: { current_rpm: number; limit_rpm: number; pct: number };
-    spend: { today: number; daily_limit: number; pct: number };
+    storage: { used_bytes: number | null; limit_bytes: number | null; pct: number | null };
+    rate: { current_rpm: number | null; limit_rpm: number | null; pct: number | null };
+    spend: { today: number | null; daily_limit: number | null; pct: number | null };
   };
   violations: Array<{
     violation_id: string;
@@ -34,11 +36,13 @@ export async function GET(request: NextRequest): Promise<Response> {
       const result: TenantIsolationResponse = {
         ok: true,
         tenant_id: ctx.tenant_id,
+        source: 'stub',
+        configured: Boolean(process.env.REQUIEM_API_URL),
         isolation_status: 'enforced',
         quotas: {
-          storage: { used_bytes: 524288000, limit_bytes: 10737418240, pct: 4.88 },
-          rate: { current_rpm: 23, limit_rpm: 1000, pct: 2.3 },
-          spend: { today: 12.50, daily_limit: 100, pct: 12.5 },
+          storage: { used_bytes: null, limit_bytes: null, pct: null },
+          rate: { current_rpm: null, limit_rpm: null, pct: null },
+          spend: { today: null, daily_limit: null, pct: null },
         },
         violations: [],
         scoped_paths: {
