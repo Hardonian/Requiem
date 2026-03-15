@@ -12,7 +12,8 @@
  * - Compliance status
  */
 
-import { 
+import { type ReactNode, useEffect, useState } from 'react';
+import {
   StitchHeader, 
   StitchContainer, 
   StitchCard,
@@ -21,6 +22,13 @@ import {
   StitchBadge,
   StitchIcon,
 } from '@/components/stitch';
+
+interface StatusEnvelope {
+  backend?: {
+    reachable?: boolean;
+    status?: number;
+  };
+}
 
 const guarantees = [
   {
@@ -61,12 +69,77 @@ const guarantees = [
   },
 ];
 
-const verificationStats = [
-  { label: 'Verified Executions', value: '99.99%', trend: { direction: 'up' as const, value: '+0.01%' } },
-  { label: 'Replay Success', value: '100%', trend: { direction: 'neutral' as const, value: 'Stable' } },
-];
-
 export default function GuaranteesPage() {
+  const [status, setStatus] = useState<StatusEnvelope | null>(null);
+  const [statusState, setStatusState] = useState<'loading' | 'ready' | 'error'>('loading');
+
+  useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const response = await fetch('/api/status', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Status endpoint failed: ${response.status}`);
+        }
+
+        const payload: StatusEnvelope = await response.json();
+        setStatus(payload);
+        setStatusState('ready');
+      } catch {
+        setStatusState('error');
+      }
+    };
+
+    loadStatus();
+  }, []);
+
+  const backendReachable = status?.backend?.reachable;
+  const isHealthy = statusState === 'ready' && backendReachable;
+
+  const verificationStats: Array<{
+    label: string;
+    value: string;
+    trend?: { direction: 'up' | 'down' | 'neutral'; value: string };
+  }> = [
+    {
+      label: 'Verification Surface',
+      value:
+        statusState === 'loading'
+          ? 'Checking…'
+          : isHealthy
+            ? 'Live'
+            : statusState === 'error'
+              ? 'Unavailable'
+              : 'Degraded',
+      trend: {
+        direction: isHealthy ? 'up' : 'neutral',
+        value: isHealthy ? 'Backend reachable' : 'Local guarantees only',
+      },
+    },
+    {
+      label: 'Replay Validation',
+      value: isHealthy ? 'Enabled' : 'Standby',
+      trend: {
+        direction: 'neutral',
+        value: isHealthy ? 'Use /console/runs to verify' : 'Connect REQUIEM_API_URL',
+      },
+    },
+  ];
+
+  const guaranteeStatusBadge: { text: string; variant: 'success' | 'warning' | 'error'; } = isHealthy
+    ? { text: 'Engine-connected', variant: 'success' }
+    : { text: 'Degraded: local-only', variant: 'warning' };
+
+  const policyChips: Array<{ text: string; className: string; icon?: ReactNode }> = [
+    {
+      text: isHealthy ? 'Policy checks reachable' : 'Policy checks unavailable',
+      className: isHealthy ? 'text-xs bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded' : 'text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded',
+    },
+    {
+      text: isHealthy ? 'Deterministic replay enabled' : 'Replay requires backend',
+      className: 'text-xs bg-[#137fec]/10 text-[#137fec] px-2 py-1 rounded',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[#101922] flex flex-col pb-20">
       <StitchHeader title="Execution Guarantees" />
@@ -74,7 +147,7 @@ export default function GuaranteesPage() {
       <StitchContainer maxWidth="md">
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
-          <StitchBadge variant="success">All Systems Operational</StitchBadge>
+          <StitchBadge variant={guaranteeStatusBadge.variant}>{guaranteeStatusBadge.text}</StitchBadge>
           
           <h2 className="text-white text-3xl font-bold font-display leading-tight">
             Execution Guarantees
@@ -84,6 +157,11 @@ export default function GuaranteesPage() {
             Deterministic AI execution with cryptographic proofs. Policy-enforced at every step. 
             Verifiable by design, not by promise.
           </p>
+          {!isHealthy && (
+            <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-400/20 rounded-md px-3 py-2">
+              Live guarantee verification is currently unavailable. This page is showing static guarantee definitions and local status only.
+            </p>
+          )}
         </section>
 
         {/* Verification Stats */}
@@ -104,7 +182,7 @@ export default function GuaranteesPage() {
         <section className="px-5 pb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-white text-lg font-bold font-display">Core Guarantees</h3>
-            <StitchBadge variant="success">4/4 Active</StitchBadge>
+            <StitchBadge variant={guaranteeStatusBadge.variant}>{isHealthy ? '4/4 Reachable' : 'Definitions loaded'}</StitchBadge>
           </div>
           <div className="grid gap-3">
             {guarantees.map((guarantee) => (
@@ -137,12 +215,11 @@ export default function GuaranteesPage() {
                   before dispatch.
                 </p>
                 <div className="flex gap-2">
-                  <span className="text-xs bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded">
-                    Enforced
-                  </span>
-                  <span className="text-xs bg-[#137fec]/10 text-[#137fec] px-2 py-1 rounded">
-                    Immutable
-                  </span>
+                  {policyChips.map((chip) => (
+                    <span key={chip.text} className={chip.className}>
+                      {chip.text}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
