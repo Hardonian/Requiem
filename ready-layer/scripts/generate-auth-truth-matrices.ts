@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { parse } from '@babel/parser';
+import * as t from '@babel/types';
 
 type RouteRow = {
   path: string;
@@ -11,6 +13,12 @@ type RouteRow = {
   dependencyProfile: string;
   classification: string;
   evidence: string;
+};
+
+type HandlerInsight = {
+  implementation: string;
+  dependencyProfile: string;
+  finalClassification: string;
 };
 
 type ActionRow = {
@@ -60,9 +68,9 @@ function parentLayoutForRoute(routePath: string): string {
 }
 
 function classifySurface(source: string, routePath: string): { type: string; deps: string; classification: string; evidence: string } {
-  const hasApiCalls = /(fetch\(|axios\.|\/api\/|useQuery|queryFn|mutation)/.test(source);
-  const hasEngineEnv = /REQUIEM_API_URL|engine|runtime/i.test(source);
-  const hasUseState = /useState\(|onClick=|onChange=/.test(source);
+  const hasApiCalls = /(fetch\(|axios\.|\/api\/|useQuery|queryFn|mutation|useSWR)/.test(source);
+  const hasBackendDependency = /(REQUIEM_API_URL|engine|runtime|supabase|tenant)/i.test(source);
+  const hasControls = /(<button|<Link|onClick=|onChange=|onSubmit=)/.test(source);
   const authRequired = protectedPrefixes.some((p) => routePath === p || routePath.startsWith(`${p}/`));
 
   if (!authRequired) {
@@ -74,11 +82,11 @@ function classifySurface(source: string, routePath: string): { type: string; dep
     };
   }
 
-  if (hasApiCalls && hasEngineEnv) {
+  if (hasApiCalls && hasBackendDependency) {
     return {
       type: 'runtime-backed',
       deps: 'auth session + REQUIEM_API_URL + backend reachability (route-specific data)',
-      classification: 'runtime-backed (source-inspected; runtime varies by backend state)',
+      classification: 'runtime-backed (source-inspected; runtime varies by backend/data/auth state)',
       evidence: 'source inspection + runtime screenshot',
     };
   }
@@ -92,7 +100,7 @@ function classifySurface(source: string, routePath: string): { type: string; dep
     };
   }
 
-  if (hasUseState) {
+  if (hasControls) {
     return {
       type: 'local-only interactive',
       deps: 'auth session only',
@@ -109,50 +117,199 @@ function classifySurface(source: string, routePath: string): { type: string; dep
   };
 }
 
+function traverse(node: t.Node, visit: (n: t.Node) => void): void {
+  visit(node);
+  const keys = t.VISITOR_KEYS[node.type] ?? [];
+  for (const key of keys) {
+    const value = (node as unknown as Record<string, unknown>)[key];
+    if (Array.isArray(value)) {
+      for (const child of value) {
+        if (child && typeof child === 'object' && 'type' in child) {
+          traverse(child as t.Node, visit);
+        }
+      }
+    } else if (value && typeof value === 'object' && 'type' in value) {
+      traverse(value as t.Node, visit);
+    }
+  }
+}
+
+function jsxNameToString(name: t.JSXIdentifier | t.JSXMemberExpression | t.JSXNamespacedName): string {
+  if (t.isJSXIdentifier(name)) return name.name;
+  if (t.isJSXMemberExpression(name)) return `${jsxNameToString(name.object)}.${jsxNameToString(name.property)}`;
+  return `${name.namespace.name}:${name.name.name}`;
+}
+
+function extractText(children: (t.JSXText | t.JSXExpressionContainer | t.JSXElement | t.JSXFragment | t.JSXSpreadChild)[]): string {
+  const parts: string[] = [];
+  for (const child of children) {
+    if (t.isJSXText(child)) {
+      parts.push(child.value);
+      continue;
+    }
+
+    if (t.isJSXElement(child)) {
+      parts.push(extractText(child.children));
+      continue;
+    }
+
+    if (t.isJSXExpressionContainer(child)) {
+      if (t.isStringLiteral(child.expression)) {
+        parts.push(child.expression.value);
+      } else if (t.isTemplateLiteral(child.expression) && child.expression.expressions.length === 0) {
+        parts.push(child.expression.quasis.map((q) => q.value.cooked ?? '').join(''));
+      }
+    }
+  }
+
+  return parts.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function getJsxAttribute(opening: t.JSXOpeningElement, attrName: string): t.JSXAttribute | null {
+  return (opening.attributes.find((attr) => t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name, { name: attrName })) as t.JSXAttribute) ?? null;
+}
+
+function getAttributeLiteralValue(attribute: t.JSXAttribute | null): string | null {
+  if (!attribute || attribute.value == null) return null;
+  if (t.isStringLiteral(attribute.value)) return attribute.value.value;
+  if (t.isJSXExpressionContainer(attribute.value)) {
+    if (t.isStringLiteral(attribute.value.expression)) return attribute.value.expression.value;
+    if (t.isTemplateLiteral(attribute.value.expression) && attribute.value.expression.expressions.length === 0) {
+      return attribute.value.expression.quasis.map((q) => q.value.cooked ?? '').join('');
+    }
+  }
+  return null;
+}
+
+function getOnClickHandlerName(attribute: t.JSXAttribute | null): string | null {
+  if (!attribute || !attribute.value || !t.isJSXExpressionContainer(attribute.value)) return null;
+  const expr = attribute.value.expression;
+  if (t.isIdentifier(expr)) return expr.name;
+  if (t.isArrowFunctionExpression(expr) || t.isFunctionExpression(expr)) return '[inline handler]';
+  return '[dynamic handler]';
+}
+
+function collectHandlers(ast: t.File, source: string): Map<string, HandlerInsight> {
+  const map = new Map<string, HandlerInsight>();
+
+  const getInsight = (snippet: string): HandlerInsight => {
+    if (/router\.push|window\.location|href\s*=/.test(snippet)) {
+      return {
+        implementation: 'navigation trigger',
+        dependencyProfile: 'client routing + destination route dependencies',
+        finalClassification: 'local-only informational navigation',
+      };
+    }
+    if (/fetch\(|axios\.|\/api\//.test(snippet)) {
+      return {
+        implementation: 'client callback with API call',
+        dependencyProfile: 'auth session + API route reachability + backend state',
+        finalClassification: 'runtime-backed but not always provable in this environment',
+      };
+    }
+    if (/set[A-Z]|useState|dispatch\(/.test(snippet)) {
+      return {
+        implementation: 'client-only local state callback',
+        dependencyProfile: 'component state only',
+        finalClassification: 'local-only interaction',
+      };
+    }
+
+    return {
+      implementation: 'callback handler (requires source review)',
+      dependencyProfile: 'depends on handler internals',
+      finalClassification: 'source-inspected only',
+    };
+  };
+
+  traverse(ast, (node) => {
+    if (t.isVariableDeclarator(node) && t.isIdentifier(node.id) && (t.isArrowFunctionExpression(node.init) || t.isFunctionExpression(node.init))) {
+      const start = node.init.start ?? 0;
+      const end = node.init.end ?? start;
+      map.set(node.id.name, getInsight(source.slice(start, end)));
+    }
+
+    if (t.isFunctionDeclaration(node) && node.id) {
+      const start = node.start ?? 0;
+      const end = node.end ?? start;
+      map.set(node.id.name, getInsight(source.slice(start, end)));
+    }
+  });
+
+  return map;
+}
+
 function extractActionRows(route: string, file: string, source: string): ActionRow[] {
   const rows: ActionRow[] = [];
+  const ast = parse(source, {
+    sourceType: 'module',
+    plugins: ['jsx', 'typescript'],
+    errorRecovery: true,
+  });
+  const handlers = collectHandlers(ast, source);
 
-  const linkRegex = /<Link[^>]*href=\{?['"]([^'"}]+)['"]\}?[^>]*>([\s\S]*?)<\/Link>/g;
-  for (const match of source.matchAll(linkRegex)) {
-    const href = match[1];
-    const rawLabel = match[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    const label = rawLabel || href;
+  traverse(ast, (node) => {
+    if (!t.isJSXElement(node)) return;
+
+    const name = jsxNameToString(node.openingElement.name);
+    const isButtonLike = name === 'button' || name.endsWith('.Trigger') || name === 'Button';
+    const isLink = name === 'Link' || name === 'a';
+    if (!isButtonLike && !isLink) return;
+
+    const textLabel = extractText(node.children);
+    const ariaLabel = getAttributeLiteralValue(getJsxAttribute(node.openingElement, 'aria-label'));
+    const label = (textLabel || ariaLabel || `[${name} with dynamic label]`).replace(/\|/g, '\\|');
+    const disabledAttr = getJsxAttribute(node.openingElement, 'disabled') ?? getJsxAttribute(node.openingElement, 'aria-disabled');
+    const disabled = disabledAttr !== null;
+
+    if (isLink) {
+      const href = getAttributeLiteralValue(getJsxAttribute(node.openingElement, 'href')) ?? '[dynamic route]';
+      rows.push({
+        route,
+        label,
+        impliedMeaning: `Navigate to ${href}`,
+        file,
+        implementation: 'navigation only',
+        dependencyProfile: 'client routing + destination route dependencies',
+        finalClassification: 'local-only informational navigation',
+        evidence: 'source inspection',
+      });
+      return;
+    }
+
+    const onClick = getJsxAttribute(node.openingElement, 'onClick');
+    const handlerName = getOnClickHandlerName(onClick);
+    const insight = handlerName ? handlers.get(handlerName) : null;
+
     rows.push({
       route,
       label,
-      impliedMeaning: `Navigate to ${href}`,
+      impliedMeaning: disabled ? 'Unavailable control' : 'User-triggered action',
       file,
-      implementation: 'navigation only',
-      dependencyProfile: 'client routing + destination route dependencies',
-      finalClassification: 'local-only informational navigation',
-      evidence: 'source inspection',
-    });
-  }
-
-  const buttonRegex = /<button([^>]*)>([\s\S]*?)<\/button>/g;
-  for (const match of source.matchAll(buttonRegex)) {
-    const attrs = match[1] ?? '';
-    const rawLabel = match[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    const label = rawLabel || 'unlabeled button';
-    const hasDisabled = /disabled|aria-disabled/.test(attrs);
-    const hasOnClick = /onClick=/.test(attrs);
-    rows.push({
-      route,
-      label,
-      impliedMeaning: hasDisabled ? 'Unavailable control' : 'User-triggered action',
-      file,
-      implementation: hasOnClick ? 'client-only local state or callback (inspect handler)' : 'no explicit handler in this element',
-      dependencyProfile: hasOnClick ? 'component state and potentially downstream API calls' : 'none',
-      finalClassification: hasDisabled
+      implementation: disabled
+        ? 'disabled control'
+        : insight?.implementation ?? (handlerName ? `handler: ${handlerName}` : 'no explicit onClick handler'),
+      dependencyProfile: disabled
+        ? 'none while disabled'
+        : insight?.dependencyProfile ?? (handlerName ? 'depends on handler implementation' : 'none'),
+      finalClassification: disabled
         ? 'disabled truthfully'
-        : hasOnClick
-          ? 'local-only interaction (unless handler reaches API)'
-          : 'decorative non-action',
+        : insight?.finalClassification ?? (handlerName ? 'source-inspected only' : 'decorative non-action'),
       evidence: 'source inspection',
     });
+  });
+
+  const unique = new Map<string, ActionRow>();
+  for (const row of rows) {
+    const key = `${row.route}|${row.label}|${row.file}|${row.implementation}`;
+    if (!unique.has(key)) unique.set(key, row);
   }
 
-  return rows;
+  return [...unique.values()];
+}
+
+function markdownCell(value: string): string {
+  return value.replace(/\n/g, ' ').replace(/\|/g, '\\|');
 }
 
 function main(): void {
@@ -166,9 +323,7 @@ function main(): void {
     const source = fs.readFileSync(page, 'utf8');
     const relativeFile = path.relative(repoRoot, page);
     const surface = classifySurface(source, routePath);
-    const authRequired = protectedPrefixes.some((p) => routePath === p || routePath.startsWith(`${p}/`))
-      ? 'yes'
-      : 'no';
+    const authRequired = protectedPrefixes.some((p) => routePath === p || routePath.startsWith(`${p}/`)) ? 'yes' : 'no';
 
     routeRows.push({
       path: routePath,
@@ -201,7 +356,7 @@ function main(): void {
   lines.push('|---|---|---|---|---|---|---|---|---|');
 
   for (const row of routeRows.filter((r) => r.authRequired === 'yes')) {
-    lines.push(`| \`${row.path}\` | \`${row.file}\` | \`${row.parentLayout}\` | ${row.authRequired} | ${row.roleSensitive} | ${row.surfaceType} | ${row.dependencyProfile} | ${row.classification} | ${row.evidence} |`);
+    lines.push(`| \`${markdownCell(row.path)}\` | \`${markdownCell(row.file)}\` | \`${markdownCell(row.parentLayout)}\` | ${row.authRequired} | ${row.roleSensitive} | ${markdownCell(row.surfaceType)} | ${markdownCell(row.dependencyProfile)} | ${markdownCell(row.classification)} | ${markdownCell(row.evidence)} |`);
   }
 
   lines.push('');
@@ -211,7 +366,7 @@ function main(): void {
   lines.push('|---|---|---|---|---|---|---|---|');
 
   for (const row of actionRows) {
-    lines.push(`| \`${row.route}\` | ${row.label} | ${row.impliedMeaning} | \`${row.file}\` | ${row.implementation} | ${row.dependencyProfile} | ${row.finalClassification} | ${row.evidence} |`);
+    lines.push(`| \`${markdownCell(row.route)}\` | ${markdownCell(row.label)} | ${markdownCell(row.impliedMeaning)} | \`${markdownCell(row.file)}\` | ${markdownCell(row.implementation)} | ${markdownCell(row.dependencyProfile)} | ${markdownCell(row.finalClassification)} | ${markdownCell(row.evidence)} |`);
   }
 
   lines.push('');
