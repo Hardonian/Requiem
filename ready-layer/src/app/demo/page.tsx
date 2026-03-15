@@ -1,7 +1,8 @@
 // ready-layer/src/app/demo/page.tsx
 //
-// 60-Second Live Demo Page
-// Pre-configured demo with event stream, receipt hash, and verification
+// 60-Second Interactive Walkthrough
+// Illustrates the execution flow: plan → policy gate → receipt → verification.
+// Events are pre-scripted to show what a real run produces; engine not required.
 
 'use client';
 
@@ -9,7 +10,6 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { HashDisplay, VerificationBadge } from '@/components/ui';
 
-// Simulated event types
 interface DemoEvent {
   id: string;
   timestamp: string;
@@ -18,7 +18,6 @@ interface DemoEvent {
   detail?: string;
 }
 
-// Mock demo events sequence
 const DEMO_EVENTS: DemoEvent[] = [
   { id: '1', timestamp: '00:00.123', type: 'info', message: 'Loading plan...', detail: 'demo-hello-world.yaml' },
   { id: '2', timestamp: '00:00.245', type: 'info', message: 'Policy check', detail: 'capability:demo granted' },
@@ -33,14 +32,16 @@ const DEMO_EVENTS: DemoEvent[] = [
   { id: '11', timestamp: '00:01.345', type: 'verify', message: 'Verification complete', detail: 'All checks passed' },
 ];
 
+// Representative receipt hash — matches the hash step output above
 const RECEIPT_HASH = 'a39f8c2d4e5b6f7a8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b';
 
 function EventRow({ event }: { event: DemoEvent }) {
+  // Colors designed for the dark terminal background
   const typeColors = {
-    info: 'text-blue-600 bg-blue-50',
-    success: 'text-emerald-600 bg-emerald-50',
-    hash: 'text-purple-600 bg-purple-50',
-    verify: 'text-emerald-600 bg-emerald-50',
+    info: 'text-blue-400 bg-blue-900/30',
+    success: 'text-success bg-success/20',
+    hash: 'text-purple-400 bg-purple-900/30',
+    verify: 'text-success bg-success/20',
   };
 
   const icons = {
@@ -52,16 +53,16 @@ function EventRow({ event }: { event: DemoEvent }) {
 
   return (
     <div className="flex items-start gap-3 py-2 animate-in fade-in slide-in-from-left-2 duration-300">
-      <span className="text-xs text-gray-400 font-mono w-16 flex-shrink-0 pt-0.5">
+      <span className="text-xs text-muted font-mono w-16 flex-shrink-0 pt-0.5">
         {event.timestamp}
       </span>
       <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold flex-shrink-0 ${typeColors[event.type]}`}>
         {icons[event.type]}
       </span>
       <div className="flex-1 min-w-0">
-        <span className="text-sm text-gray-700">{event.message}</span>
+        <span className="text-sm text-slate-200">{event.message}</span>
         {event.detail && (
-          <span className="text-xs text-gray-400 ml-2">{event.detail}</span>
+          <span className="text-xs text-slate-400 ml-2">{event.detail}</span>
         )}
       </div>
     </div>
@@ -70,12 +71,12 @@ function EventRow({ event }: { event: DemoEvent }) {
 
 function ReplayBadge() {
   return (
-    <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-      <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/30 rounded-lg">
+      <svg className="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
       </svg>
-      <span className="text-sm font-semibold text-emerald-700">Replay Proven</span>
-      <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <span className="text-sm font-semibold text-success">Replay Proven</span>
+      <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </div>
@@ -94,7 +95,6 @@ export default function DemoPage() {
     setVisibleEvents([]);
     setProgress(0);
 
-    // Stream events with delays
     for (let i = 0; i < DEMO_EVENTS.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 180));
       setVisibleEvents(prev => [...prev, DEMO_EVENTS[i]]);
@@ -113,52 +113,65 @@ export default function DemoPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-slate-900 text-white py-6">
+      <header className="bg-foreground text-background py-6">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">60-Second Demo</h1>
-              <p className="text-slate-400 text-sm mt-1">
-                See deterministic execution in action
+              <div className="flex items-center gap-3 mb-1">
+                <Link href="/" className="text-base font-bold text-background font-display">Requiem</Link>
+                <span className="text-background/30">/</span>
+                <h1 className="text-base font-semibold text-background/80">60-Second Walkthrough</h1>
+              </div>
+              <p className="text-background/50 text-sm">
+                Interactive illustration of the execution flow — plan, policy gate, receipt, verification.
               </p>
             </div>
             <Link
               href="/"
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-background/50 hover:text-background transition-colors text-sm hidden sm:block"
             >
-              ← Back to Home
+              ← Back
             </Link>
           </div>
         </div>
       </header>
+
+      {/* Simulation notice */}
+      <div className="bg-accent/10 border-b border-accent/20 py-2 px-4">
+        <p className="max-w-5xl mx-auto text-xs text-accent text-center">
+          This walkthrough replays a pre-scripted execution sequence to illustrate Requiem&apos;s output format.
+          To run against a real engine, see{' '}
+          <a href="https://github.com/reachhq/requiem" className="underline underline-offset-2">the CLI quickstart</a>.
+        </p>
+      </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left: Controls & Status */}
           <div className="space-y-6">
             {/* Run Controls */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                Demo Configuration
+            <div className="bg-surface rounded-xl border border-border p-6">
+              <h2 className="text-lg font-semibold text-foreground font-display mb-4">
+                Execution Configuration
               </h2>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Plan</span>
-                  <span className="font-mono text-slate-900">hello-world.yaml</span>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted">Plan</span>
+                  <span className="font-mono text-foreground">hello-world.yaml</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Capability</span>
-                  <span className="font-mono text-slate-900">demo</span>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted">Capability</span>
+                  <span className="font-mono text-foreground">demo</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Policy</span>
-                  <span className="font-mono text-slate-900">allow-all</span>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted">Policy</span>
+                  <span className="font-mono text-foreground">allow-all</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-slate-500">Steps</span>
-                  <span className="font-mono text-slate-900">3</span>
+                  <span className="text-muted">Steps</span>
+                  <span className="font-mono text-foreground">3</span>
                 </div>
               </div>
 
@@ -166,19 +179,19 @@ export default function DemoPage() {
                 {!isRunning && !isComplete && (
                   <button
                     onClick={runDemo}
-                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-semibold transition-colors"
+                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-success hover:brightness-110 text-foreground rounded-lg font-semibold transition-all"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Run Demo
+                    Run Walkthrough
                   </button>
                 )}
                 {isRunning && (
                   <button
                     disabled
-                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-slate-100 text-slate-400 rounded-lg font-semibold cursor-not-allowed"
+                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-surface-elevated text-muted rounded-lg font-semibold cursor-not-allowed"
                   >
                     <svg className="w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -190,7 +203,7 @@ export default function DemoPage() {
                 {isComplete && (
                   <button
                     onClick={resetDemo}
-                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition-colors"
+                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-foreground hover:opacity-90 text-background rounded-lg font-semibold transition-all"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -203,13 +216,13 @@ export default function DemoPage() {
               {/* Progress bar */}
               {(isRunning || isComplete) && (
                 <div className="mt-4">
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-emerald-500 transition-all duration-300 ease-out"
+                      className="h-full bg-success transition-all duration-300 ease-out"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <div className="text-right text-xs text-slate-400 mt-1">
+                  <div className="text-right text-xs text-muted mt-1">
                     {Math.round(progress)}%
                   </div>
                 </div>
@@ -218,15 +231,15 @@ export default function DemoPage() {
 
             {/* Receipt (shown when complete) */}
             {isComplete && (
-              <div className="bg-white rounded-xl border border-emerald-200 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+              <div className="bg-surface rounded-xl border border-success/30 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h3 className="text-sm font-semibold text-muted uppercase tracking-wide mb-4">
                   Execution Receipt
                 </h3>
-                
+
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1">Receipt Hash</label>
-                    <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                    <label className="text-xs text-muted block mb-1">Receipt Hash</label>
+                    <div className="bg-surface-elevated rounded-lg p-3 border border-border">
                       <HashDisplay hash={RECEIPT_HASH} length={32} showCopy />
                     </div>
                   </div>
@@ -246,22 +259,23 @@ export default function DemoPage() {
           </div>
 
           {/* Right: Event Stream */}
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-surface rounded-xl border border-border overflow-hidden">
+            <div className="bg-surface-elevated px-4 py-3 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-sm font-medium text-slate-700">Event Stream</span>
+                <span className="text-sm font-medium text-foreground">Event Stream</span>
               </div>
               {isRunning && (
-                <span className="flex items-center gap-1.5 text-xs text-emerald-600">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                  Live
+                <span className="flex items-center gap-1.5 text-xs text-success">
+                  <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
+                  Running
                 </span>
               )}
             </div>
-            
+
+            {/* Terminal panel — intentionally dark for readability of log output */}
             <div className="p-4 h-96 overflow-y-auto font-mono text-sm bg-slate-950">
               {visibleEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-slate-500">
@@ -270,7 +284,7 @@ export default function DemoPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p>Click &quot;Run Demo&quot; to start</p>
+                    <p>Click &quot;Run Walkthrough&quot; to start</p>
                   </div>
                 </div>
               ) : (
@@ -286,44 +300,44 @@ export default function DemoPage() {
 
         {/* What Just Happened */}
         {isComplete && (
-          <div className="mt-8 bg-emerald-50 rounded-xl border border-emerald-200 p-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h3 className="text-lg font-semibold text-emerald-900 mb-3">
-              What just happened?
+          <div className="mt-8 bg-success/10 rounded-xl border border-success/30 p-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h3 className="text-lg font-semibold text-foreground font-display mb-3">
+              What this walkthrough illustrated
             </h3>
-            <ul className="space-y-2 text-emerald-800">
+            <ul className="space-y-2 text-foreground/80">
               <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-success flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Your plan executed through the policy gate — every step was capability-checked and budget-metered.</span>
+                <span>The plan passed through the policy gate — every step is capability-checked and budget-metered before execution.</span>
               </li>
               <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-success flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>A cryptographic receipt was generated — the BLAKE3 hash proves exactly what executed.</span>
+                <span>A cryptographic receipt was generated — the BLAKE3 hash proves exactly what executed and in what order.</span>
               </li>
               <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-success flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Verification passed — the execution is replayable and auditable to the byte.</span>
+                <span>Verification passed — the execution is replayable and auditable to the byte using the CLI.</span>
               </li>
             </ul>
-            <div className="mt-4 flex gap-3">
+            <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 href="/console"
-                className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-accent hover:brightness-110 text-white rounded-lg font-medium transition-all text-sm"
               >
-                Try in Console
+                Open Console
               </Link>
               <a
                 href="https://github.com/reachhq/requiem"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center px-4 py-2 bg-white hover:bg-emerald-100 text-emerald-700 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-surface-elevated hover:bg-border text-foreground rounded-lg font-medium transition-colors text-sm border border-border"
               >
-                Read Documentation
+                CLI Quickstart
               </a>
             </div>
           </div>

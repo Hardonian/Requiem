@@ -11,6 +11,12 @@ This repository also contains the open-source Reach CLI and integration points f
 
 Requiem ecosystem components:
 
+- **Requiem engine** (`src/`, `include/requiem/`, `tests/`): C++20 deterministic execution runtime with BLAKE3 hashing, capability enforcement, sandbox isolation, and replay verification.
+- **Reach CLI** (`packages/cli/`): Developer-facing command-line tool for running plans, managing capabilities and policies, inspecting receipts, and verifying determinism.
+- **ReadyLayer** (`ready-layer/`): Next.js control-plane web application for monitoring runs, reviewing policies, tracking budgets, and exploring the event log.
+- **Engine adapters** (`adapters/`): Integration layer connecting the runtime to external providers.
+- **Governance scripts** (`scripts/`): Verification, contract enforcement, and CI tooling.
+
 ## Quickstart (canonical)
 
 ```bash
