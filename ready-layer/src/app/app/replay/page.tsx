@@ -66,10 +66,10 @@ export default function ReplayPage() {
   const failure = error ? classifyApiFailure({ status: error.status, code: error.code, message: error.message }) : null;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Replay Verification</h1>
-        <p className="text-sm text-muted mt-1">Runtime replay verification surface. Local UI never claims verification success without API evidence.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">Replay Verification</h1>
+        <p className="text-sm text-muted mt-1">Verify deterministic execution. Replay claims are only confirmed against runtime API evidence.</p>
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-4">

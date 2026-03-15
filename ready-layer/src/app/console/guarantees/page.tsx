@@ -135,16 +135,16 @@ export default function GuaranteesPage() {
   const policyChips: Array<{ text: string; className: string; icon?: ReactNode }> = [
     {
       text: isHealthy ? 'Policy checks reachable' : 'Policy checks unavailable',
-      className: isHealthy ? 'text-xs bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded' : 'text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded',
+      className: isHealthy ? 'text-xs bg-success/10 text-success px-2 py-1 rounded' : 'text-xs bg-warning/10 text-warning px-2 py-1 rounded',
     },
     {
       text: isHealthy ? 'Deterministic replay enabled' : 'Replay requires backend',
-      className: 'text-xs bg-[#137fec]/10 text-[#137fec] px-2 py-1 rounded',
+      className: 'text-xs bg-accent/10 text-accent px-2 py-1 rounded',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#101922] flex flex-col pb-20">
+    <div className="min-h-screen bg-background flex flex-col pb-20">
       <StitchHeader title="Execution Guarantees" />
       
       <StitchContainer maxWidth="md">
@@ -157,11 +157,11 @@ export default function GuaranteesPage() {
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge variant={guaranteeStatusBadge.variant}>{guaranteeStatusBadge.text}</StitchBadge>
           
-          <h2 className="text-white text-3xl font-bold font-display leading-tight">
+          <h2 className="text-foreground text-3xl font-bold font-display leading-tight">
             Execution Guarantees
           </h2>
-          
-          <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
+
+          <p className="text-muted text-base font-normal leading-relaxed">
             Guarantee definitions are stable, while live enforcement evidence depends on backend reachability and verification surfaces.
           </p>
           {!isHealthy && (
@@ -188,7 +188,7 @@ export default function GuaranteesPage() {
         {/* Guarantees List */}
         <section className="px-5 pb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white text-lg font-bold font-display">Core Guarantees</h3>
+            <h3 className="text-foreground text-lg font-bold font-display">Core Guarantees</h3>
             <StitchBadge variant={guaranteeStatusBadge.variant}>{isHealthy ? '4/4 Reachable' : 'Definitions loaded'}</StitchBadge>
           </div>
           <div className="grid gap-3">
@@ -209,14 +209,14 @@ export default function GuaranteesPage() {
         <section className="px-5 pb-8">
           <StitchCard padding="lg">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-[#137fec]/10 flex items-center justify-center text-[#137fec] shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0">
                 <StitchIcon name="shield" className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <h4 className="text-white font-bold font-display text-base mb-1">
+                <h4 className="text-foreground font-bold font-display text-base mb-1">
                   Single Choke Point Policy
                 </h4>
-                <p className="text-[#94a3b8] text-xs leading-relaxed mb-3">
+                <p className="text-muted text-xs leading-relaxed mb-3">
                   All execution paths flow through a single policy enforcement point. 
                   No bypass paths exist. Every LLM call is validated against active constraints 
                   before dispatch.

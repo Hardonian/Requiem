@@ -66,13 +66,13 @@ export default function ConsolePlansPage() {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+        return 'bg-success/10 text-success border border-success/20';
       case 'draft':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+        return 'bg-warning/10 text-warning border border-warning/20';
       case 'archived':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
+        return 'bg-surface-elevated text-muted border border-border';
       default:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+        return 'bg-accent/10 text-accent border border-accent/20';
     }
   };
 

@@ -237,7 +237,7 @@ function Sidebar() {
             Documentation
           </Link>
           <Link
-            href="https://github.com/Hardonian/Requiem"
+            href="https://github.com/reachhq/requiem"
             className="flex items-center text-xs text-muted hover:text-foreground transition-colors px-1 py-1"
           >
             <svg className="w-3.5 h-3.5 mr-2" fill="currentColor" viewBox="0 0 24 24">
