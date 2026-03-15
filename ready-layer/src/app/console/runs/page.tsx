@@ -18,6 +18,8 @@ import {
   HashDisplay,
   ErrorDisplay,
   VerificationBadge,
+  RouteTruthStateCard,
+  TruthActionButton,
 } from '@/components/ui';
 import { normalizeArray, normalizeEnvelope } from '@/lib/api-truth';
 
@@ -44,6 +46,9 @@ export default function ConsoleRunsPage() {
   const [verificationResults, setVerificationResults] = useState<
     Record<string, { status: 'verified' | 'failed'; message: string }>
   >({});
+  const [routeState, setRouteState] = useState<
+    'ready' | 'backend-missing' | 'backend-unreachable' | 'forbidden' | 'runtime-error'
+  >('ready');
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     pageSize: 25,
@@ -59,6 +64,13 @@ export default function ConsoleRunsPage() {
         const response = await fetch(
           `/api/runs?limit=${pagination.pageSize}&offset=${(page - 1) * pagination.pageSize}`,
         );
+        if (response.status === 403) {
+          setRouteState('forbidden');
+        } else if (response.status >= 500) {
+          setRouteState('backend-unreachable');
+        } else {
+          setRouteState('ready');
+        }
         const envelope = normalizeEnvelope<Run[]>(await response.json());
 
         if (envelope.ok) {
@@ -71,6 +83,15 @@ export default function ConsoleRunsPage() {
             totalPages: Math.max(1, Math.ceil(items.length / pagination.pageSize)),
           }));
         } else {
+          if (envelope.error?.code === 'E_BACKEND_UNCONFIGURED') {
+            setRouteState('backend-missing');
+          } else if (response.status === 403) {
+            setRouteState('forbidden');
+          } else if (response.status >= 500) {
+            setRouteState('backend-unreachable');
+          } else {
+            setRouteState('runtime-error');
+          }
           setError({
             code: envelope.error?.code ?? 'E_FETCH_FAILED',
             message: envelope.error?.message ?? 'Failed to fetch runs',
@@ -78,6 +99,7 @@ export default function ConsoleRunsPage() {
           });
         }
       } catch (err) {
+        setRouteState('backend-unreachable');
         setError({
           code: 'E_NETWORK_ERROR',
           message: err instanceof Error ? err.message : 'Network error occurred',
@@ -96,7 +118,7 @@ export default function ConsoleRunsPage() {
   const handleVerify = useCallback(async (runId: string) => {
     setVerifyingRun(runId);
     try {
-      const response = await fetch(`/api/runs/${runId}/diff`, { method: 'GET' });
+      const response = await fetch(`/api/runs/${runId}/diff?with=${encodeURIComponent(runId)}`, { method: 'GET' });
       const data = await response.json();
 
       setVerificationResults((prev) => ({
@@ -152,8 +174,44 @@ export default function ConsoleRunsPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <PageHeader
         title="Runs"
-        description="Execution history with determinism proofs. Every run generates a cryptographic fingerprint for verification and replay."
+        description="Execution history with explicit runtime action semantics. Verify runs via API-backed self-diff checks only."
       />
+
+      {routeState !== 'ready' && (
+        <div className="mb-6">
+          <RouteTruthStateCard
+            stateLabel={routeState}
+            title={
+              routeState === 'backend-missing'
+                ? 'Backend is not configured'
+                : routeState === 'backend-unreachable'
+                  ? 'Backend appears unreachable'
+                  : routeState === 'forbidden'
+                    ? 'Forbidden for current actor'
+                    : 'Runtime request failed'
+            }
+            detail={
+              routeState === 'backend-missing'
+                ? 'Runs route is runtime-backed but backend wiring is absent, so no truthful runtime data can be fetched.'
+                : routeState === 'backend-unreachable'
+                  ? 'Runs route expected a backend response but did not receive one. This is not a no-data state.'
+                  : routeState === 'forbidden'
+                    ? 'Auth succeeded but current actor/tenant is not allowed to read this route in current context.'
+                    : 'Runs route returned an error state that is neither empty-data nor explicit auth denial.'
+            }
+            nextStep={
+              routeState === 'backend-missing'
+                ? 'Configure REQUIEM_API_URL and retry to restore runtime-backed behavior.'
+                : routeState === 'backend-unreachable'
+                  ? 'Check backend process/network health, then retry this runtime fetch.'
+                  : routeState === 'forbidden'
+                    ? 'Switch to an authorized actor/tenant or update policy bindings.'
+                    : 'Inspect trace/error payload and retry once runtime conditions are corrected.'
+            }
+            tone="warning"
+          />
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -236,39 +294,18 @@ export default function ConsoleRunsPage() {
                             </svg>
                           </span>
                         ) : (
-                          <button
+                          <TruthActionButton
+                            label="Verify self-diff"
                             onClick={() => handleVerify(run.run_id)}
-                            disabled={verifyingRun === run.run_id}
-                            className="inline-flex items-center px-3 py-1 text-xs font-medium text-success bg-success/10 border border-success/20 rounded hover:bg-success/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            type="button"
-                          >
-                            {verifyingRun === run.run_id ? (
-                              <>
-                                <svg
-                                  className="animate-spin -ml-0.5 mr-1.5 h-3 w-3"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  />
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  />
-                                </svg>
-                                Verifying...
-                              </>
-                            ) : (
-                              'Verify'
-                            )}
-                          </button>
+                            pending={verifyingRun === run.run_id}
+                            semantics="runtime-backed"
+                            disabled={routeState !== 'ready'}
+                            disabledReason={
+                              routeState === 'ready'
+                                ? undefined
+                                : 'Runtime backend state is degraded; verification cannot be trusted'
+                            }
+                          />
                         )}
                       </td>
                     </tr>
