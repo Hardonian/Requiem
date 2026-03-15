@@ -22,6 +22,8 @@ import {
   StitchBadge,
   StitchIcon,
 } from '@/components/stitch';
+import { RouteMaturityNote } from '@/components/ui';
+import { getRouteMaturity, maturityNoteTone } from '@/lib/route-maturity';
 
 interface StatusEnvelope {
   backend?: {
@@ -70,6 +72,7 @@ const guarantees = [
 ];
 
 export default function GuaranteesPage() {
+  const routeMaturity = getRouteMaturity('/console/guarantees');
   const [status, setStatus] = useState<StatusEnvelope | null>(null);
   const [statusState, setStatusState] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -145,6 +148,11 @@ export default function GuaranteesPage() {
       <StitchHeader title="Execution Guarantees" />
       
       <StitchContainer maxWidth="md">
+        <section className="px-5 pt-6">
+          <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity disclosure">
+            {routeMaturity.degradedBehavior}
+          </RouteMaturityNote>
+        </section>
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge variant={guaranteeStatusBadge.variant}>{guaranteeStatusBadge.text}</StitchBadge>
@@ -154,8 +162,7 @@ export default function GuaranteesPage() {
           </h2>
           
           <p className="text-[#94a3b8] text-base font-normal leading-relaxed">
-            Deterministic AI execution with cryptographic proofs. Policy-enforced at every step. 
-            Verifiable by design, not by promise.
+            Guarantee definitions are stable, while live enforcement evidence depends on backend reachability and verification surfaces.
           </p>
           {!isHealthy && (
             <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-400/20 rounded-md px-3 py-2">

@@ -22,6 +22,7 @@ import {
   StitchIcon,
 } from '@/components/stitch';
 import { RouteMaturityNote } from '@/components/ui';
+import { getRouteMaturity, maturityNoteTone } from '@/lib/route-maturity';
 
 const regions = [
   { id: 'us-east-1', name: 'US East (N. Virginia)', status: 'healthy', lag: '2ms', throughput: '1.2GB/s' },
@@ -66,14 +67,16 @@ const recentEvents = [
 ];
 
 export default function ReplicationPage() {
+  const routeMaturity = getRouteMaturity('/console/replication');
+
   return (
     <div className="min-h-screen bg-[#101922] flex flex-col pb-20">
       <StitchHeader title="Multi-Region Replication" />
       
       <StitchContainer maxWidth="md">
         <section className="px-5 pt-6">
-          <RouteMaturityNote maturity="informational" title="Maturity: informational route">
-            This route presents static reference data to explain replication concepts. It does not assert live multi-region health for your environment.
+          <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity: informational route">
+            {routeMaturity.degradedBehavior}
           </RouteMaturityNote>
         </section>
 
