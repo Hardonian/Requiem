@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SignUpForm } from './SignUpForm';
 
 export const metadata: Metadata = {
   title: 'Sign Up',
@@ -93,15 +94,8 @@ export default function SignUpPage() {
           </div>
         )}
 
-        {/* Configured: placeholder for actual Supabase Auth UI */}
-        {supabaseConfigured && (
-          <div className="bg-surface rounded-xl border border-border p-6 shadow-sm text-center">
-            <p className="text-sm text-muted">
-              Identity provider connected. Sign-up UI renders here once the Supabase Auth component
-              is wired in.
-            </p>
-          </div>
-        )}
+        {/* Configured: render real sign-up form */}
+        {supabaseConfigured && <SignUpForm />}
 
         <p className="text-center mt-6 text-sm text-muted">
           Already have an account?{' '}

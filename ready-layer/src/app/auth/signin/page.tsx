@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SignInForm } from './SignInForm';
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -95,15 +96,8 @@ export default function SignInPage() {
           </div>
         )}
 
-        {/* Configured: placeholder for actual Supabase Auth UI */}
-        {supabaseConfigured && (
-          <div className="bg-surface rounded-xl border border-border p-6 shadow-sm text-center">
-            <p className="text-sm text-muted">
-              Identity provider connected. Auth UI renders here once the Supabase Auth component is
-              wired in.
-            </p>
-          </div>
-        )}
+        {/* Configured: render real sign-in form */}
+        {supabaseConfigured && <SignInForm />}
 
         {/* Dev verify mode notice */}
         {isRouteVerifyMode && (
