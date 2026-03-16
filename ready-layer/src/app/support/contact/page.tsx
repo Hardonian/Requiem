@@ -16,20 +16,25 @@ export default function ContactPage() {
   return (
     <MarketingShell>
       <section className="mx-auto w-full max-w-3xl px-4 py-14 sm:px-6">
-        <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Contact</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Talk to the Requiem team.</h1>
-        <p className="mt-4 text-slate-600">
+        <p className="text-sm font-medium uppercase tracking-wide text-muted">Contact</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-display">
+          Talk to the Requiem team.
+        </h1>
+        <p className="mt-4 text-muted">
           Share incident context, deployment questions, or purchase requirements. Include trace IDs and relevant route details for fastest triage.
         </p>
       </section>
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-16 sm:px-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
-          <ul className="space-y-4">
+        <div className="rounded-xl border border-border bg-surface p-6">
+          <ul className="space-y-0 divide-y divide-border" role="list">
             {contactChannels.map((item) => (
-              <li key={item.label} className="flex flex-col gap-1 border-b border-slate-100 pb-4 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-sm font-semibold text-slate-900">{item.label}</span>
-                <a href={`mailto:${item.value}`} className="text-sm text-emerald-700 hover:underline">
+              <li key={item.label} className="flex flex-col gap-1 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-sm font-semibold text-foreground">{item.label}</span>
+                <a
+                  href={`mailto:${item.value}`}
+                  className="text-sm text-success hover:underline"
+                >
                   {item.value}
                 </a>
               </li>

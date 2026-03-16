@@ -34,18 +34,24 @@ export default function SupportPage() {
   return (
     <MarketingShell>
       <section className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6">
-        <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Support</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Operator support without guesswork.</h1>
-        <p className="mt-4 text-slate-600">
+        <p className="text-sm font-medium uppercase tracking-wide text-muted">Support</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-display">
+          Operator support without guesswork.
+        </h1>
+        <p className="mt-4 text-muted">
           Use the paths below to report incidents, verify platform state, and unblock deterministic production workflows quickly.
         </p>
       </section>
 
       <section className="mx-auto grid w-full max-w-4xl gap-4 px-4 pb-16 sm:grid-cols-2 sm:px-6">
         {supportLinks.map((item) => (
-          <Link key={item.href} href={item.href} className="rounded-xl border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300">
-            <h2 className="text-lg font-semibold text-slate-900">{item.title}</h2>
-            <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+          <Link
+            key={item.href}
+            href={item.href}
+            className="rounded-xl border border-border bg-surface p-5 transition-colors hover:bg-surface-elevated"
+          >
+            <h2 className="text-lg font-semibold text-foreground font-display">{item.title}</h2>
+            <p className="mt-2 text-sm text-muted">{item.description}</p>
           </Link>
         ))}
       </section>

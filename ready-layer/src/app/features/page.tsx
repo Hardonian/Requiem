@@ -38,9 +38,11 @@ export default function FeaturesPage() {
   return (
     <MarketingShell>
       <section className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6">
-        <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Features</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A control plane built for verification-first AI operations.</h1>
-        <p className="mt-4 max-w-3xl text-slate-600">
+        <p className="text-sm font-medium uppercase tracking-wide text-muted">Features</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-display">
+          A control plane built for verification-first AI operations.
+        </h1>
+        <p className="mt-4 max-w-3xl text-muted">
           Requiem emphasizes deterministic behavior and audit-grade evidence over best-effort orchestration.
           These capabilities are designed to hold up during security, compliance, and incident review.
         </p>
@@ -48,12 +50,12 @@ export default function FeaturesPage() {
 
       <section className="mx-auto grid w-full max-w-5xl gap-4 px-4 pb-10 sm:grid-cols-3 sm:px-6">
         {featureGroups.map((group) => (
-          <article key={group.title} className="rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="text-lg font-semibold text-slate-900">{group.title}</h2>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
+          <article key={group.title} className="rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-lg font-semibold text-foreground font-display">{group.title}</h2>
+            <ul className="mt-3 space-y-2 text-sm text-muted">
               {group.points.map((point) => (
                 <li key={point} className="flex gap-2">
-                  <span className="mt-1 text-emerald-600">•</span>
+                  <span className="mt-1 text-success shrink-0" aria-hidden="true">•</span>
                   <span>{point}</span>
                 </li>
               ))}
@@ -63,14 +65,22 @@ export default function FeaturesPage() {
       </section>
 
       <section className="mx-auto w-full max-w-5xl px-4 pb-16 sm:px-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
-          <h2 className="text-xl font-semibold text-slate-900">Next steps</h2>
-          <p className="mt-2 text-slate-600">Explore runtime behavior in the live demo, then review pricing and support paths for rollout planning.</p>
+        <div className="rounded-xl border border-border bg-surface p-6">
+          <h2 className="text-xl font-semibold text-foreground font-display">Next steps</h2>
+          <p className="mt-2 text-muted">
+            Explore runtime behavior in the live demo, then review pricing and support paths for rollout planning.
+          </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/demo" className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+            <Link
+              href="/demo"
+              className="inline-flex items-center px-5 py-2.5 bg-foreground text-background rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
               Run live demo
             </Link>
-            <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center px-5 py-2.5 bg-surface-elevated border border-border text-foreground rounded-lg text-sm font-medium hover:bg-border transition-colors"
+            >
               View pricing
             </Link>
           </div>

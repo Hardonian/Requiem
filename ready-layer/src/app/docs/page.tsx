@@ -34,9 +34,11 @@ export default function DocsPage() {
   return (
     <MarketingShell>
       <section className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6">
-        <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Documentation</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Run deterministic workflows with confidence.</h1>
-        <p className="mt-4 max-w-3xl text-slate-600">
+        <p className="text-sm font-medium uppercase tracking-wide text-muted">Documentation</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-display">
+          Run deterministic workflows with confidence.
+        </h1>
+        <p className="mt-4 max-w-3xl text-muted">
           Requiem documentation is organized around operating truths: policy enforcement, replay evidence, tenant boundaries,
           and predictable incident response.
         </p>
@@ -47,10 +49,10 @@ export default function DocsPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-xl border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300"
+            className="rounded-xl border border-border bg-surface p-5 transition-colors hover:bg-surface-elevated"
           >
-            <h2 className="text-lg font-semibold text-slate-900">{item.title}</h2>
-            <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+            <h2 className="text-lg font-semibold text-foreground font-display">{item.title}</h2>
+            <p className="mt-2 text-sm text-muted">{item.description}</p>
           </Link>
         ))}
       </section>

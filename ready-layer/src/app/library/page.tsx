@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { MarketingShell } from '@/components/marketing/MarketingShell';
 
 export const metadata: Metadata = {
-  title: 'Library | ReadyLayer',
-  description: 'Documentation, guides, and resources for ReadyLayer.',
+  title: 'Library | Requiem',
+  description: 'Documentation, guides, and operational resources for Requiem.',
 };
 
 const resources = [
@@ -14,7 +15,7 @@ const resources = [
   },
   {
     title: 'Architecture Overview',
-    description: 'Understand the ReadyLayer system design and components.',
+    description: 'Understand the Requiem system design and components.',
     href: '/console/architecture',
   },
   {
@@ -51,30 +52,31 @@ const resources = [
 
 export default function LibraryPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Library</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Documentation, guides, and operational resources for ReadyLayer.
-          </p>
-        </div>
+    <MarketingShell>
+      <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+        <p className="text-sm font-medium uppercase tracking-wide text-muted">Library</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-display">
+          Documentation and operational resources.
+        </h1>
+        <p className="mt-4 max-w-2xl text-muted">
+          Guides, references, and direct links to Requiem operator surfaces.
+        </p>
+      </section>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {resources.map((resource) => (
-            <Link
-              key={resource.href}
-              href={resource.href}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {resource.title}
-              </h3>
-              <p className="text-gray-600">{resource.description}</p>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
+      <section className="mx-auto grid w-full max-w-6xl gap-4 px-4 pb-16 sm:px-6 sm:grid-cols-2 lg:grid-cols-3">
+        {resources.map((resource) => (
+          <Link
+            key={resource.href}
+            href={resource.href}
+            className="bg-surface rounded-xl p-6 shadow-sm border border-border hover:shadow-md hover:border-border/80 transition-all"
+          >
+            <h3 className="text-base font-semibold text-foreground mb-2">
+              {resource.title}
+            </h3>
+            <p className="text-sm text-muted">{resource.description}</p>
+          </Link>
+        ))}
+      </section>
+    </MarketingShell>
   );
 }

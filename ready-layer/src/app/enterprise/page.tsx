@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { MarketingShell } from '@/components/marketing/MarketingShell';
 
 export const metadata: Metadata = {
   title: 'Enterprise | Requiem — Control Plane for AI Systems',
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Requiem Enterprise — Control Plane for AI Systems',
     description: 'Every AI decision provable. Every outcome replayable. Every policy enforced. SOC 2 ready.',
-    url: 'https://readylayer.com/enterprise',
+    url: 'https://requiem.hardonian.com/enterprise',
   },
   twitter: {
     card: 'summary_large_image',
@@ -98,80 +99,78 @@ const useCases = [
 
 export default function EnterprisePage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <MarketingShell>
       {/* Hero */}
-      <section className="bg-gray-900 text-white py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-sm font-mono text-gray-400 mb-4 tracking-wider">CONTROL PLANE FOR AI SYSTEMS</p>
-            <h1 className="text-5xl font-bold mb-6">
-              Every AI decision. Provable.
-            </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-4">
-              The only runtime where every execution produces a cryptographic proof,
-              every outcome is replayable to the byte, and every policy violation
-              is caught before it ships.
-            </p>
-            <p className="text-sm text-gray-500 mb-8">
-              Not a prompt router. Not a workflow engine. Not a Git wrapper. A control plane with invariants.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                href="/enterprise/request-demo"
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors"
-              >
-                Request Demo
-              </Link>
-              <Link
-                href="/pricing"
-                className="px-8 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-colors"
-              >
-                View Pricing
-              </Link>
-            </div>
+      <section className="bg-foreground text-background py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm font-mono text-background/40 mb-4 tracking-wider uppercase">Control Plane for AI Systems</p>
+          <h1 className="text-5xl font-bold mb-6 font-display">
+            Every AI decision. Provable.
+          </h1>
+          <p className="text-xl text-background/60 max-w-3xl mx-auto mb-4">
+            The only runtime where every execution produces a cryptographic proof,
+            every outcome is replayable to the byte, and every policy violation
+            is caught before it ships.
+          </p>
+          <p className="text-sm text-background/40 mb-8">
+            Not a prompt router. Not a workflow engine. Not a Git wrapper. A control plane with invariants.
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link
+              href="/enterprise/request-demo"
+              className="px-8 py-3 bg-accent hover:brightness-110 text-white rounded-lg font-medium transition-all text-sm"
+            >
+              Request Demo
+            </Link>
+            <Link
+              href="/pricing"
+              className="px-8 py-3 bg-background/10 hover:bg-background/20 text-background rounded-lg font-medium transition-all text-sm border border-background/20"
+            >
+              View Pricing
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Three Guarantees */}
-      <section className="py-20">
+      <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Three Guarantees</h2>
-          <p className="text-gray-500 text-center mb-12">Enforced in code, not implied in copy.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2 text-center font-display">Three Guarantees</h2>
+          <p className="text-muted text-center mb-12">Enforced in code, not implied in copy.</p>
           <div className="grid md:grid-cols-3 gap-8">
             {guarantees.map((g) => (
-              <div key={g.title} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-gray-900 mb-3">{g.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{g.body}</p>
+              <div key={g.title} className="bg-surface p-6 rounded-xl shadow-sm border border-border">
+                <h3 className="text-lg font-bold text-foreground mb-3 font-display">{g.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{g.body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Architecture Diagram Placeholder */}
-      <section className="py-20 bg-white">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Data Flow</h2>
-          <p className="text-gray-500 text-center mb-8">Request → Gate → Execution → Proof → Storage</p>
-          <div className="bg-gray-100 rounded-xl p-12 border-2 border-dashed border-gray-300">
-            <div className="flex items-center justify-center gap-4">
+      {/* Data Flow */}
+      <section className="py-20 bg-surface">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-foreground mb-2 text-center font-display">Data Flow</h2>
+          <p className="text-muted text-center mb-8">Request → Gate → Execution → Proof → Storage</p>
+          <div className="bg-surface-elevated rounded-xl p-10 border border-border">
+            <div className="flex flex-wrap items-center justify-center gap-3">
               {[
-                { label: 'Request', color: 'bg-blue-500' },
-                { label: 'Policy Gate', color: 'bg-purple-500' },
-                { label: 'Execution', color: 'bg-green-500' },
-                { label: 'Proof', color: 'bg-amber-500' },
-                { label: 'CAS Storage', color: 'bg-gray-500' },
-              ].map((step, i) => (
-                <div key={step.label} className="flex items-center">
-                  <div className={`${step.color} text-white px-4 py-2 rounded-lg font-medium text-sm`}>
+                { label: 'Request', className: 'bg-accent text-white' },
+                { label: 'Policy Gate', className: 'bg-accent/80 text-white' },
+                { label: 'Execution', className: 'bg-success text-foreground' },
+                { label: 'Proof', className: 'bg-warning text-foreground' },
+                { label: 'CAS Storage', className: 'bg-surface border border-border text-foreground' },
+              ].map((step, i, arr) => (
+                <div key={step.label} className="flex items-center gap-3">
+                  <span className={`${step.className} px-4 py-2 rounded-lg font-medium text-sm`}>
                     {step.label}
-                  </div>
-                  {i < 4 && <span className="mx-2 text-gray-400">→</span>}
+                  </span>
+                  {i < arr.length - 1 && <span className="text-muted" aria-hidden="true">→</span>}
                 </div>
               ))}
             </div>
-            <p className="text-center text-gray-500 text-sm mt-8">
+            <p className="text-center text-muted text-sm mt-8">
               Every request flows through the policy gate. Every execution produces a proof.
               Every proof is stored in CAS. Nothing bypasses the invariants.
             </p>
@@ -180,24 +179,24 @@ export default function EnterprisePage() {
       </section>
 
       {/* Why Enterprises Switch */}
-      <section className="py-20 bg-white">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Why Enterprises Switch</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+      <section className="py-20 bg-background">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-foreground mb-8 font-display">Why Enterprises Switch</h2>
+          <div className="overflow-x-auto bg-surface rounded-xl border border-border shadow-sm">
+            <table className="stitch-table">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 pr-4 text-gray-500 font-medium">Problem</th>
-                  <th className="text-left py-3 pr-4 text-gray-500 font-medium">Without Requiem</th>
-                  <th className="text-left py-3 text-gray-500 font-medium">With Requiem</th>
+                <tr>
+                  <th>Problem</th>
+                  <th>Without Requiem</th>
+                  <th>With Requiem</th>
                 </tr>
               </thead>
               <tbody>
                 {switchReasons.map((r) => (
-                  <tr key={r.problem} className="border-b">
-                    <td className="py-3 pr-4 font-medium text-gray-900">{r.problem}</td>
-                    <td className="py-3 pr-4 text-gray-500">{r.without}</td>
-                    <td className="py-3 text-gray-900">{r.with}</td>
+                  <tr key={r.problem}>
+                    <td className="font-medium">{r.problem}</td>
+                    <td className="text-muted">{r.without}</td>
+                    <td className="text-success font-medium">{r.with}</td>
                   </tr>
                 ))}
               </tbody>
@@ -207,15 +206,15 @@ export default function EnterprisePage() {
       </section>
 
       {/* Enterprise Features */}
-      <section className="py-20">
+      <section className="py-20 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Enterprise Capabilities</h2>
-          <p className="text-gray-500 mb-12">Unlocked with Enterprise tier. No code changes required.</p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <h2 className="text-2xl font-bold text-foreground mb-2 font-display">Enterprise Capabilities</h2>
+          <p className="text-muted mb-12">Unlocked with Enterprise tier. No code changes required.</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {enterpriseFeatures.map((f) => (
-              <div key={f.title} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{f.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{f.body}</p>
+              <div key={f.title} className="bg-background p-6 rounded-xl shadow-sm border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-3 font-display">{f.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{f.body}</p>
               </div>
             ))}
           </div>
@@ -223,14 +222,14 @@ export default function EnterprisePage() {
       </section>
 
       {/* Use Cases */}
-      <section className="py-20 bg-white">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Use Cases</h2>
+      <section className="py-20 bg-background">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-foreground mb-8 font-display">Use Cases</h2>
           <div className="space-y-6">
             {useCases.map((uc) => (
-              <div key={uc.title} className="border border-gray-100 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">{uc.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{uc.scenario}</p>
+              <div key={uc.title} className="border border-border rounded-xl p-6 bg-surface">
+                <h3 className="font-semibold text-foreground mb-2 font-display">{uc.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{uc.scenario}</p>
               </div>
             ))}
           </div>
@@ -238,30 +237,30 @@ export default function EnterprisePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gray-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
+      <section className="py-20 bg-foreground text-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-4 font-display">
             Determinism is not a feature. It is the runtime.
           </h2>
-          <p className="text-gray-400 mb-8">
+          <p className="text-background/60 mb-8">
             Every claim on this page is enforced in code, verified in CI, and provable in production.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/enterprise/request-demo"
-              className="inline-block px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors"
+              className="inline-block px-8 py-3 bg-accent hover:brightness-110 text-white rounded-lg font-medium transition-all text-sm"
             >
               Schedule a Demo
             </Link>
             <Link
               href="/pricing"
-              className="inline-block px-8 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-colors"
+              className="inline-block px-8 py-3 bg-background/10 hover:bg-background/20 text-background rounded-lg font-medium transition-all text-sm border border-background/20"
             >
               View Pricing
             </Link>
           </div>
         </div>
       </section>
-    </div>
+    </MarketingShell>
   );
 }

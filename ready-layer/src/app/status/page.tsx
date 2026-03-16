@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { MarketingShell } from '@/components/marketing/MarketingShell';
 
 type StatusResponse = {
   git_sha: string;
@@ -30,6 +31,15 @@ async function fetchWithRetry(signal: AbortSignal): Promise<StatusResponse> {
   throw lastError ?? new Error('status_fetch_failed');
 }
 
+function StatusRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-border last:border-0 gap-1">
+      <dt className="text-sm font-semibold text-muted sm:w-40 shrink-0">{label}</dt>
+      <dd className="text-sm font-mono text-foreground break-all">{value}</dd>
+    </div>
+  );
+}
+
 export default function StatusPage() {
   const [data, setData] = useState<StatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,21 +54,62 @@ export default function StatusPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-4xl space-y-4 px-6 py-12">
-      <h1 className="text-3xl font-semibold">System Status</h1>
-      {!data && !error ? <p>Loading status…</p> : null}
-      {error ? <p className="text-red-600">Status unavailable. trace_id: {error}</p> : null}
-      {data ? (
-        <dl className="grid grid-cols-1 gap-3 rounded border p-4 text-sm md:grid-cols-2">
-          <div><dt className="font-semibold">Git SHA</dt><dd>{data.git_sha}</dd></div>
-          <div><dt className="font-semibold">Build Time</dt><dd>{data.build_time}</dd></div>
-          <div><dt className="font-semibold">Environment</dt><dd>{data.environment}</dd></div>
-          <div><dt className="font-semibold">Prompt Version</dt><dd>{data.prompt_version}</dd></div>
-          <div><dt className="font-semibold">Core Version</dt><dd>{data.core_version}</dd></div>
-          <div><dt className="font-semibold">Backend</dt><dd>{data.backend.reachable ? `reachable (${data.backend.status})` : 'unreachable'}</dd></div>
-          <div><dt className="font-semibold">trace_id</dt><dd>{data.trace_id}</dd></div>
-        </dl>
-      ) : null}
-    </main>
+    <MarketingShell>
+      <section className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6">
+        <p className="text-sm font-medium uppercase tracking-wide text-muted">System</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-display">
+          Deployment Status
+        </h1>
+        <p className="mt-4 text-muted">
+          Runtime version metadata and backend reachability for this deployment.
+        </p>
+      </section>
+
+      <section className="mx-auto w-full max-w-4xl px-4 pb-16 sm:px-6">
+        {!data && !error && (
+          <div className="rounded-xl border border-border bg-surface p-8 animate-pulse">
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-5 bg-surface-elevated rounded w-3/4" />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6" role="alert">
+            <p className="text-sm font-semibold text-destructive mb-1">Status unavailable</p>
+            <p className="text-sm text-muted font-mono">trace_id: {error}</p>
+          </div>
+        )}
+
+        {data && (
+          <div className="rounded-xl border border-border bg-surface p-8">
+            <dl>
+              <StatusRow label="Git SHA" value={data.git_sha} />
+              <StatusRow label="Build Time" value={data.build_time} />
+              <StatusRow label="Environment" value={data.environment} />
+              <StatusRow label="Prompt Version" value={data.prompt_version} />
+              <StatusRow label="Core Version" value={data.core_version} />
+              <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-border gap-1">
+                <dt className="text-sm font-semibold text-muted sm:w-40 shrink-0">Backend</dt>
+                <dd className="flex items-center gap-2">
+                  <span
+                    className={`w-2 h-2 rounded-full ${data.backend.reachable ? 'bg-success' : 'bg-destructive'}`}
+                    aria-hidden="true"
+                  />
+                  <span
+                    className={`text-sm font-medium ${data.backend.reachable ? 'text-success' : 'text-destructive'}`}
+                  >
+                    {data.backend.reachable ? `reachable (${data.backend.status})` : 'unreachable'}
+                  </span>
+                </dd>
+              </div>
+              <StatusRow label="Trace ID" value={data.trace_id} />
+            </dl>
+          </div>
+        )}
+      </section>
+    </MarketingShell>
   );
 }
