@@ -25,6 +25,12 @@
   --stitch-border: 226 232 240;
   --stitch-muted: 100 116 139;
   --stitch-primary: 19 127 236;
+
+  /* Terminal aesthetic tokens — always dark regardless of theme */
+  --terminal-bg: 2 6 23;
+  --terminal-fg: 226 232 240;
+  --terminal-muted: 100 116 139;
+  --terminal-faint: 51 65 85;
 }
 
 .dark {

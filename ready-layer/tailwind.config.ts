@@ -40,6 +40,13 @@ const config: Config = {
           700: '#2c45b0',
           900: '#1a2a6e',
         },
+        // Terminal aesthetic tokens — always dark, theme-independent
+        terminal: {
+          bg: 'rgb(var(--terminal-bg) / <alpha-value>)',
+          fg: 'rgb(var(--terminal-fg) / <alpha-value>)',
+          muted: 'rgb(var(--terminal-muted) / <alpha-value>)',
+          faint: 'rgb(var(--terminal-faint) / <alpha-value>)',
+        },
         // Stitch design system tokens - ReadyLayer brand
         stitch: {
           primary: '#137fec',

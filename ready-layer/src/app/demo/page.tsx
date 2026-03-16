@@ -54,16 +54,16 @@ function EventRow({ event }: { event: DemoEvent }) {
 
   return (
     <div className="flex items-start gap-3 py-2 animate-in fade-in slide-in-from-left-2 duration-300">
-      <span className="text-xs text-muted font-mono w-16 flex-shrink-0 pt-0.5">
+      <span className="text-xs text-terminal-muted font-mono w-16 flex-shrink-0 pt-0.5">
         {event.timestamp}
       </span>
       <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold flex-shrink-0 ${typeColors[event.type]}`}>
         {icons[event.type]}
       </span>
       <div className="flex-1 min-w-0">
-        <span className="text-sm text-slate-200">{event.message}</span>
+        <span className="text-sm text-terminal-fg">{event.message}</span>
         {event.detail && (
-          <span className="text-xs text-slate-400 ml-2">{event.detail}</span>
+          <span className="text-xs text-terminal-muted ml-2">{event.detail}</span>
         )}
       </div>
     </div>
@@ -282,11 +282,11 @@ export default function DemoPage() {
             </div>
 
             {/* Terminal panel — intentionally dark for readability of log output */}
-            <div className="p-4 h-96 overflow-y-auto font-mono text-sm bg-slate-950">
+            <div className="p-4 h-96 overflow-y-auto font-mono text-sm bg-terminal-bg">
               {visibleEvents.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-500">
+                <div className="h-full flex items-center justify-center text-terminal-muted">
                   <div className="text-center">
-                    <svg className="w-12 h-12 mx-auto mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-12 h-12 mx-auto mb-3 text-terminal-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
