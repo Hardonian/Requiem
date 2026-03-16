@@ -19,6 +19,7 @@ afterEach(() => {
 
 describe('intelligence/api e2e route handlers with middleware-auth fixtures', () => {
   it('GET /api/intelligence/calibration returns 400 Problem+JSON for invalid window', async () => {
+    process.env.REQUIEM_ROUTE_VERIFY_MODE = '1';
     const { GET } = await import('../src/app/api/intelligence/calibration/route');
 
     const req = new NextRequest('http://localhost/api/intelligence/calibration?window=bad-window', {

@@ -24,9 +24,10 @@ describe('intelligence cases page badge rendering', () => {
     const element = await mod.default({ searchParams: Promise.resolve({ tenant: 'tenant-snapshot' }) });
     const html = renderToStaticMarkup(element);
 
-    expect(html).toContain('bg-blue-100 text-blue-800');
-    expect(html).toContain('bg-emerald-100 text-emerald-800');
-    expect(html).toContain('bg-amber-100 text-amber-800');
+    // Design-system tokens used by current implementation (semantic, not raw Tailwind palette).
+    expect(html).toContain('bg-accent/10 text-accent');
+    expect(html).toContain('bg-success/10 text-success');
+    expect(html).toContain('bg-warning/10 text-warning');
     expect(html).toContain('>run<');
     expect(html).toContain('>artifact<');
     expect(html).toContain('>evidence<');

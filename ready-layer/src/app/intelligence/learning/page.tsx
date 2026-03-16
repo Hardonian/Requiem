@@ -1,4 +1,5 @@
-import type { Metadata, ReactElement } from 'next';
+import type { Metadata } from 'next';
+import type { ReactElement } from 'react';
 import { getDashboard } from '@/lib/learning-store';
 
 export const metadata: Metadata = {
