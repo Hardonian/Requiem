@@ -43,14 +43,11 @@ function resolveTenantId(req: NextRequest): string | null {
 }
 
 function isStrictAuthMode(): boolean {
-  const authMode = process.env.REQUIEM_AUTH_MODE?.toLowerCase();
-  if (authMode === 'strict') return true;
-  if (authMode === 'local-dev') return false;
   return STRICT_AUTH_ENVS.has(process.env.NODE_ENV ?? 'development');
 }
 
 function allowInsecureDevAuth(): boolean {
-  return process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1' && !isStrictAuthMode();
+  return process.env.NODE_ENV === 'development' && process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1';
 }
 
 async function hasValidInternalAuthProof(req: NextRequest, tenantId: string, actorId: string): Promise<boolean> {

@@ -60,14 +60,14 @@ export async function GET(request: NextRequest): Promise<Response> {
           data: {
             ok: true,
             policy_id: policyId,
-            versions: listPolicyVersions(ctx.tenant_id, policyId),
+            versions: await listPolicyVersions(ctx.tenant_id, policyId),
           },
           error: null,
         };
         return NextResponse.json(response, { status: 200 });
       }
 
-      const policies = listPolicies(ctx.tenant_id);
+      const policies = await listPolicies(ctx.tenant_id);
       const pageData = policies.slice(offset, offset + limit);
       const response: ApiResponse<PaginatedResponse<PolicyListItem>> = {
         v: 1,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           );
         }
 
-        const policy = addPolicy(ctx.tenant_id, ctx.actor_id, body.rules);
+        const policy = await addPolicy(ctx.tenant_id, ctx.actor_id, body.rules);
         const response: ApiResponse<PolicyAddResponse> = {
           v: 1,
           kind: "policy.add",
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
         let decision: PolicyDecision;
         try {
-          decision = evaluatePolicy(
+          decision = await evaluatePolicy(
             ctx.tenant_id,
             ctx.actor_id,
             body.policy_hash,
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         return NextResponse.json(response, { status: 200 });
       }
 
-      const result = runPolicyTests(ctx.tenant_id, body.policy_hash);
+      const result = await runPolicyTests(ctx.tenant_id, body.policy_hash);
       const response: ApiResponse<PolicyTestResponse> = {
         v: 1,
         kind: "policy.test",

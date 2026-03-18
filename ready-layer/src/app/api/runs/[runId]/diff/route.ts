@@ -51,8 +51,8 @@ export async function GET(
         );
       }
 
-      const primary = getRunSummary(ctx.tenant_id, runId);
-      const comparison = getRunSummary(ctx.tenant_id, withRunId);
+      const primary = await getRunSummary(ctx.tenant_id, runId);
+      const comparison = await getRunSummary(ctx.tenant_id, withRunId);
       if (!primary || !comparison) {
         throw new ProblemError(
           404,

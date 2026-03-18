@@ -41,7 +41,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, getQuerySchema);
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-      const snapshots = listSnapshots(ctx.tenant_id);
+      const snapshots = await listSnapshots(ctx.tenant_id);
       const pageData = snapshots.slice(offset, offset + limit);
 
       const response: ApiResponse<PaginatedResponse<Snapshot>> = {
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const body = await parseJsonWithSchema(request, postSchema);
 
       if (body.action === "create") {
-        const snapshot = createSnapshot(ctx.tenant_id, ctx.actor_id);
+        const snapshot = await createSnapshot(ctx.tenant_id, ctx.actor_id);
         const response: ApiResponse<SnapshotCreateResponse> = {
           v: 1,
           kind: "snapshot.create",
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         );
       }
 
-      const snapshot = restoreSnapshot(
+      const snapshot = await restoreSnapshot(
         ctx.tenant_id,
         ctx.actor_id,
         body.snapshot_hash,
