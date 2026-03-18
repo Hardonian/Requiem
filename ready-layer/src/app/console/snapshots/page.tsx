@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { normalizeArray, normalizeEnvelope } from '@/lib/api-truth';
 import {
   PageHeader,
   LoadingState,
@@ -44,16 +45,32 @@ export default function ConsoleSnapshotsPage() {
       setLoading(true);
       setError(null);
       const response = await fetch('/api/snapshots');
-      const data = await response.json();
-      
-      if (data.ok) {
-        setSnapshots(data.snapshots || []);
-      } else {
+      const envelope = normalizeEnvelope<unknown[]>(await response.json());
+
+      if (!response.ok || !envelope.ok) {
         setError({
-          code: data.error?.code || 'E_FETCH_FAILED',
-          message: data.error?.message || 'Failed to fetch snapshots',
+          code: envelope.error?.code || 'E_FETCH_FAILED',
+          message: envelope.error?.message || 'Failed to fetch snapshots',
         });
+        return;
       }
+
+      const nextSnapshots = normalizeArray<Record<string, unknown>>(envelope.data).map((snapshot) => ({
+        id: typeof snapshot.snapshot_hash === 'string' ? snapshot.snapshot_hash : 'unknown-snapshot',
+        name: typeof snapshot.event_log_head === 'string' ? snapshot.event_log_head : 'Snapshot',
+        createdAt:
+          typeof snapshot.timestamp_unix_ms === 'number'
+            ? new Date(snapshot.timestamp_unix_ms).toISOString()
+            : '',
+        size: 0,
+        checksum: typeof snapshot.cas_root_hash === 'string' ? snapshot.cas_root_hash : 'unknown-checksum',
+        gated: true,
+        description:
+          typeof snapshot.logical_time === 'number'
+            ? `Logical time ${snapshot.logical_time}`
+            : undefined,
+      }));
+      setSnapshots(nextSnapshots);
     } catch (err) {
       setError({
         code: 'E_NETWORK_ERROR',
@@ -84,18 +101,22 @@ export default function ConsoleSnapshotsPage() {
     setRestoreResult(null);
     
     try {
-      const response = await fetch(`/api/snapshots?id=${id}`, { method: 'POST' });
-      const data = await response.json();
+      const response = await fetch('/api/snapshots', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'restore', snapshot_hash: id, force: true }),
+      });
+      const envelope = normalizeEnvelope<{ message?: string }>(await response.json());
       
       setRestoreResult({
         id,
-        success: data.ok,
-        message: data.ok 
+        success: response.ok && envelope.ok,
+        message: response.ok && envelope.ok
           ? 'Snapshot restored successfully' 
-          : (data.error?.message || 'Failed to restore snapshot'),
+          : (envelope.error?.message || 'Failed to restore snapshot'),
       });
       
-      if (data.ok) {
+      if (response.ok && envelope.ok) {
         // Refresh to get updated state
         setTimeout(() => fetchSnapshots(), 1000);
       }
