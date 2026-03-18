@@ -1,13 +1,11 @@
-// ready-layer/src/app/api/objects/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { parseQueryWithSchema, withTenantContext } from "@/lib/big4-http";
+import { ProblemError } from "@/lib/problem-json";
+import { hasCasObject, listCasObjects } from "@/lib/control-plane-store";
+import type { ApiResponse, CasObject, PaginatedResponse } from "@/types/engine";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
-import { demoUnavailableResponse, withDemoHeaders } from '@/lib/demo-truth';
-import { ProblemError } from '@/lib/problem-json';
-import type { CasObject, PaginatedResponse, ApiResponse } from '@/types/engine';
-
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const listQuerySchema = z.object({
   prefix: z.string().optional(),
@@ -24,23 +22,25 @@ export async function GET(request: NextRequest): Promise<Response> {
     request,
     async (ctx) => {
       const query = parseQueryWithSchema(request, listQuerySchema);
+      const prefix = query.prefix ?? "";
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-      const objects: CasObject[] = [];
+      const objects = listCasObjects(ctx.tenant_id, prefix);
+      const pageData = objects.slice(offset, offset + limit);
 
       const paginatedData: PaginatedResponse<CasObject> = {
         ok: true,
-        data: objects,
-        total: 0,
+        data: pageData,
+        total: objects.length,
         page: Math.floor(offset / limit) + 1,
         page_size: limit,
-        has_more: false,
+        has_more: offset + pageData.length < objects.length,
         trace_id: ctx.trace_id,
       };
 
       const response: ApiResponse<PaginatedResponse<CasObject>> = {
         v: 1,
-        kind: 'cas.objects.list',
+        kind: "cas.objects.list",
         data: paginatedData,
         error: null,
       };
@@ -49,8 +49,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'objects.list',
-      cache: { ttlMs: 10_000, visibility: 'private', staleWhileRevalidateMs: 10_000 },
+      routeId: "objects.list",
+      cache: false,
     },
   );
 }
@@ -61,19 +61,19 @@ export async function HEAD(request: NextRequest): Promise<Response> {
     async (ctx) => {
       const query = parseQueryWithSchema(request, headQuerySchema);
       if (!query.hash) {
-        throw new ProblemError(400, 'Missing Hash', 'hash required', {
-          code: 'missing_hash',
+        throw new ProblemError(400, "Missing Hash", "hash required", {
+          code: "missing_hash",
         });
       }
-      return demoUnavailableResponse(
-        ctx,
-        'CAS object existence checks are not runtime-backed in this deployment. Attach a real CAS index before relying on HEAD checks.',
-      );
+
+      return new NextResponse(null, {
+        status: hasCasObject(ctx.tenant_id, query.hash) ? 200 : 404,
+      });
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'objects.head',
-      cache: { ttlMs: 5_000, visibility: 'private', staleWhileRevalidateMs: 5_000 },
+      routeId: "objects.head",
+      cache: false,
     },
   );
 }

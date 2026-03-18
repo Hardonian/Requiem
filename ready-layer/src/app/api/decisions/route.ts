@@ -1,9 +1,14 @@
-// ready-layer/src/app/api/decisions/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { parseQueryWithSchema, withTenantContext } from "@/lib/big4-http";
+import { listDecisions } from "@/lib/control-plane-store";
+import { z } from "zod";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { withTenantContext } from '@/lib/big4-http';
+export const dynamic = "force-dynamic";
 
-export const dynamic = 'force-dynamic';
+const querySchema = z.object({
+  limit: z.coerce.number().int().positive().max(1000).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
 
 interface Decision {
   id: string;
@@ -24,10 +29,14 @@ export async function GET(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
     async (ctx) => {
+      const query = parseQueryWithSchema(request, querySchema);
+      const limit = query.limit ?? 50;
+      const offset = query.offset ?? 0;
+      const decisions = listDecisions(ctx.tenant_id);
       const response: DecisionsResponse = {
         ok: true,
-        data: [],
-        total: 0,
+        data: decisions.slice(offset, offset + limit),
+        total: decisions.length,
         trace_id: ctx.trace_id,
       };
 
@@ -35,8 +44,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'decisions.list',
-      cache: { ttlMs: 10_000, visibility: 'private', staleWhileRevalidateMs: 10_000 },
+      routeId: "decisions.list",
+      cache: false,
     },
   );
 }

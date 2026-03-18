@@ -1,58 +1,81 @@
-'use client';
+"use client";
 
-/**
- * Console Snapshots Page - State snapshot management
- * 
- * What: Create and restore state snapshots.
- * Why: Snapshots enable rollback, migration, and disaster recovery.
- * What you can do: View snapshots, restore state, verify integrity.
- */
-
-import { useState, useEffect, useCallback } from 'react';
-import { normalizeArray, normalizeEnvelope } from '@/lib/api-truth';
+import { useCallback, useEffect, useState } from "react";
 import {
-  PageHeader,
-  LoadingState,
   EmptyState,
-  HashDisplay,
   ErrorDisplay,
-  VerificationBadge,
+  HashDisplay,
+  LoadingState,
+  PageHeader,
   RouteMaturityNote,
-} from '@/components/ui';
-import { getRouteMaturity, maturityNoteTone } from '@/lib/route-maturity';
+  VerificationBadge,
+} from "@/components/ui";
+import { getRouteMaturity, maturityNoteTone } from "@/lib/route-maturity";
 
-interface Snapshot {
-  id: string;
-  name: string;
+interface SnapshotRow {
+  hash: string;
+  logicalTime: number;
+  eventLogHead: string;
   createdAt: string;
-  size: number;
-  checksum: string;
-  gated: boolean;
-  description?: string;
+  activeCaps: number;
+  revokedCaps: number;
 }
 
 export default function ConsoleSnapshotsPage() {
-  const routeMaturity = getRouteMaturity('/console/snapshots');
-  const restoreRuntimeAvailable = routeMaturity.maturity === 'runtime-backed';
-  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const routeMaturity = getRouteMaturity("/console/snapshots");
+  const [snapshots, setSnapshots] = useState<SnapshotRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<{ code: string; message: string; traceId?: string } | null>(null);
+  const [error, setError] = useState<{
+    code: string;
+    message: string;
+    traceId?: string;
+  } | null>(null);
+  const [creating, setCreating] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
-  const [restoreResult, setRestoreResult] = useState<{ id: string; success: boolean; message: string } | null>(null);
+  const [restoreResult, setRestoreResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   const fetchSnapshots = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/snapshots');
-      const envelope = normalizeEnvelope<unknown[]>(await response.json());
+      const response = await fetch("/api/snapshots");
+      const envelope = await response.json();
+      const inner = envelope.data;
 
-      if (!response.ok || !envelope.ok) {
+      if (inner?.ok) {
+        const rows = Array.isArray(inner.data) ? inner.data : [];
+        setSnapshots(
+          rows.map(
+            (snapshot: {
+              snapshot_hash: string;
+              logical_time: number;
+              event_log_head: string;
+              timestamp_unix_ms: number;
+              active_caps?: string[];
+              revoked_caps?: string[];
+            }) => ({
+              hash: snapshot.snapshot_hash,
+              logicalTime: snapshot.logical_time,
+              eventLogHead: snapshot.event_log_head,
+              createdAt: new Date(snapshot.timestamp_unix_ms).toISOString(),
+              activeCaps: Array.isArray(snapshot.active_caps)
+                ? snapshot.active_caps.length
+                : 0,
+              revokedCaps: Array.isArray(snapshot.revoked_caps)
+                ? snapshot.revoked_caps.length
+                : 0,
+            }),
+          ),
+        );
+      } else {
         setError({
-          code: envelope.error?.code || 'E_FETCH_FAILED',
-          message: envelope.error?.message || 'Failed to fetch snapshots',
+          code: envelope.error?.code ?? "E_FETCH_FAILED",
+          message: envelope.error?.message ?? "Failed to fetch snapshots",
         });
-        return;
+        setSnapshots([]);
       }
 
       const nextSnapshots = normalizeArray<Record<string, unknown>>(envelope.data).map((snapshot) => ({
@@ -73,9 +96,10 @@ export default function ConsoleSnapshotsPage() {
       setSnapshots(nextSnapshots);
     } catch (err) {
       setError({
-        code: 'E_NETWORK_ERROR',
-        message: err instanceof Error ? err.message : 'Network error occurred',
+        code: "E_NETWORK_ERROR",
+        message: err instanceof Error ? err.message : "Network error occurred",
       });
+      setSnapshots([]);
     } finally {
       setLoading(false);
     }
@@ -85,71 +109,115 @@ export default function ConsoleSnapshotsPage() {
     fetchSnapshots();
   }, [fetchSnapshots]);
 
-  const handleRestore = useCallback(async (id: string, name: string) => {
-    if (!restoreRuntimeAvailable) {
-      setRestoreResult({
-        id,
-        success: false,
-        message: 'Restore is disabled on this demo-backed route. Connect a runtime-backed snapshot service before enabling rollback actions.',
-      });
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to restore snapshot "${name}"?\n\nThis will replace the current state.`)) return;
-    
-    setRestoringId(id);
+  const handleCreate = useCallback(async () => {
+    setCreating(true);
     setRestoreResult(null);
-    
     try {
-      const response = await fetch('/api/snapshots', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'restore', snapshot_hash: id, force: true }),
+      const response = await fetch("/api/snapshots", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
+        body: JSON.stringify({ action: "create" }),
       });
-      const envelope = normalizeEnvelope<{ message?: string }>(await response.json());
-      
-      setRestoreResult({
-        id,
-        success: response.ok && envelope.ok,
-        message: response.ok && envelope.ok
-          ? 'Snapshot restored successfully' 
-          : (envelope.error?.message || 'Failed to restore snapshot'),
-      });
-      
-      if (response.ok && envelope.ok) {
-        // Refresh to get updated state
-        setTimeout(() => fetchSnapshots(), 1000);
+      const envelope = await response.json();
+      if (envelope.data?.ok) {
+        setRestoreResult({
+          success: true,
+          message: "Snapshot captured and persisted for this tenant.",
+        });
+        await fetchSnapshots();
+      } else {
+        setRestoreResult({
+          success: false,
+          message: envelope.error?.message ?? "Failed to create snapshot.",
+        });
       }
     } catch (err) {
       setRestoreResult({
-        id,
         success: false,
-        message: err instanceof Error ? err.message : 'Restore request failed',
+        message:
+          err instanceof Error ? err.message : "Snapshot creation failed.",
       });
     } finally {
-      setRestoringId(null);
+      setCreating(false);
     }
-  }, [fetchSnapshots, restoreRuntimeAvailable]);
+  }, [fetchSnapshots]);
 
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const handleRestore = useCallback(
+    async (hash: string) => {
+      if (
+        !window.confirm(
+          `Restore snapshot ${hash.slice(0, 12)}…?\n\nThis replaces tenant-local budget and capability state with the snapshot contents.`,
+        )
+      ) {
+        return;
+      }
+
+      setRestoringId(hash);
+      setRestoreResult(null);
+      try {
+        const response = await fetch("/api/snapshots", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": crypto.randomUUID(),
+          },
+          body: JSON.stringify({
+            action: "restore",
+            snapshot_hash: hash,
+            force: true,
+          }),
+        });
+        const envelope = await response.json();
+        setRestoreResult({
+          success: Boolean(envelope.data?.ok),
+          message:
+            envelope.data?.message ??
+            envelope.error?.message ??
+            "Restore request finished with an unknown response.",
+        });
+        if (envelope.data?.ok) {
+          await fetchSnapshots();
+        }
+      } catch (err) {
+        setRestoreResult({
+          success: false,
+          message:
+            err instanceof Error ? err.message : "Restore request failed.",
+        });
+      } finally {
+        setRestoringId(null);
+      }
+    },
+    [fetchSnapshots],
+  );
 
   return (
     <div className="mx-auto max-w-7xl p-6">
       <PageHeader
         title="Snapshots"
-        description="State snapshots for rollback, migration, and disaster recovery. Each snapshot is checksummed for integrity verification."
+        description="Tenant-scoped snapshots for rollback and audit. Create a snapshot before risky changes, then restore with explicit confirmation."
+        action={
+          <button
+            type="button"
+            onClick={handleCreate}
+            disabled={creating}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {creating ? "Capturing..." : "Create snapshot"}
+          </button>
+        }
       />
 
-
-      <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity: demo-backed route">
+      <RouteMaturityNote
+        maturity={maturityNoteTone(routeMaturity.maturity)}
+        title="Maturity: runtime-backed route"
+      >
         {routeMaturity.degradedBehavior}
       </RouteMaturityNote>
 
-      {/* Error */}
       {error && (
         <div className="mb-6">
           <ErrorDisplay
@@ -161,99 +229,82 @@ export default function ConsoleSnapshotsPage() {
         </div>
       )}
 
-      {/* Restore Result */}
       {restoreResult && (
         <div className="mb-6">
           <VerificationBadge
-            status={restoreResult.success ? 'verified' : 'failed'}
-            message={restoreResult.success ? 'Restore Complete' : 'Restore Failed'}
+            status={restoreResult.success ? "verified" : "failed"}
+            message={
+              restoreResult.success
+                ? "Snapshot operation complete"
+                : "Snapshot operation failed"
+            }
             details={restoreResult.message}
           />
         </div>
       )}
 
-      {/* Content */}
       {loading ? (
         <LoadingState message="Loading snapshots..." />
       ) : snapshots.length === 0 ? (
         <EmptyState
           title="No snapshots found"
-          description="No snapshots were returned. This is expected in local/demo mode unless a backend implementation is attached."
+          description="No snapshots exist for this tenant yet. Create one to capture current budget, capability, and policy state."
         />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-surface-elevated">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
-                  ID
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  Snapshot
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
-                  Name
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  Event log head
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
-                  Checksum
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  Logical time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
-                  Size
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  Capabilities
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
-                  Gated
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
                   Created
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {snapshots.map((snap) => (
-                <tr key={snap.id} className="hover:bg-surface-elevated">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-foreground">
-                    <HashDisplay hash={snap.id} length={16} />
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">
-                    {snap.name || '-'}
+              {snapshots.map((snapshot) => (
+                <tr key={snapshot.hash} className="hover:bg-surface-elevated">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <HashDisplay hash={snapshot.hash} length={18} />
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <HashDisplay hash={snap.checksum} length={16} />
+                    <HashDisplay hash={snapshot.eventLogHead} length={18} />
+                  </td>
+                  <td className="px-4 py-3 text-sm text-foreground">
+                    {snapshot.logicalTime.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted">
+                    {snapshot.activeCaps} active / {snapshot.revokedCaps}{" "}
+                    revoked
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-muted">
-                    {formatSize(snap.size || 0)}
+                    {snapshot.createdAt.replace("T", " ").substring(0, 19)}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {snap.gated ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20">
-                        Gated
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-elevated text-muted border border-border">
-                        Open
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-muted">
-                    {snap.createdAt?.substring(0, 10) || '-'}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-4 py-3 text-right text-sm font-medium">
                     <button
-                      onClick={() => handleRestore(snap.id, snap.name)}
-                      disabled={restoringId === snap.id || !restoreRuntimeAvailable}
-                      title={
-                        restoreRuntimeAvailable
-                          ? 'Runtime-backed snapshot restore'
-                          : 'Unavailable: route is demo-backed and does not perform runtime rollback mutations'
-                      }
-                      className="text-accent hover:opacity-80 disabled:opacity-50 transition-colors disabled:cursor-not-allowed"
+                      onClick={() => handleRestore(snapshot.hash)}
+                      disabled={restoringId === snapshot.hash}
+                      className="text-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                       type="button"
                     >
-                      {restoringId === snap.id ? 'Restoring...' : restoreRuntimeAvailable ? 'Restore' : 'Restore unavailable'}
+                      {restoringId === snapshot.hash
+                        ? "Restoring..."
+                        : "Restore"}
                     </button>
-                    {!restoreRuntimeAvailable && (
-                      <p className="mt-1 text-[11px] text-muted">Demo route: rollback mutation disabled.</p>
-                    )}
                   </td>
                 </tr>
               ))}
@@ -262,15 +313,9 @@ export default function ConsoleSnapshotsPage() {
         </div>
       )}
 
-      {/* Summary */}
       {!loading && snapshots.length > 0 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-muted">
-          <span>
-            Total: {snapshots.length} snapshot{snapshots.length !== 1 ? 's' : ''}
-          </span>
-          <span>
-            Total size: {formatSize(snapshots.reduce((acc, s) => acc + (s.size || 0), 0))}
-          </span>
+        <div className="mt-4 text-sm text-muted">
+          Total: {snapshots.length} snapshot{snapshots.length !== 1 ? "s" : ""}
         </div>
       )}
     </div>
