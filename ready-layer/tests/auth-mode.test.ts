@@ -12,6 +12,57 @@ afterEach(() => {
 });
 
 describe('validateTenantAuth strict vs local mode', () => {
+  it('rejects spoofed middleware auth headers without signed proof', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'prod-secret',
+    });
+
+    const { validateTenantAuth } = await import('../src/lib/auth');
+    const req = new Request('http://localhost/api/runs', {
+      headers: {
+        'x-requiem-authenticated': '1',
+        'x-tenant-id': 'tenant-a',
+        'x-user-id': 'user-a',
+      },
+    });
+
+    const result = await validateTenantAuth(req as never);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('invalid_auth_context');
+    expect(result.status).toBe(401);
+  });
+
+  it('accepts signed middleware auth context only when proof matches request path and method', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'prod-secret',
+    });
+
+    const { validateTenantAuth } = await import('../src/lib/auth');
+    const { createInternalAuthProof, INTERNAL_AUTH_PROOF_HEADER } = await import('../src/lib/internal-auth-proof');
+    const proof = await createInternalAuthProof({
+      tenantId: 'tenant-a',
+      actorId: 'user-a',
+      method: 'GET',
+      pathname: '/api/runs',
+    });
+
+    const req = new Request('http://localhost/api/runs', {
+      headers: {
+        'x-requiem-authenticated': '1',
+        'x-tenant-id': 'tenant-a',
+        'x-user-id': 'user-a',
+        [INTERNAL_AUTH_PROOF_HEADER]: proof ?? '',
+      },
+    });
+
+    const result = await validateTenantAuth(req as never);
+    expect(result.ok).toBe(true);
+    expect(result.tenant?.tenant_id).toBe('tenant-a');
+    expect(result.actor_id).toBe('user-a');
+  });
+
   it('fails closed in strict mode when REQUIEM_AUTH_SECRET is missing', async () => {
     Object.assign(process.env, { NODE_ENV: 'production' });
     delete process.env.REQUIEM_AUTH_SECRET;
@@ -64,7 +115,7 @@ describe('validateTenantAuth strict vs local mode', () => {
 
     const result = await validateTenantAuth(req as never);
     expect(result.ok).toBe(false);
-    expect(result.error).toBe('missing_tenant_id');
-    expect(result.status).toBe(400);
+    expect(result.error).toBe('invalid_auth_context');
+    expect(result.status).toBe(401);
   });
 });

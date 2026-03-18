@@ -186,7 +186,7 @@ export async function POST(
     async () => ({ allow: true, reasons: [] }),
     {
       routeId: 'foundry.runs.createArtifact',
-      idempotency: { required: false, ttlMs: 24 * 60 * 60 * 1000 },
+      idempotency: { required: true, ttlMs: 24 * 60 * 60 * 1000 },
     }
   );
 }
