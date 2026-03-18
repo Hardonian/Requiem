@@ -21,7 +21,7 @@ function setupEnv(): string {
   );
   process.env = {
     ...originalEnv,
-    NODE_ENV: "production",
+    NODE_ENV: "test",
     REQUIEM_AUTH_SECRET: "tenant-secret",
     REQUIEM_CONTROL_PLANE_DIR: dir,
   };

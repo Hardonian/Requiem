@@ -44,7 +44,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, querySchema);
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-      const capabilities = listCapabilities(ctx.tenant_id);
+      const capabilities = await listCapabilities(ctx.tenant_id);
       const pageData = capabilities.slice(offset, offset + limit);
 
       const response: ApiResponse<PaginatedResponse<CapabilityListItem>> = {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           );
         }
 
-        const token = mintCapability(ctx.tenant_id, ctx.actor_id, {
+        const token = await mintCapability(ctx.tenant_id, ctx.actor_id, {
           subject: body.subject,
           permissions: body.permissions,
           not_before: body.not_before,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         );
       }
 
-      const revoked = revokeCapability(
+      const revoked = await revokeCapability(
         ctx.tenant_id,
         ctx.actor_id,
         body.fingerprint,

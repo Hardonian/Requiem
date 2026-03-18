@@ -52,7 +52,7 @@ const postSchema = z
 
 function toPlanResponse(
   plan: Plan | null,
-  runs: ReturnType<typeof getPlanByHash>["runs"],
+  runs: Awaited<ReturnType<typeof getPlanByHash>>['runs'],
 ): ApiResponse<PlanShowResponse> {
   return {
     v: 1,
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const offset = query.offset ?? 0;
 
       if (planHash) {
-        const result = getPlanByHash(ctx.tenant_id, planHash);
+        const result = await getPlanByHash(ctx.tenant_id, planHash);
         if (!result.plan) {
           throw new ProblemError(
             404,
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         });
       }
 
-      const tenantPlans = listPlans(ctx.tenant_id);
+      const tenantPlans = await listPlans(ctx.tenant_id);
       const pageData = tenantPlans.slice(offset, offset + limit);
       const response: ApiResponse<PlanListResponse> = {
         v: 1,
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           );
         }
 
-        const plan = addPlan(ctx.tenant_id, ctx.actor_id, {
+        const plan = await addPlan(ctx.tenant_id, ctx.actor_id, {
           plan_id: body.plan_id,
           steps: body.steps as PlanStep[],
         });
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           );
         }
 
-        const runResult = runPlan(ctx.tenant_id, ctx.actor_id, body.plan_hash);
+        const runResult = await runPlan(ctx.tenant_id, ctx.actor_id, body.plan_hash);
         if (!runResult) {
           throw new ProblemError(
             404,
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         });
       }
 
-      const replayResult = replayPlanRun(
+      const replayResult = await replayPlanRun(
         ctx.tenant_id,
         ctx.actor_id,
         body.run_id,
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           replay_run_id: replayResult.run_id,
           exact_match: body.verify_exact !== false,
           receipt_hash_original: replayResult.replay_of_run_id
-            ? (getPlanByHash(ctx.tenant_id, replayResult.plan_hash).runs.find(
+            ? ((await getPlanByHash(ctx.tenant_id, replayResult.plan_hash)).runs.find(
                 (entry) => entry.run_id === body.run_id,
               )?.receipt_hash ?? replayResult.receipt_hash)
             : replayResult.receipt_hash,
