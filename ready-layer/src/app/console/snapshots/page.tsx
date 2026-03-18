@@ -77,6 +77,23 @@ export default function ConsoleSnapshotsPage() {
         });
         setSnapshots([]);
       }
+
+      const nextSnapshots = normalizeArray<Record<string, unknown>>(envelope.data).map((snapshot) => ({
+        id: typeof snapshot.snapshot_hash === 'string' ? snapshot.snapshot_hash : 'unknown-snapshot',
+        name: typeof snapshot.event_log_head === 'string' ? snapshot.event_log_head : 'Snapshot',
+        createdAt:
+          typeof snapshot.timestamp_unix_ms === 'number'
+            ? new Date(snapshot.timestamp_unix_ms).toISOString()
+            : '',
+        size: 0,
+        checksum: typeof snapshot.cas_root_hash === 'string' ? snapshot.cas_root_hash : 'unknown-checksum',
+        gated: true,
+        description:
+          typeof snapshot.logical_time === 'number'
+            ? `Logical time ${snapshot.logical_time}`
+            : undefined,
+      }));
+      setSnapshots(nextSnapshots);
     } catch (err) {
       setError({
         code: "E_NETWORK_ERROR",

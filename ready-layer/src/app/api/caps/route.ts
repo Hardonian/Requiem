@@ -62,7 +62,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         error: null,
       };
 
-      return NextResponse.json(response, { status: 200 });
+      return withDemoHeaders(NextResponse.json(response, { status: 200 }));
     },
     async () => ({ allow: true, reasons: [] }),
     {

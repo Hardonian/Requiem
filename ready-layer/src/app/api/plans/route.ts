@@ -87,6 +87,7 @@ export async function GET(request: NextRequest): Promise<Response> {
           status: 200,
         });
       }
+      const plans: Plan[] = [];
 
       const plans = listPlans(ctx.tenant_id);
       const pageData = plans.slice(offset, offset + limit);
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         error: null,
       };
 
-      return NextResponse.json(response, { status: 200 });
+      return withDemoHeaders(NextResponse.json(response, { status: 200 }));
     },
     async () => ({ allow: true, reasons: [] }),
     {

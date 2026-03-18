@@ -178,10 +178,15 @@ function computeCacheControl(cache: false | CacheOptions | undefined): string {
   return `${visibility}, max-age=${maxAge}`;
 }
 
-function buildContext(req: NextRequest, tenantId: string, authToken: string): RequestContext {
+function buildContext(
+  req: NextRequest,
+  tenantId: string,
+  authToken: string,
+  actorId?: string,
+): RequestContext {
   return {
     tenant_id: tenantId,
-    actor_id: req.headers.get('x-actor-id') ?? req.headers.get('x-user-id') ?? tenantId,
+    actor_id: actorId?.trim() || tenantId,
     request_id: requestIdFromHeaders(req.headers),
     trace_id: traceIdFromHeaders(req.headers),
     auth_token: authToken,
@@ -271,10 +276,11 @@ export async function withTenantContext(
 
   const tenantId = requireAuth
     ? auth.tenant?.tenant_id ?? req.headers.get('x-tenant-id') ?? 'unknown'
-    : req.headers.get('x-tenant-id') ?? 'public';
+    : 'public';
   const authToken = auth.tenant?.auth_token ?? '';
+  const actorId = requireAuth ? auth.actor_id ?? auth.tenant?.tenant_id ?? tenantId : 'public';
 
-  const ctx = buildContext(req, tenantId, authToken);
+  const ctx = buildContext(req, tenantId, authToken, actorId);
   const routeId = options.routeId ?? ctx.pathname;
   const startedAtMs = Date.now();
 

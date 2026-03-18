@@ -5,10 +5,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { TenantContext } from './engine-client';
 import { problemResponse } from './problem-json';
+import {
+  createInternalAuthProof,
+  INTERNAL_AUTH_PROOF_HEADER,
+  secureEqualHex,
+} from './internal-auth-proof';
 
 export interface AuthResult {
   ok: boolean;
   tenant?: TenantContext;
+  actor_id?: string;
   error?: string;
   status?: number;
 }
@@ -47,14 +53,53 @@ function allowInsecureDevAuth(): boolean {
   return process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1' && !isStrictAuthMode();
 }
 
+async function hasValidInternalAuthProof(req: NextRequest, tenantId: string, actorId: string): Promise<boolean> {
+  const proof = req.headers.get(INTERNAL_AUTH_PROOF_HEADER);
+  if (!proof) return false;
+  const pathname = 'nextUrl' in req && req.nextUrl?.pathname
+    ? req.nextUrl.pathname
+    : new URL(req.url).pathname;
+
+  const expected = await createInternalAuthProof({
+    tenantId,
+    actorId,
+    method: req.method,
+    pathname,
+  });
+  if (!expected) return false;
+  return secureEqualHex(expected, proof);
+}
+
 export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> {
   const tenantHeader = resolveTenantId(req);
   const middlewareAuthenticated = req.headers.get('x-requiem-authenticated') === '1';
+  const actorId = req.headers.get('x-user-id')?.trim() ?? '';
+  const presentedInternalHeaders =
+    middlewareAuthenticated
+    || Boolean(req.headers.get(INTERNAL_AUTH_PROOF_HEADER))
+    || Boolean(req.headers.get('x-user-id'));
 
-  if (middlewareAuthenticated && tenantHeader) {
+  if (presentedInternalHeaders) {
+    if (!tenantHeader || !actorId) {
+      return {
+        ok: false,
+        error: 'invalid_auth_context',
+        status: 401,
+      };
+    }
+
+    if (await hasValidInternalAuthProof(req, tenantHeader, actorId)) {
+      return {
+        ok: true,
+        tenant: { tenant_id: tenantHeader, auth_token: '' },
+        actor_id: actorId,
+      };
+    }
+
     return {
-      ok: true,
-      tenant: { tenant_id: tenantHeader, auth_token: '' },
+      ok: false,
+      error: 'invalid_auth_context',
+      status: 401,
     };
   }
 
@@ -66,6 +111,7 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
     return {
       ok: true,
       tenant: { tenant_id: tenantHeader, auth_token: '' },
+      actor_id: req.headers.get('x-user-id')?.trim() || tenantHeader,
     };
   }
 
@@ -94,6 +140,7 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
       return {
         ok: true,
         tenant: { tenant_id: tenantHeader, auth_token: token },
+        actor_id: tenantHeader,
       };
     }
 
@@ -123,6 +170,7 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
   return {
     ok: true,
     tenant: { tenant_id: tenantHeader, auth_token: token },
+    actor_id: tenantHeader,
   };
 }
 
@@ -138,6 +186,8 @@ function authErrorDetail(code: string): string {
       return 'REQUIEM_AUTH_SECRET is required for strict auth mode';
     case 'missing_auth_secret':
       return 'REQUIEM_AUTH_SECRET is missing and insecure dev auth is disabled';
+    case 'invalid_auth_context':
+      return 'Invalid middleware authentication context';
     default:
       return code;
   }

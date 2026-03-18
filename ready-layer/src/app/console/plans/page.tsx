@@ -69,6 +69,18 @@ export default function ConsolePlansPage() {
         });
         setPlans([]);
       }
+
+      const nextPlans = Array.isArray(envelope.data.plans)
+        ? envelope.data.plans.map((plan) => ({
+            id: plan.plan_hash ?? plan.plan_id ?? 'unknown-plan',
+            name: plan.plan_id ?? plan.plan_hash ?? 'Unnamed plan',
+            status: 'registered',
+            createdAt: '',
+            stepCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
+            description: plan.plan_version ? `Plan version ${plan.plan_version}` : undefined,
+          }))
+        : [];
+      setPlans(nextPlans);
     } catch (err) {
       setError({
         code: "E_NETWORK_ERROR",
