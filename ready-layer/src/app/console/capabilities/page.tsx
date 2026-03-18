@@ -1,18 +1,13 @@
-'use client';
+"use client";
 
-/**
- * Console Capabilities Page - Capability token management
- *
- * What: Manage capability tokens for authorization.
- * Why: Capabilities provide fine-grained, revocable access control.
- * What you can do: View tokens, revoke capabilities, check expiration.
- *
- * API: GET /api/caps → { v:1, kind:'caps.list', data:{ok:true, data:[{actor,seq,data_hash,event_type}], total:N} }
- * API: DELETE /api/caps?id=X → { v:1, kind:'caps.revoke', data:{ok:true, fingerprint, revoked} }
- */
-
-import { useState, useEffect, useCallback } from 'react';
-import { PageHeader, LoadingState, EmptyState, HashDisplay, ErrorDisplay } from '@/components/ui';
+import { useCallback, useEffect, useState } from "react";
+import {
+  EmptyState,
+  ErrorDisplay,
+  HashDisplay,
+  LoadingState,
+  PageHeader,
+} from "@/components/ui";
 
 interface CapabilityItem {
   actor: string;
@@ -24,31 +19,34 @@ interface CapabilityItem {
 export default function ConsoleCapabilitiesPage() {
   const [capabilities, setCapabilities] = useState<CapabilityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<{ code: string; message: string; traceId?: string } | null>(null);
+  const [error, setError] = useState<{
+    code: string;
+    message: string;
+    traceId?: string;
+  } | null>(null);
   const [revokingSeq, setRevokingSeq] = useState<number | null>(null);
 
   const fetchCapabilities = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/caps?limit=100');
+      const response = await fetch("/api/caps?limit=100");
       const envelope = await response.json();
-
-      // API: { v:1, kind:'caps.list', data:{ok:true, data:[...], total:N} }
       const inner = envelope.data;
       if (inner?.ok) {
         setCapabilities(Array.isArray(inner.data) ? inner.data : []);
       } else {
         setError({
-          code: envelope.error?.code ?? 'E_FETCH_FAILED',
-          message: envelope.error?.message ?? 'Failed to fetch capabilities',
+          code: envelope.error?.code ?? "E_FETCH_FAILED",
+          message: envelope.error?.message ?? "Failed to fetch capabilities",
         });
       }
     } catch (err) {
       setError({
-        code: 'E_NETWORK_ERROR',
-        message: err instanceof Error ? err.message : 'Network error occurred',
+        code: "E_NETWORK_ERROR",
+        message: err instanceof Error ? err.message : "Network error occurred",
       });
+      setCapabilities([]);
     } finally {
       setLoading(false);
     }
@@ -58,46 +56,52 @@ export default function ConsoleCapabilitiesPage() {
     fetchCapabilities();
   }, [fetchCapabilities]);
 
-  const handleRevoke = useCallback(
-    async (item: CapabilityItem) => {
-      if (!window.confirm(`Revoke capability for actor ${item.actor} (seq ${item.seq})?`)) return;
+  const handleRevoke = useCallback(async (item: CapabilityItem) => {
+    if (
+      !window.confirm(
+        `Revoke capability for subject ${item.actor} (seq ${item.seq})?`,
+      )
+    )
+      return;
 
-      setRevokingSeq(item.seq);
-      try {
-        const response = await fetch(`/api/caps?id=${encodeURIComponent(item.data_hash)}`, {
-          method: 'DELETE',
-        });
-        const envelope = await response.json();
-        const inner = envelope.data;
+    setRevokingSeq(item.seq);
+    try {
+      const response = await fetch("/api/caps", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
+        body: JSON.stringify({ action: "revoke", fingerprint: item.data_hash }),
+      });
+      const envelope = await response.json();
+      const inner = envelope.data;
 
-        if (inner?.ok) {
-          setCapabilities((prev) => prev.filter((cap) => cap.seq !== item.seq));
-        } else {
-          setError({
-            code: envelope.error?.code ?? 'E_REVOKE_FAILED',
-            message: envelope.error?.message ?? 'Failed to revoke capability',
-          });
-        }
-      } catch (err) {
+      if (inner?.ok) {
+        setCapabilities((prev) => prev.filter((cap) => cap.seq !== item.seq));
+      } else {
         setError({
-          code: 'E_NETWORK_ERROR',
-          message: err instanceof Error ? err.message : 'Network error occurred',
+          code: envelope.error?.code ?? "E_REVOKE_FAILED",
+          message: envelope.error?.message ?? "Failed to revoke capability",
         });
-      } finally {
-        setRevokingSeq(null);
       }
-    },
-    [],
-  );
+    } catch (err) {
+      setError({
+        code: "E_NETWORK_ERROR",
+        message: err instanceof Error ? err.message : "Network error occurred",
+      });
+    } finally {
+      setRevokingSeq(null);
+    }
+  }, []);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl p-6">
       <PageHeader
         title="Capabilities"
-        description="Capability tokens for fine-grained authorization. Tokens are cryptographically signed and can be revoked at any time."
+        description="Capability tokens for fine-grained authorization. Entries are tenant-scoped and update when mint/revoke actions are persisted."
       />
 
-      {/* Error */}
       {error && (
         <div className="mb-6">
           <ErrorDisplay
@@ -109,35 +113,36 @@ export default function ConsoleCapabilitiesPage() {
         </div>
       )}
 
-      {/* Content */}
       {loading ? (
         <LoadingState message="Loading capabilities..." />
       ) : capabilities.length === 0 ? (
         <EmptyState
           title="No capabilities found"
-          description="Use the CLI to create capabilities: reach caps mint --name <name> --scope <scope>"
+          description="Mint capabilities through the API or CLI to grant tenant-scoped permissions; revoked entries disappear from this active view."
         />
       ) : (
         <>
-          <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+          <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
             <table className="stitch-table">
               <thead>
                 <tr>
                   <th>Seq</th>
-                  <th>Actor</th>
-                  <th>Event Type</th>
-                  <th>Data Hash</th>
+                  <th>Subject</th>
+                  <th>Last Event</th>
+                  <th>Fingerprint</th>
                   <th className="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {capabilities.map((cap) => (
                   <tr key={cap.seq}>
-                    <td className="font-mono text-muted text-sm">#{cap.seq}</td>
-                    <td className="text-sm text-foreground font-mono">{cap.actor || '—'}</td>
+                    <td className="font-mono text-sm text-muted">#{cap.seq}</td>
+                    <td className="font-mono text-sm text-foreground">
+                      {cap.actor || "—"}
+                    </td>
                     <td>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent/10 text-accent border border-accent/20">
-                        {cap.event_type || '—'}
+                      <span className="inline-flex items-center rounded border border-accent/20 bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">
+                        {cap.event_type || "—"}
                       </span>
                     </td>
                     <td>
@@ -147,10 +152,10 @@ export default function ConsoleCapabilitiesPage() {
                       <button
                         onClick={() => handleRevoke(cap)}
                         disabled={revokingSeq === cap.seq}
-                        className="text-destructive hover:text-destructive/80 disabled:opacity-50 text-sm font-medium transition-colors"
+                        className="text-sm font-medium text-destructive transition-colors hover:text-destructive/80 disabled:opacity-50"
                         type="button"
                       >
-                        {revokingSeq === cap.seq ? 'Revoking...' : 'Revoke'}
+                        {revokingSeq === cap.seq ? "Revoking..." : "Revoke"}
                       </button>
                     </td>
                   </tr>
@@ -160,7 +165,8 @@ export default function ConsoleCapabilitiesPage() {
           </div>
 
           <p className="mt-4 text-sm text-muted">
-            Total: {capabilities.length} capability token{capabilities.length !== 1 ? 's' : ''}
+            Total: {capabilities.length} capability token
+            {capabilities.length !== 1 ? "s" : ""}
           </p>
         </>
       )}

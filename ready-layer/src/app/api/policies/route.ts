@@ -1,35 +1,47 @@
-// ready-layer/src/app/api/policies/route.ts
-
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
-import { ProblemError } from '@/lib/problem-json';
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import {
+  parseJsonWithSchema,
+  parseQueryWithSchema,
+  withTenantContext,
+} from "@/lib/big4-http";
+import { ProblemError } from "@/lib/problem-json";
+import {
+  addPolicy,
+  evaluatePolicy,
+  listPolicies,
+  listPolicyVersions,
+  runPolicyTests,
+} from "@/lib/control-plane-store";
 import type {
-  PolicyDecision,
-  PolicyAddResponse,
-  PolicyListItem,
-  PolicyEvalResponse,
-  PolicyVersionsResponse,
-  PolicyTestResponse,
   ApiResponse,
   PaginatedResponse,
-} from '@/types/engine';
+  PolicyAddResponse,
+  PolicyDecision,
+  PolicyEvalResponse,
+  PolicyListItem,
+  PolicyRule,
+  PolicyTestResponse,
+  PolicyVersionsResponse,
+} from "@/types/engine";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const getQuerySchema = z.object({
   policy: z.string().optional(),
-  versions: z.enum(['true', 'false']).optional(),
+  versions: z.enum(["true", "false"]).optional(),
   limit: z.coerce.number().int().positive().max(1000).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
 
-const postSchema = z.object({
-  action: z.enum(['add', 'eval', 'test']),
-  rules: z.array(z.unknown()).optional(),
-  policy_hash: z.string().optional(),
-  context: z.record(z.string(), z.unknown()).optional(),
-}).passthrough();
+const postSchema = z
+  .object({
+    action: z.enum(["add", "eval", "test"]),
+    rules: z.array(z.custom<PolicyRule>()).optional(),
+    policy_hash: z.string().optional(),
+    context: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
 
 export async function GET(request: NextRequest): Promise<Response> {
   return withTenantContext(
@@ -37,43 +49,36 @@ export async function GET(request: NextRequest): Promise<Response> {
     async (ctx) => {
       const query = parseQueryWithSchema(request, getQuerySchema);
       const policyId = query.policy;
-      const versions = query.versions === 'true';
+      const versions = query.versions === "true";
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
 
       if (policyId && versions) {
         const response: ApiResponse<PolicyVersionsResponse> = {
           v: 1,
-          kind: 'policy.versions',
+          kind: "policy.versions",
           data: {
             ok: true,
             policy_id: policyId,
-            versions: ['v1', 'v2', 'v3'],
+            versions: listPolicyVersions(ctx.tenant_id, policyId),
           },
           error: null,
         };
         return NextResponse.json(response, { status: 200 });
       }
 
-      const mockPolicies: PolicyListItem[] = [];
-      for (let i = 0; i < Math.min(limit, 15); i++) {
-        mockPolicies.push({
-          hash: `policy_${(offset + i).toString(16).padStart(62, '0')}`,
-          size: 1024 + (i * 100),
-          created_at_unix_ms: Date.now() - (i * 86400000),
-        });
-      }
-
+      const policies = listPolicies(ctx.tenant_id);
+      const pageData = policies.slice(offset, offset + limit);
       const response: ApiResponse<PaginatedResponse<PolicyListItem>> = {
         v: 1,
-        kind: 'policies.list',
+        kind: "policies.list",
         data: {
           ok: true,
-          data: mockPolicies,
-          total: 50,
+          data: pageData,
+          total: policies.length,
           page: Math.floor(offset / limit) + 1,
           page_size: limit,
-          has_more: offset + mockPolicies.length < 50,
+          has_more: offset + pageData.length < policies.length,
           trace_id: ctx.trace_id,
         },
         error: null,
@@ -83,8 +88,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'policies.list',
-      cache: { ttlMs: 10_000, visibility: 'private', staleWhileRevalidateMs: 10_000 },
+      routeId: "policies.list",
+      cache: false,
     },
   );
 }
@@ -92,62 +97,87 @@ export async function GET(request: NextRequest): Promise<Response> {
 export async function POST(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
-    async () => {
-      const body = postSchema.parse(await request.json());
+    async (ctx) => {
+      const body = await parseJsonWithSchema(request, postSchema);
 
-      if (body.action === 'add') {
-        if (!body.rules) {
-          throw new ProblemError(400, 'Missing Argument', 'rules array required', {
-            code: 'missing_argument',
-          });
+      if (body.action === "add") {
+        if (!body.rules?.length) {
+          throw new ProblemError(
+            400,
+            "Missing Argument",
+            "rules array required",
+            {
+              code: "missing_argument",
+            },
+          );
         }
 
+        const policy = addPolicy(ctx.tenant_id, ctx.actor_id, body.rules);
         const response: ApiResponse<PolicyAddResponse> = {
           v: 1,
-          kind: 'policy.add',
+          kind: "policy.add",
           data: {
             ok: true,
-            policy_hash: `pol_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-            size: JSON.stringify(body.rules).length,
+            policy_hash: policy.hash,
+            size: policy.size,
           },
           error: null,
         };
         return NextResponse.json(response, { status: 200 });
       }
 
-      if (body.action === 'eval') {
+      if (body.action === "eval") {
         if (!body.policy_hash || !body.context) {
-          throw new ProblemError(400, 'Missing Argument', 'policy_hash and context required', {
-            code: 'missing_argument',
-          });
+          throw new ProblemError(
+            400,
+            "Missing Argument",
+            "policy_hash and context required",
+            {
+              code: "missing_argument",
+            },
+          );
         }
 
-        const decision: PolicyDecision = {
-          decision: 'allow',
-          matched_rule_id: 'R001',
-          context_hash: `ctx_${Date.now().toString(36)}`,
-          rules_hash: body.policy_hash,
-          proof_hash: `proof_${Date.now().toString(36)}`,
-          evaluated_at_logical_time: Date.now(),
-        };
+        let decision: PolicyDecision;
+        try {
+          decision = evaluatePolicy(
+            ctx.tenant_id,
+            ctx.actor_id,
+            body.policy_hash,
+            body.context,
+          );
+        } catch (error) {
+          if (error instanceof Error && error.message === "policy_not_found") {
+            throw new ProblemError(
+              404,
+              "Policy Not Found",
+              "No policy matched the provided policy_hash",
+              {
+                code: "policy_not_found",
+              },
+            );
+          }
+          throw error;
+        }
 
         const response: ApiResponse<PolicyEvalResponse> = {
           v: 1,
-          kind: 'policy.eval',
+          kind: "policy.eval",
           data: { ok: true, decision },
           error: null,
         };
         return NextResponse.json(response, { status: 200 });
       }
 
+      const result = runPolicyTests(ctx.tenant_id, body.policy_hash);
       const response: ApiResponse<PolicyTestResponse> = {
         v: 1,
-        kind: 'policy.test',
+        kind: "policy.test",
         data: {
           ok: true,
-          tests_run: 10,
-          tests_passed: 10,
-          tests_failed: 0,
+          tests_run: result.tests_run,
+          tests_passed: result.tests_passed,
+          tests_failed: result.tests_failed,
         },
         error: null,
       };
@@ -155,8 +185,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'policies.mutate',
-      idempotency: { required: false },
+      routeId: "policies.mutate",
+      idempotency: { required: true },
     },
   );
 }

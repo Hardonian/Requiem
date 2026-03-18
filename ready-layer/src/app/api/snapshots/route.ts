@@ -1,29 +1,38 @@
-// ready-layer/src/app/api/snapshots/route.ts
-
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
-import { ProblemError } from '@/lib/problem-json';
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import {
+  parseJsonWithSchema,
+  parseQueryWithSchema,
+  withTenantContext,
+} from "@/lib/big4-http";
+import { ProblemError } from "@/lib/problem-json";
+import {
+  createSnapshot,
+  listSnapshots,
+  restoreSnapshot,
+} from "@/lib/control-plane-store";
 import type {
+  ApiResponse,
+  PaginatedResponse,
   Snapshot,
   SnapshotCreateResponse,
   SnapshotRestoreResponse,
-  ApiResponse,
-  PaginatedResponse,
-} from '@/types/engine';
+} from "@/types/engine";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const getQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(1000).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
 
-const postSchema = z.object({
-  action: z.enum(['create', 'restore']),
-  snapshot_hash: z.string().optional(),
-  force: z.boolean().optional(),
-}).passthrough();
+const postSchema = z
+  .object({
+    action: z.enum(["create", "restore"]),
+    snapshot_hash: z.string().optional(),
+    force: z.boolean().optional(),
+  })
+  .strict();
 
 export async function GET(request: NextRequest): Promise<Response> {
   return withTenantContext(
@@ -32,33 +41,19 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, getQuerySchema);
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-
-      const mockSnapshots: Snapshot[] = [];
-      for (let i = 0; i < Math.min(limit, 10); i++) {
-        mockSnapshots.push({
-          snapshot_version: 1,
-          logical_time: offset + i + 1,
-          event_log_head: `evt_head_${offset + i + 1}`,
-          cas_root_hash: `cas_root_${(offset + i + 1).toString(16).padStart(60, '0')}`,
-          active_caps: [`cap_${i}_admin`, `cap_${i}_user`],
-          revoked_caps: [],
-          budgets: {},
-          policies: {},
-          snapshot_hash: `snap_${(offset + i + 1).toString(16).padStart(60, '0')}`,
-          timestamp_unix_ms: Date.now() - (i * 86400000),
-        });
-      }
+      const snapshots = listSnapshots(ctx.tenant_id);
+      const pageData = snapshots.slice(offset, offset + limit);
 
       const response: ApiResponse<PaginatedResponse<Snapshot>> = {
         v: 1,
-        kind: 'snapshots.list',
+        kind: "snapshots.list",
         data: {
           ok: true,
-          data: mockSnapshots,
-          total: 50,
+          data: pageData,
+          total: snapshots.length,
           page: Math.floor(offset / limit) + 1,
           page_size: limit,
-          has_more: offset + mockSnapshots.length < 50,
+          has_more: offset + pageData.length < snapshots.length,
           trace_id: ctx.trace_id,
         },
         error: null,
@@ -68,8 +63,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'snapshots.list',
-      cache: { ttlMs: 10_000, visibility: 'private', staleWhileRevalidateMs: 10_000 },
+      routeId: "snapshots.list",
+      cache: false,
     },
   );
 }
@@ -77,26 +72,14 @@ export async function GET(request: NextRequest): Promise<Response> {
 export async function POST(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
-    async () => {
-      const body = postSchema.parse(await request.json());
+    async (ctx) => {
+      const body = await parseJsonWithSchema(request, postSchema);
 
-      if (body.action === 'create') {
-        const snapshot: Snapshot = {
-          snapshot_version: 1,
-          logical_time: Date.now(),
-          event_log_head: `evt_head_${Date.now()}`,
-          cas_root_hash: `cas_root_${Date.now().toString(36)}`,
-          active_caps: ['cap_admin', 'cap_user'],
-          revoked_caps: [],
-          budgets: {},
-          policies: {},
-          snapshot_hash: `snap_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-          timestamp_unix_ms: Date.now(),
-        };
-
+      if (body.action === "create") {
+        const snapshot = createSnapshot(ctx.tenant_id, ctx.actor_id);
         const response: ApiResponse<SnapshotCreateResponse> = {
           v: 1,
-          kind: 'snapshot.create',
+          kind: "snapshot.create",
           data: { ok: true, snapshot },
           error: null,
         };
@@ -104,27 +87,50 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
 
       if (!body.snapshot_hash) {
-        throw new ProblemError(400, 'Missing Argument', 'snapshot_hash required', {
-          code: 'missing_argument',
-        });
+        throw new ProblemError(
+          400,
+          "Missing Argument",
+          "snapshot_hash required",
+          {
+            code: "missing_argument",
+          },
+        );
       }
 
       if (!body.force) {
         throw new ProblemError(
-          403,
-          'Operation Gated',
-          'Snapshot restore is gated. Use force=true to proceed.',
-          { code: 'operation_gated' },
+          409,
+          "Confirmation Required",
+          "Snapshot restore requires force=true to acknowledge state replacement.",
+          {
+            code: "restore_confirmation_required",
+          },
+        );
+      }
+
+      const snapshot = restoreSnapshot(
+        ctx.tenant_id,
+        ctx.actor_id,
+        body.snapshot_hash,
+      );
+      if (!snapshot) {
+        throw new ProblemError(
+          404,
+          "Snapshot Not Found",
+          "No snapshot matched the provided snapshot_hash",
+          {
+            code: "snapshot_not_found",
+          },
         );
       }
 
       const response: ApiResponse<SnapshotRestoreResponse> = {
         v: 1,
-        kind: 'snapshot.restore',
+        kind: "snapshot.restore",
         data: {
           ok: true,
-          restored_logical_time: Date.now() - 86400000,
-          message: `Successfully restored from snapshot ${body.snapshot_hash}`,
+          restored_logical_time: snapshot.logical_time,
+          message: `Successfully restored snapshot ${body.snapshot_hash}`,
         },
         error: null,
       };
@@ -132,8 +138,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'snapshots.mutate',
-      idempotency: { required: false },
+      routeId: "snapshots.mutate",
+      idempotency: { required: true },
     },
   );
 }

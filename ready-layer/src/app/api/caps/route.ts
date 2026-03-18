@@ -1,32 +1,41 @@
-// ready-layer/src/app/api/caps/route.ts
-
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
-import { ProblemError } from '@/lib/problem-json';
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import {
+  parseJsonWithSchema,
+  parseQueryWithSchema,
+  withTenantContext,
+} from "@/lib/big4-http";
+import { ProblemError } from "@/lib/problem-json";
+import {
+  listCapabilities,
+  mintCapability,
+  revokeCapability,
+} from "@/lib/control-plane-store";
 import type {
-  CapabilityMintResponse,
-  CapabilityListItem,
-  CapabilityRevokeResponse,
   ApiResponse,
+  CapabilityMintResponse,
+  CapabilityRevokeResponse,
   PaginatedResponse,
-} from '@/types/engine';
+  CapabilityListItem,
+} from "@/types/engine";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const querySchema = z.object({
   limit: z.coerce.number().int().positive().max(1000).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
 
-const postSchema = z.object({
-  action: z.enum(['mint', 'revoke']),
-  subject: z.string().min(1).optional(),
-  permissions: z.array(z.string().min(1)).optional(),
-  not_before: z.number().int().optional(),
-  not_after: z.number().int().optional(),
-  fingerprint: z.string().min(1).optional(),
-}).passthrough();
+const postSchema = z
+  .object({
+    action: z.enum(["mint", "revoke"]),
+    subject: z.string().min(1).optional(),
+    permissions: z.array(z.string().min(1)).optional(),
+    not_before: z.number().int().optional(),
+    not_after: z.number().int().optional(),
+    fingerprint: z.string().min(1).optional(),
+  })
+  .strict();
 
 export async function GET(request: NextRequest): Promise<Response> {
   return withTenantContext(
@@ -35,27 +44,19 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, querySchema);
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-
-      const mockCaps: CapabilityListItem[] = [];
-      for (let i = 0; i < Math.min(limit, 10); i++) {
-        mockCaps.push({
-          actor: ctx.tenant_id,
-          seq: offset + i + 1,
-          data_hash: `cap_hash_${offset + i}`,
-          event_type: 'cap.mint',
-        });
-      }
+      const capabilities = listCapabilities(ctx.tenant_id);
+      const pageData = capabilities.slice(offset, offset + limit);
 
       const response: ApiResponse<PaginatedResponse<CapabilityListItem>> = {
         v: 1,
-        kind: 'caps.list',
+        kind: "caps.list",
         data: {
           ok: true,
-          data: mockCaps,
-          total: 100,
+          data: pageData,
+          total: capabilities.length,
           page: Math.floor(offset / limit) + 1,
           page_size: limit,
-          has_more: offset + mockCaps.length < 100,
+          has_more: offset + pageData.length < capabilities.length,
           trace_id: ctx.trace_id,
         },
         error: null,
@@ -65,8 +66,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'caps.list',
-      cache: { ttlMs: 10_000, visibility: 'private', staleWhileRevalidateMs: 10_000 },
+      routeId: "caps.list",
+      cache: false,
     },
   );
 }
@@ -74,26 +75,37 @@ export async function GET(request: NextRequest): Promise<Response> {
 export async function POST(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
-    async () => {
-      const body = postSchema.parse(await request.json());
+    async (ctx) => {
+      const body = await parseJsonWithSchema(request, postSchema);
 
-      if (body.action === 'mint') {
-        if (!body.subject || !body.permissions) {
-          throw new ProblemError(400, 'Missing Argument', 'subject and permissions array required', {
-            code: 'missing_argument',
-          });
+      if (body.action === "mint") {
+        if (!body.subject || !body.permissions?.length) {
+          throw new ProblemError(
+            400,
+            "Missing Argument",
+            "subject and permissions array required",
+            {
+              code: "missing_argument",
+            },
+          );
         }
 
+        const token = mintCapability(ctx.tenant_id, ctx.actor_id, {
+          subject: body.subject,
+          permissions: body.permissions,
+          not_before: body.not_before,
+          not_after: body.not_after,
+        });
         const response: ApiResponse<CapabilityMintResponse> = {
           v: 1,
-          kind: 'caps.mint',
+          kind: "caps.mint",
           data: {
             ok: true,
-            fingerprint: `cap_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-            subject: body.subject,
-            scopes: body.permissions,
-            not_before: body.not_before || 0,
-            not_after: body.not_after || 0,
+            fingerprint: token.fingerprint,
+            subject: token.subject,
+            scopes: token.permissions,
+            not_before: token.not_before,
+            not_after: token.not_after,
           },
           error: null,
         };
@@ -101,23 +113,44 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
 
       if (!body.fingerprint) {
-        throw new ProblemError(400, 'Missing Argument', 'fingerprint required', {
-          code: 'missing_argument',
-        });
+        throw new ProblemError(
+          400,
+          "Missing Argument",
+          "fingerprint required",
+          {
+            code: "missing_argument",
+          },
+        );
+      }
+
+      const revoked = revokeCapability(
+        ctx.tenant_id,
+        ctx.actor_id,
+        body.fingerprint,
+      );
+      if (!revoked) {
+        throw new ProblemError(
+          404,
+          "Capability Not Found",
+          "No capability matched the provided fingerprint",
+          {
+            code: "capability_not_found",
+          },
+        );
       }
 
       const response: ApiResponse<CapabilityRevokeResponse> = {
         v: 1,
-        kind: 'caps.revoke',
-        data: { ok: true, fingerprint: body.fingerprint, revoked: true },
+        kind: "caps.revoke",
+        data: { ok: true, fingerprint: revoked.fingerprint, revoked: true },
         error: null,
       };
       return NextResponse.json(response, { status: 200 });
     },
     async () => ({ allow: true, reasons: [] }),
     {
-      routeId: 'caps.mutate',
-      idempotency: { required: false },
+      routeId: "caps.mutate",
+      idempotency: { required: true },
     },
   );
 }

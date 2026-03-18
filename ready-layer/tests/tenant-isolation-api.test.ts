@@ -51,6 +51,7 @@ describe("tenant isolation enforcement on budget routes", () => {
       headers: {
         authorization: "Bearer tenant-secret",
         "content-type": "application/json",
+        "idempotency-key": "missing-tenant",
       },
       body: JSON.stringify({ action: "reset-window" }),
     });
@@ -81,7 +82,7 @@ describe("tenant isolation enforcement on budget routes", () => {
     expect(body.code).toBe("missing_tenant_id");
   });
 
-  it("demo surfaces are explicitly marked", async () => {
+  it("budget surface does not advertise demo mode", async () => {
     Object.assign(process.env, {
       NODE_ENV: "production",
       REQUIEM_AUTH_SECRET: "tenant-secret",
@@ -94,6 +95,6 @@ describe("tenant isolation enforcement on budget routes", () => {
     const res = await GET(req);
 
     expect(res.status).toBe(200);
-    expect(res.headers.get("x-requiem-mode")).toBe("demo");
+    expect(res.headers.get("x-requiem-mode")).toBeNull();
   });
 });
