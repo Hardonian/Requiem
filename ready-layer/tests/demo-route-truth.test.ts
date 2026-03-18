@@ -7,7 +7,6 @@ function authHeaders(tenantId = 'tenant-truth'): Record<string, string> {
   return {
     authorization: 'Bearer tenant-secret',
     'x-tenant-id': tenantId,
-    'x-actor-id': `actor-${tenantId}`,
     'content-type': 'application/json',
   };
 }
@@ -17,7 +16,7 @@ afterEach(() => {
   process.env = { ...originalEnv };
 });
 
-describe('demo-backed route truth semantics', () => {
+describe('control-plane route truth semantics', () => {
   it.each([
     ['caps', '../src/app/api/caps/route', 'data'],
     ['objects', '../src/app/api/objects/route', 'data'],
@@ -25,7 +24,7 @@ describe('demo-backed route truth semantics', () => {
     ['snapshots', '../src/app/api/snapshots/route', 'data'],
     ['plans', '../src/app/api/plans/route', 'plans'],
   ] as const)(
-    'GET /api/%s does not fabricate list records',
+    'GET /api/%s returns truthful empty state without demo headers',
     async (label, modulePath, field) => {
       Object.assign(process.env, {
         NODE_ENV: 'production',
@@ -42,13 +41,13 @@ describe('demo-backed route truth semantics', () => {
       const records = (inner[field] ?? inner.data) as unknown;
 
       expect(res.status).toBe(200);
-      expect(res.headers.get('x-requiem-mode')).toBe('demo');
+      expect(res.headers.get('x-requiem-mode')).toBeNull();
       expect(Array.isArray(records)).toBe(true);
       expect((records as unknown[]).length).toBe(0);
     },
   );
 
-  it('HEAD /api/objects fails closed instead of claiming objects exist', async () => {
+  it('HEAD /api/objects fails closed without claiming demo availability', async () => {
     Object.assign(process.env, {
       NODE_ENV: 'production',
       REQUIEM_AUTH_SECRET: 'tenant-secret',
@@ -61,36 +60,39 @@ describe('demo-backed route truth semantics', () => {
 
     const res = await HEAD(req);
 
-    expect(res.status).toBe(503);
-    expect(res.headers.get('x-requiem-mode')).toBe('demo');
-    expect(res.headers.get('x-requiem-truth')).toBe('unavailable');
+    expect(res.status).toBe(404);
+    expect(res.headers.get('x-requiem-mode')).toBeNull();
+    expect(res.headers.get('x-requiem-truth')).toBeNull();
   });
 
   it.each([
-    ['caps', '../src/app/api/caps/route', { action: 'mint', subject: 'svc', permissions: ['exec.run'] }],
-    ['policies', '../src/app/api/policies/route', { action: 'eval', policy_hash: 'pol_1', context: { actor: 'svc' } }],
-    ['snapshots', '../src/app/api/snapshots/route', { action: 'create' }],
-    ['plans', '../src/app/api/plans/route', { action: 'run', plan_hash: 'plan_1' }],
+    ['caps', '../src/app/api/caps/route', { action: 'revoke', fingerprint: 'missing-cap' }, 404, 'capability_not_found'],
+    ['policies', '../src/app/api/policies/route', { action: 'eval', policy_hash: 'pol_1', context: { actor: 'svc' } }, 404, 'policy_not_found'],
+    ['snapshots', '../src/app/api/snapshots/route', { action: 'restore', snapshot_hash: 'snap_1', force: true }, 404, 'snapshot_not_found'],
+    ['plans', '../src/app/api/plans/route', { action: 'run', plan_hash: 'plan_1' }, 404, 'plan_not_found'],
   ] as const)(
-    'POST /api/%s rejects fake mutation success when no runtime backend exists',
-    async (label, modulePath, payload) => {
+    'POST /api/%s returns truthful missing-resource failure instead of fake success',
+    async (_label, modulePath, payload, status, code) => {
       Object.assign(process.env, {
         NODE_ENV: 'production',
         REQUIEM_AUTH_SECRET: 'tenant-secret',
       });
       const mod = await import(modulePath);
-      const req = new NextRequest(`http://localhost/api/${label}`, {
+      const req = new NextRequest('http://localhost/api/control', {
         method: 'POST',
-        headers: authHeaders(),
+        headers: {
+          ...authHeaders(),
+          'idempotency-key': `truth-${code}`,
+        },
         body: JSON.stringify(payload),
       });
 
       const res = await mod.POST(req);
       const body = await res.json() as Record<string, unknown>;
 
-      expect(res.status).toBe(503);
-      expect(res.headers.get('x-requiem-mode')).toBe('demo');
-      expect(body.code).toBe('runtime_backend_unavailable');
+      expect(res.status).toBe(status);
+      expect(res.headers.get('x-requiem-mode')).toBeNull();
+      expect(body.code).toBe(code);
     },
   );
 });

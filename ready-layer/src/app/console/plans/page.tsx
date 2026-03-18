@@ -9,6 +9,7 @@ import {
   RouteMaturityNote,
   VerificationBadge,
 } from "@/components/ui";
+import { normalizeEnvelope } from "@/lib/api-truth";
 import { getRouteMaturity, maturityNoteTone } from "@/lib/route-maturity";
 
 interface PlanCard {
@@ -17,6 +18,25 @@ interface PlanCard {
   createdAt: string;
   stepCount: number;
   lastRun?: string;
+}
+
+interface PlanRecord {
+  plan_id?: string;
+  plan_hash?: string;
+  steps?: unknown[];
+  created_at_unix_ms?: number;
+}
+
+interface PlanListPayload {
+  plans?: PlanRecord[];
+}
+
+interface PlanShowPayload {
+  runs?: Array<{ completed_at_unix_ms?: number }>;
+}
+
+interface PlanRunPayload {
+  result?: { run_id?: string };
 }
 
 export default function ConsolePlansPage() {
@@ -40,47 +60,29 @@ export default function ConsolePlansPage() {
       setLoading(true);
       setError(null);
       const response = await fetch("/api/plans");
-      const envelope = await response.json();
-      const inner = envelope.data;
+      const envelope = normalizeEnvelope<PlanListPayload>(await response.json());
 
-      if (inner?.ok) {
-        const items = Array.isArray(inner.plans) ? inner.plans : [];
-        setPlans(
-          items.map(
-            (plan: {
-              plan_id: string;
-              plan_hash: string;
-              steps: unknown[];
-              created_at_unix_ms?: number;
-            }) => ({
-              id: plan.plan_id,
-              hash: plan.plan_hash,
-              createdAt: plan.created_at_unix_ms
-                ? new Date(plan.created_at_unix_ms).toISOString()
-                : "",
-              stepCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
-            }),
-          ),
-        );
-      } else {
+      if (!envelope.ok) {
         setError({
           code: envelope.error?.code ?? "E_FETCH_FAILED",
           message: envelope.error?.message ?? "Failed to fetch plans",
+          traceId: envelope.traceId,
         });
         setPlans([]);
+        return;
       }
 
-      const nextPlans = Array.isArray(envelope.data.plans)
-        ? envelope.data.plans.map((plan) => ({
-            id: plan.plan_hash ?? plan.plan_id ?? 'unknown-plan',
-            name: plan.plan_id ?? plan.plan_hash ?? 'Unnamed plan',
-            status: 'registered',
-            createdAt: '',
-            stepCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
-            description: plan.plan_version ? `Plan version ${plan.plan_version}` : undefined,
-          }))
-        : [];
-      setPlans(nextPlans);
+      const items = Array.isArray(envelope.data?.plans) ? envelope.data.plans : [];
+      setPlans(
+        items.map((plan) => ({
+          id: plan.plan_id ?? plan.plan_hash ?? "unknown-plan",
+          hash: plan.plan_hash ?? "",
+          createdAt: plan.created_at_unix_ms
+            ? new Date(plan.created_at_unix_ms).toISOString()
+            : "",
+          stepCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
+        })),
+      );
     } catch (err) {
       setError({
         code: "E_NETWORK_ERROR",
@@ -93,7 +95,7 @@ export default function ConsolePlansPage() {
   }, []);
 
   useEffect(() => {
-    fetchPlans();
+    void fetchPlans();
   }, [fetchPlans]);
 
   const selectedPlan = useMemo(
@@ -106,7 +108,7 @@ export default function ConsolePlansPage() {
       const response = await fetch(
         `/api/plans?plan-hash=${encodeURIComponent(planHash)}`,
       );
-      const envelope = await response.json();
+      const envelope = normalizeEnvelope<PlanShowPayload>(await response.json());
       const runs = Array.isArray(envelope.data?.runs) ? envelope.data.runs : [];
       setPlans((prev) =>
         prev.map((plan) =>
@@ -138,8 +140,8 @@ export default function ConsolePlansPage() {
           },
           body: JSON.stringify({ action: "run", plan_hash: planHash }),
         });
-        const envelope = await response.json();
-        if (envelope.data?.ok && envelope.data.result?.run_id) {
+        const envelope = normalizeEnvelope<PlanRunPayload>(await response.json());
+        if (envelope.ok && envelope.data?.result?.run_id) {
           setRunFeedback({
             status: "verified",
             message: `Run ${envelope.data.result.run_id} completed and is now recorded in tenant history.`,
@@ -184,7 +186,7 @@ export default function ConsolePlansPage() {
             code={error.code}
             message={error.message}
             traceId={error.traceId}
-            onRetry={fetchPlans}
+            onRetry={() => void fetchPlans()}
           />
         </div>
       )}
@@ -260,7 +262,7 @@ export default function ConsolePlansPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleRunPlan(plan.hash)}
+                  onClick={() => void handleRunPlan(plan.hash)}
                   disabled={runningPlanHash === plan.hash}
                   className="mt-5 w-full rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                 >

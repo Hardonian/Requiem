@@ -10,6 +10,7 @@ import {
   RouteMaturityNote,
   VerificationBadge,
 } from "@/components/ui";
+import { normalizeEnvelope } from "@/lib/api-truth";
 import { getRouteMaturity, maturityNoteTone } from "@/lib/route-maturity";
 
 interface SnapshotRow {
@@ -19,6 +20,23 @@ interface SnapshotRow {
   createdAt: string;
   activeCaps: number;
   revokedCaps: number;
+}
+
+interface SnapshotRecord {
+  snapshot_hash?: string;
+  logical_time?: number;
+  event_log_head?: string;
+  timestamp_unix_ms?: number;
+  active_caps?: string[];
+  revoked_caps?: string[];
+}
+
+interface SnapshotListPayload {
+  data?: SnapshotRecord[];
+}
+
+interface SnapshotMutationPayload {
+  message?: string;
 }
 
 export default function ConsoleSnapshotsPage() {
@@ -42,58 +60,35 @@ export default function ConsoleSnapshotsPage() {
       setLoading(true);
       setError(null);
       const response = await fetch("/api/snapshots");
-      const envelope = await response.json();
-      const inner = envelope.data;
+      const envelope = normalizeEnvelope<SnapshotListPayload>(await response.json());
 
-      if (inner?.ok) {
-        const rows = Array.isArray(inner.data) ? inner.data : [];
-        setSnapshots(
-          rows.map(
-            (snapshot: {
-              snapshot_hash: string;
-              logical_time: number;
-              event_log_head: string;
-              timestamp_unix_ms: number;
-              active_caps?: string[];
-              revoked_caps?: string[];
-            }) => ({
-              hash: snapshot.snapshot_hash,
-              logicalTime: snapshot.logical_time,
-              eventLogHead: snapshot.event_log_head,
-              createdAt: new Date(snapshot.timestamp_unix_ms).toISOString(),
-              activeCaps: Array.isArray(snapshot.active_caps)
-                ? snapshot.active_caps.length
-                : 0,
-              revokedCaps: Array.isArray(snapshot.revoked_caps)
-                ? snapshot.revoked_caps.length
-                : 0,
-            }),
-          ),
-        );
-      } else {
+      if (!envelope.ok) {
         setError({
           code: envelope.error?.code ?? "E_FETCH_FAILED",
           message: envelope.error?.message ?? "Failed to fetch snapshots",
+          traceId: envelope.traceId,
         });
         setSnapshots([]);
+        return;
       }
 
-      const nextSnapshots = normalizeArray<Record<string, unknown>>(envelope.data).map((snapshot) => ({
-        id: typeof snapshot.snapshot_hash === 'string' ? snapshot.snapshot_hash : 'unknown-snapshot',
-        name: typeof snapshot.event_log_head === 'string' ? snapshot.event_log_head : 'Snapshot',
-        createdAt:
-          typeof snapshot.timestamp_unix_ms === 'number'
+      const rows = Array.isArray(envelope.data?.data) ? envelope.data.data : [];
+      setSnapshots(
+        rows.map((snapshot) => ({
+          hash: snapshot.snapshot_hash ?? "unknown-snapshot",
+          logicalTime: snapshot.logical_time ?? 0,
+          eventLogHead: snapshot.event_log_head ?? "",
+          createdAt: snapshot.timestamp_unix_ms
             ? new Date(snapshot.timestamp_unix_ms).toISOString()
-            : '',
-        size: 0,
-        checksum: typeof snapshot.cas_root_hash === 'string' ? snapshot.cas_root_hash : 'unknown-checksum',
-        gated: true,
-        description:
-          typeof snapshot.logical_time === 'number'
-            ? `Logical time ${snapshot.logical_time}`
-            : undefined,
-      }));
-      setSnapshots(nextSnapshots);
+            : "",
+          activeCaps: Array.isArray(snapshot.active_caps)
+            ? snapshot.active_caps.length
+            : 0,
+          revokedCaps: Array.isArray(snapshot.revoked_caps)
+            ? snapshot.revoked_caps.length
+            : 0,
+        })),
+      );
     } catch (err) {
       setError({
         code: "E_NETWORK_ERROR",
@@ -106,7 +101,7 @@ export default function ConsoleSnapshotsPage() {
   }, []);
 
   useEffect(() => {
-    fetchSnapshots();
+    void fetchSnapshots();
   }, [fetchSnapshots]);
 
   const handleCreate = useCallback(async () => {
@@ -121,11 +116,11 @@ export default function ConsoleSnapshotsPage() {
         },
         body: JSON.stringify({ action: "create" }),
       });
-      const envelope = await response.json();
-      if (envelope.data?.ok) {
+      const envelope = normalizeEnvelope<SnapshotMutationPayload>(await response.json());
+      if (envelope.ok) {
         setRestoreResult({
           success: true,
-          message: "Snapshot captured and persisted for this tenant.",
+          message: envelope.data?.message ?? "Snapshot captured and persisted for this tenant.",
         });
         await fetchSnapshots();
       } else {
@@ -149,7 +144,9 @@ export default function ConsoleSnapshotsPage() {
     async (hash: string) => {
       if (
         !window.confirm(
-          `Restore snapshot ${hash.slice(0, 12)}…?\n\nThis replaces tenant-local budget and capability state with the snapshot contents.`,
+          `Restore snapshot ${hash.slice(0, 12)}…?
+
+This replaces tenant-local budget and capability state with the snapshot contents.`,
         )
       ) {
         return;
@@ -164,21 +161,17 @@ export default function ConsoleSnapshotsPage() {
             "Content-Type": "application/json",
             "Idempotency-Key": crypto.randomUUID(),
           },
-          body: JSON.stringify({
-            action: "restore",
-            snapshot_hash: hash,
-            force: true,
-          }),
+          body: JSON.stringify({ action: "restore", snapshot_hash: hash, force: true }),
         });
-        const envelope = await response.json();
+        const envelope = normalizeEnvelope<SnapshotMutationPayload>(await response.json());
         setRestoreResult({
-          success: Boolean(envelope.data?.ok),
+          success: envelope.ok,
           message:
             envelope.data?.message ??
             envelope.error?.message ??
             "Restore request finished with an unknown response.",
         });
-        if (envelope.data?.ok) {
+        if (envelope.ok) {
           await fetchSnapshots();
         }
       } catch (err) {
@@ -202,7 +195,7 @@ export default function ConsoleSnapshotsPage() {
         action={
           <button
             type="button"
-            onClick={handleCreate}
+            onClick={() => void handleCreate()}
             disabled={creating}
             className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -224,7 +217,7 @@ export default function ConsoleSnapshotsPage() {
             code={error.code}
             message={error.message}
             traceId={error.traceId}
-            onRetry={fetchSnapshots}
+            onRetry={() => void fetchSnapshots()}
           />
         </div>
       )}
@@ -296,7 +289,7 @@ export default function ConsoleSnapshotsPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-medium">
                     <button
-                      onClick={() => handleRestore(snapshot.hash)}
+                      onClick={() => void handleRestore(snapshot.hash)}
                       disabled={restoringId === snapshot.hash}
                       className="text-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                       type="button"

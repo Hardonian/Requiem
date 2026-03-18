@@ -82,6 +82,25 @@ describe('validateTenantAuth strict vs local mode', () => {
     expect(result.status).toBe(503);
   });
 
+  it('rejects route verify mode outside test environment', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'development',
+      REQUIEM_ROUTE_VERIFY_MODE: '1',
+    });
+
+    const { validateTenantAuth } = await import('../src/lib/auth');
+    const req = new Request('http://localhost/api/runs', {
+      headers: {
+        'x-tenant-id': 'tenant-verify',
+      },
+    });
+
+    const result = await validateTenantAuth(req as never);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('missing_auth');
+    expect(result.status).toBe(401);
+  });
+
   it('allows explicit insecure local dev mode only when opt-in flag is set', async () => {
     Object.assign(process.env, { NODE_ENV: 'development' });
     process.env.REQUIEM_AUTH_MODE = 'local-dev';

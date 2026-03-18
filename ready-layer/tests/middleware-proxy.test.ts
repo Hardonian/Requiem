@@ -11,7 +11,7 @@ afterEach(() => {
 describe('middleware proxy auth behavior', () => {
   it('allows protected page access in route verify mode without supabase config', async () => {
     Object.assign(process.env, {
-      NODE_ENV: 'development',
+      NODE_ENV: 'test',
       REQUIEM_ROUTE_VERIFY_MODE: '1',
       REQUIEM_ROUTE_VERIFY_TENANT: 'evidence-tenant',
     });

@@ -82,6 +82,20 @@ describe('API contract routes', () => {
     expect(typeof body.trace_id).toBe('string');
   });
 
+  it('GET /api/budgets exposes single-process rate-limit scope truth on protected routes', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'contract-token',
+    });
+
+    const { GET } = await import('../src/app/api/budgets/route');
+    const req = new NextRequest('http://localhost/api/budgets', { headers: authHeaders('tenant-scope') });
+    const res = await GET(req);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('x-requiem-rate-limit-scope')).toBe('memory-single-process');
+  });
+
   it('POST /api/vector/search missing query returns 400 Problem+JSON', async () => {
     Object.assign(process.env, {
       NODE_ENV: 'production',

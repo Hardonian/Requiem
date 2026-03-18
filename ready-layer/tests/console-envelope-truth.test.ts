@@ -17,7 +17,7 @@ describe('console routes consume API envelopes truthfully', () => {
   it('snapshots page normalizes nested snapshot envelopes and sends the real restore payload contract', () => {
     const source = fs.readFileSync(path.join(repoRoot, 'src/app/console/snapshots/page.tsx'), 'utf-8');
     expect(source).toContain('normalizeEnvelope');
-    expect(source).toContain("body: JSON.stringify({ action: 'restore', snapshot_hash: id, force: true })");
+    expect(source).toContain('body: JSON.stringify({ action: "restore", snapshot_hash: hash, force: true })');
     expect(source).not.toContain("fetch(`/api/snapshots?id=${id}`, { method: 'POST' })");
   });
 });
