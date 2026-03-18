@@ -74,7 +74,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     async () => ({ allow: true, reasons: [] }),
     {
       routeId: 'foundry.generators.create',
-      idempotency: { required: false, ttlMs: 24 * 60 * 60 * 1000 },
+      idempotency: { required: true, ttlMs: 24 * 60 * 60 * 1000 },
     }
   );
 }

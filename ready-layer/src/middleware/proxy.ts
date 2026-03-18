@@ -7,6 +7,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createInternalAuthProof, INTERNAL_AUTH_PROOF_HEADER } from '@/lib/internal-auth-proof';
 
 const STATIC_ASSET_PATTERNS = [
   /\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|map|woff|woff2|ttf|eot)$/i,
@@ -293,13 +294,22 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
     && (pathname.startsWith('/api/') || isProtectedPage)
   ) {
     const verifyHeaders = new Headers(request.headers);
+    const verifyTenant = verifyHeaders.get('x-tenant-id') ?? process.env.REQUIEM_ROUTE_VERIFY_TENANT ?? 'verify-tenant';
+    const verifyActor = verifyHeaders.get('x-user-id') ?? verifyTenant;
     verifyHeaders.set('x-trace-id', traceId);
     verifyHeaders.set('x-requiem-authenticated', '1');
-    if (!verifyHeaders.get('x-tenant-id')) {
-      verifyHeaders.set('x-tenant-id', process.env.REQUIEM_ROUTE_VERIFY_TENANT ?? 'verify-tenant');
-    }
-    if (!verifyHeaders.get('x-user-id')) {
-      verifyHeaders.set('x-user-id', verifyHeaders.get('x-tenant-id') ?? 'verify-tenant');
+    verifyHeaders.set('x-tenant-id', verifyTenant);
+    verifyHeaders.set('x-user-id', verifyActor);
+    const proof = await createInternalAuthProof({
+      tenantId: verifyTenant,
+      actorId: verifyActor,
+      method: request.method,
+      pathname,
+    });
+    if (proof) {
+      verifyHeaders.set(INTERNAL_AUTH_PROOF_HEADER, proof);
+    } else {
+      verifyHeaders.delete(INTERNAL_AUTH_PROOF_HEADER);
     }
     const response = NextResponse.next({
       request: {
@@ -307,7 +317,6 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
       },
     });
     response.headers.set('x-tenant-id', verifyHeaders.get('x-tenant-id') ?? 'verify-tenant');
-    response.headers.set('x-user-id', verifyHeaders.get('x-user-id') ?? 'verify-tenant');
     response.headers.set('x-requiem-authenticated', '1');
     return withTraceHeader(response, traceId);
   }
@@ -344,8 +353,14 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
     requestHeaders.set('x-tenant-id', user.id);
     requestHeaders.set('x-requiem-authenticated', '1');
     requestHeaders.set('x-trace-id', traceId);
-    if (user.email) {
-      requestHeaders.set('x-user-email', user.email);
+    const proof = await createInternalAuthProof({
+      tenantId: user.id,
+      actorId: user.id,
+      method: request.method,
+      pathname,
+    });
+    if (proof) {
+      requestHeaders.set(INTERNAL_AUTH_PROOF_HEADER, proof);
     }
 
     const response = NextResponse.next({
@@ -357,9 +372,6 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
     response.headers.set('x-user-id', user.id);
     response.headers.set('x-tenant-id', user.id);
     response.headers.set('x-requiem-authenticated', '1');
-    if (user.email) {
-      response.headers.set('x-user-email', user.email);
-    }
 
     return withTraceHeader(response, traceId);
   }
@@ -387,8 +399,14 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
   requestHeaders.set('x-tenant-id', user.id);
   requestHeaders.set('x-requiem-authenticated', '1');
   requestHeaders.set('x-trace-id', traceId);
-  if (user.email) {
-    requestHeaders.set('x-user-email', user.email);
+  const proof = await createInternalAuthProof({
+    tenantId: user.id,
+    actorId: user.id,
+    method: request.method,
+    pathname,
+  });
+  if (proof) {
+    requestHeaders.set(INTERNAL_AUTH_PROOF_HEADER, proof);
   }
 
   const response = NextResponse.next({
@@ -398,11 +416,7 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
   });
 
   response.headers.set('x-tenant-id', user.id);
-  response.headers.set('x-user-id', user.id);
   response.headers.set('x-requiem-authenticated', '1');
-  if (user.email) {
-    response.headers.set('x-user-email', user.email);
-  }
 
   return withTraceHeader(response, traceId);
 }
