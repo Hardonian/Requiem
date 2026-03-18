@@ -51,7 +51,7 @@ async function main() {
 
   const server = spawn('pnpm', ['--filter', 'ready-layer', 'dev', '-p', String(port)], {
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1', REQUIEM_ROUTE_VERIFY_MODE: '1' },
+    env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1', REQUIEM_ROUTE_VERIFY_MODE: '1', NODE_ENV: 'test', REQUIEM_AUTH_SECRET: 'verify-secret' },
     detached: true,
   });
 
@@ -66,7 +66,7 @@ async function main() {
     const runsRes = await fetch(`${base}/api/runs?limit=2&offset=0`, {
       headers: {
         'x-tenant-id': 'tenant-route-test',
-        'x-actor-id': 'actor-route-test',
+        'x-user-id': 'actor-route-test',
         'x-request-id': 'req-route-test',
         'x-trace-id': 'trace-route-test',
       },
@@ -93,10 +93,10 @@ async function main() {
     if (last.actor_id !== 'actor-route-test') throw new Error(`Unexpected actor in audit event: ${last.actor_id}`);
     if (last.request_id !== 'req-route-test') throw new Error(`Unexpected request_id in audit event: ${last.request_id}`);
     if (last.trace_id !== 'trace-route-test') throw new Error(`Unexpected trace_id in audit event: ${last.trace_id}`);
-    if (last.event_type !== 'RUN_CREATED') throw new Error(`Unexpected event_type in audit event: ${last.event_type}`);
+    if (last.event_type !== 'RUN_LIST_VIEWED') throw new Error(`Unexpected event_type in audit event: ${last.event_type}`);
 
     const probe404 = await fetch(`${base}/api/routes-probe?missing=1`, {
-      headers: { 'x-tenant-id': 'tenant-route-test', 'x-actor-id': 'actor-route-test' },
+      headers: { 'x-tenant-id': 'tenant-route-test', 'x-user-id': 'actor-route-test' },
     });
     await expectProblemContract(probe404, 404, 'routes-probe-404');
 
@@ -106,7 +106,7 @@ async function main() {
     let limited = false;
     for (let i = 0; i < 130; i += 1) {
       const burstRes = await fetch(`${base}/api/runs`, {
-        headers: { 'x-tenant-id': 'tenant-burst', 'x-actor-id': 'actor-burst' },
+        headers: { 'x-tenant-id': 'tenant-burst', 'x-user-id': 'actor-burst' },
       });
       if (burstRes.status === 429) {
         await expectProblemContract(burstRes, 429, 'runs-rate-limit');

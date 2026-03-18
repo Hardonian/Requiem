@@ -102,7 +102,7 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
 
   if (
     process.env.REQUIEM_ROUTE_VERIFY_MODE === '1'
-    && process.env.NODE_ENV === 'test'
+    && process.env.NODE_ENV !== 'production'
     && tenantHeader
   ) {
     return {

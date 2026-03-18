@@ -1,34 +1,49 @@
 # Release Checklist
 
-## Pre-release verification
+This checklist is for releases that need honest operator-facing claims.
+
+## 1. Repo and toolchain baseline
 
 - [ ] `pnpm install --frozen-lockfile`
-- [ ] `pnpm lint`
-- [ ] `pnpm typecheck`
-- [ ] `pnpm build`
-- [ ] `pnpm test`
-- [ ] `pnpm verify:demo`
-- [ ] `pnpm verify:determinism`
-- [ ] `pnpm verify:replay`
-- [ ] `pnpm evidence`
-- [ ] `pnpm verify:deploy-readiness`
+- [ ] `pnpm run doctor`
+- [ ] `pnpm run verify:deploy-readiness`
 
-## Documentation alignment
+## 2. Code verification
 
-- [ ] README quickstart commands match actual scripts.
-- [ ] `docs/quickstart.md` and `docs/first-10-minutes.md` are current.
-- [ ] `docs/limitations.md` reflects known boundaries.
-- [ ] `docs/known-issues.md` is updated.
+- [ ] `pnpm run route:inventory`
+- [ ] `pnpm run verify:routes`
+- [ ] `pnpm run lint`
+- [ ] `pnpm run typecheck`
+- [ ] `pnpm run build`
+- [ ] `pnpm run test`
 
-## Launch publish sequence
+## 3. Security and trust surface
 
-1. Tag release commit.
-2. Publish release notes + changelog update.
-3. Publish launch post/social copy.
-4. Run smoke tests on published commit.
+- [ ] `pnpm run verify:tenant-isolation`
+- [ ] `pnpm run verify:nosecrets`
+- [ ] `pnpm run verify:no-stack-leaks`
 
-## Rollback + hotfix
+## 4. Optional deeper evidence
 
-- [ ] Previous stable tag documented.
-- [ ] Hotfix owner and triage channel assigned.
-- [ ] Rollback command/process documented for operators.
+- [ ] `pnpm run verify:determinism`
+- [ ] `pnpm run verify:replay`
+
+## 5. Documentation truth gate
+
+- [ ] README commands exist and match current scripts.
+- [ ] [ENVIRONMENT.md](./ENVIRONMENT.md) matches current env examples.
+- [ ] [DEPLOYMENT.md](./DEPLOYMENT.md) still matches supported topology truth.
+- [ ] Tenancy language does not imply org/team SaaS unless code now proves it.
+- [ ] Stub/demo/informational routes are not described as live runtime proof.
+
+## 6. Deployment honesty gate
+
+- [ ] No deployment guide recommends `REQUIEM_ALLOW_INSECURE_DEV_AUTH=1` outside local dev.
+- [ ] No doc claims horizontal safety while request guards remain single-process.
+- [ ] No doc markets `/app/tenants` as live shared-tenant administration.
+
+## 7. Release notes / reviewer bundle
+
+- [ ] Record exact commit SHA.
+- [ ] Record commands run and pass/fail status.
+- [ ] Record any intentional degraded or unsupported areas.

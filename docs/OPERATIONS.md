@@ -1,86 +1,37 @@
-# Operations & Observability
+# Operations
 
-> **Audience:** Operators, SREs.  
-> **Mission:** Keep the chain of truth intact.
+This file is intentionally narrow: it documents current operator reality, not an idealized SRE story.
 
-Requiem is designed for high-integrity operations. This guide covers how to monitor, troubleshoot, and maintain the system.
+## What operators can rely on today
 
----
+- local and CI verification commands,
+- structured route/problem responses for ReadyLayer API routes,
+- explicit degraded-state copy when runtime wiring is missing,
+- local/single-process request guard behavior,
+- local storage and replay-oriented workflows through CLI and scripts.
 
-## 1. Traceability & Logging
+## What operators should not infer
 
-Every execution in Requiem is assigned a unique `trace_id` and `correlation_id`. These IDs flow through all layers — from the Next.js API down to the C++ kernel.
+Do not infer from this repository alone that it already provides:
 
-### Structured Logs
-All logs are emitted as NDJSON.
-- **`tenant_id`**: Identifies the customer/tenant.
-- **`run_id`**: Identifies a specific agent run.
-- **`trace_id`**: Spans multiple related operations.
+- shared cluster-safe request guards,
+- complete hosted-control-plane observability,
+- org/team tenancy administration,
+- production incident automation beyond the documented scripts.
 
-### Searching Logs
-```bash
-# Find all errors for a specific trace
-grep "trace-uuid-123" logs/app.log | grep '"level":"error"'
-```
+## Canonical operator docs
 
----
+- [ENVIRONMENT.md](./ENVIRONMENT.md)
+- [DEPLOYMENT.md](./DEPLOYMENT.md)
+- [OPERATOR_RUNBOOK.md](./OPERATOR_RUNBOOK.md)
+- [SECURITY.md](./SECURITY.md)
+- [limitations.md](./limitations.md)
 
-## 2. The "Suite Doctor"
-
-The `pnpm doctor` command is your first line of defense for troubleshooting. It checks:
-- Native binary availability and versions.
-- Workspace write permissions.
-- Environment variable completeness.
-- CAS mount points and disk space.
+## Canonical checks
 
 ```bash
-pnpm doctor
+pnpm run doctor
+pnpm run verify:deploy-readiness
+pnpm run verify:routes
+pnpm run verify:all
 ```
-
-For automated monitoring, use the JSON output:
-```bash
-pnpm doctor -- --json
-```
-
----
-
-## 3. Monitoring Core Metrics
-
-| Metric | Source | Critical Threshold |
-| :--- | :--- | :--- |
-| **Determinism Failure** | `scripts/verify_drift.sh` | > 0 |
-| **CAS Integrity Error** | Engine Logs | > 0 |
-| **Policy Violation Rate** | AI Gate Logs | > 5% (Potential attack) |
-| **Budget Exhaustion** | AI Policy Logs | > 10% (Quota tuning needed) |
-
----
-
-## 4. Troubleshooting Common Issues
-
-### "E_INT_DETERMINISM_VIOLATION"
-**Cause:** The same plan produced a different receipt hash. This usually happens if the tool logic uses unseeded random numbers or wall-clock time.
-**Fix:** Ensure all non-determinism is moved to input parameters or seeded via the `plan` context.
-
-### "E_CAS_INTEGRITY_FAILED"
-**Cause:** The object on disk does not match its hash. This indicates bit-rot or manual tampering.
-**Fix:** Delete the offending object from `.cas/v2/objects/[hash]` and let the system re-generate or re-fetch it.
-
-### "E_POL_VIOLATION"
-**Cause:** An agent tried to access a tool it isn't authorized for, or hit a guardrail.
-**Fix:** Check `tenant_id` capabilities in the Tool Registry.
-
----
-
-## 5. Maintenance Tasks
-
-### Backing up the CAS
-Since objects are immutable and content-addressed, you can safely `rsync` the `.cas/` directory to a cold storage bucket (S3/GCS) without locking.
-
-### Compacting the Event Log
-The event log is append-only. Periodically rotate the NDJSON files. The `pnpm req log verify` command can walk across rotated files if they are named sequentially.
-
----
-
-## References
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — For system component map.
-- [errors.md](./errors.md) — For a full list of error codes and remediation.
