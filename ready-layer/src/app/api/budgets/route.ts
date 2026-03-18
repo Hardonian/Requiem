@@ -33,7 +33,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const response: ApiResponse<BudgetShowResponse> = {
         v: 1,
         kind: "budget.show",
-        data: { ok: true, budget: getBudget(ctx.tenant_id) },
+        data: { ok: true, budget: await getBudget(ctx.tenant_id) },
         error: null,
       };
 
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           );
         }
 
-        const budget = setBudgetLimit(
+        const budget = await setBudgetLimit(
           ctx.tenant_id,
           ctx.actor_id,
           body.unit,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         return NextResponse.json(response, { status: 200 });
       }
 
-      const budget = resetBudgetWindow(ctx.tenant_id, ctx.actor_id);
+      const budget = await resetBudgetWindow(ctx.tenant_id, ctx.actor_id);
       const response: ApiResponse<BudgetResetResponse> = {
         v: 1,
         kind: "budget.reset_window",

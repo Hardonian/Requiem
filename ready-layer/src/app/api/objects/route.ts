@@ -25,7 +25,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const prefix = query.prefix ?? "";
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-      const objects = listCasObjects(ctx.tenant_id, prefix);
+      const objects = await listCasObjects(ctx.tenant_id, prefix);
       const pageData = objects.slice(offset, offset + limit);
 
       const paginatedData: PaginatedResponse<CasObject> = {
@@ -67,7 +67,7 @@ export async function HEAD(request: NextRequest): Promise<Response> {
       }
 
       return new NextResponse(null, {
-        status: hasCasObject(ctx.tenant_id, query.hash) ? 200 : 404,
+        status: (await hasCasObject(ctx.tenant_id, query.hash)) ? 200 : 404,
       });
     },
     async () => ({ allow: true, reasons: [] }),

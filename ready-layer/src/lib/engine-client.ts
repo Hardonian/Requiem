@@ -8,7 +8,7 @@
 // "No route directly calls engine. All engine calls go through Node API boundary.").
 //
 // EXTENSION_POINT: node_api_bridge
-//   Current: HTTP client calling a local Node API server (REQUIEM_API_URL).
+//   Current: HTTP client calling a Node API server (REQUIEM_API_URL).
 //   Upgrade path: replace with gRPC client for lower latency and typed schemas.
 //   Invariant: this module must validate all responses before returning to callers.
 //   Invariant: this module must never expose raw engine errors to the Next.js layer;
@@ -25,18 +25,14 @@ import type {
   ClusterStatusResponse,
   ClusterWorkersResponse,
 } from '@/types/engine';
-
-// The Node API base URL. Configured via environment variable.
-// In production: set REQUIEM_API_URL to the internal Node API service URL.
-// In development: defaults to localhost:3001.
-const API_BASE = process.env.REQUIEM_API_URL ?? 'http://localhost:3001';
+import { isProductionLikeRuntime } from './runtime-mode';
 
 // Tenant ID from JWT/session (passed in from route handlers that have auth context).
 // INVARIANT: All API calls that touch tenant data MUST supply tenant_id.
 // Routes without tenant context (health, public metrics) pass empty string.
 export type TenantContext = { tenant_id: string; auth_token: string };
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(
     public readonly error_code: string,
     message: string,
@@ -45,6 +41,23 @@ class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
   }
+}
+
+function getApiBase(): string {
+  const configured = process.env.REQUIEM_API_URL?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  if (isProductionLikeRuntime()) {
+    throw new ApiError(
+      'backend_unconfigured',
+      'REQUIEM_API_URL is required in production-like deployments.',
+      503,
+    );
+  }
+
+  return 'http://localhost:3001';
 }
 
 async function apiFetch<T>(
@@ -60,13 +73,13 @@ async function apiFetch<T>(
   };
 
   if (tenant?.auth_token) {
-    headers['Authorization'] = `Bearer ${tenant.auth_token}`;
+    headers.Authorization = `Bearer ${tenant.auth_token}`;
   }
   if (tenant?.tenant_id) {
     headers['X-Tenant-ID'] = tenant.tenant_id;
   }
 
-  const url = `${API_BASE}${path}`;
+  const url = `${getApiBase()}${path}`;
   let res: Response;
   try {
     res = await fetch(url, { ...opts, headers });
@@ -86,10 +99,6 @@ async function apiFetch<T>(
 
   return res.json() as Promise<T>;
 }
-
-// ---------------------------------------------------------------------------
-// Public client methods
-// ---------------------------------------------------------------------------
 
 export async function fetchHealth(): Promise<HealthResponse> {
   return apiFetch<HealthResponse>('/api/health');
@@ -144,10 +153,6 @@ export async function fetchAuditLogs(
   );
 }
 
-// ---------------------------------------------------------------------------
-// Cluster platform client methods
-// ---------------------------------------------------------------------------
-
 export async function fetchClusterStatus(tenant: TenantContext): Promise<ClusterStatusResponse> {
   return apiFetch<ClusterStatusResponse>('/api/cluster/status', {}, tenant);
 }
@@ -155,10 +160,6 @@ export async function fetchClusterStatus(tenant: TenantContext): Promise<Cluster
 export async function fetchClusterWorkers(tenant: TenantContext): Promise<ClusterWorkersResponse> {
   return apiFetch<ClusterWorkersResponse>('/api/cluster/workers', {}, tenant);
 }
-
-// ---------------------------------------------------------------------------
-// Phase 5: Cluster drift client methods
-// ---------------------------------------------------------------------------
 
 export async function fetchClusterDrift(
   tenant: TenantContext,
@@ -170,17 +171,13 @@ export async function fetchClusterDrift(
   );
 }
 
-// ---------------------------------------------------------------------------
-// Phase 4: Root cause diagnostics client methods
-// ---------------------------------------------------------------------------
-
 export async function fetchEngineAnalysis(
   tenant: TenantContext,
   errorCode = '',
   errorDetail = '',
 ): Promise<import('@/types/engine').DiagnosticReport> {
   const params = new URLSearchParams();
-  if (errorCode)   params.set('error_code',   errorCode);
+  if (errorCode) params.set('error_code', errorCode);
   if (errorDetail) params.set('error_detail', errorDetail);
   const qs = params.toString() ? `?${params.toString()}` : '';
   return apiFetch<import('@/types/engine').DiagnosticReport>(
@@ -189,10 +186,6 @@ export async function fetchEngineAnalysis(
     tenant,
   );
 }
-
-// ---------------------------------------------------------------------------
-// Phase 3: Auto-tuning client methods
-// ---------------------------------------------------------------------------
 
 export async function fetchAutotuneState(
   tenant: TenantContext,
@@ -217,6 +210,3 @@ export async function postAutotuneTick(
     tenant,
   );
 }
-
-// EXTENSION_POINT: governance_enhancements
-// Add: fetchDeterminismReport(), triggerDistributedReplay(), exportAuditLogs()
