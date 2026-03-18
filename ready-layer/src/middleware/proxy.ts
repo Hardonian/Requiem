@@ -305,7 +305,7 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
 
   if (
     process.env.REQUIEM_ROUTE_VERIFY_MODE === '1'
-    && process.env.NODE_ENV === 'test'
+    && process.env.NODE_ENV !== 'production'
     && (pathname.startsWith('/api/') || isProtectedPage)
   ) {
     const verifyHeaders = new Headers(request.headers);

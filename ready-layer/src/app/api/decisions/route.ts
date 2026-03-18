@@ -32,7 +32,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, querySchema);
       const limit = query.limit ?? 50;
       const offset = query.offset ?? 0;
-      const decisions = listDecisions(ctx.tenant_id);
+      const decisions = await listDecisions(ctx.tenant_id);
       const response: DecisionsResponse = {
         ok: true,
         data: decisions.slice(offset, offset + limit),

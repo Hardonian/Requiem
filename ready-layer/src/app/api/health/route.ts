@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withTenantContext } from '@/lib/big4-http';
 import type { HealthResponse } from '@/types/engine';
+import { isProductionLikeRuntime } from '@/lib/runtime-mode';
+import { isSupabaseServiceConfigured } from '@/lib/supabase-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +24,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         ],
       };
 
-      return NextResponse.json(body, { status: 200 });
+      return NextResponse.json(body, { status: statusCode });
     },
     async () => ({ allow: true, reasons: [] }),
     {

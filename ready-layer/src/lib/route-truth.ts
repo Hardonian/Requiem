@@ -27,6 +27,15 @@ export function classifyApiFailure(input: { status?: number; code?: string | nul
   const code = (input.code ?? '').toLowerCase();
   const message = (input.message ?? '').toLowerCase();
 
+  if (code === 'control_plane_store_unconfigured' || code === 'shared_runtime_coordination_unconfigured') {
+    return {
+      kind: 'backend-missing',
+      title: 'Shared runtime state missing',
+      detail: 'Production-like deployments require shared Supabase-backed state for control-plane persistence and request coordination.',
+      nextStep: 'Configure SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY, then retry.',
+    };
+  }
+
   if (code === 'auth_secret_required') {
     return {
       kind: 'backend-missing',

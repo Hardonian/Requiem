@@ -18,7 +18,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, querySchema);
       const limit = query.limit ?? 25;
       const offset = query.offset ?? 0;
-      const allRuns = listRunSummaries(ctx.tenant_id);
+      const allRuns = await listRunSummaries(ctx.tenant_id);
       const runs = allRuns.slice(offset, offset + limit);
 
       await writeAudit({

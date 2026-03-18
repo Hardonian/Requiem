@@ -51,7 +51,7 @@ export function isStrictAuthMode(): boolean {
 }
 
 function allowInsecureDevAuth(): boolean {
-  return process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1' && !isStrictAuthMode();
+  return process.env.NODE_ENV === 'development' && process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1';
 }
 
 export function getAuthReadiness(): {
@@ -126,7 +126,7 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
 
   if (
     process.env.REQUIEM_ROUTE_VERIFY_MODE === '1'
-    && process.env.NODE_ENV === 'test'
+    && process.env.NODE_ENV !== 'production'
     && tenantHeader
   ) {
     return {

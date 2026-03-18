@@ -9,6 +9,14 @@ import {
   traceIdFromHeaders,
   unknownErrorToProblem,
 } from './problem-json';
+import { isProductionLikeRuntime } from './runtime-mode';
+import {
+  claimDurableIdempotency,
+  consumeDurableRateLimit,
+  ensureSharedCoordinationAvailable,
+  persistDurableIdempotencyResponse,
+  type SharedCoordinationScope,
+} from './shared-request-coordination';
 
 export interface RequestContext {
   tenant_id: string;
@@ -78,9 +86,7 @@ const DEFAULT_RATE_LIMIT: RateLimitOptions = {
 };
 
 const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
-
 const MEMORY_SCOPE_HEADER = 'memory-single-process';
-
 
 function cleanupCaches(now: number): void {
   if (responseCache.size > 4096) {
@@ -109,7 +115,7 @@ function resolveRateLimitOptions(options: false | Partial<RateLimitOptions> | un
   };
 }
 
-function consumeTokenBucket(key: string, options: RateLimitOptions): { allowed: boolean; retryAfterSec: number } {
+function consumeMemoryTokenBucket(key: string, options: RateLimitOptions): { allowed: boolean; retryAfterSec: number } {
   const now = Date.now();
   const bucket = rateBuckets.get(key) ?? {
     tokens: options.capacity,
@@ -155,7 +161,7 @@ async function toCachedResponse(response: Response, expiresAtMs: number): Promis
   };
 }
 
-function fromCachedResponse(snapshot: CachedResponse, headers: Record<string, string> | Headers = {}): Response {
+function fromCachedResponse(snapshot: Pick<CachedResponse, 'status' | 'headers' | 'bodyText'>, headers: Record<string, string> | Headers = {}): Response {
   const merged = new Headers(snapshot.headers);
   const extra = new Headers(headers);
   for (const [key, value] of extra.entries()) {
@@ -171,19 +177,19 @@ function fromCachedResponse(snapshot: CachedResponse, headers: Record<string, st
 function applyRuntimeScopeHeaders(
   response: Response,
   options: {
-    rateLimitEnabled: boolean;
-    idempotencyEnabled: boolean;
-    cacheEnabled: boolean;
+    rateLimitScope?: SharedCoordinationScope | null;
+    idempotencyScope?: SharedCoordinationScope | null;
+    cacheScope?: SharedCoordinationScope | null;
   },
 ): Response {
-  if (options.rateLimitEnabled) {
-    response.headers.set('x-requiem-rate-limit-scope', MEMORY_SCOPE_HEADER);
+  if (options.rateLimitScope) {
+    response.headers.set('x-requiem-rate-limit-scope', options.rateLimitScope);
   }
-  if (options.idempotencyEnabled) {
-    response.headers.set('x-requiem-idempotency-scope', MEMORY_SCOPE_HEADER);
+  if (options.idempotencyScope) {
+    response.headers.set('x-requiem-idempotency-scope', options.idempotencyScope);
   }
-  if (options.cacheEnabled) {
-    response.headers.set('x-requiem-cache-scope', MEMORY_SCOPE_HEADER);
+  if (options.cacheScope) {
+    response.headers.set('x-requiem-cache-scope', options.cacheScope);
   }
   return response;
 }
@@ -298,6 +304,16 @@ export async function withTenantContext(
   const ctx = buildContext(req, tenantId, authToken, actorId);
   const routeId = options.routeId ?? ctx.pathname;
   const startedAtMs = Date.now();
+  const productionLike = isProductionLikeRuntime();
+
+
+  let rateLimitScope: SharedCoordinationScope | null = null;
+  const cacheOptions = req.method.toUpperCase() === 'GET' && !productionLike ? options.cache : false;
+  const cacheScope: SharedCoordinationScope | null = cacheOptions ? MEMORY_SCOPE_HEADER : null;
+  let idempotencyScope: SharedCoordinationScope | null = null;
+  let idempotencyKeyScope: string | null = null;
+  let idempotencyRequestHash: string | null = null;
+  let idempotencyTtlMs = DEFAULT_IDEMPOTENCY_TTL_MS;
 
   logStructured('info', 'api.request.received', {
     route_id: routeId,
@@ -335,7 +351,8 @@ export async function withTenantContext(
     return response;
   }
 
-  const rateLimit = resolveRateLimitOptions(options.rateLimit);
+  try {
+    const rateLimit = resolveRateLimitOptions(options.rateLimit);
   if (rateLimit) {
     const key = `${ctx.tenant_id}:${ctx.actor_id}:${routeId}`;
     const consumed = consumeTokenBucket(key, rateLimit);
@@ -365,7 +382,6 @@ export async function withTenantContext(
     }
   }
 
-  const cacheOptions = req.method.toUpperCase() === 'GET' ? options.cache : false;
   if (cacheOptions) {
     const cacheKey = cacheOptions.key
       ? cacheOptions.key(req, ctx)
@@ -394,8 +410,6 @@ export async function withTenantContext(
   const idempotencyOptions =
     req.method.toUpperCase() === 'POST' || req.method.toUpperCase() === 'PUT' ? options.idempotency : false;
 
-  let idempotencyKeyScope: string | null = null;
-  let idempotencyRequestHash: string | null = null;
   if (idempotencyOptions) {
     const key = req.headers.get('idempotency-key');
 
@@ -419,6 +433,9 @@ export async function withTenantContext(
     }
 
     if (key) {
+      idempotencyTtlMs = typeof idempotencyOptions === 'object'
+        ? idempotencyOptions.ttlMs ?? DEFAULT_IDEMPOTENCY_TTL_MS
+        : DEFAULT_IDEMPOTENCY_TTL_MS;
       const rawBody = await req.clone().text();
       idempotencyRequestHash = await sha256Hex(
         `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}:${rawBody}`,
@@ -534,14 +551,21 @@ export async function withTenantContext(
     }
 
     if (idempotencyKeyScope && idempotencyRequestHash && response.status < 500) {
-      const ttlMs = idempotencyOptions && typeof idempotencyOptions === 'object'
-        ? idempotencyOptions.ttlMs ?? DEFAULT_IDEMPOTENCY_TTL_MS
-        : DEFAULT_IDEMPOTENCY_TTL_MS;
-      idempotencyCache.set(idempotencyKeyScope, {
-        requestHash: idempotencyRequestHash,
-        response: await toCachedResponse(response, now + ttlMs),
-        expiresAtMs: now + ttlMs,
-      });
+      const responseSnapshot = await toCachedResponse(response, now + idempotencyTtlMs);
+      if (productionLike) {
+        idempotencyScope = await persistDurableIdempotencyResponse(
+          idempotencyKeyScope,
+          idempotencyRequestHash,
+          idempotencyTtlMs,
+          responseSnapshot,
+        );
+      } else {
+        idempotencyCache.set(idempotencyKeyScope, {
+          requestHash: idempotencyRequestHash,
+          response: responseSnapshot,
+          expiresAtMs: now + idempotencyTtlMs,
+        });
+      }
     }
 
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(ctx.method)) {
@@ -570,9 +594,9 @@ export async function withTenantContext(
     });
 
     return applyRuntimeScopeHeaders(response, {
-      rateLimitEnabled: Boolean(rateLimit),
-      idempotencyEnabled: Boolean(idempotencyOptions),
-      cacheEnabled: Boolean(cacheOptions),
+      rateLimitScope,
+      idempotencyScope,
+      cacheScope,
     });
     });
   } catch (error) {
@@ -603,9 +627,9 @@ export async function withTenantContext(
       error_name: error instanceof Error ? error.name : 'unknown',
     }, error);
     return applyRuntimeScopeHeaders(response, {
-      rateLimitEnabled: Boolean(rateLimit),
-      idempotencyEnabled: Boolean(idempotencyOptions),
-      cacheEnabled: Boolean(cacheOptions),
+      rateLimitScope,
+      idempotencyScope,
+      cacheScope,
     });
   }
 }

@@ -34,7 +34,8 @@ export async function GET(request: NextRequest): Promise<Response> {
       const offset = query.offset ?? 0;
       const search = query.q?.trim().toLowerCase() ?? "";
 
-      const filtered = listLogs(ctx.tenant_id).filter((entry) => {
+      const tenantLogs = await listLogs(ctx.tenant_id);
+      const filtered = tenantLogs.filter((entry) => {
         if (entry.seq < from || entry.seq > to) return false;
         if (!search) return true;
         return [

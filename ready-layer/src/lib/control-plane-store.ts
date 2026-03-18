@@ -16,13 +16,13 @@ import type {
   PolicyListItem,
   PolicyRule,
   Snapshot,
-} from "@/types/engine";
+} from '@/types/engine';
 
 const ROOT =
   process.env.REQUIEM_CONTROL_PLANE_DIR ??
-  path.join(process.cwd(), ".requiem", "control-plane");
+  path.join(process.cwd(), '.requiem', 'control-plane');
 const STATE_VERSION = 1;
-const ENGINE_SEMVER = "local-control-plane-v1";
+const ENGINE_SEMVER = 'shared-control-plane-v2';
 const DEFAULT_BUDGET_LIMITS = {
   exec: 1000,
   cas_put: 5000,
@@ -45,7 +45,7 @@ type BudgetUnitName = keyof typeof DEFAULT_BUDGET_LIMITS;
 type CapabilityRecord = CapabilityToken & {
   actor: string;
   seq: number;
-  event_type: "cap.mint" | "cap.revoke";
+  event_type: 'cap.mint' | 'cap.revoke';
   issued_at_unix_ms: number;
   revoked: boolean;
   revoked_at_unix_ms?: number;
@@ -62,7 +62,7 @@ type PolicyRecord = {
 type DecisionRecord = {
   id: string;
   policy_id: string;
-  result: "allow" | "deny";
+  result: 'allow' | 'deny';
   timestamp: number;
   matched_rule_id?: string;
   context_hash: string;
@@ -103,6 +103,11 @@ type ControlPlaneState = {
   cas_objects: CasObject[];
 };
 
+type StateRecord = {
+  revision: number;
+  state: ControlPlaneState;
+};
+
 function ensureRoot(): void {
   fs.mkdirSync(ROOT, { recursive: true });
 }
@@ -111,7 +116,7 @@ function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(canonicalize);
   }
-  if (value && typeof value === "object") {
+  if (value && typeof value === 'object') {
     return Object.entries(value as Record<string, unknown>)
       .sort(([a], [b]) => a.localeCompare(b))
       .reduce<Record<string, unknown>>((acc, [key, nested]) => {
@@ -119,16 +124,16 @@ function canonicalize(value: unknown): unknown {
         return acc;
       }, {});
   }
-  if (typeof value === "number" && Number.isFinite(value)) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return Number(value.toFixed(12));
   }
   return value;
 }
 
 function hashValue(value: unknown): string {
-  return createHash("sha256")
+  return createHash('sha256')
     .update(JSON.stringify(canonicalize(value)))
-    .digest("hex");
+    .digest('hex');
 }
 
 function sanitizeTenantId(tenantId: string): string {
@@ -136,11 +141,11 @@ function sanitizeTenantId(tenantId: string): string {
   if (/^[a-zA-Z0-9_-]{1,80}$/.test(trimmed)) {
     return trimmed;
   }
-  return createHash("sha256").update(trimmed).digest("hex");
+  return createHash('sha256').update(trimmed).digest('hex');
 }
 
 function statePathForTenant(tenantId: string): string {
-  return path.join(ROOT, "tenants", `${sanitizeTenantId(tenantId)}.json`);
+  return path.join(ROOT, 'tenants', `${sanitizeTenantId(tenantId)}.json`);
 }
 
 function lockPathForTenant(tenantId: string): string {
@@ -277,48 +282,179 @@ function createEmptyState(tenantId: string): ControlPlaneState {
   };
 }
 
-function readState(tenantId: string): ControlPlaneState {
-  ensureRoot();
-  const file = statePathForTenant(tenantId);
-  if (!fs.existsSync(file)) {
-    return createEmptyState(tenantId);
-  }
-
-  const parsed = JSON.parse(
-    fs.readFileSync(file, "utf8"),
-  ) as Partial<ControlPlaneState>;
+function normalizeState(tenantId: string, parsed?: Partial<ControlPlaneState> | null): ControlPlaneState {
   const next = createEmptyState(tenantId);
   return {
     ...next,
-    ...parsed,
+    ...(parsed ?? {}),
     tenant_id: tenantId,
     budgets: {
       ...next.budgets,
-      ...(parsed.budgets ?? {}),
+      ...(parsed?.budgets ?? {}),
     },
-    capabilities: Array.isArray(parsed.capabilities) ? parsed.capabilities : [],
-    policies: Array.isArray(parsed.policies) ? parsed.policies : [],
-    decisions: Array.isArray(parsed.decisions) ? parsed.decisions : [],
-    plans: Array.isArray(parsed.plans) ? parsed.plans : [],
-    plan_runs: Array.isArray(parsed.plan_runs) ? parsed.plan_runs : [],
-    snapshots: Array.isArray(parsed.snapshots) ? parsed.snapshots : [],
-    logs: Array.isArray(parsed.logs) ? parsed.logs : [],
-    cas_objects: Array.isArray(parsed.cas_objects) ? parsed.cas_objects : [],
+    capabilities: Array.isArray(parsed?.capabilities) ? parsed.capabilities : [],
+    policies: Array.isArray(parsed?.policies) ? parsed.policies : [],
+    decisions: Array.isArray(parsed?.decisions) ? parsed.decisions : [],
+    plans: Array.isArray(parsed?.plans) ? parsed.plans : [],
+    plan_runs: Array.isArray(parsed?.plan_runs) ? parsed.plan_runs : [],
+    snapshots: Array.isArray(parsed?.snapshots) ? parsed.snapshots : [],
+    logs: Array.isArray(parsed?.logs) ? parsed.logs : [],
+    cas_objects: Array.isArray(parsed?.cas_objects) ? parsed.cas_objects : [],
   };
 }
 
-function writeState(state: ControlPlaneState): void {
+function readFilesystemState(tenantId: string): StateRecord {
+  ensureRoot();
+  const file = statePathForTenant(tenantId);
+  if (!fs.existsSync(file)) {
+    return { revision: 0, state: createEmptyState(tenantId) };
+  }
+
+  const parsed = JSON.parse(
+    fs.readFileSync(file, 'utf8'),
+  ) as Partial<ControlPlaneState> & { revision?: number };
+  return {
+    revision: typeof parsed.revision === 'number' ? parsed.revision : 0,
+    state: normalizeState(tenantId, parsed),
+  };
+}
+
+function writeFilesystemState(state: ControlPlaneState, revision: number): void {
   ensureRoot();
   const file = statePathForTenant(state.tenant_id);
   const directory = path.dirname(file);
   fs.mkdirSync(directory, { recursive: true });
 
   const tempFile = `${file}.${process.pid}.${randomUUID()}.tmp`;
-  fs.writeFileSync(tempFile, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+  fs.writeFileSync(tempFile, `${JSON.stringify({ ...state, revision }, null, 2)}\n`, 'utf8');
   fs.renameSync(tempFile, file);
 }
 
-function mutateState<T>(
+function maybeNoRow(error: { code?: string } | null): boolean {
+  return Boolean(error && error.code === 'PGRST116');
+}
+
+function canUseDurableStore(): boolean {
+  return Boolean(getSupabaseServiceClient({
+    feature: 'Control-plane persistence',
+    code: 'control_plane_store_unconfigured',
+  }));
+}
+
+async function loadDurableState(tenantId: string): Promise<StateRecord> {
+  const client = getSupabaseServiceClient({
+    feature: 'Control-plane persistence',
+    code: 'control_plane_store_unconfigured',
+  });
+  if (!client) {
+    return { revision: 0, state: createEmptyState(tenantId) };
+  }
+
+  const { data, error } = await client
+    .from('control_plane_state')
+    .select('revision, state_json')
+    .eq('tenant_id', tenantId)
+    .maybeSingle();
+
+  if (error && !maybeNoRow(error)) {
+    throw new ProblemError(503, 'Control Plane Store Unavailable', 'Durable control-plane state could not be loaded.', {
+      code: 'control_plane_store_unavailable',
+    });
+  }
+
+  if (!data) {
+    return { revision: 0, state: createEmptyState(tenantId) };
+  }
+
+  return {
+    revision: typeof data.revision === 'number' ? data.revision : 0,
+    state: normalizeState(tenantId, data.state_json as Partial<ControlPlaneState>),
+  };
+}
+
+async function saveDurableState(record: StateRecord): Promise<boolean> {
+  const client = getSupabaseServiceClient({
+    feature: 'Control-plane persistence',
+    code: 'control_plane_store_unconfigured',
+  });
+  if (!client) {
+    return false;
+  }
+
+  if (record.revision === 0) {
+    const { error } = await client
+      .from('control_plane_state')
+      .insert({
+        tenant_id: record.state.tenant_id,
+        version: STATE_VERSION,
+        revision: 1,
+        state_json: record.state,
+      });
+
+    if (!error) {
+      record.revision = 1;
+      return true;
+    }
+    if (error.code === '23505') {
+      return false;
+    }
+    throw new ProblemError(503, 'Control Plane Store Unavailable', 'Durable control-plane state could not be initialized.', {
+      code: 'control_plane_store_unavailable',
+    });
+  }
+
+  const { data, error } = await client
+    .from('control_plane_state')
+    .update({
+      version: STATE_VERSION,
+      revision: record.revision + 1,
+      state_json: record.state,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('tenant_id', record.state.tenant_id)
+    .eq('revision', record.revision)
+    .select('revision')
+    .maybeSingle();
+
+  if (!error && data) {
+    record.revision += 1;
+    return true;
+  }
+  if (error && !maybeNoRow(error)) {
+    throw new ProblemError(503, 'Control Plane Store Unavailable', 'Durable control-plane state could not be persisted.', {
+      code: 'control_plane_store_unavailable',
+    });
+  }
+  return false;
+}
+
+async function loadState(tenantId: string): Promise<StateRecord> {
+  if (canUseDurableStore()) {
+    return loadDurableState(tenantId);
+  }
+  if (isProductionLikeRuntime()) {
+    throw new ProblemError(503, 'Setup Required', 'Production-like deployments require Supabase-backed durable control-plane state.', {
+      code: 'control_plane_store_unconfigured',
+    });
+  }
+  return readFilesystemState(tenantId);
+}
+
+async function saveState(record: StateRecord): Promise<boolean> {
+  if (canUseDurableStore()) {
+    return saveDurableState(record);
+  }
+  if (isProductionLikeRuntime()) {
+    throw new ProblemError(503, 'Setup Required', 'Production-like deployments require Supabase-backed durable control-plane state.', {
+      code: 'control_plane_store_unconfigured',
+    });
+  }
+  writeFilesystemState(record.state, record.revision + 1);
+  record.revision += 1;
+  return true;
+}
+
+async function mutateState<T>(
   tenantId: string,
   mutator: (state: ControlPlaneState) => T,
   meta: { operation: string; entity_id?: string } = { operation: 'control_plane.mutate' },
@@ -404,25 +540,25 @@ function toBudgetUnit(unit: { limit: number; used: number }): BudgetUnit {
 }
 
 function summarizePayload(payload: Record<string, unknown>): string {
-  if (typeof payload.message === "string" && payload.message.trim()) {
+  if (typeof payload.message === 'string' && payload.message.trim()) {
     return payload.message;
   }
-  if (typeof payload.summary === "string" && payload.summary.trim()) {
+  if (typeof payload.summary === 'string' && payload.summary.trim()) {
     return payload.summary;
   }
-  if (typeof payload.action === "string") {
+  if (typeof payload.action === 'string') {
     return `action=${payload.action}`;
   }
-  if (typeof payload.plan_id === "string") {
+  if (typeof payload.plan_id === 'string') {
     return `plan=${payload.plan_id}`;
   }
-  if (typeof payload.fingerprint === "string") {
+  if (typeof payload.fingerprint === 'string') {
     return `fingerprint=${payload.fingerprint.slice(0, 12)}`;
   }
   return Object.entries(payload)
     .slice(0, 3)
     .map(([key, value]) => `${key}=${String(value)}`)
-    .join(", ");
+    .join(', ');
 }
 
 function upsertCasObject(
@@ -435,7 +571,7 @@ function upsertCasObject(
   if (!existing) {
     state.cas_objects.unshift({
       digest,
-      encoding: "identity",
+      encoding: 'identity',
       original_size: Buffer.byteLength(serialized),
       stored_size: Buffer.byteLength(serialized),
       created_at_unix_ms: Date.now(),
@@ -477,13 +613,13 @@ function appendLog(
     hashValue({ ok: input.ok ?? true, payload_hash: data_hash, seq });
   const record: LogRecord = {
     seq,
-    prev: previous?.data_hash ?? "0".repeat(64),
+    prev: previous?.data_hash ?? '0'.repeat(64),
     ts_logical: seq,
     event_type: input.event_type,
     actor: input.actor,
     data_hash,
     execution_id:
-      input.execution_id ?? `evt_${seq.toString().padStart(6, "0")}`,
+      input.execution_id ?? `evt_${seq.toString().padStart(6, '0')}`,
     tenant_id: input.tenant_id,
     request_digest,
     result_digest,
@@ -493,7 +629,7 @@ function appendLog(
     cas_format_version: 2,
     replay_verified: input.ok ?? true,
     ok: input.ok ?? true,
-    error_code: input.error_code ?? "",
+    error_code: input.error_code ?? '',
     duration_ns: input.duration_ns ?? 0,
     worker_id: "control-plane",
     node_id: "local",
@@ -528,29 +664,30 @@ function buildBudget(state: ControlPlaneState): Budget {
   };
 }
 
-export function getBudget(tenantId: string): Budget {
-  return buildBudget(readState(tenantId));
+export async function getBudget(tenantId: string): Promise<Budget> {
+  const record = await loadState(tenantId);
+  return buildBudget(record.state);
 }
 
-export function setBudgetLimit(
+export async function setBudgetLimit(
   tenantId: string,
   actorId: string,
   unit: BudgetUnitName,
   limit: number,
-): Budget {
+): Promise<Budget> {
   return mutateState(tenantId, (state) => {
     state.budgets[unit].limit = limit;
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "budget.set",
-      payload: { action: "set", unit, limit },
+      event_type: 'budget.set',
+      payload: { action: 'set', unit, limit },
     });
     return buildBudget(state);
   }, { operation: 'budget.set', entity_id: unit });
 }
 
-export function resetBudgetWindow(tenantId: string, actorId: string): Budget {
+export async function resetBudgetWindow(tenantId: string, actorId: string): Promise<Budget> {
   return mutateState(tenantId, (state) => {
     const now = Date.now();
     for (const unit of Object.keys(state.budgets) as BudgetUnitName[]) {
@@ -560,25 +697,26 @@ export function resetBudgetWindow(tenantId: string, actorId: string): Budget {
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "budget.reset_window",
-      payload: { action: "reset-window" },
+      event_type: 'budget.reset_window',
+      payload: { action: 'reset-window' },
     });
     return buildBudget(state);
   }, { operation: 'budget.reset_window' });
 }
 
-export function listCapabilities(tenantId: string): CapabilityListItem[] {
-  return readState(tenantId)
-    .capabilities.map((cap) => ({
+export async function listCapabilities(tenantId: string): Promise<CapabilityListItem[]> {
+  const record = await loadState(tenantId);
+  return record.state.capabilities
+    .map((cap) => ({
       actor: cap.subject,
       seq: cap.seq,
       data_hash: cap.fingerprint,
-      event_type: cap.revoked ? "cap.revoke" : "cap.mint",
+      event_type: cap.revoked ? 'cap.revoke' : 'cap.mint',
     }))
     .sort((a, b) => b.seq - a.seq);
 }
 
-export function mintCapability(
+export async function mintCapability(
   tenantId: string,
   actorId: string,
   input: {
@@ -587,7 +725,7 @@ export function mintCapability(
     not_before?: number;
     not_after?: number;
   },
-): CapabilityToken {
+): Promise<CapabilityToken> {
   return mutateState(tenantId, (state) => {
     const issuedAt = Date.now();
     const seq = state.capabilities.length + 1;
@@ -607,16 +745,16 @@ export function mintCapability(
       signature: hashValue({ fingerprint, actorId, tenantId }).slice(0, 64),
       actor: actorId,
       seq,
-      event_type: "cap.mint",
+      event_type: 'cap.mint',
       issued_at_unix_ms: issuedAt,
       revoked: false,
     };
     state.capabilities.unshift(token);
-    chargeBudget(state, "exec", 1);
+    chargeBudget(state, 'exec', 1);
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "cap.mint",
+      event_type: 'cap.mint',
       payload: {
         subject: input.subject,
         permissions: input.permissions,
@@ -627,11 +765,11 @@ export function mintCapability(
   }, { operation: 'capability.mint', entity_id: input.subject });
 }
 
-export function revokeCapability(
+export async function revokeCapability(
   tenantId: string,
   actorId: string,
   fingerprint: string,
-): CapabilityRecord | null {
+): Promise<CapabilityRecord | null> {
   return mutateState(tenantId, (state) => {
     const capability = state.capabilities.find(
       (entry) => entry.fingerprint === fingerprint,
@@ -641,20 +779,21 @@ export function revokeCapability(
     }
     capability.revoked = true;
     capability.revoked_at_unix_ms = Date.now();
-    capability.event_type = "cap.revoke";
+    capability.event_type = 'cap.revoke';
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "cap.revoke",
+      event_type: 'cap.revoke',
       payload: { fingerprint, subject: capability.subject },
     });
     return capability;
   }, { operation: 'capability.revoke', entity_id: fingerprint });
 }
 
-export function listPolicies(tenantId: string): PolicyListItem[] {
-  return readState(tenantId)
-    .policies.map((policy) => ({
+export async function listPolicies(tenantId: string): Promise<PolicyListItem[]> {
+  const record = await loadState(tenantId);
+  return record.state.policies
+    .map((policy) => ({
       hash: policy.hash,
       size: policy.size,
       created_at_unix_ms: policy.created_at_unix_ms,
@@ -662,11 +801,11 @@ export function listPolicies(tenantId: string): PolicyListItem[] {
     .sort((a, b) => (b.created_at_unix_ms ?? 0) - (a.created_at_unix_ms ?? 0));
 }
 
-export function addPolicy(
+export async function addPolicy(
   tenantId: string,
   actorId: string,
   rules: PolicyRule[],
-): PolicyRecord {
+): Promise<PolicyRecord> {
   return mutateState(tenantId, (state) => {
     const createdAt = Date.now();
     const hash = hashValue({ tenantId, rules, createdAt });
@@ -681,43 +820,44 @@ export function addPolicy(
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "policy.add",
+      event_type: 'policy.add',
       payload: { policy_hash: hash, rules_count: rules.length },
     });
     return policy;
   }, { operation: 'policy.add' });
 }
 
-export function listPolicyVersions(
+export async function listPolicyVersions(
   tenantId: string,
   policyId: string,
-): string[] {
-  const policy = readState(tenantId).policies.find(
+): Promise<string[]> {
+  const record = await loadState(tenantId);
+  const policy = record.state.policies.find(
     (entry) => entry.hash === policyId,
   );
   return policy?.versions ?? [];
 }
 
-export function evaluatePolicy(
+export async function evaluatePolicy(
   tenantId: string,
   actorId: string,
   policyHash: string,
   context: Record<string, unknown>,
-): PolicyDecision & { policy_id: string; id: string } {
+): Promise<PolicyDecision & { policy_id: string; id: string }> {
   return mutateState(tenantId, (state) => {
     const policy = state.policies.find((entry) => entry.hash === policyHash);
     if (!policy) {
-      throw new Error("policy_not_found");
+      throw new Error('policy_not_found');
     }
     const matchedDeny = policy.rules
       .slice()
       .sort((a, b) => b.priority - a.priority)
-      .find((rule) => rule.effect === "deny" && evaluateRule(rule, context));
+      .find((rule) => rule.effect === 'deny' && evaluateRule(rule, context));
     const matchedAllow = policy.rules
       .slice()
       .sort((a, b) => b.priority - a.priority)
-      .find((rule) => rule.effect === "allow" && evaluateRule(rule, context));
-    const decision = matchedDeny ? "deny" : matchedAllow ? "allow" : "deny";
+      .find((rule) => rule.effect === 'allow' && evaluateRule(rule, context));
+    const decision = matchedDeny ? 'deny' : matchedAllow ? 'allow' : 'deny';
     const matched = matchedDeny ?? matchedAllow;
     const timestamp = Date.now();
     const id = randomUUID();
@@ -737,11 +877,11 @@ export function evaluatePolicy(
       }),
     };
     state.decisions.unshift(record);
-    chargeBudget(state, "policy_eval", 1);
+    chargeBudget(state, 'policy_eval', 1);
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "policy.eval",
+      event_type: 'policy.eval',
       payload: {
         policy_hash: policyHash,
         decision,
@@ -768,28 +908,28 @@ function evaluateRule(
   const actual = context[rule.condition.field];
   const expected = rule.condition.value;
   switch (rule.condition.op) {
-    case "eq":
+    case 'eq':
       return actual === expected;
-    case "neq":
+    case 'neq':
       return actual !== expected;
-    case "in":
+    case 'in':
       return Array.isArray(expected) && expected.includes(actual);
-    case "not_in":
+    case 'not_in':
       return Array.isArray(expected) && !expected.includes(actual);
-    case "exists":
+    case 'exists':
       return actual !== undefined && actual !== null;
-    case "gt":
+    case 'gt':
       return Number(actual) > Number(expected);
-    case "lt":
+    case 'lt':
       return Number(actual) < Number(expected);
-    case "gte":
+    case 'gte':
       return Number(actual) >= Number(expected);
-    case "lte":
+    case 'lte':
       return Number(actual) <= Number(expected);
-    case "matches":
+    case 'matches':
       return (
-        typeof actual === "string" &&
-        typeof expected === "string" &&
+        typeof actual === 'string' &&
+        typeof expected === 'string' &&
         new RegExp(expected).test(actual)
       );
     default:
@@ -797,10 +937,11 @@ function evaluateRule(
   }
 }
 
-export function listDecisions(
+export async function listDecisions(
   tenantId: string,
-): Array<{ id: string; policy_id: string; result: string; timestamp: number }> {
-  return readState(tenantId).decisions.map((decision) => ({
+): Promise<Array<{ id: string; policy_id: string; result: string; timestamp: number }>> {
+  const record = await loadState(tenantId);
+  return record.state.decisions.map((decision) => ({
     id: decision.id,
     policy_id: decision.policy_id,
     result: decision.result,
@@ -808,45 +949,46 @@ export function listDecisions(
   }));
 }
 
-export function runPolicyTests(
+export async function runPolicyTests(
   tenantId: string,
   policyHash?: string,
-): { tests_run: number; tests_passed: number; tests_failed: number } {
-  const state = readState(tenantId);
+): Promise<{ tests_run: number; tests_passed: number; tests_failed: number }> {
+  const record = await loadState(tenantId);
   if (
     policyHash &&
-    !state.policies.some((entry) => entry.hash === policyHash)
+    !record.state.policies.some((entry) => entry.hash === policyHash)
   ) {
     return { tests_run: 0, tests_passed: 0, tests_failed: 0 };
   }
-  const testsRun = Math.max(1, state.policies.length);
+  const testsRun = Math.max(1, record.state.policies.length);
   return { tests_run: testsRun, tests_passed: testsRun, tests_failed: 0 };
 }
 
-export function listPlans(tenantId: string): PlanRecord[] {
-  return readState(tenantId).plans.sort(
+export async function listPlans(tenantId: string): Promise<PlanRecord[]> {
+  const record = await loadState(tenantId);
+  return record.state.plans.sort(
     (a, b) => b.created_at_unix_ms - a.created_at_unix_ms,
   );
 }
 
-export function getPlanByHash(
+export async function getPlanByHash(
   tenantId: string,
   planHash: string,
-): { plan: PlanRecord | null; runs: PlanRunRecord[] } {
-  const state = readState(tenantId);
+): Promise<{ plan: PlanRecord | null; runs: PlanRunRecord[] }> {
+  const record = await loadState(tenantId);
   const plan =
-    state.plans.find((entry) => entry.plan_hash === planHash) ?? null;
-  const runs = state.plan_runs
+    record.state.plans.find((entry) => entry.plan_hash === planHash) ?? null;
+  const runs = record.state.plan_runs
     .filter((entry) => entry.plan_hash === planHash)
     .sort((a, b) => b.created_at_unix_ms - a.created_at_unix_ms);
   return { plan, runs };
 }
 
-export function addPlan(
+export async function addPlan(
   tenantId: string,
   actorId: string,
   input: { plan_id: string; steps: PlanStep[] },
-): PlanRecord {
+): Promise<PlanRecord> {
   return mutateState(tenantId, (state) => {
     const createdAt = Date.now();
     const plan: PlanRecord = {
@@ -865,7 +1007,7 @@ export function addPlan(
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "plan.add",
+      event_type: 'plan.add',
       payload: {
         plan_id: input.plan_id,
         plan_hash: plan.plan_hash,
@@ -876,11 +1018,11 @@ export function addPlan(
   }, { operation: 'plan.add', entity_id: input.plan_id });
 }
 
-export function runPlan(
+export async function runPlan(
   tenantId: string,
   actorId: string,
   planHash: string,
-): PlanRunRecord | null {
+): Promise<PlanRunRecord | null> {
   return mutateState(tenantId, (state) => {
     const plan = state.plans.find((entry) => entry.plan_hash === planHash);
     if (!plan) {
@@ -911,18 +1053,18 @@ export function runPlan(
       steps_total: plan.steps.length,
       ok: true,
       step_results,
-      receipt_hash: hashValue({ planHash, startedAt, type: "receipt" }),
+      receipt_hash: hashValue({ planHash, startedAt, type: 'receipt' }),
       started_at_unix_ms: startedAt,
       completed_at_unix_ms: startedAt + plan.steps.length * 10,
       created_at_unix_ms: startedAt,
     };
     state.plan_runs.unshift(run);
-    chargeBudget(state, "plan_step", Math.max(1, plan.steps.length));
-    chargeBudget(state, "exec", 1);
+    chargeBudget(state, 'plan_step', Math.max(1, plan.steps.length));
+    chargeBudget(state, 'exec', 1);
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "plan.run.complete",
+      event_type: 'plan.run.complete',
       execution_id: run.run_id,
       payload: {
         plan_id: plan.plan_id,
@@ -936,12 +1078,12 @@ export function runPlan(
   }, { operation: 'plan.run', entity_id: planHash });
 }
 
-export function replayPlanRun(
+export async function replayPlanRun(
   tenantId: string,
   actorId: string,
   runId: string,
   verifyExact = true,
-): PlanRunRecord | null {
+): Promise<PlanRunRecord | null> {
   return mutateState(tenantId, (state) => {
     const original = state.plan_runs.find((entry) => entry.run_id === runId);
     if (!original) {
@@ -963,7 +1105,7 @@ export function replayPlanRun(
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "plan.replay.complete",
+      event_type: 'plan.replay.complete',
       execution_id: replay.run_id,
       payload: {
         original_run_id: runId,
@@ -976,19 +1118,20 @@ export function replayPlanRun(
   }, { operation: 'plan.replay', entity_id: runId });
 }
 
-export function listSnapshots(tenantId: string): Snapshot[] {
-  return readState(tenantId).snapshots.sort(
+export async function listSnapshots(tenantId: string): Promise<Snapshot[]> {
+  const record = await loadState(tenantId);
+  return record.state.snapshots.sort(
     (a, b) => b.timestamp_unix_ms - a.timestamp_unix_ms,
   );
 }
 
-export function createSnapshot(tenantId: string, actorId: string): Snapshot {
+export async function createSnapshot(tenantId: string, actorId: string): Promise<Snapshot> {
   return mutateState(tenantId, (state) => {
     const timestamp = Date.now();
     const snapshot: Snapshot = {
       snapshot_version: 1,
       logical_time: state.logs[0]?.seq ?? 0,
-      event_log_head: state.logs[0]?.data_hash ?? "0".repeat(64),
+      event_log_head: state.logs[0]?.data_hash ?? '0'.repeat(64),
       cas_root_hash: hashValue(state.cas_objects),
       active_caps: state.capabilities
         .filter((entry) => !entry.revoked)
@@ -1012,7 +1155,7 @@ export function createSnapshot(tenantId: string, actorId: string): Snapshot {
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "snapshot.create",
+      event_type: 'snapshot.create',
       payload: {
         snapshot_hash: snapshot.snapshot_hash,
         logical_time: snapshot.logical_time,
@@ -1022,11 +1165,11 @@ export function createSnapshot(tenantId: string, actorId: string): Snapshot {
   }, { operation: 'snapshot.create' });
 }
 
-export function restoreSnapshot(
+export async function restoreSnapshot(
   tenantId: string,
   actorId: string,
   snapshotHash: string,
-): Snapshot | null {
+): Promise<Snapshot | null> {
   return mutateState(tenantId, (state) => {
     const snapshot = state.snapshots.find(
       (entry) => entry.snapshot_hash === snapshotHash,
@@ -1049,13 +1192,13 @@ export function restoreSnapshot(
       ...cap,
       revoked: snapshot.revoked_caps.includes(cap.fingerprint),
       event_type: snapshot.revoked_caps.includes(cap.fingerprint)
-        ? "cap.revoke"
-        : "cap.mint",
+        ? 'cap.revoke'
+        : 'cap.mint',
     }));
     appendLog(state, {
       tenant_id: tenantId,
       actor: actorId,
-      event_type: "snapshot.restore",
+      event_type: 'snapshot.restore',
       payload: {
         snapshot_hash: snapshotHash,
         restored_logical_time: snapshot.logical_time,
@@ -1065,55 +1208,60 @@ export function restoreSnapshot(
   }, { operation: 'snapshot.restore', entity_id: snapshotHash });
 }
 
-export function listLogs(
+export async function listLogs(
   tenantId: string,
-): Array<
+): Promise<Array<
   EventLogEntry & { message: string; payload: Record<string, unknown> }
-> {
-  return readState(tenantId).logs;
+>> {
+  const record = await loadState(tenantId);
+  return record.state.logs;
 }
 
-export function listCasObjects(tenantId: string, prefix = ""): CasObject[] {
-  return readState(tenantId).cas_objects.filter((entry) =>
+export async function listCasObjects(tenantId: string, prefix = ''): Promise<CasObject[]> {
+  const record = await loadState(tenantId);
+  return record.state.cas_objects.filter((entry) =>
     entry.digest.startsWith(prefix),
   );
 }
 
-export function hasCasObject(tenantId: string, hash: string): boolean {
-  return readState(tenantId).cas_objects.some((entry) => entry.digest === hash);
+export async function hasCasObject(tenantId: string, hash: string): Promise<boolean> {
+  const record = await loadState(tenantId);
+  return record.state.cas_objects.some((entry) => entry.digest === hash);
 }
 
-export function listRunSummaries(
+export async function listRunSummaries(
   tenantId: string,
-): Array<{
+): Promise<Array<{
   run_id: string;
   tenant_id: string;
   status: string;
   created_at: string;
   determinism_verified: boolean;
-}> {
-  return readState(tenantId)
-    .plan_runs.map((run) => ({
+}>> {
+  const record = await loadState(tenantId);
+  return record.state.plan_runs
+    .map((run) => ({
       run_id: run.run_id,
       tenant_id: run.tenant_id,
-      status: run.ok ? "ok" : "failed",
+      status: run.ok ? 'ok' : 'failed',
       created_at: new Date(run.created_at_unix_ms).toISOString(),
       determinism_verified: true,
     }))
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
-export function getRunSummary(
+export async function getRunSummary(
   tenantId: string,
   runId: string,
-): {
+): Promise<{
   run_id: string;
   plan_hash: string;
   tenant_id: string;
   receipt_hash: string;
   result_digest: string;
-} | null {
-  const run = readState(tenantId).plan_runs.find(
+} | null> {
+  const record = await loadState(tenantId);
+  const run = record.state.plan_runs.find(
     (entry) => entry.run_id === runId,
   );
   if (!run) {
