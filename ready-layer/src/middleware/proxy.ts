@@ -54,6 +54,7 @@ const PUBLIC_ROUTES = [
   '/proof/diff',
   '/api/auth',
   '/api/health',
+  '/api/readiness',
   '/api/ready',
   '/api/openapi.json',
   '/api/status',
@@ -73,6 +74,7 @@ const PROTECTED_PAGE_PREFIXES = [
 
 const PUBLIC_API_ROUTES = [
   '/api/health',
+  '/api/readiness',
   '/api/ready',
   '/api/openapi.json',
   '/api/status',
@@ -111,6 +113,19 @@ function resolveTraceId(request: NextRequest): string {
   }
 
   return crypto.randomUUID();
+}
+
+function edgeLog(level: 'info' | 'warn' | 'error', event: string, fields: Record<string, unknown>): void {
+  const payload = JSON.stringify({ level, event, ts: new Date().toISOString(), ...fields });
+  if (level === 'error') {
+    console.error(payload);
+    return;
+  }
+  if (level === 'warn') {
+    console.warn(payload);
+    return;
+  }
+  console.info(payload);
 }
 
 function problemResponse(
@@ -208,7 +223,7 @@ function handleMiddlewareError(
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
   try {
-    console.error('Middleware error', {
+    edgeLog('error', 'middleware.error', {
       context,
       path: request.nextUrl.pathname,
       trace_id: traceId,
@@ -323,10 +338,11 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
 
   if (pathname.startsWith('/api/')) {
     if (!supabase) {
-      console.warn('Supabase unavailable for API route', {
+      edgeLog('warn', 'middleware.auth_service.unavailable', {
         path: pathname,
         trace_id: traceId,
         error: supabaseError,
+        route_kind: 'api',
       });
       return problemResponse(
         503,
@@ -377,10 +393,11 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
   }
 
   if (!supabase) {
-    console.warn('Supabase unavailable for page route', {
+    edgeLog('warn', 'middleware.auth_service.unavailable', {
       path: pathname,
       trace_id: traceId,
       error: supabaseError,
+      route_kind: 'page',
     });
     const signInUrl = new URL('/auth/signin', request.url);
     signInUrl.searchParams.set('callbackUrl', pathname);

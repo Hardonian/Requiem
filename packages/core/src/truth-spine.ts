@@ -7,6 +7,7 @@ export interface ProblemJSON {
   status: number;
   detail: string;
   trace_id: string;
+  request_id?: string;
   code?: string;
   errors?: Array<Record<string, unknown>>;
   reasons?: string[];
@@ -17,6 +18,7 @@ export interface ProblemJSONOptions {
   title: string;
   detail: string;
   traceId: string;
+  requestId?: string;
   type?: string;
   code?: string;
   errors?: Array<Record<string, unknown>>;
@@ -53,6 +55,7 @@ export function buildProblemJSON(options: ProblemJSONOptions): ProblemJSON {
     status: options.status,
     detail: options.detail,
     trace_id: options.traceId,
+    ...(options.requestId ? { request_id: options.requestId } : {}),
     ...(options.code ? { code: options.code } : {}),
     ...(options.errors ? { errors: options.errors } : {}),
     ...(options.reasons ? { reasons: options.reasons } : {}),

@@ -38,6 +38,7 @@ describe('API contract routes', () => {
     expect(response.headers.get('content-type')).toContain('application/problem+json');
     expect(body.title).toBe('Authentication Failed');
     expect(typeof body.trace_id).toBe('string');
+    expect(typeof body.request_id).toBe('string');
   });
 
   it('GET /api/budgets ignores tenant query override and uses auth tenant', async () => {
@@ -80,6 +81,7 @@ describe('API contract routes', () => {
     expect(response.status).toBe(400);
     expect(response.headers.get('content-type')).toContain('application/problem+json');
     expect(typeof body.trace_id).toBe('string');
+    expect(typeof body.request_id).toBe('string');
   });
 
   it('GET /api/budgets exposes single-process rate-limit scope truth on protected routes', async () => {

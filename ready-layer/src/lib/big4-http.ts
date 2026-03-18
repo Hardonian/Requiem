@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z, type ZodTypeAny } from 'zod';
 import { authErrorResponse, validateTenantAuth } from './auth';
+import { logStructured, withObservabilityContext } from './observability';
 import {
   ProblemError,
   problemResponse,
@@ -218,15 +219,6 @@ function buildContext(
   };
 }
 
-function logStructured(event: string, fields: Record<string, unknown>): void {
-  const payload = {
-    event,
-    ts: new Date().toISOString(),
-    ...fields,
-  };
-  console.info(JSON.stringify(payload));
-}
-
 export function parseQueryWithSchema<TSchema extends ZodTypeAny>(
   req: NextRequest,
   schema: TSchema,
@@ -307,10 +299,32 @@ export async function withTenantContext(
   const routeId = options.routeId ?? ctx.pathname;
   const startedAtMs = Date.now();
 
+  logStructured('info', 'api.request.received', {
+    route_id: routeId,
+    method: ctx.method,
+    pathname: ctx.pathname,
+    trace_id: ctx.trace_id,
+    request_id: ctx.request_id,
+    tenant_id: ctx.tenant_id,
+    actor_id: ctx.actor_id,
+    has_idempotency_key: Boolean(req.headers.get('idempotency-key')),
+  });
+
+  if (requireAuth && auth.ok && auth.tenant) {
+    logStructured('info', 'api.auth.succeeded', {
+      route_id: routeId,
+      method: ctx.method,
+      trace_id: ctx.trace_id,
+      request_id: ctx.request_id,
+      tenant_id: ctx.tenant_id,
+      actor_id: ctx.actor_id,
+    });
+  }
+
   if (requireAuth && (!auth.ok || !auth.tenant)) {
     const response = authErrorResponse(auth, ctx.trace_id, ctx.request_id);
-    logStructured('api.request.denied', {
-      route: routeId,
+    logStructured('warn', 'api.request.denied', {
+      route_id: routeId,
       method: ctx.method,
       status: response.status,
       trace_id: ctx.trace_id,
@@ -326,6 +340,15 @@ export async function withTenantContext(
     const key = `${ctx.tenant_id}:${ctx.actor_id}:${routeId}`;
     const consumed = consumeTokenBucket(key, rateLimit);
     if (!consumed.allowed) {
+      logStructured('warn', 'api.rate_limit.exceeded', {
+        route_id: routeId,
+        method: ctx.method,
+        trace_id: ctx.trace_id,
+        request_id: ctx.request_id,
+        tenant_id: ctx.tenant_id,
+        actor_id: ctx.actor_id,
+        retry_after_sec: consumed.retryAfterSec,
+      });
       return applyRuntimeScopeHeaders(problemResponse({
         status: 429,
         title: 'Too Many Requests',
@@ -356,6 +379,14 @@ export async function withTenantContext(
         'x-request-id': ctx.request_id,
       });
       response.headers.set('cache-control', computeCacheControl(cacheOptions));
+      logStructured('info', 'api.cache.hit', {
+        route_id: routeId,
+        method: ctx.method,
+        trace_id: ctx.trace_id,
+        request_id: ctx.request_id,
+        tenant_id: ctx.tenant_id,
+        actor_id: ctx.actor_id,
+      });
       return response;
     }
   }
@@ -369,6 +400,14 @@ export async function withTenantContext(
     const key = req.headers.get('idempotency-key');
 
     if (!key && idempotencyOptions.required) {
+      logStructured('warn', 'api.idempotency.missing_key', {
+        route_id: routeId,
+        method: ctx.method,
+        trace_id: ctx.trace_id,
+        request_id: ctx.request_id,
+        tenant_id: ctx.tenant_id,
+        actor_id: ctx.actor_id,
+      });
       return problemResponse({
         status: 400,
         title: 'Missing Idempotency Key',
@@ -389,6 +428,15 @@ export async function withTenantContext(
       const existing = idempotencyCache.get(idempotencyKeyScope);
       if (existing && existing.expiresAtMs > now) {
         if (existing.requestHash !== idempotencyRequestHash) {
+          logStructured('warn', 'api.idempotency.conflict', {
+            route_id: routeId,
+            method: ctx.method,
+            trace_id: ctx.trace_id,
+            request_id: ctx.request_id,
+            tenant_id: ctx.tenant_id,
+            actor_id: ctx.actor_id,
+            idempotency_key: key,
+          });
           return problemResponse({
             status: 409,
             title: 'Idempotency Conflict',
@@ -398,6 +446,16 @@ export async function withTenantContext(
             requestId: ctx.request_id,
           });
         }
+
+        logStructured('info', 'api.idempotency.replay', {
+          route_id: routeId,
+          method: ctx.method,
+          trace_id: ctx.trace_id,
+          request_id: ctx.request_id,
+          tenant_id: ctx.tenant_id,
+          actor_id: ctx.actor_id,
+          idempotency_key: key,
+        });
 
         const replayed = fromCachedResponse(existing.response, {
           'x-idempotency-replayed': '1',
@@ -415,19 +473,51 @@ export async function withTenantContext(
   }
 
   try {
-    const policy = await policyEval(ctx);
-    if (!policy.allow) {
-      return problemResponse({
-        status: 403,
-        title: 'Policy Denied',
-        detail: policy.reasons.join('; ') || 'Denied',
-        code: 'policy_denied',
-        traceId: ctx.trace_id,
-        requestId: ctx.request_id,
-      });
-    }
+    return await withObservabilityContext({
+      route_id: routeId,
+      tenant_id: ctx.tenant_id,
+      actor_id: ctx.actor_id,
+      request_id: ctx.request_id,
+      trace_id: ctx.trace_id,
+      method: ctx.method,
+      pathname: ctx.pathname,
+      idempotency_key: req.headers.get('idempotency-key'),
+    }, async () => {
+      const policy = await policyEval(ctx);
+      if (!policy.allow) {
+        logStructured('warn', 'api.policy.denied', {
+          route_id: routeId,
+          method: ctx.method,
+          trace_id: ctx.trace_id,
+          request_id: ctx.request_id,
+          tenant_id: ctx.tenant_id,
+          actor_id: ctx.actor_id,
+          reasons: policy.reasons,
+        });
+        return problemResponse({
+          status: 403,
+          title: 'Policy Denied',
+          detail: policy.reasons.join('; ') || 'Denied',
+          code: 'policy_denied',
+          traceId: ctx.trace_id,
+          requestId: ctx.request_id,
+        });
+      }
 
-    const response = await handler(ctx);
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(ctx.method);
+      if (isMutation) {
+        logStructured('info', 'api.mutation.started', {
+          route_id: routeId,
+          method: ctx.method,
+          trace_id: ctx.trace_id,
+          request_id: ctx.request_id,
+          tenant_id: ctx.tenant_id,
+          actor_id: ctx.actor_id,
+          idempotency_key: req.headers.get('idempotency-key'),
+        });
+      }
+
+      const response = await handler(ctx);
 
     response.headers.set('x-trace-id', ctx.trace_id);
     response.headers.set('x-request-id', ctx.request_id);
@@ -454,8 +544,22 @@ export async function withTenantContext(
       });
     }
 
-    logStructured('api.request.completed', {
-      route: routeId,
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(ctx.method)) {
+      logStructured('info', 'api.mutation.completed', {
+        route_id: routeId,
+        method: ctx.method,
+        status: response.status,
+        trace_id: ctx.trace_id,
+        request_id: ctx.request_id,
+        tenant_id: ctx.tenant_id,
+        actor_id: ctx.actor_id,
+        duration_ms: Date.now() - startedAtMs,
+        idempotency_key: req.headers.get('idempotency-key'),
+      });
+    }
+
+    logStructured('info', 'api.request.completed', {
+      route_id: routeId,
       method: ctx.method,
       status: response.status,
       trace_id: ctx.trace_id,
@@ -470,10 +574,25 @@ export async function withTenantContext(
       idempotencyEnabled: Boolean(idempotencyOptions),
       cacheEnabled: Boolean(cacheOptions),
     });
+    });
   } catch (error) {
     const response = unknownErrorToProblem(error, ctx.trace_id, ctx.request_id);
-    logStructured('api.request.failed', {
-      route: routeId,
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(ctx.method)) {
+      logStructured('error', 'api.mutation.failed', {
+        route_id: routeId,
+        method: ctx.method,
+        status: response.status,
+        trace_id: ctx.trace_id,
+        request_id: ctx.request_id,
+        tenant_id: ctx.tenant_id,
+        actor_id: ctx.actor_id,
+        duration_ms: Date.now() - startedAtMs,
+        idempotency_key: req.headers.get('idempotency-key'),
+      }, error);
+    }
+
+    logStructured('error', 'api.request.failed', {
+      route_id: routeId,
       method: ctx.method,
       status: response.status,
       trace_id: ctx.trace_id,
@@ -482,7 +601,7 @@ export async function withTenantContext(
       actor_id: ctx.actor_id,
       duration_ms: Date.now() - startedAtMs,
       error_name: error instanceof Error ? error.name : 'unknown',
-    });
+    }, error);
     return applyRuntimeScopeHeaders(response, {
       rateLimitEnabled: Boolean(rateLimit),
       idempotencyEnabled: Boolean(idempotencyOptions),

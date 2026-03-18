@@ -517,6 +517,15 @@
       "surface": "api"
     },
     {
+      "path": "/api/readiness",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/readiness/route.ts",
+      "auth_required": false,
+      "probe": true,
+      "description": "GET /api/readiness handler",
+      "surface": "public"
+    },
+    {
       "path": "/api/registry",
       "method": "GET",
       "file": "ready-layer/src/app/api/registry/route.ts",

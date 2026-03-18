@@ -21,6 +21,7 @@ export interface AuthResult {
 
 const PUBLIC_ROUTES = new Set([
   '/api/health',
+  '/api/readiness',
   '/api/openapi.json',
   '/api/status',
   '/',
@@ -42,7 +43,7 @@ function resolveTenantId(req: NextRequest): string | null {
   return null;
 }
 
-function isStrictAuthMode(): boolean {
+export function isStrictAuthMode(): boolean {
   const authMode = process.env.REQUIEM_AUTH_MODE?.toLowerCase();
   if (authMode === 'strict') return true;
   if (authMode === 'local-dev') return false;
@@ -51,6 +52,26 @@ function isStrictAuthMode(): boolean {
 
 function allowInsecureDevAuth(): boolean {
   return process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1' && !isStrictAuthMode();
+}
+
+export function getAuthReadiness(): {
+  strict_mode: boolean;
+  bearer_secret_present: boolean;
+  internal_proof_secret_present: boolean;
+  proof_operational: boolean;
+} {
+  const strictMode = isStrictAuthMode();
+  const bearerSecretPresent = Boolean(process.env.REQUIEM_AUTH_SECRET?.trim());
+  const internalProofSecretPresent = Boolean(
+    process.env.REQUIEM_AUTH_INTERNAL_SECRET?.trim() || process.env.REQUIEM_AUTH_SECRET?.trim(),
+  );
+
+  return {
+    strict_mode: strictMode,
+    bearer_secret_present: bearerSecretPresent,
+    internal_proof_secret_present: internalProofSecretPresent,
+    proof_operational: internalProofSecretPresent,
+  };
 }
 
 async function hasValidInternalAuthProof(req: NextRequest, tenantId: string, actorId: string): Promise<boolean> {
