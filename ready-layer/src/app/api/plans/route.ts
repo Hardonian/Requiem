@@ -87,22 +87,21 @@ export async function GET(request: NextRequest): Promise<Response> {
           status: 200,
         });
       }
-      const plans: Plan[] = [];
 
-      const plans = listPlans(ctx.tenant_id);
-      const pageData = plans.slice(offset, offset + limit);
+      const tenantPlans = listPlans(ctx.tenant_id);
+      const pageData = tenantPlans.slice(offset, offset + limit);
       const response: ApiResponse<PlanListResponse> = {
         v: 1,
         kind: "plans.list",
         data: {
           ok: true,
           plans: pageData,
-          total: plans.length,
+          total: tenantPlans.length,
         },
         error: null,
       };
 
-      return withDemoHeaders(NextResponse.json(response, { status: 200 }));
+      return NextResponse.json(response, { status: 200 });
     },
     async () => ({ allow: true, reasons: [] }),
     {

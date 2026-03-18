@@ -213,8 +213,12 @@ function readState(tenantId: string): ControlPlaneState {
 function writeState(state: ControlPlaneState): void {
   ensureRoot();
   const file = statePathForTenant(state.tenant_id);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+  const directory = path.dirname(file);
+  fs.mkdirSync(directory, { recursive: true });
+
+  const tempFile = `${file}.${process.pid}.${randomUUID()}.tmp`;
+  fs.writeFileSync(tempFile, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+  fs.renameSync(tempFile, file);
 }
 
 function mutateState<T>(

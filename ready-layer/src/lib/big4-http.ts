@@ -78,6 +78,9 @@ const DEFAULT_RATE_LIMIT: RateLimitOptions = {
 
 const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 
+const MEMORY_SCOPE_HEADER = 'memory-single-process';
+
+
 function cleanupCaches(now: number): void {
   if (responseCache.size > 4096) {
     for (const [key, value] of responseCache.entries()) {
@@ -162,6 +165,26 @@ function fromCachedResponse(snapshot: CachedResponse, headers: Record<string, st
     status: snapshot.status,
     headers: merged,
   });
+}
+
+function applyRuntimeScopeHeaders(
+  response: Response,
+  options: {
+    rateLimitEnabled: boolean;
+    idempotencyEnabled: boolean;
+    cacheEnabled: boolean;
+  },
+): Response {
+  if (options.rateLimitEnabled) {
+    response.headers.set('x-requiem-rate-limit-scope', MEMORY_SCOPE_HEADER);
+  }
+  if (options.idempotencyEnabled) {
+    response.headers.set('x-requiem-idempotency-scope', MEMORY_SCOPE_HEADER);
+  }
+  if (options.cacheEnabled) {
+    response.headers.set('x-requiem-cache-scope', MEMORY_SCOPE_HEADER);
+  }
+  return response;
 }
 
 function computeCacheControl(cache: false | CacheOptions | undefined): string {
@@ -303,7 +326,7 @@ export async function withTenantContext(
     const key = `${ctx.tenant_id}:${ctx.actor_id}:${routeId}`;
     const consumed = consumeTokenBucket(key, rateLimit);
     if (!consumed.allowed) {
-      return problemResponse({
+      return applyRuntimeScopeHeaders(problemResponse({
         status: 429,
         title: 'Too Many Requests',
         detail: 'Rate limit exceeded',
@@ -311,6 +334,10 @@ export async function withTenantContext(
         traceId: ctx.trace_id,
         requestId: ctx.request_id,
         retryAfterSec: consumed.retryAfterSec,
+      }), {
+        rateLimitEnabled: true,
+        idempotencyEnabled: false,
+        cacheEnabled: false,
       });
     }
   }
@@ -378,7 +405,11 @@ export async function withTenantContext(
           'x-request-id': ctx.request_id,
         });
         replayed.headers.set('cache-control', 'no-store');
-        return replayed;
+        return applyRuntimeScopeHeaders(replayed, {
+          rateLimitEnabled: Boolean(rateLimit),
+          idempotencyEnabled: true,
+          cacheEnabled: Boolean(cacheOptions),
+        });
       }
     }
   }
@@ -434,7 +465,11 @@ export async function withTenantContext(
       duration_ms: Date.now() - startedAtMs,
     });
 
-    return response;
+    return applyRuntimeScopeHeaders(response, {
+      rateLimitEnabled: Boolean(rateLimit),
+      idempotencyEnabled: Boolean(idempotencyOptions),
+      cacheEnabled: Boolean(cacheOptions),
+    });
   } catch (error) {
     const response = unknownErrorToProblem(error, ctx.trace_id, ctx.request_id);
     logStructured('api.request.failed', {
@@ -448,7 +483,11 @@ export async function withTenantContext(
       duration_ms: Date.now() - startedAtMs,
       error_name: error instanceof Error ? error.name : 'unknown',
     });
-    return response;
+    return applyRuntimeScopeHeaders(response, {
+      rateLimitEnabled: Boolean(rateLimit),
+      idempotencyEnabled: Boolean(idempotencyOptions),
+      cacheEnabled: Boolean(cacheOptions),
+    });
   }
 }
 
