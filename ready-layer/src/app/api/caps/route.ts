@@ -3,11 +3,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
+import { demoUnavailableResponse, withDemoHeaders } from '@/lib/demo-truth';
 import { ProblemError } from '@/lib/problem-json';
 import type {
-  CapabilityMintResponse,
   CapabilityListItem,
-  CapabilityRevokeResponse,
   ApiResponse,
   PaginatedResponse,
 } from '@/types/engine';
@@ -35,33 +34,24 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, querySchema);
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-
-      const mockCaps: CapabilityListItem[] = [];
-      for (let i = 0; i < Math.min(limit, 10); i++) {
-        mockCaps.push({
-          actor: ctx.tenant_id,
-          seq: offset + i + 1,
-          data_hash: `cap_hash_${offset + i}`,
-          event_type: 'cap.mint',
-        });
-      }
+      const capabilities: CapabilityListItem[] = [];
 
       const response: ApiResponse<PaginatedResponse<CapabilityListItem>> = {
         v: 1,
         kind: 'caps.list',
         data: {
           ok: true,
-          data: mockCaps,
-          total: 100,
+          data: capabilities,
+          total: 0,
           page: Math.floor(offset / limit) + 1,
           page_size: limit,
-          has_more: offset + mockCaps.length < 100,
+          has_more: false,
           trace_id: ctx.trace_id,
         },
         error: null,
       };
 
-      return NextResponse.json(response, { status: 200 });
+      return withDemoHeaders(NextResponse.json(response, { status: 200 }));
     },
     async () => ({ allow: true, reasons: [] }),
     {
@@ -74,7 +64,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 export async function POST(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
-    async () => {
+    async (ctx) => {
       const body = postSchema.parse(await request.json());
 
       if (body.action === 'mint') {
@@ -84,20 +74,10 @@ export async function POST(request: NextRequest): Promise<Response> {
           });
         }
 
-        const response: ApiResponse<CapabilityMintResponse> = {
-          v: 1,
-          kind: 'caps.mint',
-          data: {
-            ok: true,
-            fingerprint: `cap_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-            subject: body.subject,
-            scopes: body.permissions,
-            not_before: body.not_before || 0,
-            not_after: body.not_after || 0,
-          },
-          error: null,
-        };
-        return NextResponse.json(response, { status: 200 });
+        return demoUnavailableResponse(
+          ctx,
+          'Capability minting is not runtime-backed in this deployment. Wire a real capability service before issuing tokens.',
+        );
       }
 
       if (!body.fingerprint) {
@@ -106,13 +86,10 @@ export async function POST(request: NextRequest): Promise<Response> {
         });
       }
 
-      const response: ApiResponse<CapabilityRevokeResponse> = {
-        v: 1,
-        kind: 'caps.revoke',
-        data: { ok: true, fingerprint: body.fingerprint, revoked: true },
-        error: null,
-      };
-      return NextResponse.json(response, { status: 200 });
+      return demoUnavailableResponse(
+        ctx,
+        'Capability revocation is not runtime-backed in this deployment. Connect a real capability registry before revoking tokens.',
+      );
     },
     async () => ({ allow: true, reasons: [] }),
     {

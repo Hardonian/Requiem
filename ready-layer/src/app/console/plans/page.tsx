@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { normalizeEnvelope } from '@/lib/api-truth';
 import {
   PageHeader,
   LoadingState,
@@ -39,16 +40,29 @@ export default function ConsolePlansPage() {
       setLoading(true);
       setError(null);
       const response = await fetch('/api/plans');
-      const data = await response.json();
-      
-      if (data.ok) {
-        setPlans(data.plans || []);
-      } else {
+      const envelope = normalizeEnvelope<{
+        plans?: Array<{ plan_id?: string; plan_hash?: string; steps?: unknown[]; plan_version?: number }>;
+      }>(await response.json());
+
+      if (!response.ok || !envelope.ok || !envelope.data) {
         setError({
-          code: data.error?.code || 'E_FETCH_FAILED',
-          message: data.error?.message || 'Failed to fetch plans',
+          code: envelope.error?.code || 'E_FETCH_FAILED',
+          message: envelope.error?.message || 'Failed to fetch plans',
         });
+        return;
       }
+
+      const nextPlans = Array.isArray(envelope.data.plans)
+        ? envelope.data.plans.map((plan) => ({
+            id: plan.plan_hash ?? plan.plan_id ?? 'unknown-plan',
+            name: plan.plan_id ?? plan.plan_hash ?? 'Unnamed plan',
+            status: 'registered',
+            createdAt: '',
+            stepCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
+            description: plan.plan_version ? `Plan version ${plan.plan_version}` : undefined,
+          }))
+        : [];
+      setPlans(nextPlans);
     } catch (err) {
       setError({
         code: 'E_NETWORK_ERROR',

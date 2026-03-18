@@ -3,11 +3,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withTenantContext, parseQueryWithSchema } from '@/lib/big4-http';
+import { demoUnavailableResponse, withDemoHeaders } from '@/lib/demo-truth';
 import { ProblemError } from '@/lib/problem-json';
 import type {
   Snapshot,
-  SnapshotCreateResponse,
-  SnapshotRestoreResponse,
   ApiResponse,
   PaginatedResponse,
 } from '@/types/engine';
@@ -32,39 +31,24 @@ export async function GET(request: NextRequest): Promise<Response> {
       const query = parseQueryWithSchema(request, getQuerySchema);
       const limit = query.limit ?? 100;
       const offset = query.offset ?? 0;
-
-      const mockSnapshots: Snapshot[] = [];
-      for (let i = 0; i < Math.min(limit, 10); i++) {
-        mockSnapshots.push({
-          snapshot_version: 1,
-          logical_time: offset + i + 1,
-          event_log_head: `evt_head_${offset + i + 1}`,
-          cas_root_hash: `cas_root_${(offset + i + 1).toString(16).padStart(60, '0')}`,
-          active_caps: [`cap_${i}_admin`, `cap_${i}_user`],
-          revoked_caps: [],
-          budgets: {},
-          policies: {},
-          snapshot_hash: `snap_${(offset + i + 1).toString(16).padStart(60, '0')}`,
-          timestamp_unix_ms: Date.now() - (i * 86400000),
-        });
-      }
+      const snapshots: Snapshot[] = [];
 
       const response: ApiResponse<PaginatedResponse<Snapshot>> = {
         v: 1,
         kind: 'snapshots.list',
         data: {
           ok: true,
-          data: mockSnapshots,
-          total: 50,
+          data: snapshots,
+          total: 0,
           page: Math.floor(offset / limit) + 1,
           page_size: limit,
-          has_more: offset + mockSnapshots.length < 50,
+          has_more: false,
           trace_id: ctx.trace_id,
         },
         error: null,
       };
 
-      return NextResponse.json(response, { status: 200 });
+      return withDemoHeaders(NextResponse.json(response, { status: 200 }));
     },
     async () => ({ allow: true, reasons: [] }),
     {
@@ -77,30 +61,14 @@ export async function GET(request: NextRequest): Promise<Response> {
 export async function POST(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
-    async () => {
+    async (ctx) => {
       const body = postSchema.parse(await request.json());
 
       if (body.action === 'create') {
-        const snapshot: Snapshot = {
-          snapshot_version: 1,
-          logical_time: Date.now(),
-          event_log_head: `evt_head_${Date.now()}`,
-          cas_root_hash: `cas_root_${Date.now().toString(36)}`,
-          active_caps: ['cap_admin', 'cap_user'],
-          revoked_caps: [],
-          budgets: {},
-          policies: {},
-          snapshot_hash: `snap_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-          timestamp_unix_ms: Date.now(),
-        };
-
-        const response: ApiResponse<SnapshotCreateResponse> = {
-          v: 1,
-          kind: 'snapshot.create',
-          data: { ok: true, snapshot },
-          error: null,
-        };
-        return NextResponse.json(response, { status: 200 });
+        return demoUnavailableResponse(
+          ctx,
+          'Snapshot creation is not runtime-backed in this deployment. Connect a real snapshot service before creating rollback points.',
+        );
       }
 
       if (!body.snapshot_hash) {
@@ -118,17 +86,10 @@ export async function POST(request: NextRequest): Promise<Response> {
         );
       }
 
-      const response: ApiResponse<SnapshotRestoreResponse> = {
-        v: 1,
-        kind: 'snapshot.restore',
-        data: {
-          ok: true,
-          restored_logical_time: Date.now() - 86400000,
-          message: `Successfully restored from snapshot ${body.snapshot_hash}`,
-        },
-        error: null,
-      };
-      return NextResponse.json(response, { status: 200 });
+      return demoUnavailableResponse(
+        ctx,
+        `Snapshot restore for ${body.snapshot_hash} is not runtime-backed in this deployment. Attach a real snapshot service before enabling rollback.`,
+      );
     },
     async () => ({ allow: true, reasons: [] }),
     {
