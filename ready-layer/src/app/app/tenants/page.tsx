@@ -49,7 +49,7 @@ export default function TenantsPage() {
     <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">Tenant Isolation</h1>
-        <p className="text-sm text-muted mt-1">Runtime tenant isolation status. Requires a connected engine node.</p>
+        <p className="text-sm text-muted mt-1">Read-only tenancy disclosure for the current authenticated user scope. This route currently shows stubbed isolation metadata, not live shared-tenant administration.</p>
       </div>
 
       {loading && <div className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">Loading tenant isolation data…</div>}
@@ -96,14 +96,14 @@ export default function TenantsPage() {
               <dd className="font-mono text-foreground">{tenant.tenant_id}</dd>
             </div>
             <div>
-              <dt className="text-muted">API signal</dt>
-              <dd className="text-foreground">Isolation endpoint responded</dd>
+              <dt className="text-muted">Route mode</dt>
+              <dd className="text-foreground">Stub disclosure payload returned</dd>
             </div>
           </dl>
 
           <div className="rounded-lg border border-border bg-surface-elevated p-3">
             <p className="text-xs uppercase tracking-wide text-muted">Scoped storage paths</p>
-            <p className="mt-1 text-xs text-muted">Route-reported values only; no filesystem verification implied.</p>
+            <p className="mt-1 text-xs text-muted">Example tenant-scoped path disclosure only; no filesystem or cross-replica verification is implied.</p>
             <ul className="mt-2 space-y-1 text-xs font-mono text-foreground">
               <li>cas: {tenant.scoped_paths?.cas ?? 'not reported'}</li>
               <li>events: {tenant.scoped_paths?.events ?? 'not reported'}</li>

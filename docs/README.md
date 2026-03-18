@@ -7,6 +7,9 @@ Use this page as the canonical documentation navigation spine.
 - [../README.md](../README.md)
 - [GETTING_STARTED.md](./GETTING_STARTED.md)
 - [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md)
+- [ENVIRONMENT.md](./ENVIRONMENT.md)
+- [DEPLOYMENT.md](./DEPLOYMENT.md)
+- [OPERATOR_RUNBOOK.md](./OPERATOR_RUNBOOK.md)
 - [OSS_BOUNDARY.md](./OSS_BOUNDARY.md)
 - [Route maturity map](./reference/ROUTE_MATURITY.md)
 
