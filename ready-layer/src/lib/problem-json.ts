@@ -73,6 +73,7 @@ export function problemResponse(options: ProblemOptions): NextResponse {
     title: options.title,
     detail: options.detail,
     traceId: options.traceId,
+    requestId: options.requestId,
     type: options.type,
     code: options.code,
     errors: options.errors,

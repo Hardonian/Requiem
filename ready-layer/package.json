@@ -2,7 +2,7 @@
   "name": "ready-layer",
   "version": "1.0.0",
   "private": true,
-  "description": "ReadyLayer — AI control plane dashboard for the Requiem engine",
+  "description": "ReadyLayer \u2014 AI control plane dashboard for the Requiem engine",
   "scripts": {
     "dev": "next dev",
     "build": "pnpm run lint && pnpm run type-check && next build",
@@ -32,7 +32,8 @@
     "smoke:api": "bash scripts/smoke-api.sh",
     "test:mcp-routes": "vitest run tests/mcp-route*.test.ts",
     "verify:route-map": "node ../scripts/run-tsx.mjs scripts/route-map-check.ts",
-    "generate:auth-truth": "node ../scripts/run-tsx.mjs scripts/generate-auth-truth-matrices.ts"
+    "generate:auth-truth": "node ../scripts/run-tsx.mjs scripts/generate-auth-truth-matrices.ts",
+    "verify:survivability": "node ../scripts/run-tsx.mjs scripts/verify-survivability.ts"
   },
   "dependencies": {
     "@babel/parser": "^7.28.6",

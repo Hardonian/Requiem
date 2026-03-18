@@ -38,6 +38,7 @@ const METHODS: HttpMethod[] = [
 const PUBLIC_ROUTES = new Set([
   "/api/health",
   "/api/openapi.json",
+  "/api/readiness",
   "/api/status",
   "/api/mcp/health",
 ]);
@@ -85,7 +86,7 @@ export function generateRouteManifest(repoRoot = process.cwd()): RouteManifest {
         method,
         file: path.relative(repoRoot, file).replace(/\\/g, "/"),
         auth_required: !PUBLIC_ROUTES.has(routePath),
-        ...(routePath === "/api/health" || routePath === "/api/mcp/health"
+        ...(routePath === "/api/health" || routePath === "/api/readiness" || routePath === "/api/mcp/health"
           ? { probe: true }
           : {}),
         description: descriptionFromPath(routePath, method),

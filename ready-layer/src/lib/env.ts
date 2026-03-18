@@ -6,6 +6,7 @@
 // Supabase/Postgres configuration used by the vector search subsystem.
 
 import { z } from 'zod';
+import { logStructured } from '@/lib/observability';
 
 // Environment variable schema for the vector search subsystem
 const envSchema = z.object({
@@ -51,7 +52,7 @@ export function getEnv(): Env {
   const result = envSchema.safeParse(rawEnv);
 
   if (!result.success) {
-    console.error('Environment validation failed:', result.error.format());
+    logStructured('error', 'env.validation.failed', { issues: result.error.format() });
     throw new Error(`Invalid environment configuration: ${result.error.message}`);
   }
 

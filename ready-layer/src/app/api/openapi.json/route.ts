@@ -44,6 +44,7 @@ const openApiSpec = {
           status: { type: 'integer', minimum: 100, maximum: 599 },
           detail: { type: 'string' },
           trace_id: { type: 'string' },
+          request_id: { type: 'string' },
           code: { type: 'string' },
           errors: {
             type: 'array',
@@ -93,6 +94,7 @@ const openApiSpec = {
           total: { type: 'integer' },
           latency_ms: { type: 'integer' },
           trace_id: { type: 'string' },
+          request_id: { type: 'string' },
         },
       },
     },
@@ -157,6 +159,26 @@ const openApiSpec = {
           },
         },
       },
+      Problem503: {
+        description: 'Service unavailable / not ready',
+        content: {
+          'application/problem+json': {
+            schema: { $ref: '#/components/schemas/Problem' },
+            examples: {
+              notReady: {
+                value: {
+                  type: 'https://httpstatuses.com/503',
+                  title: 'Service Unavailable',
+                  status: 503,
+                  detail: 'Service is not ready to accept traffic',
+                  code: 'not_ready',
+                  trace_id: '6ad23a6bb55a4f2f95f4d95bfd1eb844',
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
   paths: {
@@ -173,6 +195,23 @@ const openApiSpec = {
               },
             },
           },
+        },
+      },
+    },
+    '/api/readiness': {
+      get: {
+        summary: 'Readiness check backed by real dependency probes',
+        parameters: [{ $ref: '#/components/parameters/traceId' }],
+        responses: {
+          '200': {
+            description: 'Service is ready to accept traffic',
+            content: {
+              'application/json': {
+                schema: { type: 'object', additionalProperties: true },
+              },
+            },
+          },
+          '503': { $ref: '#/components/responses/Problem503' },
         },
       },
     },

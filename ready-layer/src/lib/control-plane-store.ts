@@ -1,9 +1,7 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { createHash, randomUUID } from 'node:crypto';
-import { ProblemError } from './problem-json';
-import { isProductionLikeRuntime } from './runtime-mode';
-import { getSupabaseServiceClient } from './supabase-service';
+import fs from "node:fs";
+import path from "node:path";
+import { createHash, randomUUID } from "node:crypto";
+import { getObservabilityContext, logStructured } from '@/lib/observability';
 import type {
   Budget,
   BudgetUnit,
@@ -32,6 +30,15 @@ const DEFAULT_BUDGET_LIMITS = {
   policy_eval: 5000,
   plan_step: 2000,
 } as const;
+
+const LOCK_TIMEOUT_MS = Number(process.env.REQUIEM_CONTROL_PLANE_LOCK_TIMEOUT_MS ?? 5_000);
+const LOCK_STALE_MS = Number(process.env.REQUIEM_CONTROL_PLANE_LOCK_STALE_MS ?? 15_000);
+const LOCK_POLL_MS = Number(process.env.REQUIEM_CONTROL_PLANE_LOCK_POLL_MS ?? 20);
+
+type TenantLock = {
+  fd: number;
+  path: string;
+};
 
 type BudgetUnitName = keyof typeof DEFAULT_BUDGET_LIMITS;
 
@@ -141,7 +148,94 @@ function statePathForTenant(tenantId: string): string {
   return path.join(ROOT, 'tenants', `${sanitizeTenantId(tenantId)}.json`);
 }
 
-function defaultBudgetState(now: number): ControlPlaneState['budgets'] {
+function lockPathForTenant(tenantId: string): string {
+  return path.join(ROOT, 'locks', `${sanitizeTenantId(tenantId)}.lock`);
+}
+
+function sleepSync(ms: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.max(1, ms));
+}
+
+function processIsAlive(pid: number): boolean {
+  if (!Number.isInteger(pid) || pid <= 0) {
+    return false;
+  }
+
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readLockMetadata(lockPath: string): { pid?: number; acquired_at_unix_ms?: number } | null {
+  try {
+    return JSON.parse(fs.readFileSync(lockPath, 'utf8')) as { pid?: number; acquired_at_unix_ms?: number };
+  } catch {
+    return null;
+  }
+}
+
+function acquireTenantLock(tenantId: string): TenantLock {
+  ensureRoot();
+  const locksDir = path.join(ROOT, 'locks');
+  fs.mkdirSync(locksDir, { recursive: true });
+  const lockPath = lockPathForTenant(tenantId);
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt <= LOCK_TIMEOUT_MS) {
+    try {
+      const fd = fs.openSync(lockPath, 'wx');
+      fs.writeFileSync(
+        fd,
+        JSON.stringify({ pid: process.pid, acquired_at_unix_ms: Date.now() }),
+        'utf8',
+      );
+      return { fd, path: lockPath };
+    } catch (error) {
+      const code = error instanceof Error && 'code' in error
+        ? (error as Error & { code?: string }).code
+        : undefined;
+      if (code !== 'EEXIST') {
+        throw error;
+      }
+
+      const metadata = readLockMetadata(lockPath);
+      let stale = false;
+      try {
+        const stats = fs.statSync(lockPath);
+        stale = Date.now() - stats.mtimeMs > LOCK_STALE_MS;
+      } catch {
+        stale = true;
+      }
+
+      if (!stale && metadata?.pid) {
+        stale = !processIsAlive(metadata.pid);
+      }
+
+      if (stale) {
+        fs.rmSync(lockPath, { force: true });
+        continue;
+      }
+
+      sleepSync(LOCK_POLL_MS);
+    }
+  }
+
+  throw new Error(`control_plane_lock_timeout:${tenantId}`);
+}
+
+function releaseTenantLock(lock: TenantLock): void {
+  try {
+    fs.closeSync(lock.fd);
+  } catch {
+    // best effort close before cleanup
+  }
+  fs.rmSync(lock.path, { force: true });
+}
+
+function defaultBudgetState(now: number): ControlPlaneState["budgets"] {
   return {
     exec: {
       limit: DEFAULT_BUDGET_LIMITS.exec,
@@ -362,21 +456,79 @@ async function saveState(record: StateRecord): Promise<boolean> {
 
 async function mutateState<T>(
   tenantId: string,
-  mutator: (state: ControlPlaneState) => T | Promise<T>,
-): Promise<T> {
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const record = await loadState(tenantId);
-    const state = structuredClone(record.state);
-    const result = await mutator(state);
-    const nextRecord: StateRecord = { revision: record.revision, state };
-    if (await saveState(nextRecord)) {
-      return result;
-    }
-  }
+  mutator: (state: ControlPlaneState) => T,
+  meta: { operation: string; entity_id?: string } = { operation: 'control_plane.mutate' },
+): T {
+  const lock = acquireTenantLock(tenantId);
+  const startedAt = Date.now();
+  const ctx = getObservabilityContext();
 
-  throw new ProblemError(409, 'Concurrent Mutation Conflict', 'Control-plane state changed concurrently too many times to apply this mutation safely.', {
-    code: 'control_plane_state_conflict',
+  logStructured('info', 'control_plane.mutation.started', {
+    operation: meta.operation,
+    entity_id: meta.entity_id,
+    tenant_id: tenantId,
+    trace_id: ctx?.trace_id,
+    request_id: ctx?.request_id,
+    actor_id: ctx?.actor_id,
+    route_id: ctx?.route_id,
   });
+
+  try {
+    const state = readState(tenantId);
+    const result = mutator(state);
+    writeState(state);
+    logStructured('info', 'control_plane.mutation.completed', {
+      operation: meta.operation,
+      entity_id: meta.entity_id,
+      tenant_id: tenantId,
+      trace_id: ctx?.trace_id,
+      request_id: ctx?.request_id,
+      actor_id: ctx?.actor_id,
+      route_id: ctx?.route_id,
+      duration_ms: Date.now() - startedAt,
+      log_head_seq: state.logs[0]?.seq ?? 0,
+      plans_total: state.plans.length,
+      runs_total: state.plan_runs.length,
+      snapshots_total: state.snapshots.length,
+    });
+    return result;
+  } catch (error) {
+    logStructured('error', 'control_plane.mutation.failed', {
+      operation: meta.operation,
+      entity_id: meta.entity_id,
+      tenant_id: tenantId,
+      trace_id: ctx?.trace_id,
+      request_id: ctx?.request_id,
+      actor_id: ctx?.actor_id,
+      route_id: ctx?.route_id,
+      duration_ms: Date.now() - startedAt,
+    }, error);
+    throw error;
+  } finally {
+    releaseTenantLock(lock);
+  }
+}
+
+export function checkControlPlanePersistence(): { ok: boolean; detail: string; root: string } {
+  try {
+    ensureRoot();
+    const probesDir = path.join(ROOT, 'probes');
+    fs.mkdirSync(probesDir, { recursive: true });
+    const probeFile = path.join(probesDir, `${process.pid}-${randomUUID()}.json`);
+    const tempFile = `${probeFile}.tmp`;
+    const payload = JSON.stringify({ ts: Date.now(), pid: process.pid });
+    fs.writeFileSync(tempFile, payload, 'utf8');
+    fs.renameSync(tempFile, probeFile);
+    const observed = fs.readFileSync(probeFile, 'utf8');
+    fs.rmSync(probeFile, { force: true });
+    return { ok: observed === payload, detail: 'filesystem read/write/rename probe succeeded', root: ROOT };
+  } catch (error) {
+    return {
+      ok: false,
+      detail: error instanceof Error ? error.message : 'control-plane persistence probe failed',
+      root: ROOT,
+    };
+  }
 }
 
 function toBudgetUnit(unit: { limit: number; used: number }): BudgetUnit {
@@ -445,10 +597,17 @@ function appendLog(
 ): LogRecord {
   const previous = state.logs[0];
   const seq = previous ? previous.seq + 1 : 1;
-  const data_hash = upsertCasObject(state, input.payload);
+  const ctx = getObservabilityContext();
+  const payload = {
+    ...input.payload,
+    ...(ctx?.trace_id ? { trace_id: ctx.trace_id } : {}),
+    ...(ctx?.request_id ? { request_id: ctx.request_id } : {}),
+    ...(ctx?.route_id ? { route_id: ctx.route_id } : {}),
+  };
+  const data_hash = upsertCasObject(state, payload);
   const request_digest =
     input.request_digest ??
-    hashValue({ event_type: input.event_type, payload: input.payload, seq });
+    hashValue({ event_type: input.event_type, payload, seq });
   const result_digest =
     input.result_digest ??
     hashValue({ ok: input.ok ?? true, payload_hash: data_hash, seq });
@@ -472,10 +631,10 @@ function appendLog(
     ok: input.ok ?? true,
     error_code: input.error_code ?? '',
     duration_ns: input.duration_ns ?? 0,
-    worker_id: 'control-plane',
-    node_id: canUseDurableStore() ? 'shared-store' : 'local',
-    message: summarizePayload(input.payload),
-    payload: input.payload,
+    worker_id: "control-plane",
+    node_id: "local",
+    message: summarizePayload(payload),
+    payload,
     created_at_unix_ms: Date.now(),
   };
   state.logs.unshift(record);
@@ -525,7 +684,7 @@ export async function setBudgetLimit(
       payload: { action: 'set', unit, limit },
     });
     return buildBudget(state);
-  });
+  }, { operation: 'budget.set', entity_id: unit });
 }
 
 export async function resetBudgetWindow(tenantId: string, actorId: string): Promise<Budget> {
@@ -542,7 +701,7 @@ export async function resetBudgetWindow(tenantId: string, actorId: string): Prom
       payload: { action: 'reset-window' },
     });
     return buildBudget(state);
-  });
+  }, { operation: 'budget.reset_window' });
 }
 
 export async function listCapabilities(tenantId: string): Promise<CapabilityListItem[]> {
@@ -603,7 +762,7 @@ export async function mintCapability(
       },
     });
     return token;
-  });
+  }, { operation: 'capability.mint', entity_id: input.subject });
 }
 
 export async function revokeCapability(
@@ -628,7 +787,7 @@ export async function revokeCapability(
       payload: { fingerprint, subject: capability.subject },
     });
     return capability;
-  });
+  }, { operation: 'capability.revoke', entity_id: fingerprint });
 }
 
 export async function listPolicies(tenantId: string): Promise<PolicyListItem[]> {
@@ -665,7 +824,7 @@ export async function addPolicy(
       payload: { policy_hash: hash, rules_count: rules.length },
     });
     return policy;
-  });
+  }, { operation: 'policy.add' });
 }
 
 export async function listPolicyVersions(
@@ -739,7 +898,7 @@ export async function evaluatePolicy(
       proof_hash: record.proof_hash,
       evaluated_at_logical_time: timestamp,
     };
-  });
+  }, { operation: 'policy.evaluate', entity_id: policyHash });
 }
 
 function evaluateRule(
@@ -856,7 +1015,7 @@ export async function addPlan(
       },
     });
     return plan;
-  });
+  }, { operation: 'plan.add', entity_id: input.plan_id });
 }
 
 export async function runPlan(
@@ -916,7 +1075,7 @@ export async function runPlan(
       duration_ns: plan.steps.length * 1_000_000,
     });
     return run;
-  });
+  }, { operation: 'plan.run', entity_id: planHash });
 }
 
 export async function replayPlanRun(
@@ -956,7 +1115,7 @@ export async function replayPlanRun(
       duration_ns: 1_000_000,
     });
     return replay;
-  });
+  }, { operation: 'plan.replay', entity_id: runId });
 }
 
 export async function listSnapshots(tenantId: string): Promise<Snapshot[]> {
@@ -1003,7 +1162,7 @@ export async function createSnapshot(tenantId: string, actorId: string): Promise
       },
     });
     return snapshot;
-  });
+  }, { operation: 'snapshot.create' });
 }
 
 export async function restoreSnapshot(
@@ -1046,7 +1205,7 @@ export async function restoreSnapshot(
       },
     });
     return snapshot;
-  });
+  }, { operation: 'snapshot.restore', entity_id: snapshotHash });
 }
 
 export async function listLogs(
