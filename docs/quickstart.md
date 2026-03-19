@@ -1,56 +1,50 @@
 # Quickstart
 
-This is the canonical first-run path for external evaluators.
+This is the current copy-pasteable operator path for the repository as shipped.
 
-## Prerequisites
+## 1) Clean-room bootstrap preflight
 
-- Node.js `>=20.11`
-- `pnpm` (repo is pinned to pnpm 8.x)
-- C++ build toolchain compatible with CMake (for `pnpm build` / engine build)
+```bash
+node scripts/bootstrap-preflight.mjs
+```
 
-## 1) Install and build
+This checks Node, corepack, pnpm, lockfile presence, and npm registry reachability before the first install.
+
+## 2) Install dependencies
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm build
 ```
 
-## 2) Verify environment baseline
+If install fails because the npm registry is unreachable, fix outbound access (or configure an internal mirror) before continuing.
+
+## 3) Verify deploy/operator contract
 
 ```bash
-pnpm doctor
+pnpm run verify:deploy-readiness
 ```
 
-If doctor reports missing optional systems, continue with local demo flow (those checks are surfaced as degraded/non-blocking where applicable).
-
-## 3) Run the launch demo path
+## 4) Prove the local first-customer API path
 
 ```bash
-pnpm verify:demo
+pnpm run verify:first-customer
 ```
 
-Expected output artifacts:
+That command boots ReadyLayer locally in `local-single-runtime` mode, enforces strict API bearer auth, and runs the canonical API smoke flow.
 
-- `demo_artifacts/demo-summary.json`
-- `demo_artifacts/demo-receipt.json`
-
-## 4) Run proof/replay checks
+## 5) Full release gate
 
 ```bash
-pnpm verify:determinism
-pnpm verify:replay
-pnpm evidence
+pnpm run verify:release
 ```
 
-## Optional: full quickstart script
-
-For a shell-driven walkthrough:
+## Optional: shell wrapper
 
 ```bash
 bash scripts/quickstart.sh
 ```
 
-Use `--real` for the longer full-stack pass:
+Use `--real` to add the full build and release gate:
 
 ```bash
 bash scripts/quickstart.sh --real

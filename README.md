@@ -18,7 +18,7 @@ The repository proves local build, route-contract, replay-oriented workflows, an
 - **Engine:** local/native execution and deterministic test surfaces.
 - **CLI:** local operator tooling backed by on-disk state under `~/.requiem` or repo-local `.requiem` paths, depending on command/config.
 - **ReadyLayer web app:** an authenticated operator console with a mix of:
-  - routes backed by local single-process control-plane state,
+  - routes backed by local single-runtime control-plane state in development,
   - routes that require an external API endpoint via `REQUIEM_API_URL`, and
   - informational/demo surfaces that are explicit about degraded or stubbed behavior.
 
@@ -64,8 +64,9 @@ Before any non-local deployment:
 1. Read [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
 2. Fill environment variables from [docs/ENVIRONMENT.md](./docs/ENVIRONMENT.md).
 3. Decide whether your deployment is:
-   - **console-only** (Supabase auth + UI, with degraded routes where backend wiring is absent), or
-   - **console + external API** (requires a reachable `REQUIEM_API_URL`).
+   - **local-single-runtime** (developer-only, filesystem-backed, not a production claim),
+   - **shared request-bound ReadyLayer** (requires Supabase auth envs plus `SUPABASE_SERVICE_ROLE_KEY`), or
+   - **shared request-bound ReadyLayer + external API** (same as above plus a reachable `REQUIEM_API_URL`).
 4. Reject any topology that depends on durable background work after request/process loss; current execution is request-bound even when control-plane state is shared.
 
 ## Repository layout
@@ -88,10 +89,11 @@ Before any non-local deployment:
 ### Install
 
 ```bash
+node scripts/bootstrap-preflight.mjs
 pnpm install --frozen-lockfile
 ```
 
-This requires outbound access to the public npm registry (`https://registry.npmjs.org`) for first install.
+First install requires outbound access to the public npm registry (`https://registry.npmjs.org`) or a reachable internal mirror. The bootstrap preflight fails early with exact remediation when Node/corepack/pnpm/registry prerequisites are missing.
 
 ### Core commands
 
@@ -104,6 +106,7 @@ pnpm run build
 pnpm run test
 pnpm run verify:all
 pnpm run verify:deploy-readiness
+pnpm run verify:first-customer
 ```
 
 ### What each command is for
@@ -114,7 +117,8 @@ pnpm run verify:deploy-readiness
 - `pnpm run typecheck` — ReadyLayer type-check.
 - `pnpm run build` — native engine build plus web build.
 - `pnpm run test` — engine smoke tests.
-- `pnpm run verify:release` — canonical first-customer go-live gate: deploy-readiness, route truth, docs truth, lint, typecheck, build, smoke tests, and survivability checks.
+- `pnpm run verify:first-customer` — boots the local ReadyLayer server with strict API auth and runs the canonical API smoke proof.
+- `pnpm run verify:release` — canonical first-customer go-live gate: deploy-readiness, route truth, docs truth, lint, typecheck, build, smoke tests, survivability checks, and the local first-customer boot path.
 - `pnpm run verify:all` — standard repo gate: doctor, route inventory, route checks, lint, typecheck, build, test.
 - `pnpm run verify:deploy-readiness` — checks Node/pnpm/Vercel/env-contract parity.
 
@@ -143,7 +147,7 @@ Authoritative documentation: [docs/ENVIRONMENT.md](./docs/ENVIRONMENT.md).
 High-level requirements:
 
 - **ReadyLayer auth UI requires:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **ReadyLayer strict authenticated API mode requires:** `REQUIEM_AUTH_SECRET`
+- **ReadyLayer strict authenticated API mode requires:** `REQUIEM_AUTH_SECRET` (also enables direct protected API bearer auth for operator/service clients)
 - **Production-like shared control-plane/idempotency/rate limiting require:** `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`) and `SUPABASE_SERVICE_ROLE_KEY`
 - **Routes that fetch external runtime data require:** `REQUIEM_API_URL`
 - **Prisma/DB workflows require:** `DATABASE_URL` and, where your setup uses it, `DIRECT_DATABASE_URL`
@@ -151,7 +155,8 @@ High-level requirements:
 
 Readiness truth:
 
-- `/api/readiness` passes for **console-only** deployments when auth and tenant-local persistence are healthy.
+- `/api/readiness` passes for **local-single-runtime** only when the authenticated ReadyLayer env contract is present and filesystem persistence is healthy.
+- In production-like deployments, `/api/readiness` fails closed unless shared Supabase control-plane persistence plus shared idempotency/rate-limiting are configured.
 - If `REQUIEM_API_URL` is configured, `/api/readiness` also probes that external runtime and fails until it is reachable.
 
 ## Supported topology matrix

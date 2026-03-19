@@ -19,14 +19,16 @@ describe('release verification truth', () => {
     expect(scripts['verify:routes']).toContain('verify:route-maturity');
   });
 
-  it('defines a canonical release verification command and documents it consistently', () => {
+  it('defines canonical first-customer and release verification commands and documents them consistently', () => {
     const packageJson = readJson('package.json');
     const scripts = packageJson.scripts as Record<string, string>;
     const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
     const deploymentDoc = fs.readFileSync(path.join(repoRoot, 'docs/DEPLOYMENT.md'), 'utf8');
     const runbook = fs.readFileSync(path.join(repoRoot, 'docs/OPERATOR_RUNBOOK.md'), 'utf8');
 
-    expect(scripts['verify:release']).toBeTruthy();
+    expect(scripts['verify:first-customer']).toBeTruthy();
+    expect(scripts['verify:release']).toContain('verify:first-customer');
+    expect(readme).toContain('pnpm run verify:first-customer');
     expect(readme).toContain('pnpm run verify:release');
     expect(deploymentDoc).toContain('pnpm run verify:release');
     expect(runbook).toContain('pnpm run verify:release');

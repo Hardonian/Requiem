@@ -4,12 +4,12 @@ function traceId(request: Request): string {
   return request.headers.get('x-trace-id') ?? crypto.randomUUID();
 }
 
-function mcpInitFailureResponse(request: Request, error: unknown, detail: string): Response {
+function mcpInitFailureResponse(request: Request, cause: unknown, detail: string): Response {
   const t = traceId(request);
   console.error('mcp.init.failure', {
     trace_id: t,
     route: new URL(request.url).pathname,
-    error: error instanceof Error ? error.message : String(error),
+    cause_message: cause instanceof Error ? cause.message : String(cause),
   });
 
   return NextResponse.json(
@@ -41,7 +41,7 @@ export async function GET(request: Request): Promise<Response> {
     const response = await GET_tools(request);
     response.headers.set('x-trace-id', t);
     return response;
-  } catch (error) {
-    return mcpInitFailureResponse(request, error, 'MCP tools unavailable: initialization failed');
+  } catch (cause) {
+    return mcpInitFailureResponse(request, cause, 'MCP tools unavailable: initialization failed');
   }
 }

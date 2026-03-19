@@ -7,6 +7,7 @@ This runbook is for the current repository state, not for an aspirational platfo
 ### Tooling
 
 ```bash
+node scripts/bootstrap-preflight.mjs
 pnpm install --frozen-lockfile
 pnpm run doctor
 pnpm run verify:deploy-readiness
@@ -16,18 +17,21 @@ pnpm run verify:deploy-readiness
 
 Before starting ReadyLayer, decide:
 
-- Are you running **local only** or the supported **shared-Supabase request-bound topology**?
+- Are you running **local-single-runtime** or the supported **shared-Supabase request-bound topology**?
 - Are you using **Supabase auth**?
 - Are you wiring an external runtime/API through `REQUIEM_API_URL`?
 - Are you relying on any route that is informational, degraded, or stub-backed?
 
 ## 2. Required configuration
 
-Minimum for authenticated ReadyLayer:
+Minimum for local-single-runtime ReadyLayer API proof:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `REQUIEM_AUTH_SECRET`
+
+Additional for production-like shared request-bound deployment:
+
 - `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
 - `SUPABASE_SERVICE_ROLE_KEY`
 
@@ -55,10 +59,10 @@ pnpm run verify:all
 
 ```bash
 cp ready-layer/.env.example ready-layer/.env.local
-pnpm run dev
+pnpm run verify:first-customer
 ```
 
-Install note: first install requires outbound access to `https://registry.npmjs.org`.
+Install note: first install requires outbound access to `https://registry.npmjs.org` or a reachable internal mirror.
 
 ### Single-instance deployment smoke baseline
 
@@ -74,6 +78,7 @@ pnpm run verify:release
 ```bash
 curl -sS http://localhost:3000/api/health | jq .
 curl -sS http://localhost:3000/api/readiness | jq .
+bash ready-layer/scripts/smoke-api.sh
 pnpm run verify:routes
 pnpm run verify:tenant-isolation
 pnpm run verify:nosecrets
@@ -83,7 +88,7 @@ pnpm run verify:no-stack-leaks
 Interpretation:
 
 - `/api/health` is a liveness check and should return `200` when the process is serving requests.
-- `/api/readiness` should return `200` for console-only deployments once auth and control-plane persistence are healthy.
+- `/api/readiness` should return `200` for local-single-runtime only when auth env plus filesystem persistence are healthy. Production-like deployments fail closed without shared Supabase state.
 - If `REQUIEM_API_URL` is configured, `/api/readiness` should return `503` until the external runtime health probe succeeds.
 
 ### Optional deeper verification

@@ -214,6 +214,63 @@ function createEdgeSupabaseClient(request: NextRequest): {
   }
 }
 
+
+function getDirectApiBearerSecret(): string | null {
+  const secret = process.env.REQUIEM_AUTH_SECRET?.trim();
+  return secret ? secret : null;
+}
+
+async function tryDirectApiBearerAuth(request: NextRequest, pathname: string, traceId: string): Promise<NextResponse | null> {
+  const secret = getDirectApiBearerSecret();
+  if (!secret || !pathname.startsWith('/api/')) {
+    return null;
+  }
+
+  const auth = request.headers.get('authorization') ?? '';
+  if (!auth) {
+    return null;
+  }
+  if (!auth.startsWith('Bearer ')) {
+    return problemResponse(401, 'Authentication Failed', 'Bearer token required', traceId, 'invalid_auth');
+  }
+
+  const token = auth.slice(7);
+  if (token !== secret) {
+    return problemResponse(401, 'Authentication Failed', 'Invalid bearer token', traceId, 'invalid_auth');
+  }
+
+  const tenantId = request.headers.get('x-tenant-id')?.trim();
+  if (!tenantId) {
+    return problemResponse(400, 'Authentication Failed', 'Missing tenant context (x-tenant-id)', traceId, 'missing_tenant_id');
+  }
+
+  const actorId = request.headers.get('x-user-id')?.trim() || tenantId;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-user-id', actorId);
+  requestHeaders.set('x-tenant-id', tenantId);
+  requestHeaders.set('x-requiem-authenticated', '1');
+  requestHeaders.set('x-trace-id', traceId);
+  const proof = await createInternalAuthProof({
+    tenantId,
+    actorId,
+    method: request.method,
+    pathname,
+  });
+  if (proof) {
+    requestHeaders.set(INTERNAL_AUTH_PROOF_HEADER, proof);
+  }
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+  response.headers.set('x-user-id', actorId);
+  response.headers.set('x-tenant-id', tenantId);
+  response.headers.set('x-requiem-authenticated', '1');
+  return withTraceHeader(response, traceId);
+}
+
 function handleMiddlewareError(
   error: unknown,
   request: NextRequest,
@@ -337,7 +394,21 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
   }
 
   if (pathname.startsWith('/api/')) {
+    const directBearerAuth = await tryDirectApiBearerAuth(request, pathname, traceId);
+    if (directBearerAuth) {
+      return directBearerAuth;
+    }
+
     if (!supabase) {
+      if (getDirectApiBearerSecret()) {
+        return problemResponse(
+          401,
+          'Authentication Failed',
+          'Authentication required',
+          traceId,
+          'missing_auth',
+        );
+      }
       edgeLog('warn', 'middleware.auth_service.unavailable', {
         path: pathname,
         trace_id: traceId,

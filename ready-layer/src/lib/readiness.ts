@@ -4,15 +4,21 @@ import {
   currentDeploymentTopology,
 } from '@/lib/deployment-contract';
 import { createInternalAuthProof } from '@/lib/internal-auth-proof';
-import { getAuthReadiness } from '@/lib/auth';
 import { checkControlPlanePersistence } from '@/lib/control-plane-store';
-import { isProductionLikeRuntime } from '@/lib/runtime-mode';
 import { checkSharedRuntimeCoordination } from '@/lib/shared-request-coordination';
+import {
+  resolveDeploymentTopologyMode,
+  validateRuntimeEnvContract,
+  type DeploymentTopologyMode,
+  type EnvContractCheck,
+} from '@/lib/env-contract';
 
 export interface ReadinessCheck {
   name: string;
   ok: boolean;
   detail: string;
+  required?: boolean;
+  skipped?: boolean;
 }
 
 export interface ReadinessResult {
@@ -22,19 +28,32 @@ export interface ReadinessResult {
   checks: ReadinessCheck[];
   deployment_contract: {
     topology: string;
+    topology_mode: DeploymentTopologyMode;
     execution_model: string;
     tenancy_model: string;
     background_execution_supported: false;
+    external_runtime_configured: boolean;
   };
 }
 
-async function probeEngineApi(): Promise<ReadinessCheck> {
+function toReadinessCheck(check: EnvContractCheck): ReadinessCheck {
+  return {
+    name: check.name,
+    ok: check.ok,
+    detail: check.detail,
+    required: check.required,
+  };
+}
+
+async function probeEngineApi(externalRuntimeConfigured: boolean): Promise<ReadinessCheck> {
   const baseUrl = process.env.REQUIEM_API_URL?.trim();
   if (!baseUrl) {
     return {
       name: 'engine_api_reachable',
       ok: true,
-      detail: 'REQUIEM_API_URL is not configured; external runtime probe skipped for console-only mode',
+      skipped: true,
+      required: false,
+      detail: 'REQUIEM_API_URL is not configured; external runtime probe skipped because this topology is request-bound ReadyLayer only',
     };
   }
 
@@ -53,6 +72,7 @@ async function probeEngineApi(): Promise<ReadinessCheck> {
         return {
           name: 'engine_api_reachable',
           ok: true,
+          required: externalRuntimeConfigured,
           detail: `engine health probe succeeded via ${new URL(url).pathname}`,
         };
       }
@@ -65,12 +85,12 @@ async function probeEngineApi(): Promise<ReadinessCheck> {
   return {
     name: 'engine_api_reachable',
     ok: false,
+    required: externalRuntimeConfigured,
     detail: lastFailure,
   };
 }
 
 async function probeInternalAuthProof(): Promise<ReadinessCheck> {
-  const readiness = getAuthReadiness();
   const proof = await createInternalAuthProof({
     tenantId: 'readiness-probe',
     actorId: 'readiness-probe',
@@ -80,24 +100,11 @@ async function probeInternalAuthProof(): Promise<ReadinessCheck> {
 
   return {
     name: 'auth_proof_operational',
-    ok: readiness.proof_operational && Boolean(proof),
-    detail:
-      readiness.proof_operational && proof
-        ? 'internal auth proof signing is available'
-        : 'missing REQUIEM_AUTH_INTERNAL_SECRET or REQUIEM_AUTH_SECRET for internal auth proof signing',
-  };
-}
-
-function probeAuthConfiguration(): ReadinessCheck {
-  const readiness = getAuthReadiness();
-  return {
-    name: 'auth_configuration_present',
-    ok: readiness.bearer_secret_present,
-    detail: readiness.bearer_secret_present
-      ? 'REQUIEM_AUTH_SECRET is configured'
-      : readiness.strict_mode
-        ? 'strict auth mode requires REQUIEM_AUTH_SECRET'
-        : 'REQUIEM_AUTH_SECRET is not configured',
+    ok: Boolean(proof),
+    required: true,
+    detail: proof
+      ? 'internal auth proof signing is available'
+      : 'missing REQUIEM_AUTH_INTERNAL_SECRET or REQUIEM_AUTH_SECRET for internal auth proof signing',
   };
 }
 
@@ -106,50 +113,57 @@ async function probeControlPlanePersistence(): Promise<ReadinessCheck> {
   return {
     name: 'control_plane_persistence',
     ok: result.ok,
+    required: true,
     detail: `${result.detail} (${result.mode}, root=${result.root})`,
   };
 }
 
-async function probeRuntimeCoordination(): Promise<ReadinessCheck> {
+async function probeRuntimeCoordination(required: boolean): Promise<ReadinessCheck> {
   const result = await checkSharedRuntimeCoordination();
   return {
     name: 'shared_runtime_coordination',
-    ok: result.ok,
-    detail: result.detail,
+    ok: required ? result.ok : true,
+    required,
+    skipped: !required,
+    detail: required ? result.detail : 'shared runtime coordination is optional in local-single-runtime mode',
   };
 }
 
-function probeExecutionModelTruth(): ReadinessCheck {
-  const topology = currentDeploymentTopology(isProductionLikeRuntime());
+function probeExecutionModelTruth(topologyMode: DeploymentTopologyMode): ReadinessCheck {
+  const topology = currentDeploymentTopology(topologyMode !== 'local-single-runtime', topologyMode === 'shared-supabase-request-bound-external-api');
   return {
     name: 'execution_model_contract',
     ok: true,
-    detail: `Supported topology=${topology}; execution stays ${REQUEST_EXECUTION_MODEL}; no durable background continuation is provided after process loss.`,
+    required: false,
+    detail: `Topology mode=${topologyMode}; supported topology=${topology}; execution stays ${REQUEST_EXECUTION_MODEL}; no durable background continuation is provided after process loss.`,
   };
 }
 
 export async function computeReadiness(): Promise<ReadinessResult> {
-  const productionLike = isProductionLikeRuntime();
-  const checks = [
-    probeAuthConfiguration(),
+  const envContract = validateRuntimeEnvContract();
+  const topologyMode = resolveDeploymentTopologyMode();
+  const checks: ReadinessCheck[] = [
+    ...envContract.checks.map(toReadinessCheck),
     await probeInternalAuthProof(),
     await probeControlPlanePersistence(),
-    await probeRuntimeCoordination(),
-    await probeEngineApi(),
-    probeExecutionModelTruth(),
+    await probeRuntimeCoordination(topologyMode !== 'local-single-runtime'),
+    await probeEngineApi(envContract.external_runtime_configured),
+    probeExecutionModelTruth(topologyMode),
   ];
 
-  const ok = checks.every((check) => check.ok || check.name === 'execution_model_contract');
+  const ok = checks.every((check) => !check.required || check.ok);
   return {
     ok,
     status: ok ? 'ready' : 'not_ready',
     timestamp_unix_ms: Date.now(),
     checks,
     deployment_contract: {
-      topology: currentDeploymentTopology(productionLike),
+      topology: currentDeploymentTopology(topologyMode !== 'local-single-runtime', envContract.external_runtime_configured),
+      topology_mode: topologyMode,
       execution_model: REQUEST_EXECUTION_MODEL,
       tenancy_model: TENANCY_MODEL,
       background_execution_supported: false,
+      external_runtime_configured: envContract.external_runtime_configured,
     },
   };
 }

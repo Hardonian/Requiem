@@ -4,7 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { getObservabilityContext, logStructured } from '@/lib/observability';
 import { ProblemError } from '@/lib/problem-json';
 import { isProductionLikeRuntime } from '@/lib/runtime-mode';
-import { getSupabaseServiceClient } from '@/lib/supabase-service';
+import { getSupabaseServiceClient, isSupabaseServiceConfigured } from '@/lib/supabase-service';
 import type {
   Budget,
   BudgetUnit,
@@ -37,11 +37,22 @@ const DEFAULT_BUDGET_LIMITS = {
 const LOCK_TIMEOUT_MS = Number(process.env.REQUIEM_CONTROL_PLANE_LOCK_TIMEOUT_MS ?? 5_000);
 const LOCK_STALE_MS = Number(process.env.REQUIEM_CONTROL_PLANE_LOCK_STALE_MS ?? 15_000);
 const LOCK_POLL_MS = Number(process.env.REQUIEM_CONTROL_PLANE_LOCK_POLL_MS ?? 20);
+const DURABLE_LOCK_LEASE_MS = Number(process.env.REQUIEM_CONTROL_PLANE_DURABLE_LEASE_MS ?? 10_000);
+const DURABLE_LOCK_RETRY_LIMIT = Number(process.env.REQUIEM_CONTROL_PLANE_DURABLE_RETRY_LIMIT ?? 12);
 
-type TenantLock = {
+type FilesystemTenantLock = {
+  kind: 'filesystem';
   fd: number;
   path: string;
 };
+
+type DurableTenantLock = {
+  kind: 'durable';
+  tenantId: string;
+  holderId: string;
+};
+
+type TenantLock = FilesystemTenantLock | DurableTenantLock;
 
 type BudgetUnitName = keyof typeof DEFAULT_BUDGET_LIMITS;
 
@@ -111,6 +122,13 @@ type StateRecord = {
   state: ControlPlaneState;
 };
 
+type DurableLeaseRow = {
+  tenant_id?: string;
+  holder_id?: string;
+  expires_at?: string;
+  updated_at?: string;
+};
+
 function ensureRoot(): void {
   fs.mkdirSync(ROOT, { recursive: true });
 }
@@ -155,8 +173,8 @@ function lockPathForTenant(tenantId: string): string {
   return path.join(ROOT, 'locks', `${sanitizeTenantId(tenantId)}.lock`);
 }
 
-function sleepSync(ms: number): void {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.max(1, ms));
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(1, ms)));
 }
 
 function processIsAlive(pid: number): boolean {
@@ -180,7 +198,7 @@ function readLockMetadata(lockPath: string): { pid?: number; acquired_at_unix_ms
   }
 }
 
-function acquireTenantLock(tenantId: string): TenantLock {
+function acquireFilesystemTenantLock(tenantId: string): FilesystemTenantLock {
   ensureRoot();
   const locksDir = path.join(ROOT, 'locks');
   fs.mkdirSync(locksDir, { recursive: true });
@@ -195,7 +213,7 @@ function acquireTenantLock(tenantId: string): TenantLock {
         JSON.stringify({ pid: process.pid, acquired_at_unix_ms: Date.now() }),
         'utf8',
       );
-      return { fd, path: lockPath };
+      return { kind: 'filesystem', fd, path: lockPath };
     } catch (error) {
       const code = error instanceof Error && 'code' in error
         ? (error as Error & { code?: string }).code
@@ -222,20 +240,125 @@ function acquireTenantLock(tenantId: string): TenantLock {
         continue;
       }
 
-      sleepSync(LOCK_POLL_MS);
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.max(1, LOCK_POLL_MS));
     }
   }
 
   throw new Error(`control_plane_lock_timeout:${tenantId}`);
 }
 
-function releaseTenantLock(lock: TenantLock): void {
-  try {
-    fs.closeSync(lock.fd);
-  } catch {
-    // best effort close before cleanup
+async function acquireDurableTenantLock(tenantId: string): Promise<DurableTenantLock> {
+  const client = getSupabaseServiceClient({
+    feature: 'Control-plane persistence',
+    code: 'control_plane_store_unconfigured',
+  });
+  if (!client) {
+    throw new ProblemError(503, 'Setup Required', 'Production-like deployments require Supabase-backed durable control-plane state.', {
+      code: 'control_plane_store_unconfigured',
+    });
   }
-  fs.rmSync(lock.path, { force: true });
+
+  const holderId = `${process.pid}:${randomUUID()}`;
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt <= LOCK_TIMEOUT_MS) {
+    const expiresIso = new Date(Date.now() + DURABLE_LOCK_LEASE_MS).toISOString();
+    const { error: insertError } = await client
+      .from('control_plane_leases')
+      .insert({
+        tenant_id: tenantId,
+        holder_id: holderId,
+        expires_at: expiresIso,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (!insertError) {
+      return { kind: 'durable', tenantId, holderId };
+    }
+
+    if (insertError.code !== '23505') {
+      throw new ProblemError(503, 'Control Plane Store Unavailable', 'Durable control-plane lease state could not be initialized.', {
+        code: 'control_plane_store_unavailable',
+      });
+    }
+
+    const { data, error } = await client
+      .from('control_plane_leases')
+      .select('tenant_id, holder_id, expires_at, updated_at')
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (error && !maybeNoRow(error)) {
+      throw new ProblemError(503, 'Control Plane Store Unavailable', 'Durable control-plane lease state could not be loaded.', {
+        code: 'control_plane_store_unavailable',
+      });
+    }
+
+    const current = (data ?? null) as DurableLeaseRow | null;
+    const expiresAtMs = Date.parse(String(current?.expires_at ?? ''));
+    const stale = !Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now();
+
+    if (current && stale) {
+      const { data: updated, error: updateError } = await client
+        .from('control_plane_leases')
+        .update({
+          holder_id: holderId,
+          expires_at: expiresIso,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('tenant_id', tenantId)
+        .eq('holder_id', current.holder_id ?? '')
+        .eq('updated_at', current.updated_at ?? '')
+        .select('tenant_id')
+        .maybeSingle();
+
+      if (!updateError && updated) {
+        return { kind: 'durable', tenantId, holderId };
+      }
+      if (updateError && !maybeNoRow(updateError)) {
+        throw new ProblemError(503, 'Control Plane Store Unavailable', 'Durable control-plane lease state could not be refreshed.', {
+          code: 'control_plane_store_unavailable',
+        });
+      }
+    }
+
+    await sleep(LOCK_POLL_MS);
+  }
+
+  throw new Error(`control_plane_lock_timeout:${tenantId}`);
+}
+
+async function acquireTenantLock(tenantId: string): Promise<TenantLock> {
+  if (canUseDurableStore()) {
+    return acquireDurableTenantLock(tenantId);
+  }
+  return acquireFilesystemTenantLock(tenantId);
+}
+
+async function releaseTenantLock(lock: TenantLock): Promise<void> {
+  if (lock.kind === 'filesystem') {
+    try {
+      fs.closeSync(lock.fd);
+    } catch {
+      // best effort close before cleanup
+    }
+    fs.rmSync(lock.path, { force: true });
+    return;
+  }
+
+  const client = getSupabaseServiceClient({
+    feature: 'Control-plane persistence',
+    code: 'control_plane_store_unconfigured',
+  });
+  if (!client) {
+    return;
+  }
+
+  await client
+    .from('control_plane_leases')
+    .delete()
+    .eq('tenant_id', lock.tenantId)
+    .eq('holder_id', lock.holderId);
 }
 
 function defaultBudgetState(now: number): ControlPlaneState["budgets"] {
@@ -338,10 +461,7 @@ function maybeNoRow(error: { code?: string } | null): boolean {
 }
 
 function canUseDurableStore(): boolean {
-  return Boolean(getSupabaseServiceClient({
-    feature: 'Control-plane persistence',
-    code: 'control_plane_store_unconfigured',
-  }));
+  return isSupabaseServiceConfigured();
 }
 
 async function loadDurableState(tenantId: string): Promise<StateRecord> {
@@ -462,7 +582,7 @@ async function mutateState<T>(
   mutator: (state: ControlPlaneState) => T,
   meta: { operation: string; entity_id?: string } = { operation: 'control_plane.mutate' },
 ): Promise<T> {
-  const lock = acquireTenantLock(tenantId);
+  const lock = await acquireTenantLock(tenantId);
   const startedAt = Date.now();
   const ctx = getObservabilityContext();
 
@@ -474,28 +594,50 @@ async function mutateState<T>(
     request_id: ctx?.request_id,
     actor_id: ctx?.actor_id,
     route_id: ctx?.route_id,
+    coordination_scope: lock.kind === 'durable' ? 'durable-shared' : 'filesystem-single-runtime',
   });
 
   try {
-    const record = await loadState(tenantId);
-    const result = await mutator(record.state);
-    await saveState(record);
-    logStructured('info', 'control_plane.mutation.completed', {
-      operation: meta.operation,
-      entity_id: meta.entity_id,
-      tenant_id: tenantId,
-      trace_id: ctx?.trace_id,
-      request_id: ctx?.request_id,
-      actor_id: ctx?.actor_id,
-      route_id: ctx?.route_id,
-      duration_ms: Date.now() - startedAt,
-      log_head_seq: record.state.logs[0]?.seq ?? 0,
-      plans_total: record.state.plans.length,
-      runs_total: record.state.plan_runs.length,
-      snapshots_total: record.state.snapshots.length,
-      state_revision: record.revision,
+    for (let attempt = 0; attempt < Math.max(1, DURABLE_LOCK_RETRY_LIMIT); attempt += 1) {
+      const record = await loadState(tenantId);
+      const result = await mutator(record.state);
+      const saved = await saveState(record);
+      if (!saved) {
+        logStructured('warn', 'control_plane.mutation.retry', {
+          operation: meta.operation,
+          entity_id: meta.entity_id,
+          tenant_id: tenantId,
+          trace_id: ctx?.trace_id,
+          request_id: ctx?.request_id,
+          actor_id: ctx?.actor_id,
+          route_id: ctx?.route_id,
+          attempt: attempt + 1,
+        });
+        continue;
+      }
+
+      logStructured('info', 'control_plane.mutation.completed', {
+        operation: meta.operation,
+        entity_id: meta.entity_id,
+        tenant_id: tenantId,
+        trace_id: ctx?.trace_id,
+        request_id: ctx?.request_id,
+        actor_id: ctx?.actor_id,
+        route_id: ctx?.route_id,
+        duration_ms: Date.now() - startedAt,
+        log_head_seq: record.state.logs[0]?.seq ?? 0,
+        plans_total: record.state.plans.length,
+        runs_total: record.state.plan_runs.length,
+        snapshots_total: record.state.snapshots.length,
+        state_revision: record.revision,
+        coordination_scope: lock.kind === 'durable' ? 'durable-shared' : 'filesystem-single-runtime',
+      });
+      return result;
+    }
+
+    throw new ProblemError(409, 'Concurrent Request Conflict', 'Durable control-plane state changed repeatedly during this mutation. Retry the request with a new idempotency key after the competing write completes.', {
+      code: 'control_plane_concurrent_mutation',
     });
-    return result;
   } catch (error) {
     logStructured('error', 'control_plane.mutation.failed', {
       operation: meta.operation,
@@ -506,10 +648,11 @@ async function mutateState<T>(
       actor_id: ctx?.actor_id,
       route_id: ctx?.route_id,
       duration_ms: Date.now() - startedAt,
+      coordination_scope: lock.kind === 'durable' ? 'durable-shared' : 'filesystem-single-runtime',
     }, error);
     throw error;
   } finally {
-    releaseTenantLock(lock);
+    await releaseTenantLock(lock);
   }
 }
 
@@ -529,16 +672,29 @@ export async function checkControlPlanePersistence(): Promise<{ ok: boolean; det
         };
       }
 
-      const { error } = await client
+      const controlPlaneProbe = await client
         .from('control_plane_state')
         .select('tenant_id')
         .eq('tenant_id', '__readiness_probe__')
         .maybeSingle();
-
-      if (error && !maybeNoRow(error)) {
+      if (controlPlaneProbe.error && !maybeNoRow(controlPlaneProbe.error)) {
         return {
           ok: false,
-          detail: error.message ?? 'durable control-plane probe failed',
+          detail: controlPlaneProbe.error.message ?? 'durable control-plane probe failed',
+          root: 'supabase',
+          mode: 'durable-shared',
+        };
+      }
+
+      const leaseProbe = await client
+        .from('control_plane_leases')
+        .select('tenant_id')
+        .eq('tenant_id', '__readiness_probe__')
+        .maybeSingle();
+      if (leaseProbe.error && !maybeNoRow(leaseProbe.error)) {
+        return {
+          ok: false,
+          detail: leaseProbe.error.message ?? 'durable control-plane lease probe failed',
           root: 'supabase',
           mode: 'durable-shared',
         };
@@ -546,7 +702,7 @@ export async function checkControlPlanePersistence(): Promise<{ ok: boolean; det
 
       return {
         ok: true,
-        detail: 'durable shared control-plane read probe succeeded',
+        detail: 'durable shared control-plane state and lease probes succeeded',
         root: 'supabase',
         mode: 'durable-shared',
       };
@@ -560,6 +716,15 @@ export async function checkControlPlanePersistence(): Promise<{ ok: boolean; det
     }
   }
 
+  if (isProductionLikeRuntime()) {
+    return {
+      ok: false,
+      detail: 'production-like deployments require Supabase-backed durable control-plane state and cannot rely on filesystem-local persistence',
+      root: ROOT,
+      mode: 'filesystem',
+    };
+  }
+
   try {
     ensureRoot();
     const probesDir = path.join(ROOT, 'probes');
@@ -571,7 +736,7 @@ export async function checkControlPlanePersistence(): Promise<{ ok: boolean; det
     fs.renameSync(tempFile, probeFile);
     const observed = fs.readFileSync(probeFile, 'utf8');
     fs.rmSync(probeFile, { force: true });
-    return { ok: observed === payload, detail: 'filesystem read/write/rename probe succeeded', root: ROOT, mode: 'filesystem' };
+    return { ok: observed === payload, detail: 'filesystem read/write/rename probe succeeded for local-single-runtime mode', root: ROOT, mode: 'filesystem' };
   } catch (error) {
     return {
       ok: false,

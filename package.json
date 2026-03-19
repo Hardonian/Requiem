@@ -1,7 +1,7 @@
 {
   "name": "requiem",
   "version": "1.0.0",
-  "description": "Provable AI Runtime \u2014 deterministic execution, enforced governance, replayable outcomes",
+  "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
@@ -117,8 +117,12 @@
     "verify:route-maturity": "node scripts/run-tsx.mjs scripts/verify-route-maturity.ts",
     "verify:route-parity": "pnpm --filter ready-layer test -- tests/openapi-route-parity.test.ts tests/route-completeness.test.ts tests/release-verification-truth.test.ts",
     "verify:docs-truth": "node scripts/run-tsx.mjs scripts/docs-truth-gate.ts",
-    "verify:release": "npm-run-all verify:deploy-readiness route:inventory verify:routes verify:docs-truth lint typecheck build test verify:survivability",
-    "verify:survivability": "pnpm --filter ready-layer verify:survivability"
+    "verify:release": "npm-run-all verify:deploy-readiness route:inventory verify:routes verify:docs-truth lint typecheck build test verify:survivability verify:first-customer",
+    "verify:survivability": "pnpm --filter ready-layer verify:survivability",
+    "preinstall": "node scripts/enforce-package-manager.mjs",
+    "bootstrap:preflight": "node scripts/bootstrap-preflight.mjs",
+    "smoke:api": "bash ready-layer/scripts/smoke-api.sh",
+    "verify:first-customer": "node scripts/verify-first-customer-flow.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

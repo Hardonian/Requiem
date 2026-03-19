@@ -60,8 +60,16 @@ if (!existsSync('ready-layer/.env.example')) {
   fail('Missing ready-layer/.env.example (required for environment contract)');
 }
 
+if (!existsSync('scripts/bootstrap-preflight.mjs')) {
+  fail('Missing scripts/bootstrap-preflight.mjs (required for clean-room bootstrap diagnostics)');
+}
+
+if (!existsSync('scripts/verify-first-customer-flow.mjs')) {
+  fail('Missing scripts/verify-first-customer-flow.mjs (required for canonical first-customer operator proof)');
+}
+
 const envExample = readFileSync('ready-layer/.env.example', 'utf8');
-for (const requiredKey of ['REQUIEM_API_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']) {
+for (const requiredKey of ['REQUIEM_API_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'REQUIEM_AUTH_SECRET']) {
   if (!envExample.includes(`${requiredKey}=`)) {
     fail(`ready-layer/.env.example must include ${requiredKey}`);
   }
@@ -81,4 +89,4 @@ if (/(^|\s)(pnpm\s+install|npm\s+install|yarn\s+install)($|\s)/.test(vercelBuild
   fail('root scripts.build:vercel must not run install commands');
 }
 
-console.log('✅ Deploy readiness contract is valid (local/CI/Vercel parity checks passed)');
+console.log('✅ Deploy readiness contract is valid (bootstrap/deploy/operator parity checks passed)');

@@ -17,8 +17,9 @@ There are two practical env scopes in this repo:
 | --- | --- | --- |
 | Local CLI only | Use CLI and engine without ReadyLayer auth UI | Usually none beyond toolchain; some commands need provider-specific vars |
 | ReadyLayer local dev | Run `pnpm run dev` and sign-in pages locally | Supabase public envs |
-| ReadyLayer authenticated deployment | Hosted/single-instance console with authenticated routes | Supabase public envs + `REQUIEM_AUTH_SECRET` |
-| ReadyLayer + external runtime/API | Authenticated deployment where runtime-backed pages call an external API | Supabase public envs + `REQUIEM_AUTH_SECRET` + `REQUIEM_API_URL` |
+| ReadyLayer local-single-runtime | Local developer boot with filesystem-backed state | Supabase public envs + `REQUIEM_AUTH_SECRET` |
+| ReadyLayer shared request-bound deployment | Production-like deployment with shared control-plane/idempotency/rate limiting | Supabase public envs + `REQUIEM_AUTH_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` |
+| ReadyLayer + external runtime/API | Shared request-bound deployment where runtime-backed pages call an external API | Supabase public envs + `REQUIEM_AUTH_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` + `REQUIEM_API_URL` |
 | Prisma/DB workflows | `prisma validate`, generate, or migrations | `DATABASE_URL` and typically `DIRECT_DATABASE_URL` |
 
 ## Variables
@@ -35,7 +36,7 @@ There are two practical env scopes in this repo:
 
 | Variable | Required? | Modes | Security critical? | What it does | Failure mode if missing |
 | --- | --- | --- | --- | --- | --- |
-| `REQUIEM_AUTH_SECRET` | Required for deployed authenticated API usage | Staging, production, test, any strict-auth deployment | Yes | Bearer-token/shared-secret validation for route auth helpers and internal auth proof fallback | Protected routes fail closed in strict mode with `auth_secret_required` or related auth errors |
+| `REQUIEM_AUTH_SECRET` | Required for deployed authenticated API usage | Staging, production, test, any strict-auth deployment | Yes | Bearer-token/shared-secret validation for route auth helpers, direct protected API auth, and internal auth proof fallback | Protected routes fail closed in strict mode with `auth_secret_required` or related auth errors |
 | `REQUIEM_AUTH_MODE` | Optional | Mostly local development | Yes | Overrides auth mode selection; `strict` forces fail-closed, `local-dev` allows development behavior | If unset, mode defaults by `NODE_ENV` (`production`/`staging`/`test` => strict) |
 | `REQUIEM_ALLOW_INSECURE_DEV_AUTH` | Optional and **dev-only** | Local development only | Yes | Allows insecure local bearer-token fallback when not in strict mode | If unset or `0`, missing `REQUIEM_AUTH_SECRET` stays an error; if set in deployed env, that is operator error |
 
@@ -51,7 +52,8 @@ Important: `REQUIEM_API_URL` is **not** required for every ReadyLayer page. Some
 
 Readiness contract:
 
-- If `REQUIEM_API_URL` is **unset**, `/api/readiness` evaluates console-only readiness and does not fail solely because the external runtime is absent.
+- In `local-single-runtime`, `/api/readiness` can pass with filesystem persistence only when the authenticated ReadyLayer env contract is otherwise present.
+- In production-like/shared deployments, `/api/readiness` fails closed unless `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`) and `SUPABASE_SERVICE_ROLE_KEY` provide shared control-plane persistence plus shared idempotency/rate limiting.
 - If `REQUIEM_API_URL` is **set**, `/api/readiness` probes that endpoint and fails until the runtime health probe succeeds.
 
 ### Database / Prisma
@@ -111,12 +113,13 @@ Those names are no longer presented as operator-required repo truth because the 
 ### ReadyLayer local dev
 
 ```bash
+node scripts/bootstrap-preflight.mjs
 cp ready-layer/.env.example ready-layer/.env.local
 pnpm install --frozen-lockfile
-pnpm run dev
+pnpm run verify:first-customer
 ```
 
-First install needs outbound access to `https://registry.npmjs.org`.
+First install needs outbound access to `https://registry.npmjs.org` or a reachable internal mirror.
 
 ### Root local repo flow
 
