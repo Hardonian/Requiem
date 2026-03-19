@@ -144,7 +144,7 @@ export default function ConsolePlansPage() {
         if (envelope.ok && envelope.data?.result?.run_id) {
           setRunFeedback({
             status: "verified",
-            message: `Run ${envelope.data.result.run_id} completed and is now recorded in tenant history.`,
+            message: `Run ${envelope.data.result.run_id} completed in-request and is now durably recorded in tenant history.`,
           });
           await fetchPlanRuns(planHash);
         } else {
@@ -170,7 +170,7 @@ export default function ConsolePlansPage() {
     <div className="mx-auto max-w-7xl p-6">
       <PageHeader
         title="Plans"
-        description="Plan definitions and execution workflows. This route reads and runs tenant-scoped plans stored by the local control-plane runtime."
+        description="Plan definitions and request-bound execution workflows. In production-like deployments this route uses shared durable control-plane state, but each run still completes only inside the handling request/runtime."
       />
 
       <RouteMaturityNote

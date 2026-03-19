@@ -10,6 +10,7 @@ Use this page as the canonical documentation navigation spine.
 - [ENVIRONMENT.md](./ENVIRONMENT.md)
 - [DEPLOYMENT.md](./DEPLOYMENT.md)
 - [OPERATOR_RUNBOOK.md](./OPERATOR_RUNBOOK.md)
+- Canonical release gate: `pnpm run verify:release`
 - [OSS_BOUNDARY.md](./OSS_BOUNDARY.md)
 - [Route maturity map](./reference/ROUTE_MATURITY.md)
 

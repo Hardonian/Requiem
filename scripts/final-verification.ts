@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 /**
+ * Historical note: this script is not the canonical release gate for first-customer deployments.
+ * Use `pnpm run verify:release` instead.
+ *
  * SECTION 9 — FINAL VERIFICATION (PROVE IT)
  * 
  * Runs and shows evidence for all optimization requirements:

@@ -2,6 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { getObservabilityContext, logStructured } from '@/lib/observability';
+import { ProblemError } from '@/lib/problem-json';
+import { isProductionLikeRuntime } from '@/lib/runtime-mode';
+import { getSupabaseServiceClient } from '@/lib/supabase-service';
 import type {
   Budget,
   BudgetUnit,
@@ -458,7 +461,7 @@ async function mutateState<T>(
   tenantId: string,
   mutator: (state: ControlPlaneState) => T,
   meta: { operation: string; entity_id?: string } = { operation: 'control_plane.mutate' },
-): T {
+): Promise<T> {
   const lock = acquireTenantLock(tenantId);
   const startedAt = Date.now();
   const ctx = getObservabilityContext();
@@ -474,9 +477,9 @@ async function mutateState<T>(
   });
 
   try {
-    const state = readState(tenantId);
-    const result = mutator(state);
-    writeState(state);
+    const record = await loadState(tenantId);
+    const result = await mutator(record.state);
+    await saveState(record);
     logStructured('info', 'control_plane.mutation.completed', {
       operation: meta.operation,
       entity_id: meta.entity_id,
@@ -486,10 +489,11 @@ async function mutateState<T>(
       actor_id: ctx?.actor_id,
       route_id: ctx?.route_id,
       duration_ms: Date.now() - startedAt,
-      log_head_seq: state.logs[0]?.seq ?? 0,
-      plans_total: state.plans.length,
-      runs_total: state.plan_runs.length,
-      snapshots_total: state.snapshots.length,
+      log_head_seq: record.state.logs[0]?.seq ?? 0,
+      plans_total: record.state.plans.length,
+      runs_total: record.state.plan_runs.length,
+      snapshots_total: record.state.snapshots.length,
+      state_revision: record.revision,
     });
     return result;
   } catch (error) {
@@ -509,7 +513,53 @@ async function mutateState<T>(
   }
 }
 
-export function checkControlPlanePersistence(): { ok: boolean; detail: string; root: string } {
+export async function checkControlPlanePersistence(): Promise<{ ok: boolean; detail: string; root: string; mode: 'filesystem' | 'durable-shared' }> {
+  if (canUseDurableStore()) {
+    try {
+      const client = getSupabaseServiceClient({
+        feature: 'Control-plane persistence',
+        code: 'control_plane_store_unconfigured',
+      });
+      if (!client) {
+        return {
+          ok: false,
+          detail: 'durable control-plane client unavailable',
+          root: 'supabase',
+          mode: 'durable-shared',
+        };
+      }
+
+      const { error } = await client
+        .from('control_plane_state')
+        .select('tenant_id')
+        .eq('tenant_id', '__readiness_probe__')
+        .maybeSingle();
+
+      if (error && !maybeNoRow(error)) {
+        return {
+          ok: false,
+          detail: error.message ?? 'durable control-plane probe failed',
+          root: 'supabase',
+          mode: 'durable-shared',
+        };
+      }
+
+      return {
+        ok: true,
+        detail: 'durable shared control-plane read probe succeeded',
+        root: 'supabase',
+        mode: 'durable-shared',
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        detail: error instanceof Error ? error.message : 'durable control-plane probe failed',
+        root: 'supabase',
+        mode: 'durable-shared',
+      };
+    }
+  }
+
   try {
     ensureRoot();
     const probesDir = path.join(ROOT, 'probes');
@@ -521,12 +571,13 @@ export function checkControlPlanePersistence(): { ok: boolean; detail: string; r
     fs.renameSync(tempFile, probeFile);
     const observed = fs.readFileSync(probeFile, 'utf8');
     fs.rmSync(probeFile, { force: true });
-    return { ok: observed === payload, detail: 'filesystem read/write/rename probe succeeded', root: ROOT };
+    return { ok: observed === payload, detail: 'filesystem read/write/rename probe succeeded', root: ROOT, mode: 'filesystem' };
   } catch (error) {
     return {
       ok: false,
       detail: error instanceof Error ? error.message : 'control-plane persistence probe failed',
       root: ROOT,
+      mode: 'filesystem',
     };
   }
 }

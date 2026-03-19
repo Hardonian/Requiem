@@ -29,7 +29,7 @@ There are two practical env scopes in this repo:
 | --- | --- | --- | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Required for authenticated ReadyLayer UI | ReadyLayer local dev, deployed ReadyLayer | Yes | Lets browser/server initialize Supabase auth client | Sign-in/sign-up forms cannot initialize; middleware cannot create Supabase client |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Required for authenticated ReadyLayer UI | ReadyLayer local dev, deployed ReadyLayer | Yes, but public-by-design | Public anon key for Supabase auth flows | Same as above |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Only server-side features that explicitly use service-role access | Yes | Enables privileged Supabase server operations where implemented | Features depending on privileged Supabase access degrade or remain unavailable |
+| `SUPABASE_SERVICE_ROLE_KEY` | Required for production-like ReadyLayer deployments | Shared server-side control-plane persistence, rate limiting, and idempotency | Yes | Enables shared durable control-plane and coordination state | Production-like protected routes fail closed with `shared_runtime_coordination_unconfigured` / `control_plane_store_unconfigured` |
 
 ### ReadyLayer auth enforcement
 

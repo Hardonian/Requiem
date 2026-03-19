@@ -34,7 +34,7 @@ describe('control-plane concurrency and idempotency', () => {
     };
 
     const { listPlans } = await import('../src/lib/control-plane-store');
-    const plans = listPlans('tenant-lock');
+    const plans = await listPlans('tenant-lock');
     expect(plans).toHaveLength(workerCount);
     expect(new Set(plans.map((plan) => plan.plan_id)).size).toBe(workerCount);
 
@@ -45,7 +45,7 @@ describe('control-plane concurrency and idempotency', () => {
     const controlPlaneDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ready-layer-idempotency-'));
     process.env = {
       ...originalEnv,
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'idempotency-secret',
       REQUIEM_CONTROL_PLANE_DIR: controlPlaneDir,
     };
