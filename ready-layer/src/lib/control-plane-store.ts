@@ -19,6 +19,11 @@ import type {
   PolicyListItem,
   PolicyRule,
   Snapshot,
+  TenantAdminRole,
+  TenantJobRecord,
+  TenantOrganization,
+  TenantOrganizationHealth,
+  TenantOrganizationMember,
 } from '@/types/engine';
 
 const ROOT =
@@ -94,6 +99,10 @@ type PlanRunRecord = PlanRunResult & {
   replay_of_run_id?: string;
 };
 
+type OrganizationRecord = TenantOrganization;
+type OrganizationMemberRecord = TenantOrganizationMember;
+type PlanJobRecord = TenantJobRecord;
+
 type LogRecord = EventLogEntry & {
   message: string;
   payload: Record<string, unknown>;
@@ -112,6 +121,9 @@ type ControlPlaneState = {
   decisions: DecisionRecord[];
   plans: PlanRecord[];
   plan_runs: PlanRunRecord[];
+  organizations: OrganizationRecord[];
+  organization_members: OrganizationMemberRecord[];
+  plan_jobs: PlanJobRecord[];
   snapshots: Snapshot[];
   logs: LogRecord[];
   cas_objects: CasObject[];
@@ -402,6 +414,9 @@ function createEmptyState(tenantId: string): ControlPlaneState {
     decisions: [],
     plans: [],
     plan_runs: [],
+    organizations: [],
+    organization_members: [],
+    plan_jobs: [],
     snapshots: [],
     logs: [],
     cas_objects: [],
@@ -423,6 +438,9 @@ function normalizeState(tenantId: string, parsed?: Partial<ControlPlaneState> | 
     decisions: Array.isArray(parsed?.decisions) ? parsed.decisions : [],
     plans: Array.isArray(parsed?.plans) ? parsed.plans : [],
     plan_runs: Array.isArray(parsed?.plan_runs) ? parsed.plan_runs : [],
+    organizations: Array.isArray(parsed?.organizations) ? parsed.organizations : [],
+    organization_members: Array.isArray(parsed?.organization_members) ? parsed.organization_members : [],
+    plan_jobs: Array.isArray(parsed?.plan_jobs) ? parsed.plan_jobs : [],
     snapshots: Array.isArray(parsed?.snapshots) ? parsed.snapshots : [],
     logs: Array.isArray(parsed?.logs) ? parsed.logs : [],
     cas_objects: Array.isArray(parsed?.cas_objects) ? parsed.cas_objects : [],
@@ -880,6 +898,112 @@ function buildBudget(state: ControlPlaneState): Budget {
   };
 }
 
+const ROLE_PRIORITY: Record<TenantAdminRole, number> = {
+  viewer: 1,
+  operator: 2,
+  admin: 3,
+};
+
+const JOB_LEASE_MS = Number(process.env.REQUIEM_PLAN_JOB_LEASE_MS ?? 30_000);
+const JOB_RETRY_DELAY_MS = Number(process.env.REQUIEM_PLAN_JOB_RETRY_DELAY_MS ?? 5_000);
+
+function slugifyOrgName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64) || 'org';
+}
+
+function organizationFor(state: ControlPlaneState, orgId: string): OrganizationRecord | undefined {
+  return state.organizations.find((entry) => entry.org_id === orgId);
+}
+
+function membershipFor(
+  state: ControlPlaneState,
+  orgId: string,
+  actorId: string,
+): OrganizationMemberRecord | undefined {
+  return state.organization_members.find((entry) => entry.org_id === orgId && entry.actor_id === actorId);
+}
+
+function actorRoleFor(
+  state: ControlPlaneState,
+  orgId: string,
+  actorId: string,
+): TenantAdminRole | null {
+  return membershipFor(state, orgId, actorId)?.role ?? null;
+}
+
+function requireOrganizationRole(
+  state: ControlPlaneState,
+  orgId: string,
+  actorId: string,
+  minimumRole: TenantAdminRole,
+): TenantAdminRole {
+  const role = actorRoleFor(state, orgId, actorId);
+  if (!role) {
+    throw new ProblemError(403, 'Forbidden', 'Actor is not a member of the requested organization.', {
+      code: 'organization_membership_required',
+      errors: [{ org_id: orgId }],
+    });
+  }
+  if (ROLE_PRIORITY[role] < ROLE_PRIORITY[minimumRole]) {
+    throw new ProblemError(403, 'Forbidden', 'Actor role is insufficient for the requested organization action.', {
+      code: 'organization_role_denied',
+      errors: [{ org_id: orgId, role, required_role: minimumRole }],
+    });
+  }
+  return role;
+}
+
+function ensureOrganizationExists(state: ControlPlaneState, orgId: string): OrganizationRecord {
+  const organization = organizationFor(state, orgId);
+  if (!organization) {
+    throw new ProblemError(404, 'Organization Not Found', 'No organization matched the requested org_id.', {
+      code: 'organization_not_found',
+      errors: [{ org_id: orgId }],
+    });
+  }
+  return organization;
+}
+
+function upsertOrganizationMembership(
+  state: ControlPlaneState,
+  orgId: string,
+  actorId: string,
+  role: TenantAdminRole,
+): OrganizationMemberRecord {
+  const now = Date.now();
+  const existing = membershipFor(state, orgId, actorId);
+  if (existing) {
+    existing.role = role;
+    existing.updated_at_unix_ms = now;
+    return existing;
+  }
+
+  const created: OrganizationMemberRecord = {
+    org_id: orgId,
+    actor_id: actorId,
+    role,
+    created_at_unix_ms: now,
+    updated_at_unix_ms: now,
+  };
+  state.organization_members.unshift(created);
+  return created;
+}
+
+function nextJobToClaim(state: ControlPlaneState, orgId: string | null, now: number): PlanJobRecord | undefined {
+  return state.plan_jobs
+    .filter((job) =>
+      (orgId ? job.org_id === orgId : true)
+      && (job.status === 'pending' || job.status === 'retry_wait')
+      && job.next_attempt_at_unix_ms <= now,
+    )
+    .sort((a, b) => a.created_at_unix_ms - b.created_at_unix_ms)[0];
+}
+
 export async function getBudget(tenantId: string): Promise<Budget> {
   const record = await loadState(tenantId);
   return buildBudget(record.state);
@@ -1332,6 +1456,413 @@ export async function replayPlanRun(
     });
     return replay;
   }, { operation: 'plan.replay', entity_id: runId });
+}
+
+export async function listOrganizations(
+  tenantId: string,
+  actorId: string,
+): Promise<{ organizations: OrganizationRecord[]; memberships: OrganizationMemberRecord[] }> {
+  const record = await loadState(tenantId);
+  const memberships = record.state.organization_members.filter((entry) => entry.actor_id === actorId);
+  const memberOrgIds = new Set(memberships.map((entry) => entry.org_id));
+  const organizations = record.state.organizations
+    .filter((entry) => memberOrgIds.has(entry.org_id))
+    .sort((a, b) => b.updated_at_unix_ms - a.updated_at_unix_ms);
+  return { organizations, memberships };
+}
+
+export async function createOrganization(
+  tenantId: string,
+  actorId: string,
+  input: {
+    org_id: string;
+    name: string;
+    plan?: 'free' | 'growth' | 'enterprise';
+    budget_cents?: number;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<{ organization: OrganizationRecord; membership: OrganizationMemberRecord }> {
+  return mutateState(tenantId, (state) => {
+    if (organizationFor(state, input.org_id)) {
+      throw new ProblemError(409, 'Organization Exists', 'An organization with this org_id already exists in the tenant.', {
+        code: 'organization_exists',
+        errors: [{ org_id: input.org_id }],
+      });
+    }
+    const now = Date.now();
+    const organization: OrganizationRecord = {
+      org_id: input.org_id,
+      tenant_id: tenantId,
+      name: input.name.trim(),
+      slug: slugifyOrgName(input.name),
+      status: 'active',
+      plan: input.plan ?? 'growth',
+      budget_cents: Math.max(0, input.budget_cents ?? 0),
+      metadata: input.metadata ?? {},
+      created_by: actorId,
+      created_at_unix_ms: now,
+      updated_at_unix_ms: now,
+    };
+    state.organizations.unshift(organization);
+    const membership = upsertOrganizationMembership(state, organization.org_id, actorId, 'admin');
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.create',
+      payload: { org_id: organization.org_id, plan: organization.plan, budget_cents: organization.budget_cents },
+    });
+    return { organization, membership };
+  }, { operation: 'organization.create', entity_id: input.org_id });
+}
+
+export async function updateOrganization(
+  tenantId: string,
+  actorId: string,
+  input: {
+    org_id: string;
+    name?: string;
+    status?: 'active' | 'paused' | 'degraded';
+    plan?: 'free' | 'growth' | 'enterprise';
+    budget_cents?: number;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<OrganizationRecord> {
+  return mutateState(tenantId, (state) => {
+    const organization = ensureOrganizationExists(state, input.org_id);
+    requireOrganizationRole(state, input.org_id, actorId, 'admin');
+    if (typeof input.name === 'string' && input.name.trim()) {
+      organization.name = input.name.trim();
+      organization.slug = slugifyOrgName(input.name);
+    }
+    if (input.status) organization.status = input.status;
+    if (input.plan) organization.plan = input.plan;
+    if (typeof input.budget_cents === 'number') organization.budget_cents = Math.max(0, input.budget_cents);
+    if (input.metadata) organization.metadata = input.metadata;
+    organization.updated_at_unix_ms = Date.now();
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.update',
+      payload: { org_id: organization.org_id, status: organization.status, plan: organization.plan },
+    });
+    return organization;
+  }, { operation: 'organization.update', entity_id: input.org_id });
+}
+
+export async function deleteOrganization(
+  tenantId: string,
+  actorId: string,
+  orgId: string,
+): Promise<boolean> {
+  return mutateState(tenantId, (state) => {
+    ensureOrganizationExists(state, orgId);
+    requireOrganizationRole(state, orgId, actorId, 'admin');
+    state.organizations = state.organizations.filter((entry) => entry.org_id !== orgId);
+    state.organization_members = state.organization_members.filter((entry) => entry.org_id !== orgId);
+    state.plan_jobs = state.plan_jobs.filter((entry) => entry.org_id !== orgId);
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.delete',
+      payload: { org_id: orgId },
+    });
+    return true;
+  }, { operation: 'organization.delete', entity_id: orgId });
+}
+
+export async function setOrganizationMemberRole(
+  tenantId: string,
+  actorId: string,
+  input: { org_id: string; subject: string; role: TenantAdminRole },
+): Promise<OrganizationMemberRecord> {
+  return mutateState(tenantId, (state) => {
+    ensureOrganizationExists(state, input.org_id);
+    requireOrganizationRole(state, input.org_id, actorId, 'admin');
+    const membership = upsertOrganizationMembership(state, input.org_id, input.subject, input.role);
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.member.set_role',
+      payload: { org_id: input.org_id, subject: input.subject, role: input.role },
+    });
+    return membership;
+  }, { operation: 'organization.member.set_role', entity_id: input.org_id });
+}
+
+export async function validateOrganizationAdmin(
+  tenantId: string,
+  actorId: string,
+  orgId: string,
+  minimumRole: TenantAdminRole = 'admin',
+): Promise<{ org_id: string; actor_id: string; role: TenantAdminRole | null; allow: boolean; reasons: string[] }> {
+  const record = await loadState(tenantId);
+  const role = actorRoleFor(record.state, orgId, actorId);
+  const allow = role !== null && ROLE_PRIORITY[role] >= ROLE_PRIORITY[minimumRole];
+  return {
+    org_id: orgId,
+    actor_id: actorId,
+    role,
+    allow,
+    reasons: allow ? [] : [
+      role === null ? 'actor_is_not_an_org_member' : `role_${role}_below_required_${minimumRole}`,
+    ],
+  };
+}
+
+export async function enqueuePlanJob(
+  tenantId: string,
+  actorId: string,
+  input: { org_id: string; plan_hash: string; max_attempts?: number },
+): Promise<PlanJobRecord> {
+  return mutateState(tenantId, (state) => {
+    ensureOrganizationExists(state, input.org_id);
+    requireOrganizationRole(state, input.org_id, actorId, 'operator');
+    if (!state.plans.some((entry) => entry.plan_hash === input.plan_hash)) {
+      throw new ProblemError(404, 'Plan Not Found', 'No plan matched the provided plan_hash.', {
+        code: 'plan_not_found',
+        errors: [{ plan_hash: input.plan_hash }],
+      });
+    }
+    const now = Date.now();
+    const job: PlanJobRecord = {
+      job_id: `job_${hashValue({ tenantId, orgId: input.org_id, planHash: input.plan_hash, now }).slice(0, 16)}`,
+      tenant_id: tenantId,
+      org_id: input.org_id,
+      plan_hash: input.plan_hash,
+      status: 'pending',
+      attempt_count: 0,
+      max_attempts: Math.max(1, input.max_attempts ?? 3),
+      lease_owner: null,
+      lease_expires_at_unix_ms: null,
+      next_attempt_at_unix_ms: now,
+      last_error_code: null,
+      last_error_detail: null,
+      created_by: actorId,
+      created_at_unix_ms: now,
+      updated_at_unix_ms: now,
+      completed_run_id: null,
+    };
+    state.plan_jobs.unshift(job);
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'plan.job.enqueue',
+      payload: { org_id: input.org_id, job_id: job.job_id, plan_hash: input.plan_hash, max_attempts: job.max_attempts },
+    });
+    return job;
+  }, { operation: 'plan.job.enqueue', entity_id: input.org_id });
+}
+
+export async function recoverStalePlanJobs(
+  tenantId: string,
+  actorId: string,
+  orgId?: string,
+): Promise<string[]> {
+  return mutateState(tenantId, (state) => {
+    const now = Date.now();
+    const recovered: string[] = [];
+    for (const job of state.plan_jobs) {
+      if (orgId && job.org_id !== orgId) continue;
+      if (job.status === 'running' && (job.lease_expires_at_unix_ms ?? 0) <= now) {
+        requireOrganizationRole(state, job.org_id, actorId, 'operator');
+        job.status = job.attempt_count >= job.max_attempts ? 'failed' : 'pending';
+        job.lease_owner = null;
+        job.lease_expires_at_unix_ms = null;
+        job.next_attempt_at_unix_ms = now;
+        job.last_error_code = job.status === 'failed' ? 'job_lease_expired_max_attempts' : 'job_lease_expired_recovered';
+        job.last_error_detail = 'Recovered after process loss or lease expiry.';
+        job.updated_at_unix_ms = now;
+        recovered.push(job.job_id);
+      }
+    }
+    if (recovered.length > 0) {
+      appendLog(state, {
+        tenant_id: tenantId,
+        actor: actorId,
+        event_type: 'plan.job.recover',
+        payload: { org_id: orgId ?? null, recovered_jobs: recovered },
+      });
+    }
+    return recovered;
+  }, { operation: 'plan.job.recover', entity_id: orgId });
+}
+
+export async function claimNextPlanJob(
+  tenantId: string,
+  actorId: string,
+  workerId: string,
+  orgId?: string,
+): Promise<PlanJobRecord | null> {
+  return mutateState(tenantId, (state) => {
+    if (orgId) {
+      ensureOrganizationExists(state, orgId);
+      requireOrganizationRole(state, orgId, actorId, 'operator');
+    }
+    const now = Date.now();
+    const job = nextJobToClaim(state, orgId ?? null, now);
+    if (!job) {
+      return null;
+    }
+    requireOrganizationRole(state, job.org_id, actorId, 'operator');
+    job.status = 'running';
+    job.attempt_count += 1;
+    job.lease_owner = workerId;
+    job.lease_expires_at_unix_ms = now + JOB_LEASE_MS;
+    job.updated_at_unix_ms = now;
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'plan.job.claim',
+      payload: { org_id: job.org_id, job_id: job.job_id, worker_id: workerId, attempt_count: job.attempt_count },
+    });
+    return { ...job };
+  }, { operation: 'plan.job.claim', entity_id: orgId ?? workerId });
+}
+
+async function finalizePlanJob(
+  tenantId: string,
+  actorId: string,
+  workerId: string,
+  jobId: string,
+  outcome: { ok: true; run_id: string } | { ok: false; code: string; detail: string },
+): Promise<PlanJobRecord | null> {
+  return mutateState(tenantId, (state) => {
+    const job = state.plan_jobs.find((entry) => entry.job_id === jobId);
+    if (!job) {
+      return null;
+    }
+    requireOrganizationRole(state, job.org_id, actorId, 'operator');
+    if (job.lease_owner !== workerId) {
+      throw new ProblemError(409, 'Job Lease Conflict', 'The durable plan job lease is owned by a different worker.', {
+        code: 'plan_job_lease_conflict',
+        errors: [{ job_id: jobId }],
+      });
+    }
+    const now = Date.now();
+    job.lease_owner = null;
+    job.lease_expires_at_unix_ms = null;
+    job.updated_at_unix_ms = now;
+    if (outcome.ok) {
+      job.status = 'completed';
+      job.completed_run_id = outcome.run_id;
+      job.last_error_code = null;
+      job.last_error_detail = null;
+    } else {
+      const retryable = job.attempt_count < job.max_attempts;
+      job.status = retryable ? 'retry_wait' : 'failed';
+      job.next_attempt_at_unix_ms = retryable ? now + JOB_RETRY_DELAY_MS : now;
+      job.last_error_code = outcome.code;
+      job.last_error_detail = outcome.detail;
+    }
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: outcome.ok ? 'plan.job.complete' : 'plan.job.fail',
+      payload: {
+        org_id: job.org_id,
+        job_id: job.job_id,
+        status: job.status,
+        completed_run_id: job.completed_run_id,
+        last_error_code: job.last_error_code,
+      },
+    });
+    return { ...job };
+  }, { operation: 'plan.job.finalize', entity_id: jobId });
+}
+
+export async function processPlanJobs(
+  tenantId: string,
+  actorId: string,
+  workerId: string,
+  options: { org_id?: string; limit?: number } = {},
+): Promise<Array<{ job: PlanJobRecord; run_id: string | null }>> {
+  await recoverStalePlanJobs(tenantId, actorId, options.org_id);
+  const processed: Array<{ job: PlanJobRecord; run_id: string | null }> = [];
+  const limit = Math.max(1, options.limit ?? 1);
+  for (let index = 0; index < limit; index += 1) {
+    const job = await claimNextPlanJob(tenantId, actorId, workerId, options.org_id);
+    if (!job) {
+      break;
+    }
+    try {
+      const run = await runPlan(tenantId, actorId, job.plan_hash);
+      if (!run) {
+        const failed = await finalizePlanJob(tenantId, actorId, workerId, job.job_id, {
+          ok: false,
+          code: 'plan_not_found',
+          detail: 'Plan disappeared before queued job execution.',
+        });
+        if (failed) processed.push({ job: failed, run_id: null });
+        continue;
+      }
+      const completed = await finalizePlanJob(tenantId, actorId, workerId, job.job_id, {
+        ok: true,
+        run_id: run.run_id,
+      });
+      if (completed) processed.push({ job: completed, run_id: run.run_id });
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : 'queued job execution failed';
+      const failed = await finalizePlanJob(tenantId, actorId, workerId, job.job_id, {
+        ok: false,
+        code: 'plan_job_execution_failed',
+        detail,
+      });
+      if (failed) processed.push({ job: failed, run_id: null });
+    }
+  }
+  return processed;
+}
+
+export async function listPlanJobs(
+  tenantId: string,
+  actorId: string,
+  orgId?: string,
+): Promise<PlanJobRecord[]> {
+  const record = await loadState(tenantId);
+  const jobs = record.state.plan_jobs.filter((entry) => {
+    if (orgId && entry.org_id !== orgId) return false;
+    return actorRoleFor(record.state, entry.org_id, actorId) !== null;
+  });
+  return jobs.sort((a, b) => b.updated_at_unix_ms - a.updated_at_unix_ms);
+}
+
+export async function getTenantOrganizationsHealth(
+  tenantId: string,
+  actorId: string,
+): Promise<TenantOrganizationHealth[]> {
+  const record = await loadState(tenantId);
+  const actorOrgIds = new Set(
+    record.state.organization_members
+      .filter((entry) => entry.actor_id === actorId)
+      .map((entry) => entry.org_id),
+  );
+  return record.state.organizations
+    .filter((organization) => actorOrgIds.has(organization.org_id))
+    .map((organization) => {
+      const jobs = record.state.plan_jobs.filter((entry) => entry.org_id === organization.org_id);
+      const runningJobs = jobs.filter((entry) => entry.status === 'running').length;
+      const pendingJobs = jobs.filter((entry) => entry.status === 'pending' || entry.status === 'retry_wait').length;
+      const latestCompleted = jobs
+        .filter((entry) => entry.status === 'completed')
+        .sort((a, b) => b.updated_at_unix_ms - a.updated_at_unix_ms)[0];
+      const latestFailure = jobs
+        .filter((entry) => entry.last_error_code)
+        .sort((a, b) => b.updated_at_unix_ms - a.updated_at_unix_ms)[0];
+      return {
+        org_id: organization.org_id,
+        tenant_id: tenantId,
+        status: organization.status === 'paused'
+          ? 'paused' as const
+          : latestFailure?.last_error_code
+            ? 'degraded' as const
+            : 'healthy' as const,
+        queue_depth: pendingJobs,
+        jobs_running: runningJobs,
+        last_job_completed_at_unix_ms: latestCompleted?.updated_at_unix_ms ?? null,
+        last_error_code: latestFailure?.last_error_code ?? null,
+      };
+    })
+    .sort((a, b) => a.org_id.localeCompare(b.org_id));
 }
 
 export async function listSnapshots(tenantId: string): Promise<Snapshot[]> {

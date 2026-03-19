@@ -6,8 +6,8 @@ This document describes what deployment shapes are honestly supported by the cur
 
 - The repo is strongest as a **local/CI-verifiable codebase**.
 - The supported first-customer topology is **ReadyLayer request-bound execution backed by shared Supabase state**.
-- One or more ReadyLayer instances can serve traffic honestly **only** for request-bound semantics; there is no durable background continuation after request/process loss.
-- The current web tenancy model is **single authenticated user -> single tenant ID**.
+- One or more ReadyLayer instances can serve traffic honestly for request-bound foreground semantics, and the shared control-plane can durably resume queued plan jobs after request/process loss.
+- The current web tenancy model is **shared tenant scope with tenant-local organizations and role membership on the control plane**.
 
 ## Product/deployment model
 
@@ -30,10 +30,10 @@ Middleware derives tenant context from the current Supabase user and forwards th
 
 That means the current repo truth is:
 
-- one authenticated user maps to one tenant scope,
-- there is no proven org/team/workspace membership model,
-- there is no proven invitation or seat-management model,
-- there is no proven admin boundary for multi-user shared tenants.
+- tenant scope is still derived server-side from authenticated context,
+- the shared control plane now persists tenant-local organizations plus explicit `admin` / `operator` / `viewer` membership roles,
+- organization administration and durable plan-job execution are proven through ReadyLayer APIs and tests,
+- invitation and seat-management workflows still do not exist as a first-class product flow.
 
 ## Supported topology matrix
 

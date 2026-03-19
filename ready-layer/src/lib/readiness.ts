@@ -31,7 +31,7 @@ export interface ReadinessResult {
     topology_mode: DeploymentTopologyMode;
     execution_model: string;
     tenancy_model: string;
-    background_execution_supported: false;
+    background_execution_supported: boolean;
     external_runtime_configured: boolean;
   };
 }
@@ -135,7 +135,7 @@ function probeExecutionModelTruth(topologyMode: DeploymentTopologyMode): Readine
     name: 'execution_model_contract',
     ok: true,
     required: false,
-    detail: `Topology mode=${topologyMode}; supported topology=${topology}; execution stays ${REQUEST_EXECUTION_MODEL}; no durable background continuation is provided after process loss.`,
+    detail: `Topology mode=${topologyMode}; supported topology=${topology}; foreground execution stays ${REQUEST_EXECUTION_MODEL}; durable plan jobs can be resumed after process loss through the shared control-plane queue.`,
   };
 }
 
@@ -162,7 +162,7 @@ export async function computeReadiness(): Promise<ReadinessResult> {
       topology_mode: topologyMode,
       execution_model: REQUEST_EXECUTION_MODEL,
       tenancy_model: TENANCY_MODEL,
-      background_execution_supported: false,
+      background_execution_supported: true,
       external_runtime_configured: envContract.external_runtime_configured,
     },
   };
