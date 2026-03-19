@@ -5,8 +5,8 @@ This document describes what deployment shapes are honestly supported by the cur
 ## Short version
 
 - The repo is strongest as a **local/CI-verifiable codebase**.
-- A **single ReadyLayer instance** can be an honest deployment if you accept current single-process limits.
-- A **shared multi-replica control plane** is not yet a proven deployment target.
+- The supported first-customer topology is **ReadyLayer request-bound execution backed by shared Supabase state**.
+- One or more ReadyLayer instances can serve traffic honestly **only** for request-bound semantics; there is no durable background continuation after request/process loss.
 - The current web tenancy model is **single authenticated user -> single tenant ID**.
 
 ## Product/deployment model
@@ -40,48 +40,48 @@ That means the current repo truth is:
 | CLI on a developer machine | Yes | Local storage and local verification flows are first-class | None beyond local filesystem/toolchain |
 | Engine build/test in CI | Yes | Native engine and route checks are codified in scripts/workflows | CI runner with Node/CMake/toolchain |
 | ReadyLayer local dev server | Yes | Good fit for route verification and UI evaluation | Supabase public envs for auth flows |
-| Single ReadyLayer process with Supabase auth | Yes, with caveats | Honest if you accept process-local rate limiting, idempotency, and cache scope | Supabase auth; optional DB/API wiring |
-| Single ReadyLayer process + external `REQUIEM_API_URL` | Yes, with caveats | Runtime-backed pages can work if API is reachable | Supabase auth + external API |
-| Multiple ReadyLayer replicas behind one load balancer | No proven support | Request guards expose `memory-single-process` scope; local control-plane state is not shared | Would require shared backing for request guards and state |
-| Serverless/edge ReadyLayer with ephemeral local state assumptions | Not supported | Local process/filesystem assumptions are not deployment-safe there | N/A |
+| ReadyLayer process with shared Supabase-backed state | Yes | Canonical first-customer topology when request-bound execution is acceptable | Supabase auth + SUPABASE_SERVICE_ROLE_KEY (+ optional external API) |
+| ReadyLayer process + external `REQUIEM_API_URL` | Yes | Runtime-backed pages can work if API is reachable | Supabase auth + SUPABASE_SERVICE_ROLE_KEY + external API |
+| Multiple ReadyLayer replicas behind one load balancer | Yes, with bounded semantics | Shared request coordination/control-plane state is supported, but execution is still request-bound and does not continue after process loss | Supabase auth + SUPABASE_SERVICE_ROLE_KEY |
+| Serverless/edge ReadyLayer claiming durable async execution | Not supported | Request-bound execution must not be represented as durable background orchestration | N/A |
 | Shared org/team SaaS control plane | Not implemented | Current tenant derivation is per-user, not shared-org | N/A |
 
 ## Why horizontal replication is not yet honest
 
-Current ReadyLayer request infrastructure uses in-memory `Map` instances for:
+In production-like deployments, ReadyLayer now requires shared Supabase-backed state for:
 
 - token-bucket rate limiting,
-- idempotency replay records,
-- response caching.
+- idempotency replay/recovery state,
+- tenant-scoped control-plane persistence.
 
-Responses also expose `x-requiem-rate-limit-scope`, `x-requiem-idempotency-scope`, and `x-requiem-cache-scope` as `memory-single-process` to make that limitation explicit.
+Responses expose `x-requiem-rate-limit-scope`, `x-requiem-idempotency-scope`, `x-requiem-cache-scope`, `x-requiem-execution-model`, and `x-requiem-supported-topology` so operators can observe the actual contract.
 
-So a horizontally replicated deployment would have per-instance behavior unless the implementation changes first.
+Horizontal replication is honest only because execution is explicitly request-bound. A crashed process does **not** continue work in the background; clients must retry or reconcile.
 
 ## Filesystem/local-state assumptions
 
-Several repo surfaces assume local process or local filesystem ownership:
+Several repo surfaces still assume local process or local filesystem ownership outside the supported deployment shape:
 
 - CLI state under `~/.requiem` / local data paths,
-- ReadyLayer local control-plane state on disk for some operational routes,
-- route flows that disclose tenant-local paths rather than shared cluster state.
+- ReadyLayer local development mode when durable env is absent,
+- route flows that disclose tenant-local paths for local verification.
 
-If your deployment model assumes stateless app instances plus durable shared backing, the repo is not there yet by default.
+Production-like ReadyLayer deployments must use shared Supabase backing and must not reinterpret request-bound execution as durable async work.
 
 ## What “production-plausible” means here
 
 For this repository, “production-plausible” means only:
 
-- the app can be deployed as a **single instance**,
+- the app can be deployed as one or more instances backed by shared Supabase coordination/state,
 - required auth/config is provided,
 - routes that are degraded or stub-backed stay honestly described,
-- operators do not claim multi-replica or multi-org guarantees that the code does not prove.
+- operators do not claim durable background execution or multi-org guarantees that the code does not prove.
 
 It does **not** mean:
 
-- horizontally safe operation,
+- durable background execution after process/request loss,
 - enterprise SaaS tenancy maturity,
-- globally shared control-plane state,
+- org/team shared tenancy,
 - complete runtime backing for every UI surface.
 
 ## Deployment checklist
@@ -102,7 +102,7 @@ It does **not** mean:
    ```bash
    pnpm install --frozen-lockfile
    pnpm run verify:deploy-readiness
-   pnpm run verify:all
+   pnpm run verify:release
    ```
 
 4. Decide whether each required route is:
@@ -134,4 +134,4 @@ Do not do these:
 - deploy with `REQUIEM_ALLOW_INSECURE_DEV_AUTH=1`,
 - market `/app/tenants` as proof of live shared-tenant management,
 - treat informational/demo pages as runtime health evidence,
-- claim replicated safety while request guards remain memory-single-process.
+- claim durable background continuation after a request/process dies.

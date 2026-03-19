@@ -26,10 +26,12 @@ export type SharedIdempotencyClaim =
   | { kind: 'started'; scope: SharedCoordinationScope }
   | { kind: 'replay'; scope: SharedCoordinationScope; response: IdempotencyReplaySnapshot }
   | { kind: 'conflict'; scope: SharedCoordinationScope }
-  | { kind: 'in_progress'; scope: SharedCoordinationScope };
+  | { kind: 'in_progress'; scope: SharedCoordinationScope }
+  | { kind: 'recovery_required'; scope: SharedCoordinationScope; reason: string };
 
 const RATE_LIMIT_CODE = 'shared_runtime_coordination_unconfigured';
 const IDEMPOTENCY_CODE = 'shared_runtime_coordination_unconfigured';
+const DEFAULT_PENDING_STALE_MS = Number(process.env.REQUIEM_IDEMPOTENCY_PENDING_STALE_MS ?? 5 * 60 * 1000);
 
 function coercePositiveNumber(value: unknown, fallback: number): number {
   const numeric = Number(value);
@@ -38,6 +40,14 @@ function coercePositiveNumber(value: unknown, fallback: number): number {
 
 function maybeNoRow(error: { code?: string } | null): boolean {
   return Boolean(error && error.code === 'PGRST116');
+}
+
+function pendingWindowIsStale(updatedAt: unknown): boolean {
+  const updatedAtMs = Date.parse(String(updatedAt ?? ''));
+  if (!Number.isFinite(updatedAtMs)) {
+    return true;
+  }
+  return Date.now() - updatedAtMs >= Math.max(1_000, DEFAULT_PENDING_STALE_MS);
 }
 
 export async function consumeDurableRateLimit(
@@ -105,6 +115,7 @@ export async function consumeDurableRateLimit(
         tokens: nextTokens,
         last_refill_ms: now,
         revision: revision + 1,
+        updated_at: new Date().toISOString(),
       })
       .eq('scope_key', key)
       .eq('revision', revision)
@@ -148,6 +159,7 @@ export async function claimDurableIdempotency(
       scope_key: scopeKey,
       request_hash: requestHash,
       status: 'pending',
+      recovery_reason: null,
       expires_at: expiresIso,
       created_at: nowIso,
       updated_at: nowIso,
@@ -163,55 +175,108 @@ export async function claimDurableIdempotency(
     });
   }
 
-  const { data, error } = await client
-    .from('request_idempotency')
-    .select('request_hash, status, response_status, response_headers, response_body, expires_at')
-    .eq('scope_key', scopeKey)
-    .maybeSingle();
-
-  if (error || !data) {
-    throw new ProblemError(503, 'Runtime Coordination Unavailable', 'Idempotency state could not be reloaded.', {
-      code: 'shared_runtime_coordination_unavailable',
-    });
-  }
-
-  const expiresAtMs = Date.parse(String(data.expires_at ?? ''));
-  const isExpired = Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now();
-  if (isExpired) {
-    const { error: resetError } = await client
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data, error } = await client
       .from('request_idempotency')
-      .update({
-        request_hash: requestHash,
-        status: 'pending',
-        response_status: null,
-        response_headers: null,
-        response_body: null,
-        expires_at: expiresIso,
-        updated_at: nowIso,
-      })
-      .eq('scope_key', scopeKey);
-    if (!resetError) {
-      return { kind: 'started', scope: 'durable-shared' };
+      .select('request_hash, status, response_status, response_headers, response_body, expires_at, updated_at, recovery_reason')
+      .eq('scope_key', scopeKey)
+      .maybeSingle();
+
+    if (error || !data) {
+      throw new ProblemError(503, 'Runtime Coordination Unavailable', 'Idempotency state could not be reloaded.', {
+        code: 'shared_runtime_coordination_unavailable',
+      });
     }
+
+    const expiresAtMs = Date.parse(String(data.expires_at ?? ''));
+    const isExpired = Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now();
+    if (isExpired) {
+      const { data: resetData, error: resetError } = await client
+        .from('request_idempotency')
+        .update({
+          request_hash: requestHash,
+          status: 'pending',
+          recovery_reason: null,
+          response_status: null,
+          response_headers: null,
+          response_body: null,
+          expires_at: expiresIso,
+          updated_at: nowIso,
+        })
+        .eq('scope_key', scopeKey)
+        .eq('updated_at', data.updated_at)
+        .select('scope_key')
+        .maybeSingle();
+      if (!resetError && resetData) {
+        return { kind: 'started', scope: 'durable-shared' };
+      }
+      if (resetError && !maybeNoRow(resetError)) {
+        throw new ProblemError(503, 'Runtime Coordination Unavailable', 'Expired idempotency state could not be recycled.', {
+          code: 'shared_runtime_coordination_unavailable',
+        });
+      }
+      continue;
+    }
+
+    if (data.request_hash !== requestHash) {
+      return { kind: 'conflict', scope: 'durable-shared' };
+    }
+
+    if (data.status === 'completed') {
+      return {
+        kind: 'replay',
+        scope: 'durable-shared',
+        response: {
+          status: coercePositiveNumber(data.response_status, 200),
+          headers: Array.isArray(data.response_headers) ? data.response_headers as Array<[string, string]> : [],
+          bodyText: typeof data.response_body === 'string' ? data.response_body : '',
+        },
+      };
+    }
+
+    if (data.status === 'recovery_required') {
+      return {
+        kind: 'recovery_required',
+        scope: 'durable-shared',
+        reason: typeof data.recovery_reason === 'string' && data.recovery_reason.trim().length > 0
+          ? data.recovery_reason
+          : 'prior_request_outcome_unknown',
+      };
+    }
+
+    if (pendingWindowIsStale(data.updated_at)) {
+      const reason = 'stale_pending_after_possible_crash';
+      const { data: recovered, error: recoverError } = await client
+        .from('request_idempotency')
+        .update({
+          status: 'recovery_required',
+          recovery_reason: reason,
+          expires_at: expiresIso,
+          updated_at: nowIso,
+        })
+        .eq('scope_key', scopeKey)
+        .eq('request_hash', requestHash)
+        .eq('status', 'pending')
+        .eq('updated_at', data.updated_at)
+        .select('scope_key')
+        .maybeSingle();
+      if (!recoverError && recovered) {
+        return { kind: 'recovery_required', scope: 'durable-shared', reason };
+      }
+      if (recoverError && !maybeNoRow(recoverError)) {
+        throw new ProblemError(503, 'Runtime Coordination Unavailable', 'Stale idempotency state could not be reconciled.', {
+          code: 'shared_runtime_coordination_unavailable',
+        });
+      }
+      continue;
+    }
+
+    return { kind: 'in_progress', scope: 'durable-shared' };
   }
 
-  if (data.request_hash !== requestHash) {
-    return { kind: 'conflict', scope: 'durable-shared' };
-  }
-
-  if (data.status === 'completed') {
-    return {
-      kind: 'replay',
-      scope: 'durable-shared',
-      response: {
-        status: coercePositiveNumber(data.response_status, 200),
-        headers: Array.isArray(data.response_headers) ? data.response_headers as Array<[string, string]> : [],
-        bodyText: typeof data.response_body === 'string' ? data.response_body : '',
-      },
-    };
-  }
-
-  return { kind: 'in_progress', scope: 'durable-shared' };
+  throw new ProblemError(409, 'Concurrent Request Conflict', 'Could not reconcile durable idempotency state safely after repeated retries.', {
+    code: 'shared_runtime_coordination_conflict',
+  });
 }
 
 export async function persistDurableIdempotencyResponse(
@@ -234,6 +299,7 @@ export async function persistDurableIdempotencyResponse(
     .update({
       request_hash: requestHash,
       status: 'completed',
+      recovery_reason: null,
       response_status: response.status,
       response_headers: response.headers,
       response_body: response.bodyText,
@@ -241,7 +307,8 @@ export async function persistDurableIdempotencyResponse(
       updated_at: new Date().toISOString(),
     })
     .eq('scope_key', scopeKey)
-    .eq('request_hash', requestHash);
+    .eq('request_hash', requestHash)
+    .eq('status', 'pending');
 
   if (error) {
     throw new ProblemError(503, 'Runtime Coordination Unavailable', 'Idempotency response could not be persisted.', {
@@ -252,6 +319,44 @@ export async function persistDurableIdempotencyResponse(
   return 'durable-shared';
 }
 
+export async function checkSharedRuntimeCoordination(): Promise<{ ok: boolean; detail: string }> {
+  try {
+    const client = getSupabaseServiceClient({
+      feature: 'Durable idempotency protection',
+      code: IDEMPOTENCY_CODE,
+    });
+    if (!client) {
+      return {
+        ok: false,
+        detail: 'SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY are required for shared runtime coordination',
+      };
+    }
+
+    const { error } = await client
+      .from('request_idempotency')
+      .select('scope_key')
+      .eq('scope_key', '__readiness_probe__')
+      .maybeSingle();
+
+    if (error && !maybeNoRow(error)) {
+      return {
+        ok: false,
+        detail: error.message ?? 'shared runtime coordination probe failed',
+      };
+    }
+
+    return {
+      ok: true,
+      detail: 'shared runtime coordination probe succeeded',
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      detail: error instanceof Error ? error.message : 'shared runtime coordination probe failed',
+    };
+  }
+}
+
 export function ensureSharedCoordinationAvailable(feature: 'rate_limit' | 'idempotency'): void {
   if (!isProductionLikeRuntime()) {
     return;
@@ -259,6 +364,6 @@ export function ensureSharedCoordinationAvailable(feature: 'rate_limit' | 'idemp
 
   getSupabaseServiceClient({
     feature: feature === 'rate_limit' ? 'Shared rate limiting' : 'Durable idempotency protection',
-    code: 'shared_runtime_coordination_unconfigured',
+    code: feature === 'rate_limit' ? RATE_LIMIT_CODE : IDEMPOTENCY_CODE,
   });
 }

@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z, type ZodTypeAny } from 'zod';
 import { authErrorResponse, validateTenantAuth } from './auth';
+import {
+  REQUEST_EXECUTION_MODEL,
+  currentDeploymentTopology,
+} from './deployment-contract';
 import { logStructured, withObservabilityContext } from './observability';
 import {
   ProblemError,
@@ -86,7 +90,7 @@ const DEFAULT_RATE_LIMIT: RateLimitOptions = {
 };
 
 const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
-const MEMORY_SCOPE_HEADER = 'memory-single-process';
+const MEMORY_SCOPE_HEADER = 'memory-single-process' as const;
 
 function cleanupCaches(now: number): void {
   if (responseCache.size > 4096) {
@@ -180,6 +184,8 @@ function applyRuntimeScopeHeaders(
     rateLimitScope?: SharedCoordinationScope | null;
     idempotencyScope?: SharedCoordinationScope | null;
     cacheScope?: SharedCoordinationScope | null;
+    idempotencyState?: 'started' | 'replayed' | 'in_progress' | 'recovery_required' | null;
+    topology?: string;
   },
 ): Response {
   if (options.rateLimitScope) {
@@ -190,6 +196,13 @@ function applyRuntimeScopeHeaders(
   }
   if (options.cacheScope) {
     response.headers.set('x-requiem-cache-scope', options.cacheScope);
+  }
+  if (options.idempotencyState) {
+    response.headers.set('x-requiem-idempotency-state', options.idempotencyState);
+  }
+  response.headers.set('x-requiem-execution-model', REQUEST_EXECUTION_MODEL);
+  if (options.topology) {
+    response.headers.set('x-requiem-supported-topology', options.topology);
   }
   return response;
 }
@@ -223,6 +236,12 @@ function buildContext(
     pathname: req.nextUrl.pathname,
     method: req.method.toUpperCase(),
   };
+}
+
+function cacheKeyForRequest(req: NextRequest, ctx: RequestContext, cacheOptions: CacheOptions): string {
+  return cacheOptions.key
+    ? cacheOptions.key(req, ctx)
+    : `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}?${req.nextUrl.searchParams.toString()}`;
 }
 
 export function parseQueryWithSchema<TSchema extends ZodTypeAny>(
@@ -305,15 +324,16 @@ export async function withTenantContext(
   const routeId = options.routeId ?? ctx.pathname;
   const startedAtMs = Date.now();
   const productionLike = isProductionLikeRuntime();
-
+  const topology = currentDeploymentTopology(productionLike);
 
   let rateLimitScope: SharedCoordinationScope | null = null;
-  const cacheOptions = req.method.toUpperCase() === 'GET' && !productionLike ? options.cache : false;
+  const cacheOptions = req.method === 'GET' && !productionLike ? options.cache : false;
   const cacheScope: SharedCoordinationScope | null = cacheOptions ? MEMORY_SCOPE_HEADER : null;
   let idempotencyScope: SharedCoordinationScope | null = null;
   let idempotencyKeyScope: string | null = null;
   let idempotencyRequestHash: string | null = null;
   let idempotencyTtlMs = DEFAULT_IDEMPOTENCY_TTL_MS;
+  let idempotencyState: 'started' | 'replayed' | 'in_progress' | 'recovery_required' | null = null;
 
   logStructured('info', 'api.request.received', {
     route_id: routeId,
@@ -323,6 +343,8 @@ export async function withTenantContext(
     request_id: ctx.request_id,
     tenant_id: ctx.tenant_id,
     actor_id: ctx.actor_id,
+    execution_model: REQUEST_EXECUTION_MODEL,
+    supported_topology: topology,
     has_idempotency_key: Boolean(req.headers.get('idempotency-key')),
   });
 
@@ -338,158 +360,272 @@ export async function withTenantContext(
   }
 
   if (requireAuth && (!auth.ok || !auth.tenant)) {
-    const response = authErrorResponse(auth, ctx.trace_id, ctx.request_id);
-    logStructured('warn', 'api.request.denied', {
-      route_id: routeId,
-      method: ctx.method,
-      status: response.status,
-      trace_id: ctx.trace_id,
-      request_id: ctx.request_id,
-      tenant_id: ctx.tenant_id,
-      reason: auth.error ?? 'auth_failed',
+    return applyRuntimeScopeHeaders(authErrorResponse(auth, ctx.trace_id, ctx.request_id), {
+      rateLimitScope,
+      idempotencyScope,
+      cacheScope,
+      topology,
     });
-    return response;
   }
 
   try {
     const rateLimit = resolveRateLimitOptions(options.rateLimit);
-  if (rateLimit) {
-    const key = `${ctx.tenant_id}:${ctx.actor_id}:${routeId}`;
-    const consumed = consumeTokenBucket(key, rateLimit);
-    if (!consumed.allowed) {
-      logStructured('warn', 'api.rate_limit.exceeded', {
-        route_id: routeId,
-        method: ctx.method,
-        trace_id: ctx.trace_id,
-        request_id: ctx.request_id,
-        tenant_id: ctx.tenant_id,
-        actor_id: ctx.actor_id,
-        retry_after_sec: consumed.retryAfterSec,
-      });
-      return applyRuntimeScopeHeaders(problemResponse({
-        status: 429,
-        title: 'Too Many Requests',
-        detail: 'Rate limit exceeded',
-        code: 'rate_limited',
-        traceId: ctx.trace_id,
-        requestId: ctx.request_id,
-        retryAfterSec: consumed.retryAfterSec,
-      }), {
-        rateLimitEnabled: true,
-        idempotencyEnabled: false,
-        cacheEnabled: false,
-      });
-    }
-  }
+    if (rateLimit) {
+      const key = `${ctx.tenant_id}:${ctx.actor_id}:${routeId}`;
+      const consumed = productionLike
+        ? await (async () => {
+          ensureSharedCoordinationAvailable('rate_limit');
+          const durable = await consumeDurableRateLimit(key, rateLimit);
+          if (!durable) {
+            throw new ProblemError(503, 'Setup Required', 'Shared rate limiting is required in production-like deployments.', {
+              code: 'shared_runtime_coordination_unconfigured',
+            });
+          }
+          rateLimitScope = durable.scope;
+          return durable;
+        })()
+        : (() => {
+          rateLimitScope = MEMORY_SCOPE_HEADER;
+          const local = consumeMemoryTokenBucket(key, rateLimit);
+          return { ...local, scope: MEMORY_SCOPE_HEADER };
+        })();
 
-  if (cacheOptions) {
-    const cacheKey = cacheOptions.key
-      ? cacheOptions.key(req, ctx)
-      : `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}?${req.nextUrl.searchParams.toString()}`;
-
-    const cached = responseCache.get(cacheKey);
-    if (cached && cached.expiresAtMs > now) {
-      const response = fromCachedResponse(cached, {
-        'x-cache-hit': '1',
-        'x-trace-id': ctx.trace_id,
-        'x-request-id': ctx.request_id,
-      });
-      response.headers.set('cache-control', computeCacheControl(cacheOptions));
-      logStructured('info', 'api.cache.hit', {
-        route_id: routeId,
-        method: ctx.method,
-        trace_id: ctx.trace_id,
-        request_id: ctx.request_id,
-        tenant_id: ctx.tenant_id,
-        actor_id: ctx.actor_id,
-      });
-      return response;
-    }
-  }
-
-  const idempotencyOptions =
-    req.method.toUpperCase() === 'POST' || req.method.toUpperCase() === 'PUT' ? options.idempotency : false;
-
-  if (idempotencyOptions) {
-    const key = req.headers.get('idempotency-key');
-
-    if (!key && idempotencyOptions.required) {
-      logStructured('warn', 'api.idempotency.missing_key', {
-        route_id: routeId,
-        method: ctx.method,
-        trace_id: ctx.trace_id,
-        request_id: ctx.request_id,
-        tenant_id: ctx.tenant_id,
-        actor_id: ctx.actor_id,
-      });
-      return problemResponse({
-        status: 400,
-        title: 'Missing Idempotency Key',
-        detail: 'Idempotency-Key header is required for this route',
-        code: 'missing_idempotency_key',
-        traceId: ctx.trace_id,
-        requestId: ctx.request_id,
-      });
-    }
-
-    if (key) {
-      idempotencyTtlMs = typeof idempotencyOptions === 'object'
-        ? idempotencyOptions.ttlMs ?? DEFAULT_IDEMPOTENCY_TTL_MS
-        : DEFAULT_IDEMPOTENCY_TTL_MS;
-      const rawBody = await req.clone().text();
-      idempotencyRequestHash = await sha256Hex(
-        `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}:${rawBody}`,
-      );
-      idempotencyKeyScope = `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}:${key}`;
-
-      const existing = idempotencyCache.get(idempotencyKeyScope);
-      if (existing && existing.expiresAtMs > now) {
-        if (existing.requestHash !== idempotencyRequestHash) {
-          logStructured('warn', 'api.idempotency.conflict', {
-            route_id: routeId,
-            method: ctx.method,
-            trace_id: ctx.trace_id,
-            request_id: ctx.request_id,
-            tenant_id: ctx.tenant_id,
-            actor_id: ctx.actor_id,
-            idempotency_key: key,
-          });
-          return problemResponse({
-            status: 409,
-            title: 'Idempotency Conflict',
-            detail: 'Idempotency-Key was reused with a different request body',
-            code: 'idempotency_conflict',
-            traceId: ctx.trace_id,
-            requestId: ctx.request_id,
-          });
-        }
-
-        logStructured('info', 'api.idempotency.replay', {
+      if (!consumed.allowed) {
+        logStructured('warn', 'api.rate_limit.exceeded', {
           route_id: routeId,
           method: ctx.method,
           trace_id: ctx.trace_id,
           request_id: ctx.request_id,
           tenant_id: ctx.tenant_id,
           actor_id: ctx.actor_id,
-          idempotency_key: key,
+          retry_after_sec: consumed.retryAfterSec,
         });
-
-        const replayed = fromCachedResponse(existing.response, {
-          'x-idempotency-replayed': '1',
-          'x-trace-id': ctx.trace_id,
-          'x-request-id': ctx.request_id,
-        });
-        replayed.headers.set('cache-control', 'no-store');
-        return applyRuntimeScopeHeaders(replayed, {
-          rateLimitEnabled: Boolean(rateLimit),
-          idempotencyEnabled: true,
-          cacheEnabled: Boolean(cacheOptions),
+        return applyRuntimeScopeHeaders(problemResponse({
+          status: 429,
+          title: 'Too Many Requests',
+          detail: 'Rate limit exceeded',
+          code: 'rate_limited',
+          traceId: ctx.trace_id,
+          requestId: ctx.request_id,
+          retryAfterSec: consumed.retryAfterSec,
+        }), {
+          rateLimitScope,
+          idempotencyScope,
+          cacheScope,
+          topology,
         });
       }
     }
-  }
 
-  try {
+    if (cacheOptions) {
+      const cacheKey = cacheKeyForRequest(req, ctx, cacheOptions);
+      const cached = responseCache.get(cacheKey);
+      if (cached && cached.expiresAtMs > now) {
+        const response = fromCachedResponse(cached, {
+          'x-cache-hit': '1',
+          'x-trace-id': ctx.trace_id,
+          'x-request-id': ctx.request_id,
+        });
+        response.headers.set('cache-control', computeCacheControl(cacheOptions));
+        logStructured('info', 'api.cache.hit', {
+          route_id: routeId,
+          method: ctx.method,
+          trace_id: ctx.trace_id,
+          request_id: ctx.request_id,
+          tenant_id: ctx.tenant_id,
+          actor_id: ctx.actor_id,
+        });
+        return applyRuntimeScopeHeaders(response, {
+          rateLimitScope,
+          idempotencyScope,
+          cacheScope,
+          topology,
+        });
+      }
+    }
+
+    const idempotencyOptions =
+      req.method === 'POST' || req.method === 'PUT' ? options.idempotency : false;
+
+    if (idempotencyOptions) {
+      const key = req.headers.get('idempotency-key');
+
+      if (!key && idempotencyOptions.required) {
+        logStructured('warn', 'api.idempotency.missing_key', {
+          route_id: routeId,
+          method: ctx.method,
+          trace_id: ctx.trace_id,
+          request_id: ctx.request_id,
+          tenant_id: ctx.tenant_id,
+          actor_id: ctx.actor_id,
+        });
+        return applyRuntimeScopeHeaders(problemResponse({
+          status: 400,
+          title: 'Missing Idempotency Key',
+          detail: 'Idempotency-Key header is required for this route',
+          code: 'missing_idempotency_key',
+          traceId: ctx.trace_id,
+          requestId: ctx.request_id,
+        }), {
+          rateLimitScope,
+          idempotencyScope,
+          cacheScope,
+          topology,
+        });
+      }
+
+      if (key) {
+        idempotencyTtlMs = typeof idempotencyOptions === 'object'
+          ? idempotencyOptions.ttlMs ?? DEFAULT_IDEMPOTENCY_TTL_MS
+          : DEFAULT_IDEMPOTENCY_TTL_MS;
+        const rawBody = await req.clone().text();
+        idempotencyRequestHash = await sha256Hex(
+          `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}:${rawBody}`,
+        );
+        idempotencyKeyScope = `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}:${key}`;
+
+        if (productionLike) {
+          ensureSharedCoordinationAvailable('idempotency');
+          const claim = await claimDurableIdempotency(
+            idempotencyKeyScope,
+            idempotencyRequestHash,
+            idempotencyTtlMs,
+          );
+          if (!claim) {
+            throw new ProblemError(503, 'Setup Required', 'Durable idempotency protection is required in production-like deployments.', {
+              code: 'shared_runtime_coordination_unconfigured',
+            });
+          }
+          idempotencyScope = claim.scope;
+
+          if (claim.kind === 'conflict') {
+            return applyRuntimeScopeHeaders(problemResponse({
+              status: 409,
+              title: 'Idempotency Conflict',
+              detail: 'Idempotency-Key was reused with a different request body',
+              code: 'idempotency_conflict',
+              traceId: ctx.trace_id,
+              requestId: ctx.request_id,
+            }), {
+              rateLimitScope,
+              idempotencyScope,
+              cacheScope,
+              topology,
+            });
+          }
+
+          if (claim.kind === 'replay') {
+            logStructured('info', 'api.idempotency.replay', {
+              route_id: routeId,
+              method: ctx.method,
+              trace_id: ctx.trace_id,
+              request_id: ctx.request_id,
+              tenant_id: ctx.tenant_id,
+              actor_id: ctx.actor_id,
+              idempotency_key: key,
+            });
+            idempotencyState = 'replayed';
+            return applyRuntimeScopeHeaders(fromCachedResponse(claim.response, {
+              'x-idempotency-replayed': '1',
+              'x-trace-id': ctx.trace_id,
+              'x-request-id': ctx.request_id,
+              'cache-control': 'no-store',
+            }), {
+              rateLimitScope,
+              idempotencyScope,
+              cacheScope,
+              idempotencyState,
+              topology,
+            });
+          }
+
+          if (claim.kind === 'in_progress') {
+            idempotencyState = 'in_progress';
+            return applyRuntimeScopeHeaders(problemResponse({
+              status: 409,
+              title: 'Idempotent Request In Progress',
+              detail: 'A prior request with this Idempotency-Key is still running in request-bound execution. Retry after the stale window or inspect the original request outcome.',
+              code: 'idempotency_in_progress',
+              traceId: ctx.trace_id,
+              requestId: ctx.request_id,
+            }), {
+              rateLimitScope,
+              idempotencyScope,
+              cacheScope,
+              idempotencyState,
+              topology,
+            });
+          }
+
+          if (claim.kind === 'recovery_required') {
+            logStructured('warn', 'api.idempotency.recovery_required', {
+              route_id: routeId,
+              method: ctx.method,
+              trace_id: ctx.trace_id,
+              request_id: ctx.request_id,
+              tenant_id: ctx.tenant_id,
+              actor_id: ctx.actor_id,
+              idempotency_key: key,
+              recovery_reason: claim.reason,
+            });
+            idempotencyState = 'recovery_required';
+            return applyRuntimeScopeHeaders(problemResponse({
+              status: 409,
+              title: 'Idempotency Recovery Required',
+              detail: 'The previous request may have mutated state before replay metadata was finalized. Reusing this Idempotency-Key is blocked to avoid double-apply; reconcile downstream state before retrying with a new key.',
+              code: 'idempotency_recovery_required',
+              traceId: ctx.trace_id,
+              requestId: ctx.request_id,
+              errors: [{ recovery_reason: claim.reason }],
+            }), {
+              rateLimitScope,
+              idempotencyScope,
+              cacheScope,
+              idempotencyState,
+              topology,
+            });
+          }
+
+          idempotencyState = 'started';
+        } else {
+          idempotencyScope = MEMORY_SCOPE_HEADER;
+          const existing = idempotencyCache.get(idempotencyKeyScope);
+          if (existing && existing.expiresAtMs > now) {
+            if (existing.requestHash !== idempotencyRequestHash) {
+              return applyRuntimeScopeHeaders(problemResponse({
+                status: 409,
+                title: 'Idempotency Conflict',
+                detail: 'Idempotency-Key was reused with a different request body',
+                code: 'idempotency_conflict',
+                traceId: ctx.trace_id,
+                requestId: ctx.request_id,
+              }), {
+                rateLimitScope,
+                idempotencyScope,
+                cacheScope,
+                topology,
+              });
+            }
+
+            idempotencyState = 'replayed';
+            return applyRuntimeScopeHeaders(fromCachedResponse(existing.response, {
+              'x-idempotency-replayed': '1',
+              'x-trace-id': ctx.trace_id,
+              'x-request-id': ctx.request_id,
+              'cache-control': 'no-store',
+            }), {
+              rateLimitScope,
+              idempotencyScope,
+              cacheScope,
+              idempotencyState,
+              topology,
+            });
+          }
+          idempotencyState = 'started';
+        }
+      }
+    }
+
     return await withObservabilityContext({
       route_id: routeId,
       tenant_id: ctx.tenant_id,
@@ -511,13 +647,18 @@ export async function withTenantContext(
           actor_id: ctx.actor_id,
           reasons: policy.reasons,
         });
-        return problemResponse({
+        return applyRuntimeScopeHeaders(problemResponse({
           status: 403,
           title: 'Policy Denied',
           detail: policy.reasons.join('; ') || 'Denied',
           code: 'policy_denied',
           traceId: ctx.trace_id,
           requestId: ctx.request_id,
+        }), {
+          rateLimitScope,
+          idempotencyScope,
+          cacheScope,
+          topology,
         });
       }
 
@@ -531,45 +672,58 @@ export async function withTenantContext(
           tenant_id: ctx.tenant_id,
           actor_id: ctx.actor_id,
           idempotency_key: req.headers.get('idempotency-key'),
+          execution_model: REQUEST_EXECUTION_MODEL,
         });
       }
 
       const response = await handler(ctx);
+      response.headers.set('x-trace-id', ctx.trace_id);
+      response.headers.set('x-request-id', ctx.request_id);
+      response.headers.set('cache-control', computeCacheControl(cacheOptions));
 
-    response.headers.set('x-trace-id', ctx.trace_id);
-    response.headers.set('x-request-id', ctx.request_id);
-    response.headers.set('cache-control', computeCacheControl(cacheOptions));
-
-    if (cacheOptions && response.status < 400) {
-      const cacheKey = cacheOptions.key
-        ? cacheOptions.key(req, ctx)
-        : `${ctx.tenant_id}:${req.method}:${req.nextUrl.pathname}?${req.nextUrl.searchParams.toString()}`;
-      responseCache.set(
-        cacheKey,
-        await toCachedResponse(response, now + Math.max(1, cacheOptions.ttlMs)),
-      );
-    }
-
-    if (idempotencyKeyScope && idempotencyRequestHash && response.status < 500) {
-      const responseSnapshot = await toCachedResponse(response, now + idempotencyTtlMs);
-      if (productionLike) {
-        idempotencyScope = await persistDurableIdempotencyResponse(
-          idempotencyKeyScope,
-          idempotencyRequestHash,
-          idempotencyTtlMs,
-          responseSnapshot,
+      if (cacheOptions && response.status < 400) {
+        responseCache.set(
+          cacheKeyForRequest(req, ctx, cacheOptions),
+          await toCachedResponse(response, now + Math.max(1, cacheOptions.ttlMs)),
         );
-      } else {
-        idempotencyCache.set(idempotencyKeyScope, {
-          requestHash: idempotencyRequestHash,
-          response: responseSnapshot,
-          expiresAtMs: now + idempotencyTtlMs,
+      }
+
+      if (idempotencyKeyScope && idempotencyRequestHash && response.status < 500) {
+        const responseSnapshot = await toCachedResponse(response, now + idempotencyTtlMs);
+        if (productionLike) {
+          idempotencyScope = await persistDurableIdempotencyResponse(
+            idempotencyKeyScope,
+            idempotencyRequestHash,
+            idempotencyTtlMs,
+            responseSnapshot,
+          );
+          idempotencyState = 'started';
+        } else {
+          idempotencyCache.set(idempotencyKeyScope, {
+            requestHash: idempotencyRequestHash,
+            response: responseSnapshot,
+            expiresAtMs: now + idempotencyTtlMs,
+          });
+          idempotencyState = 'started';
+        }
+      }
+
+      if (isMutation) {
+        logStructured('info', 'api.mutation.completed', {
+          route_id: routeId,
+          method: ctx.method,
+          status: response.status,
+          trace_id: ctx.trace_id,
+          request_id: ctx.request_id,
+          tenant_id: ctx.tenant_id,
+          actor_id: ctx.actor_id,
+          duration_ms: Date.now() - startedAtMs,
+          idempotency_key: req.headers.get('idempotency-key'),
+          execution_model: REQUEST_EXECUTION_MODEL,
         });
       }
-    }
 
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(ctx.method)) {
-      logStructured('info', 'api.mutation.completed', {
+      logStructured('info', 'api.request.completed', {
         route_id: routeId,
         method: ctx.method,
         status: response.status,
@@ -578,26 +732,15 @@ export async function withTenantContext(
         tenant_id: ctx.tenant_id,
         actor_id: ctx.actor_id,
         duration_ms: Date.now() - startedAtMs,
-        idempotency_key: req.headers.get('idempotency-key'),
       });
-    }
 
-    logStructured('info', 'api.request.completed', {
-      route_id: routeId,
-      method: ctx.method,
-      status: response.status,
-      trace_id: ctx.trace_id,
-      request_id: ctx.request_id,
-      tenant_id: ctx.tenant_id,
-      actor_id: ctx.actor_id,
-      duration_ms: Date.now() - startedAtMs,
-    });
-
-    return applyRuntimeScopeHeaders(response, {
-      rateLimitScope,
-      idempotencyScope,
-      cacheScope,
-    });
+      return applyRuntimeScopeHeaders(response, {
+        rateLimitScope,
+        idempotencyScope,
+        cacheScope,
+        idempotencyState,
+        topology,
+      });
     });
   } catch (error) {
     const response = unknownErrorToProblem(error, ctx.trace_id, ctx.request_id);
@@ -612,6 +755,7 @@ export async function withTenantContext(
         actor_id: ctx.actor_id,
         duration_ms: Date.now() - startedAtMs,
         idempotency_key: req.headers.get('idempotency-key'),
+        execution_model: REQUEST_EXECUTION_MODEL,
       }, error);
     }
 
@@ -630,6 +774,8 @@ export async function withTenantContext(
       rateLimitScope,
       idempotencyScope,
       cacheScope,
+      idempotencyState,
+      topology,
     });
   }
 }
@@ -646,5 +792,6 @@ export function jsonResponse(
   });
   response.headers.set('x-trace-id', ctx.trace_id);
   response.headers.set('x-request-id', ctx.request_id);
+  response.headers.set('x-requiem-execution-model', REQUEST_EXECUTION_MODEL);
   return response;
 }

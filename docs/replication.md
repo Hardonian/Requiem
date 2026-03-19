@@ -1,3 +1,5 @@
+> **Status: historical / non-canonical for first-customer deployment.** Current deployment truth is documented in [`README.md`](../README.md), [`DEPLOYMENT.md`](./DEPLOYMENT.md), and [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md). Treat this document as background material unless and until the code/tests re-establish the claims below.
+
 # Multi-Region Durability Replication
 
 Requiem supports multi-region durability through append-only replication streams.
