@@ -548,6 +548,115 @@ export interface PlanReplayResponse {
 }
 
 // ---------------------------------------------------------------------------
+// SaaS multi-org and durable job queue types
+// ---------------------------------------------------------------------------
+
+export type TenantAdminRole = 'admin' | 'operator' | 'viewer';
+export type TenantJobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'retry_wait' | 'cancelled';
+
+export interface TenantOrganization {
+  org_id: string;
+  tenant_id: string;
+  name: string;
+  slug: string;
+  status: 'active' | 'paused' | 'degraded';
+  plan: 'free' | 'growth' | 'enterprise';
+  budget_cents: number;
+  metadata: Record<string, unknown>;
+  created_by: string;
+  created_at_unix_ms: number;
+  updated_at_unix_ms: number;
+}
+
+export interface TenantOrganizationMember {
+  org_id: string;
+  actor_id: string;
+  role: TenantAdminRole;
+  created_at_unix_ms: number;
+  updated_at_unix_ms: number;
+}
+
+export interface TenantOrganizationHealth {
+  org_id: string;
+  tenant_id: string;
+  status: 'healthy' | 'degraded' | 'paused';
+  queue_depth: number;
+  jobs_running: number;
+  last_job_completed_at_unix_ms: number | null;
+  last_error_code: string | null;
+}
+
+export interface TenantJobRecord {
+  job_id: string;
+  tenant_id: string;
+  org_id: string;
+  plan_hash: string;
+  status: TenantJobStatus;
+  attempt_count: number;
+  max_attempts: number;
+  lease_owner: string | null;
+  lease_expires_at_unix_ms: number | null;
+  next_attempt_at_unix_ms: number;
+  last_error_code: string | null;
+  last_error_detail: string | null;
+  created_by: string;
+  created_at_unix_ms: number;
+  updated_at_unix_ms: number;
+  completed_run_id: string | null;
+}
+
+export interface TenantOrganizationsListResponse {
+  ok: boolean;
+  organizations: TenantOrganization[];
+  memberships: TenantOrganizationMember[];
+  total: number;
+}
+
+export interface TenantOrganizationMutationResponse {
+  ok: boolean;
+  organization?: TenantOrganization;
+  membership?: TenantOrganizationMember;
+  deleted?: boolean;
+  error?: TypedError;
+}
+
+export interface TenantAdminValidationResponse {
+  ok: boolean;
+  org_id: string;
+  actor_id: string;
+  role: TenantAdminRole | null;
+  allow: boolean;
+  reasons: string[];
+}
+
+export interface TenantHealthResponse {
+  ok: boolean;
+  tenant_id: string;
+  organizations: TenantOrganizationHealth[];
+  totals: {
+    organizations: number;
+    running_jobs: number;
+    pending_jobs: number;
+    failed_jobs: number;
+  };
+}
+
+export interface TenantJobsResponse {
+  ok: boolean;
+  jobs: TenantJobRecord[];
+  total: number;
+}
+
+export interface TenantJobMutationResponse {
+  ok: boolean;
+  job?: TenantJobRecord;
+  jobs?: TenantJobRecord[];
+  run_id?: string | null;
+  recovered_jobs?: string[];
+  error?: TypedError;
+}
+
+// ---------------------------------------------------------------------------
 // PHASE A: Capability Types
 // ---------------------------------------------------------------------------
 

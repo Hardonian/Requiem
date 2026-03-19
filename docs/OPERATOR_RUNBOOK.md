@@ -150,6 +150,8 @@ pnpm run verify:replay
 - `shared_runtime_coordination_unconfigured` — production-like runtime is missing Supabase service-role backing for rate limiting/idempotency.
 - `control_plane_store_unconfigured` — production-like runtime is missing shared durable control-plane backing.
 - `idempotency_recovery_required` — a previous request may have mutated state before replay metadata finalized; reconcile outcome before retrying with a new key.
+- `organization_membership_required` — actor is authenticated for the tenant but has not been granted an organization role.
+- `organization_role_denied` — actor is in the organization, but their role is below the required Admin/Operator/Viewer threshold.
 - `missing_auth` / `invalid_auth` — request/auth context is wrong.
 - `missing_tenant_id` — request reached a protected route without tenant context.
 - Explicit “backend unconfigured” or “REQUIEM_API_URL missing” copy — route needs external runtime wiring.
@@ -171,14 +173,78 @@ The current operator expectation should be:
 
 If the app instead appears healthy while key backing services are absent, treat that as a repo-truth bug.
 
-## 7. Known caveats operators must remember
+## 7. Multi-tenant SaaS operator flow
 
-- Execution remains request-bound even when state is shared; there is no durable background continuation after process loss.
+Shared request-bound ReadyLayer now supports tenant-scoped multi-organization state on the shared control plane. Each API request is still foreground request-bound, but queued plan jobs are durable and can be resumed after process loss by another worker or a later recovery call.
+
+### Create and manage organizations
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/organizations \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: org-create-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"create","org_id":"org-alpha","name":"Alpha Org","plan":"enterprise","budget_cents":500000}'
+
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/organizations \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: org-member-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"set_member_role","org_id":"org-alpha","subject":"bob","role":"operator"}'
+```
+
+### Validate roles and inspect per-org health
+
+```bash
+curl -sS "http://127.0.0.1:3000/api/tenants/admin/validate?org_id=org-alpha&minimum_role=operator" \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: bob"
+
+curl -sS http://127.0.0.1:3000/api/tenants/health \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice"
+```
+
+### Queue durable plan work and recover after process loss
+
+1. Create the plan through `/api/plans`.
+2. Enqueue a tenant/org scoped durable job.
+3. Process it from any later worker call; if a worker dies, call `recover` first or let `process` recover stale leases automatically.
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/jobs \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: bob" \
+  -H "idempotency-key: job-enqueue-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"enqueue","org_id":"org-alpha","plan_hash":"<plan_hash>"}'
+
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/jobs \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: bob" \
+  -H "idempotency-key: job-process-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"process","org_id":"org-alpha","worker_id":"worker-a","limit":10}'
+```
+
+If a worker/process dies mid-flight, the durable queue preserves the job in `running` state with a lease. A later `process` or explicit `recover` call will move expired leases back to `pending` or `failed` instead of silently losing work.
+
+## 8. Known caveats operators must remember
+
+- Foreground API handlers remain request-bound; there is still no hidden always-on scheduler inside ReadyLayer itself.
+- Durable continuation is currently implemented for control-plane plan jobs, not arbitrary external runtime tasks.
 - Some ReadyLayer routes are informational or stub-backed.
-- `/app/tenants` is not proof of full multi-user tenant administration.
-- Tenancy remains single-user-single-tenant.
+- `/app/tenants` is still a disclosure surface, not the source of truth for organization administration.
 
-## 8. Release/go-live minimum
+## 9. Release/go-live minimum
 
 Before any serious demo or deployment, capture:
 

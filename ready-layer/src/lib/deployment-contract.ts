@@ -2,7 +2,7 @@ export const REQUEST_EXECUTION_MODEL = 'request-bound-same-runtime' as const;
 export const LOCAL_DEVELOPMENT_TOPOLOGY = 'local-single-runtime' as const;
 export const SUPPORTED_DEPLOYMENT_TOPOLOGY = 'shared-supabase-request-bound' as const;
 export const EXTERNAL_RUNTIME_DEPLOYMENT_TOPOLOGY = 'shared-supabase-request-bound-external-api' as const;
-export const TENANCY_MODEL = 'single-user-single-tenant' as const;
+export const TENANCY_MODEL = 'shared-runtime-multi-tenant-multi-org' as const;
 
 export type ExecutionModel = typeof REQUEST_EXECUTION_MODEL;
 export type SupportedTopology =

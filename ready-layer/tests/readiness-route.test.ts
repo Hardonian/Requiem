@@ -76,12 +76,13 @@ describe('readiness route', () => {
 
     const { GET } = await import('../src/app/api/readiness/route');
     const response = await GET(new NextRequest('http://localhost/api/readiness'));
-    const body = await response.json() as { ok: boolean; status: string; checks: Array<{ name: string; ok: boolean; detail: string; skipped?: boolean }>; deployment_contract: { topology_mode: string } };
+    const body = await response.json() as { ok: boolean; status: string; checks: Array<{ name: string; ok: boolean; detail: string; skipped?: boolean }>; deployment_contract: { topology_mode: string; tenancy_model: string } };
 
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
     expect(body.status).toBe('ready');
     expect(body.deployment_contract.topology_mode).toBe('local-single-runtime');
+    expect(body.deployment_contract.tenancy_model).toBe('shared-runtime-multi-tenant-multi-org');
     expect(body.checks.find((check) => check.name === 'engine_api_reachable')?.skipped).toBe(true);
 
     fs.rmSync(controlPlaneDir, { recursive: true, force: true });
@@ -109,7 +110,7 @@ describe('readiness route', () => {
 
     const { GET } = await import('../src/app/api/readiness/route');
     const response = await GET(new NextRequest('http://localhost/api/readiness'));
-    const body = await response.json() as { ok: boolean; status: string; checks: Array<{ name: string; ok: boolean }>; deployment_contract: { topology: string; topology_mode: string; execution_model: string } };
+    const body = await response.json() as { ok: boolean; status: string; checks: Array<{ name: string; ok: boolean }>; deployment_contract: { topology: string; topology_mode: string; execution_model: string; background_execution_supported: boolean } };
 
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
@@ -117,6 +118,7 @@ describe('readiness route', () => {
     expect(body.deployment_contract.topology).toBe('shared-supabase-request-bound-external-api');
     expect(body.deployment_contract.topology_mode).toBe('shared-supabase-request-bound-external-api');
     expect(body.deployment_contract.execution_model).toBe('request-bound-same-runtime');
+    expect(body.deployment_contract.background_execution_supported).toBe(true);
     expect(body.checks.filter((check) => check.name !== 'execution_model_contract').every((check) => check.ok)).toBe(true);
 
     server.close();
