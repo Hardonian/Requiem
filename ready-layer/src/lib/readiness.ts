@@ -1,6 +1,13 @@
+import {
+  REQUEST_EXECUTION_MODEL,
+  TENANCY_MODEL,
+  currentDeploymentTopology,
+} from '@/lib/deployment-contract';
 import { createInternalAuthProof } from '@/lib/internal-auth-proof';
 import { getAuthReadiness } from '@/lib/auth';
 import { checkControlPlanePersistence } from '@/lib/control-plane-store';
+import { isProductionLikeRuntime } from '@/lib/runtime-mode';
+import { checkSharedRuntimeCoordination } from '@/lib/shared-request-coordination';
 
 export interface ReadinessCheck {
   name: string;
@@ -13,6 +20,12 @@ export interface ReadinessResult {
   status: 'ready' | 'not_ready';
   timestamp_unix_ms: number;
   checks: ReadinessCheck[];
+  deployment_contract: {
+    topology: string;
+    execution_model: string;
+    tenancy_model: string;
+    background_execution_supported: false;
+  };
 }
 
 async function probeEngineApi(): Promise<ReadinessCheck> {
@@ -88,28 +101,55 @@ function probeAuthConfiguration(): ReadinessCheck {
   };
 }
 
-function probeControlPlanePersistence(): ReadinessCheck {
-  const result = checkControlPlanePersistence();
+async function probeControlPlanePersistence(): Promise<ReadinessCheck> {
+  const result = await checkControlPlanePersistence();
   return {
     name: 'control_plane_persistence',
     ok: result.ok,
-    detail: `${result.detail} (root=${result.root})`,
+    detail: `${result.detail} (${result.mode}, root=${result.root})`,
+  };
+}
+
+async function probeRuntimeCoordination(): Promise<ReadinessCheck> {
+  const result = await checkSharedRuntimeCoordination();
+  return {
+    name: 'shared_runtime_coordination',
+    ok: result.ok,
+    detail: result.detail,
+  };
+}
+
+function probeExecutionModelTruth(): ReadinessCheck {
+  const topology = currentDeploymentTopology(isProductionLikeRuntime());
+  return {
+    name: 'execution_model_contract',
+    ok: true,
+    detail: `Supported topology=${topology}; execution stays ${REQUEST_EXECUTION_MODEL}; no durable background continuation is provided after process loss.`,
   };
 }
 
 export async function computeReadiness(): Promise<ReadinessResult> {
+  const productionLike = isProductionLikeRuntime();
   const checks = [
     probeAuthConfiguration(),
     await probeInternalAuthProof(),
-    probeControlPlanePersistence(),
+    await probeControlPlanePersistence(),
+    await probeRuntimeCoordination(),
     await probeEngineApi(),
+    probeExecutionModelTruth(),
   ];
 
-  const ok = checks.every((check) => check.ok);
+  const ok = checks.every((check) => check.ok || check.name === 'execution_model_contract');
   return {
     ok,
     status: ok ? 'ready' : 'not_ready',
     timestamp_unix_ms: Date.now(),
     checks,
+    deployment_contract: {
+      topology: currentDeploymentTopology(productionLike),
+      execution_model: REQUEST_EXECUTION_MODEL,
+      tenancy_model: TENANCY_MODEL,
+      background_execution_supported: false,
+    },
   };
 }

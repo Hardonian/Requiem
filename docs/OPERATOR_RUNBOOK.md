@@ -16,7 +16,7 @@ pnpm run verify:deploy-readiness
 
 Before starting ReadyLayer, decide:
 
-- Are you running **local only** or **single deployed instance**?
+- Are you running **local only** or the supported **shared-Supabase request-bound topology**?
 - Are you using **Supabase auth**?
 - Are you wiring an external runtime/API through `REQUIEM_API_URL`?
 - Are you relying on any route that is informational, degraded, or stub-backed?
@@ -28,6 +28,8 @@ Minimum for authenticated ReadyLayer:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `REQUIEM_AUTH_SECRET`
+- `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
+- `SUPABASE_SERVICE_ROLE_KEY`
 
 Additional when database/Prisma workflows are used:
 
@@ -60,11 +62,7 @@ pnpm run dev
 
 ```bash
 pnpm run verify:deploy-readiness
-pnpm run verify:routes
-pnpm run lint
-pnpm run typecheck
-pnpm run build
-pnpm run test
+pnpm run verify:release
 ```
 
 ## 4. Smoke tests after startup
@@ -90,6 +88,9 @@ pnpm run verify:replay
 ### Misconfiguration indicators
 
 - `auth_secret_required` — strict auth mode is active without `REQUIEM_AUTH_SECRET`.
+- `shared_runtime_coordination_unconfigured` — production-like runtime is missing Supabase service-role backing for rate limiting/idempotency.
+- `control_plane_store_unconfigured` — production-like runtime is missing shared durable control-plane backing.
+- `idempotency_recovery_required` — a previous request may have mutated state before replay metadata finalized; reconcile outcome before retrying with a new key.
 - `missing_auth` / `invalid_auth` — request/auth context is wrong.
 - `missing_tenant_id` — request reached a protected route without tenant context.
 - Explicit “backend unconfigured” or “REQUIEM_API_URL missing” copy — route needs external runtime wiring.
@@ -113,10 +114,10 @@ If the app instead appears healthy while key backing services are absent, treat 
 
 ## 7. Known caveats operators must remember
 
-- Request rate limit/idempotency/cache behavior is single-process.
+- Execution remains request-bound even when state is shared; there is no durable background continuation after process loss.
 - Some ReadyLayer routes are informational or stub-backed.
 - `/app/tenants` is not proof of full multi-user tenant administration.
-- Horizontal scaling is not an honest default deployment story today.
+- Tenancy remains single-user-single-tenant.
 
 ## 8. Release/go-live minimum
 
@@ -124,7 +125,7 @@ Before any serious demo or deployment, capture:
 
 - git SHA,
 - exact env mode used,
-- outputs of the verification commands above,
+- outputs of `pnpm run verify:release`,
 - any degraded states that remained intentional.
 
 Also review:

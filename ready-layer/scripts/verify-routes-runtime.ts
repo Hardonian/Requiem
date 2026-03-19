@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -46,13 +45,12 @@ async function main() {
       REQUIEM_CONTROL_PLANE_DIR: controlPlaneDir,
     };
 
-    const { GET: getRuns } = await import('../ready-layer/src/app/api/runs/route');
-    const { GET: getProbe, POST: postProbe } = await import('../ready-layer/src/app/api/routes-probe/route');
+    const { GET: getRuns } = await import('../src/app/api/runs/route');
+    const routesProbe = await import('../src/app/api/routes-probe/route');
 
     const authHeaders = {
       authorization: 'Bearer verify-secret',
       'x-tenant-id': 'tenant-route-test',
-      'x-user-id': 'actor-route-test',
       'x-request-id': 'req-route-test',
       'x-trace-id': 'trace-route-test',
     };
@@ -87,12 +85,12 @@ async function main() {
     if (last.trace_id !== 'trace-route-test') throw new Error(`Unexpected trace_id in audit event: ${last.trace_id}`);
     if (last.event_type !== 'RUN_LIST_VIEWED') throw new Error(`Unexpected event_type in audit event: ${last.event_type}`);
 
-    const probe404 = await getProbe(new NextRequest('http://localhost/api/routes-probe?missing=1', {
+    const probe404 = await routesProbe.GET(new NextRequest('http://localhost/api/routes-probe?missing=1', {
       headers: authHeaders,
     }));
     await expectProblemContract(probe404, 404, 'routes-probe-404');
 
-    const methodNotAllowed = await postProbe(new NextRequest('http://localhost/api/routes-probe', {
+    const methodNotAllowed = await routesProbe.POST(new NextRequest('http://localhost/api/routes-probe', {
       method: 'POST',
       headers: authHeaders,
     }));
@@ -104,7 +102,6 @@ async function main() {
         headers: {
           authorization: 'Bearer verify-secret',
           'x-tenant-id': 'tenant-burst',
-          'x-user-id': 'actor-burst',
         },
       }));
       if (burstRes.status === 429) {

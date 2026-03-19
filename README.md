@@ -9,7 +9,7 @@ Requiem is a monorepo for three related surfaces:
 - a TypeScript CLI under `packages/cli/`, and
 - a Next.js operator console under `ready-layer/`.
 
-The repository proves local build, route-contract, and replay-oriented workflows. It does **not** prove a fully distributed hosted control plane.
+The repository proves local build, route-contract, replay-oriented workflows, and a request-bound ReadyLayer deployment backed by shared Supabase state. It does **not** prove durable background workers or org/team SaaS tenancy.
 
 ## Current state
 
@@ -34,19 +34,19 @@ Supported today:
 
 - local development on one machine,
 - local verification/CI runs,
-- a single ReadyLayer deployment connected to Supabase auth and, optionally, an external Requiem API endpoint.
+- one or more ReadyLayer instances connected to Supabase auth plus Supabase service-role backed shared coordination/state, and optionally an external Requiem API endpoint.
 
 Not supported as a proven topology today:
 
-- horizontally replicated ReadyLayer instances that need shared in-flight rate limits, idempotency keys, or response cache state,
-- serverless/edge topologies that assume shared local filesystem state,
+- any deployment that expects durable background continuation after request/process loss,
+- serverless/edge topologies that reinterpret request-bound execution as durable async orchestration,
 - any deployment that markets the current ReadyLayer surface as a shared multi-user SaaS control plane.
 
 ### Control-plane and storage truth
 
 - The CLI persists local operational state to SQLite/on-disk storage.
 - Many ReadyLayer routes read or write tenant-scoped local control-plane state.
-- ReadyLayer request rate limiting, idempotency replay, and response caching are currently **memory-single-process** concerns.
+- In production-like deployments, ReadyLayer request rate limiting and idempotency replay are backed by shared Supabase state; local development still uses process-local fallbacks where safe.
 - Some routes also depend on `REQUIEM_API_URL` to reach an external runtime/API service.
 - `/app/tenants` currently returns a **stub** payload and should be read as a truth disclosure surface, not proof of live multi-tenant control-plane enforcement.
 
@@ -66,7 +66,7 @@ Before any non-local deployment:
 3. Decide whether your deployment is:
    - **console-only** (Supabase auth + UI, with degraded routes where backend wiring is absent), or
    - **console + external API** (requires a reachable `REQUIEM_API_URL`).
-4. Reject any topology that depends on shared filesystem state across replicas unless you have first replaced the local-only assumptions in code.
+4. Reject any topology that depends on durable background work after request/process loss; current execution is request-bound even when control-plane state is shared.
 
 ## Repository layout
 
@@ -112,6 +112,7 @@ pnpm run verify:deploy-readiness
 - `pnpm run typecheck` — ReadyLayer type-check.
 - `pnpm run build` — native engine build plus web build.
 - `pnpm run test` — engine smoke tests.
+- `pnpm run verify:release` — canonical first-customer go-live gate: deploy-readiness, route truth, docs truth, lint, typecheck, build, smoke tests, and survivability checks.
 - `pnpm run verify:all` — standard repo gate: doctor, route inventory, route checks, lint, typecheck, build, test.
 - `pnpm run verify:deploy-readiness` — checks Node/pnpm/Vercel/env-contract parity.
 
@@ -141,6 +142,7 @@ High-level requirements:
 
 - **ReadyLayer auth UI requires:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - **ReadyLayer strict authenticated API mode requires:** `REQUIEM_AUTH_SECRET`
+- **Production-like shared control-plane/idempotency/rate limiting require:** `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`) and `SUPABASE_SERVICE_ROLE_KEY`
 - **Routes that fetch external runtime data require:** `REQUIEM_API_URL`
 - **Prisma/DB workflows require:** `DATABASE_URL` and, where your setup uses it, `DIRECT_DATABASE_URL`
 - **Unsafe local-only auth fallback:** `REQUIEM_ALLOW_INSECURE_DEV_AUTH=1` only outside strict auth mode; never use this for production deployment
@@ -150,13 +152,13 @@ High-level requirements:
 | Topology | Status | Notes |
 | --- | --- | --- |
 | CLI on one machine | Supported | Uses local filesystem/SQLite state. |
-| ReadyLayer dev server on one machine | Supported | Requires Supabase envs for authenticated flows. |
-| Single ReadyLayer instance + external API endpoint | Plausible | Honest deployment only if operators accept single-process limits for in-memory guards. |
-| Multiple ReadyLayer replicas sharing production traffic | Not proven | Rate limit, idempotency, and cache scopes are memory-single-process. |
-| Edge/serverless deployment assuming shared local state | Not supported | Local store assumptions and process-local caches do not translate cleanly. |
+| ReadyLayer dev server on one machine | Supported | Uses local filesystem state and process-local caches intentionally. |
+| ReadyLayer deployment with Supabase-backed shared state | Supported | Request coordination/control-plane state are shared; execution still remains request-bound in the handling runtime. |
+| Multiple ReadyLayer replicas sharing production traffic | Supported with bounded semantics | Safe only for request-bound flows backed by shared Supabase state; there is no durable background continuation after request/process loss. |
+| Edge/serverless deployment claiming durable async continuation | Not supported | Request-bound execution must not be marketed as durable async orchestration. |
 | Org/team multi-user SaaS control plane | Not implemented | Current tenant derivation is single-user-scoped. |
 
-Full detail: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
+Full detail: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md). Release gate: `pnpm run verify:release`.
 
 ## Architecture truth
 
@@ -165,7 +167,7 @@ At a high level:
 1. the native engine is the local trust anchor for engine-specific build/test flows,
 2. the CLI orchestrates local workflows and persists local state,
 3. ReadyLayer middleware authenticates through Supabase and maps each authenticated user to a tenant ID equal to that user ID,
-4. ReadyLayer API routes use tenant wrappers that add structured error handling, route contracts, and single-process rate-limit/idempotency/cache behavior,
+4. ReadyLayer API routes use tenant wrappers that add structured error handling, route contracts, shared durable idempotency/rate limiting in production-like deployments, and explicit request-bound execution headers,
 5. some console routes remain informational, degraded, or stubbed rather than live runtime proof.
 
 Use these docs as the current truth spine:

@@ -186,4 +186,62 @@ describe('durable shared runtime state', () => {
     expect(second.headers.get('x-requiem-idempotency-scope')).toBe('durable-shared');
     expect(executions).toBe(1);
   });
+
+  it('blocks stale pending idempotency records after a post-mutation persistence failure without double-applying', async () => {
+    process.env.REQUIEM_IDEMPOTENCY_PENDING_STALE_MS = '1';
+    let executions = 0;
+
+    const { ProblemError } = await import('../src/lib/problem-json');
+    vi.doMock('../src/lib/shared-request-coordination', async () => {
+      const actual = await vi.importActual<typeof import('../src/lib/shared-request-coordination')>('../src/lib/shared-request-coordination');
+      return {
+        ...actual,
+        persistDurableIdempotencyResponse: vi.fn(async () => {
+          throw new ProblemError(503, 'Runtime Coordination Unavailable', 'simulated post-mutation crash window', {
+            code: 'shared_runtime_coordination_unavailable',
+          });
+        }),
+      };
+    });
+
+    const invoke = async () => {
+      const { withTenantContext } = await import('../src/lib/big4-http');
+      return withTenantContext(
+        new NextRequest('http://localhost/api/durable-idempotency-crash', {
+          method: 'POST',
+          headers: {
+            authorization: 'Bearer prod-secret',
+            'x-tenant-id': 'tenant-a',
+            'content-type': 'application/json',
+            'idempotency-key': 'crash-key',
+          },
+          body: JSON.stringify({ action: 'mutate' }),
+        }),
+        async () => {
+          executions += 1;
+          return Response.json({ ok: true, executions });
+        },
+        async () => ({ allow: true, reasons: [] }),
+        { idempotency: { required: true } },
+      );
+    };
+
+    const first = await invoke();
+    expect(first.status).toBe(503);
+    expect(executions).toBe(1);
+
+    const pending = tables.request_idempotency.get('tenant-a:POST:/api/durable-idempotency-crash:crash-key');
+    expect(pending?.status).toBe('pending');
+    pending!.updated_at = new Date(Date.now() - 60_000).toISOString();
+
+    vi.resetModules();
+    const second = await invoke();
+    expect(second.status).toBe(409);
+    expect(second.headers.get('x-requiem-idempotency-state')).toBe('recovery_required');
+    expect(executions).toBe(1);
+
+    const secondBody = await second.json() as { code?: string; errors?: Array<{ recovery_reason?: string }> };
+    expect(secondBody.code).toBe('idempotency_recovery_required');
+    expect(secondBody.errors?.[0]?.recovery_reason).toBe('stale_pending_after_possible_crash');
+  });
 });
