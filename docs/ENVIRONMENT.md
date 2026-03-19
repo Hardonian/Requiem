@@ -49,6 +49,8 @@ There are two practical env scopes in this repo:
 
 Important: `REQUIEM_API_URL` is **not** required for every ReadyLayer page. Some routes are local-only, informational, or stub-backed.
 
+Important: `/api/readiness` is stricter than page boot. It treats external runtime reachability as part of full-runtime readiness, so it will remain `503` when `REQUIEM_API_URL` is absent even if console-only pages can still render honestly in a degraded state.
+
 ### Database / Prisma
 
 | Variable | Required? | Modes | Security critical? | What it does | Failure mode if missing |

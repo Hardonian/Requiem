@@ -87,7 +87,17 @@ It does **not** mean:
 ## Deployment checklist
 
 1. Fill env from [ENVIRONMENT.md](./ENVIRONMENT.md).
-2. Run:
+2. Decide whether you are validating:
+   - **liveness only** via `/api/health`, or
+   - **full runtime readiness** via `/api/readiness`.
+
+   `/api/readiness` is intentionally stricter: it stays not-ready until all of the following are true:
+   - `REQUIEM_AUTH_SECRET` (or equivalent internal proof secret path) is operational,
+   - control-plane persistence is writable,
+   - `REQUIEM_API_URL` is configured and answers a health probe.
+
+   That means a console-only deployment can be alive while `/api/readiness` still returns `503`.
+3. Run:
 
    ```bash
    pnpm install --frozen-lockfile
@@ -95,14 +105,27 @@ It does **not** mean:
    pnpm run verify:all
    ```
 
-3. Decide whether each required route is:
+4. Decide whether each required route is:
    - local-runtime-backed,
    - external-runtime-backed,
    - informational only,
    - stub/demo.
-4. If deploying ReadyLayer, verify auth behavior with real Supabase envs.
-5. If using `REQUIEM_API_URL`, verify reachable health/status endpoints and route-specific degraded states.
-6. Do not scale horizontally unless you have first removed the single-process request-guard assumptions.
+5. If deploying ReadyLayer, verify auth behavior with real Supabase envs.
+6. If using `REQUIEM_API_URL`, verify reachable health/status endpoints and route-specific degraded states.
+7. Run the HTTP smoke flow against the booted app:
+
+   ```bash
+   AUTH_TOKEN="$REQUIEM_AUTH_SECRET" BASE_URL=http://localhost:3000 bash ready-layer/scripts/smoke-api.sh
+   ```
+
+   This exercises:
+   - public route liveness,
+   - protected-route auth enforcement,
+   - idempotent budget mutation replay,
+   - read-after-write truth,
+   - plan creation, execution, and retrieval.
+
+8. Do not scale horizontally unless you have first removed the single-process request-guard assumptions.
 
 ## Unsupported deployment shortcuts
 
