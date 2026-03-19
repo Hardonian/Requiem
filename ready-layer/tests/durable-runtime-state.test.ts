@@ -6,6 +6,7 @@ type Row = Record<string, unknown>;
 const originalEnv = { ...process.env };
 const tables: Record<string, Map<string, Row>> = {
   control_plane_state: new Map(),
+  control_plane_leases: new Map(),
   request_idempotency: new Map(),
   rate_limit_buckets: new Map(),
 };
@@ -17,7 +18,7 @@ function resetTables(): void {
 }
 
 function primaryKeyFor(table: string, row: Row): string {
-  if (table === 'control_plane_state') return String(row.tenant_id);
+  if (table === 'control_plane_state' || table === 'control_plane_leases') return String(row.tenant_id);
   return String(row.scope_key);
 }
 
@@ -28,7 +29,7 @@ function matches(row: Row, filters: Array<[string, unknown]>): boolean {
 class FakeQuery {
   private filters: Array<[string, unknown]> = [];
   private payload: Row | null = null;
-  private mode: 'select' | 'insert' | 'update' = 'select';
+  private mode: 'select' | 'insert' | 'update' | 'delete' = 'select';
   private wantsSingle: 'many' | 'single' | 'maybe' = 'many';
 
   constructor(private readonly table: string) {}
@@ -47,6 +48,11 @@ class FakeQuery {
   update(payload: Row): this {
     this.mode = 'update';
     this.payload = payload;
+    return this;
+  }
+
+  delete(): this {
+    this.mode = 'delete';
     return this;
   }
 
@@ -96,6 +102,15 @@ class FakeQuery {
       const next = { ...rows[0], ...(this.payload ?? {}) };
       table.set(primaryKeyFor(this.table, next), next);
       return { data: next, error: null };
+    }
+
+    if (this.mode === 'delete') {
+      const rows = [...table.values()].filter((row) => matches(row, this.filters));
+      if (rows.length === 0) {
+        return { data: null, error: null };
+      }
+      table.delete(primaryKeyFor(this.table, rows[0]));
+      return { data: rows[0], error: null };
     }
 
     const rows = [...table.values()].filter((row) => matches(row, this.filters));

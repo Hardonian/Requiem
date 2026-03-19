@@ -13,7 +13,9 @@ This document describes what deployment shapes are honestly supported by the cur
 
 ### What ReadyLayer is today
 
-ReadyLayer is currently an operator console with mixed route maturity:
+ReadyLayer is currently an operator console with mixed route maturity. Protected API routes can be authenticated either by a Supabase-backed browser session or by the configured `REQUIEM_AUTH_SECRET` bearer secret for operator/service clients.
+
+ReadyLayer has mixed route maturity:
 
 - some routes are local-runtime-backed,
 - some need an external API at `REQUIEM_API_URL`,
@@ -40,7 +42,7 @@ That means the current repo truth is:
 | CLI on a developer machine | Yes | Local storage and local verification flows are first-class | None beyond local filesystem/toolchain |
 | Engine build/test in CI | Yes | Native engine and route checks are codified in scripts/workflows | CI runner with Node/CMake/toolchain |
 | ReadyLayer local dev server | Yes | Good fit for route verification and UI evaluation | Supabase public envs for auth flows |
-| ReadyLayer process with shared Supabase-backed state | Yes | Canonical first-customer topology when request-bound execution is acceptable | Supabase auth + SUPABASE_SERVICE_ROLE_KEY (+ optional external API) |
+| ReadyLayer process with shared Supabase-backed state | Yes | Canonical first-customer topology when request-bound execution is acceptable | Supabase auth envs + REQUIEM_AUTH_SECRET + SUPABASE_SERVICE_ROLE_KEY (+ optional external API) |
 | ReadyLayer process + external `REQUIEM_API_URL` | Yes | Runtime-backed pages can work if API is reachable | Supabase auth + SUPABASE_SERVICE_ROLE_KEY + external API |
 | Multiple ReadyLayer replicas behind one load balancer | Yes, with bounded semantics | Shared request coordination/control-plane state is supported, but execution is still request-bound and does not continue after process loss | Supabase auth + SUPABASE_SERVICE_ROLE_KEY |
 | Serverless/edge ReadyLayer claiming durable async execution | Not supported | Request-bound execution must not be represented as durable background orchestration | N/A |
@@ -92,11 +94,11 @@ It does **not** mean:
    - **full runtime readiness** via `/api/readiness`.
 
    `/api/readiness` is intentionally stricter: it stays not-ready until all of the following are true:
-   - `REQUIEM_AUTH_SECRET` (or equivalent internal proof secret path) is operational,
-   - control-plane persistence is writable,
-   - `REQUIEM_API_URL` is configured and answers a health probe.
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `REQUIEM_AUTH_SECRET` are operational,
+   - shared control-plane persistence plus shared request coordination are available for production-like deployments,
+   - `REQUIEM_API_URL` is configured and answers a health probe when you declare an external-runtime topology.
 
-   That means a console-only deployment can be alive while `/api/readiness` still returns `503`.
+   A local-single-runtime developer boot can be ready with filesystem persistence. A production-like deployment cannot.
 3. Run:
 
    ```bash
@@ -113,9 +115,10 @@ It does **not** mean:
 4. If deploying ReadyLayer, verify auth behavior with real Supabase envs.
 5. If using `REQUIEM_API_URL`, verify reachable health/status endpoints and route-specific degraded states.
 6. Verify `/api/readiness` matches your topology:
-   - console-only deployment: should pass without `REQUIEM_API_URL`,
-   - console + external API: should fail until the configured `REQUIEM_API_URL` health probe succeeds.
-7. Do not scale horizontally unless you have first removed the single-process request-guard assumptions.
+   - local-single-runtime: may pass with filesystem persistence only outside production-like mode,
+   - shared request-bound deployment: must fail closed unless shared Supabase state is configured,
+   - shared request-bound + external API: must fail until the configured `REQUIEM_API_URL` health probe succeeds.
+7. Run `pnpm run verify:first-customer` for the canonical local boot/smoke proof and `pnpm run verify:release` for the consolidated release gate.
 
 ## Unsupported deployment shortcuts
 

@@ -28,6 +28,31 @@ describe('middleware proxy auth behavior', () => {
     expect(response.headers.get('x-tenant-id')).toBe('evidence-tenant');
   });
 
+
+
+  it('authenticates protected API routes with direct bearer auth when REQUIEM_AUTH_SECRET is configured', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'api-secret',
+    });
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    const { middleware } = await import('../src/middleware/proxy');
+    const request = new NextRequest('http://localhost/api/budgets', {
+      headers: {
+        authorization: 'Bearer api-secret',
+        'x-tenant-id': 'tenant-direct',
+      },
+    });
+
+    const response = await middleware(request);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('x-requiem-authenticated')).toBe('1');
+    expect(response.headers.get('x-tenant-id')).toBe('tenant-direct');
+  });
+
   it('keeps tokenized proof diff route public', async () => {
     Object.assign(process.env, {
       NODE_ENV: 'development',
