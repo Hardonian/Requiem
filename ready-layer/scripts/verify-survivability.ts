@@ -42,7 +42,7 @@ async function main(): Promise<void> {
   );
 
   const { listPlans } = await import('../src/lib/control-plane-store');
-  const plans = listPlans(tenantId);
+  const plans = await listPlans(tenantId);
   if (plans.length !== workerCount) {
     throw new Error(`expected ${workerCount} plans after concurrent writes, saw ${plans.length}`);
   }

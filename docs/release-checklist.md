@@ -6,7 +6,8 @@ This checklist is for releases that need honest operator-facing claims.
 
 - [ ] `pnpm install --frozen-lockfile`
 - [ ] `pnpm run doctor`
-- [ ] `pnpm run verify:deploy-readiness`
+- [ ] `pnpm run verify:deploy-readiness
+pnpm run verify:release`
 
 ## 2. Code verification
 

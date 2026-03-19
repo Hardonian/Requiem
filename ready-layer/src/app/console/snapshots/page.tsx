@@ -146,7 +146,7 @@ export default function ConsoleSnapshotsPage() {
         !window.confirm(
           `Restore snapshot ${hash.slice(0, 12)}…?
 
-This replaces tenant-local budget and capability state with the snapshot contents.`,
+This replaces tenant-scoped budget and capability state with the snapshot contents during the current request.`,
         )
       ) {
         return;
@@ -191,7 +191,7 @@ This replaces tenant-local budget and capability state with the snapshot content
     <div className="mx-auto max-w-7xl p-6">
       <PageHeader
         title="Snapshots"
-        description="Tenant-scoped snapshots for rollback and audit. Create a snapshot before risky changes, then restore with explicit confirmation."
+        description="Tenant-scoped snapshots for rollback and audit. Snapshot creation and restore are synchronous request-bound operations; they do not continue after process loss."
         action={
           <button
             type="button"

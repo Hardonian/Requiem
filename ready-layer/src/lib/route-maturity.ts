@@ -124,7 +124,7 @@ export const routeMaturityCatalog: readonly RouteMaturityRecord[] = [
     navStatus: "primary",
     ctaRestriction: "none",
     degradedBehavior:
-      "Reads the tenant-local filesystem-backed control-plane store; data is real for this process but not shared across replicas.",
+      "Reads durable tenant-scoped control-plane state in production-like deployments and local filesystem state in development; execution remains request-bound to the handling runtime.",
     uiMode: "operational",
     summary: "Primary tenant-scoped operational evidence from the local control-plane store.",
   },
@@ -140,7 +140,7 @@ export const routeMaturityCatalog: readonly RouteMaturityRecord[] = [
     navStatus: "primary",
     ctaRestriction: "none",
     degradedBehavior:
-      "Lists persisted plan-run receipts from the tenant-local filesystem-backed control-plane store; results are not shared across replicas.",
+      "Lists persisted plan-run receipts from the shared control-plane store in production-like deployments; runs are recorded durably but execute only within the handling request/runtime.",
     uiMode: "operational",
     summary: "Primary deterministic execution evidence from the local control-plane store.",
   },
@@ -156,7 +156,7 @@ export const routeMaturityCatalog: readonly RouteMaturityRecord[] = [
     navStatus: "primary",
     ctaRestriction: "none",
     degradedBehavior:
-      "Uses the tenant-local control-plane store when no external runtime is configured, with explicit empty states until plans are created.",
+      "Uses shared durable control-plane state in production-like deployments and local state in development. Plan execution is synchronous and request-bound; it does not continue after process loss.",
     uiMode: "operational",
     summary: "Tenant-scoped plan definitions and run history.",
   },
@@ -172,7 +172,7 @@ export const routeMaturityCatalog: readonly RouteMaturityRecord[] = [
     navStatus: "primary",
     ctaRestriction: "none",
     degradedBehavior:
-      "Evaluates and lists policies from the tenant-local filesystem-backed control-plane store; state is not shared across replicas.",
+      "Evaluates and lists policies from shared durable control-plane state in production-like deployments and local state in development.",
     uiMode: "operational",
     summary: "Tenant-scoped policy control operations on the local control-plane store.",
   },
@@ -188,7 +188,7 @@ export const routeMaturityCatalog: readonly RouteMaturityRecord[] = [
     navStatus: "primary",
     ctaRestriction: "none",
     degradedBehavior:
-      "Mints and revokes tenant-local capability records in the filesystem-backed control-plane store; no cross-replica synchronization exists.",
+      "Mints and revokes capability records against shared durable control-plane state in production-like deployments and local state in development.",
     uiMode: "operational",
     summary: "Tenant-scoped capability management on the local control-plane store.",
   },
@@ -220,7 +220,7 @@ export const routeMaturityCatalog: readonly RouteMaturityRecord[] = [
     navStatus: "primary",
     ctaRestriction: "none",
     degradedBehavior:
-      "Creates and restores snapshots against the tenant-local control-plane store, requiring explicit confirmation for restore operations.",
+      "Creates and restores snapshots against shared durable control-plane state in production-like deployments. Restore runs synchronously in-request and does not continue after process loss.",
     uiMode: "operational",
     summary: "Tenant-scoped snapshot creation and restore history.",
   },
@@ -236,7 +236,7 @@ export const routeMaturityCatalog: readonly RouteMaturityRecord[] = [
     navStatus: "primary",
     ctaRestriction: "read-only",
     degradedBehavior:
-      "Lists CAS objects from the tenant-local filesystem-backed control-plane store and remains read-only by design.",
+      "Lists CAS objects from durable control-plane state in production-like deployments and local state in development; remains read-only by design.",
     uiMode: "restricted",
     summary: "Read-only object inventory for the local control-plane store.",
   },

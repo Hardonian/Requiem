@@ -1,3 +1,5 @@
+> **Status: historical / non-canonical for first-customer deployment.** Current deployment truth is documented in [`README.md`](../README.md), [`DEPLOYMENT.md`](./DEPLOYMENT.md), and [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md). Treat this document as background material unless and until the code/tests re-establish the claims below.
+
 # Enterprise — Control Plane for AI Systems
 
 Requiem Enterprise adds enforced governance, multi-tenant isolation, and compliance controls on top of the open-source deterministic execution engine.
