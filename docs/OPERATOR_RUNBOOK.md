@@ -56,6 +56,8 @@ cp ready-layer/.env.example ready-layer/.env.local
 pnpm run dev
 ```
 
+Install note: first install requires outbound access to `https://registry.npmjs.org`.
+
 ### Single-instance deployment smoke baseline
 
 ```bash
@@ -72,11 +74,19 @@ pnpm run test
 ### Route and contract baseline
 
 ```bash
+curl -sS http://localhost:3000/api/health | jq .
+curl -sS http://localhost:3000/api/readiness | jq .
 pnpm run verify:routes
 pnpm run verify:tenant-isolation
 pnpm run verify:nosecrets
 pnpm run verify:no-stack-leaks
 ```
+
+Interpretation:
+
+- `/api/health` is a liveness check and should return `200` when the process is serving requests.
+- `/api/readiness` should return `200` for console-only deployments once auth and control-plane persistence are healthy.
+- If `REQUIEM_API_URL` is configured, `/api/readiness` should return `503` until the external runtime health probe succeeds.
 
 ### Optional deeper verification
 

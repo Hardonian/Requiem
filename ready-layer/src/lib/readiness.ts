@@ -20,8 +20,8 @@ async function probeEngineApi(): Promise<ReadinessCheck> {
   if (!baseUrl) {
     return {
       name: 'engine_api_reachable',
-      ok: false,
-      detail: 'REQUIEM_API_URL is not configured',
+      ok: true,
+      detail: 'REQUIEM_API_URL is not configured; external runtime probe skipped for console-only mode',
     };
   }
 

@@ -102,7 +102,10 @@ It does **not** mean:
    - stub/demo.
 4. If deploying ReadyLayer, verify auth behavior with real Supabase envs.
 5. If using `REQUIEM_API_URL`, verify reachable health/status endpoints and route-specific degraded states.
-6. Do not scale horizontally unless you have first removed the single-process request-guard assumptions.
+6. Verify `/api/readiness` matches your topology:
+   - console-only deployment: should pass without `REQUIEM_API_URL`,
+   - console + external API: should fail until the configured `REQUIEM_API_URL` health probe succeeds.
+7. Do not scale horizontally unless you have first removed the single-process request-guard assumptions.
 
 ## Unsupported deployment shortcuts
 
