@@ -93,12 +93,13 @@ It does **not** mean:
    - **liveness only** via `/api/health`, or
    - **full runtime readiness** via `/api/readiness`.
 
-   `/api/readiness` is intentionally stricter: it stays not-ready until all of the following are true:
+   `/api/readiness` is intentionally topology-aware: it stays not-ready until all requirements for the declared topology are true.
+   - local-single-runtime requires authenticated ReadyLayer envs plus local control-plane persistence,
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `REQUIEM_AUTH_SECRET` are operational,
    - shared control-plane persistence plus shared request coordination are available for production-like deployments,
-   - `REQUIEM_API_URL` is configured and answers a health probe when you declare an external-runtime topology.
+   - `REQUIEM_API_URL` is configured and answers a health probe only when you declare an external-runtime topology.
 
-   A local-single-runtime developer boot can be ready with filesystem persistence. A production-like deployment cannot.
+   A local-single-runtime developer boot can be ready with filesystem persistence. A production-like console-only deployment can also be ready without `REQUIEM_API_URL`, but only if shared Supabase-backed coordination is healthy.
 3. Run:
 
    ```bash
@@ -116,7 +117,7 @@ It does **not** mean:
 5. If using `REQUIEM_API_URL`, verify reachable health/status endpoints and route-specific degraded states.
 6. Verify `/api/readiness` matches your topology:
    - local-single-runtime: may pass with filesystem persistence only outside production-like mode,
-   - shared request-bound deployment: must fail closed unless shared Supabase state is configured,
+   - shared request-bound deployment: may pass without `REQUIEM_API_URL`, but must fail closed unless shared Supabase state is configured,
    - shared request-bound + external API: must fail until the configured `REQUIEM_API_URL` health probe succeeds.
 7. Run `pnpm run verify:first-customer` for the canonical local boot/smoke proof and `pnpm run verify:release` for the consolidated release gate.
 

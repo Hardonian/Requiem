@@ -62,7 +62,50 @@ cp ready-layer/.env.example ready-layer/.env.local
 pnpm run verify:first-customer
 ```
 
-Install note: first install requires outbound access to `https://registry.npmjs.org` or a reachable internal mirror.
+Install note: first install requires outbound access to the registry configured in pnpm or a reachable internal mirror.
+
+## 3A. Canonical zero → install → config → verify → run → smoke → fail → recover → rollback → deploy path
+
+Copy/paste this as the operator truth path for a first-customer validation:
+
+```bash
+git clone https://github.com/reachhq/requiem.git
+cd requiem
+node scripts/bootstrap-preflight.mjs
+pnpm install --frozen-lockfile
+cp ready-layer/.env.example ready-layer/.env.local
+$EDITOR ready-layer/.env.local
+pnpm run verify:deploy-readiness
+pnpm --filter ready-layer build
+PORT=3000 pnpm --filter ready-layer exec next start --hostname 127.0.0.1 --port 3000
+```
+
+In another terminal, verify, smoke, fail, and recover:
+
+```bash
+curl -sS http://127.0.0.1:3000/api/health
+curl -sS http://127.0.0.1:3000/api/readiness
+AUTH_TOKEN="$REQUIEM_AUTH_SECRET" BASE_URL=http://127.0.0.1:3000 bash ready-layer/scripts/smoke-api.sh
+```
+
+Failure and recovery proof:
+
+```bash
+# Fail readiness by pointing runtime-backed readiness at an unreachable API.
+export REQUIEM_API_URL=http://127.0.0.1:9
+curl -sS http://127.0.0.1:3000/api/readiness
+
+# Recover by restoring a valid topology decision:
+#   - unset REQUIEM_API_URL for console-only mode, or
+#   - point it at a reachable runtime and restart ReadyLayer.
+unset REQUIEM_API_URL
+
+# Roll back to the last committed tree if a config/code experiment dirtied the checkout.
+git reset --hard HEAD
+
+# Final release gate before deploy.
+pnpm run verify:release
+```
 
 ### Single-instance deployment smoke baseline
 
@@ -88,7 +131,8 @@ pnpm run verify:no-stack-leaks
 Interpretation:
 
 - `/api/health` is a liveness check and should return `200` when the process is serving requests.
-- `/api/readiness` should return `200` for local-single-runtime only when auth env plus filesystem persistence are healthy. Production-like deployments fail closed without shared Supabase state.
+- `/api/readiness` should return `200` for local-single-runtime when auth env plus filesystem persistence are healthy.
+- `/api/readiness` should also return `200` for production-like console-only deployments when shared Supabase-backed state is healthy, even if `REQUIEM_API_URL` is unset.
 - If `REQUIEM_API_URL` is configured, `/api/readiness` should return `503` until the external runtime health probe succeeds.
 
 ### Optional deeper verification

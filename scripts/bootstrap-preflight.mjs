@@ -48,27 +48,91 @@ function commandVersion(command, args = ['--version']) {
   return parseVersion(res.stdout || res.stderr || '');
 }
 
+function commandOutput(command, args) {
+  const res = spawnSync(command, args, { encoding: 'utf8' });
+  if (res.error || res.status !== 0) {
+    return null;
+  }
+  return (res.stdout || res.stderr || '').trim();
+}
+
+function normalizeRegistryUrl(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) {
+    return 'https://registry.npmjs.org/';
+  }
+
+  try {
+    const parsed = new URL(raw);
+    if (!parsed.pathname || parsed.pathname === '') {
+      parsed.pathname = '/';
+    }
+    return parsed.toString();
+  } catch {
+    return raw;
+  }
+}
+
+function resolvePackageRegistry() {
+  return normalizeRegistryUrl(
+    process.env.npm_config_registry
+      ?? process.env.NPM_CONFIG_REGISTRY
+      ?? commandOutput('pnpm', ['config', 'get', 'registry'])
+      ?? 'https://registry.npmjs.org/',
+  );
+}
+
+function registryProbeUrl(registryUrl) {
+  try {
+    const parsed = new URL(registryUrl);
+    if (parsed.hostname === 'registry.npmjs.org') {
+      return new URL('/pnpm', parsed).toString();
+    }
+    return parsed.toString();
+  } catch {
+    return registryUrl;
+  }
+}
+
+function describeNetworkError(error) {
+  if (!(error instanceof Error)) {
+    return 'unknown network error';
+  }
+  const withCode = 'code' in error && typeof error.code === 'string'
+    ? `${error.code}: ${error.message || 'network error'}`
+    : error.message || error.name || 'network error';
+  return withCode;
+}
+
 async function checkRegistry() {
   if (skipNetwork) {
     addCheck(true, 'npm registry reachability', 'Skipped by --skip-network / BOOTSTRAP_SKIP_NETWORK=1.', '', true);
     return;
   }
 
+  const configuredRegistry = resolvePackageRegistry();
+  const probeUrl = registryProbeUrl(configuredRegistry);
+
   await new Promise((resolve) => {
-    const req = https.get('https://registry.npmjs.org/pnpm', { timeout: 3000 }, (res) => {
+    const req = https.get(probeUrl, { timeout: 3000 }, (res) => {
       if (res.statusCode && res.statusCode >= 200 && res.statusCode < 500) {
-        addCheck(true, 'npm registry reachability', `registry.npmjs.org responded with HTTP ${res.statusCode}.`);
+        addCheck(true, 'npm registry reachability', `${configuredRegistry} responded with HTTP ${res.statusCode}.`);
       } else {
-        addCheck(false, 'npm registry reachability', `registry.npmjs.org returned HTTP ${res.statusCode ?? 0}.`, 'Confirm outbound HTTPS access to https://registry.npmjs.org before running pnpm install --frozen-lockfile.');
+        addCheck(false, 'npm registry reachability', `${configuredRegistry} returned HTTP ${res.statusCode ?? 0}.`, `Confirm outbound HTTPS access to ${configuredRegistry} before running pnpm install --frozen-lockfile.`);
       }
       res.resume();
       resolve();
     });
     req.on('timeout', () => {
-      req.destroy(new Error('timeout'));
+      req.destroy(Object.assign(new Error(`Timed out probing ${probeUrl}`), { code: 'ETIMEDOUT' }));
     });
     req.on('error', (error) => {
-      addCheck(false, 'npm registry reachability', `Could not reach registry.npmjs.org: ${error.message}.`, 'Provide outbound HTTPS access to https://registry.npmjs.org or configure a reachable internal npm mirror before install.');
+      addCheck(
+        false,
+        'npm registry reachability',
+        `Could not reach ${configuredRegistry}: ${describeNetworkError(error)}.`,
+        `Provide outbound HTTPS access to ${configuredRegistry} or configure pnpm to use a reachable internal npm mirror before install.`,
+      );
       resolve();
     });
   });

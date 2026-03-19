@@ -119,7 +119,8 @@ pnpm install --frozen-lockfile
 pnpm run verify:first-customer
 ```
 
-First install needs outbound access to `https://registry.npmjs.org` or a reachable internal mirror.
+First install needs outbound access to the registry configured in pnpm or a reachable internal mirror.
+If `bootstrap-preflight` reports registry failure, fix the proxy/mirror/egress path before retrying `pnpm install`.
 
 ### Root local repo flow
 

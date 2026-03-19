@@ -122,6 +122,36 @@ describe('readiness route', () => {
     server.close();
   });
 
+  it('reports ready for production-like console-only deployments when shared backing is healthy and REQUIEM_API_URL is unset', async () => {
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'readiness-secret',
+      NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-key',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+    };
+    delete process.env.REQUIEM_API_URL;
+    mockSupabase(() => ({ data: null, error: null }));
+
+    const { GET } = await import('../src/app/api/readiness/route');
+    const response = await GET(new NextRequest('http://localhost/api/readiness'));
+    const body = await response.json() as {
+      ok: boolean;
+      status: string;
+      checks: Array<{ name: string; ok: boolean; skipped?: boolean }>;
+      deployment_contract: { topology: string; topology_mode: string; external_runtime_configured: boolean };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.status).toBe('ready');
+    expect(body.deployment_contract.topology).toBe('shared-supabase-request-bound');
+    expect(body.deployment_contract.topology_mode).toBe('shared-supabase-request-bound');
+    expect(body.deployment_contract.external_runtime_configured).toBe(false);
+    expect(body.checks.find((check) => check.name === 'engine_api_reachable')?.skipped).toBe(true);
+  });
+
   it('fails when external runtime is configured but unreachable', async () => {
     process.env = {
       ...originalEnv,

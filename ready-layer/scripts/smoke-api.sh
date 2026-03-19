@@ -156,6 +156,15 @@ common_auth_headers=(
   -H "x-trace-id: $TRACE_ID"
 )
 
+echo "[smoke] GET /api/budgets with invalid auth (expect 401 Problem+JSON)"
+status=$(request GET "$BASE_URL/api/budgets" "$workdir/budgets-invalid-auth.json" "$workdir/budgets-invalid-auth.headers" \
+  -H 'authorization: Bearer invalid-token' \
+  -H "x-tenant-id: $TENANT_ID" \
+  -H "x-trace-id: ${TRACE_ID}-invalid-auth")
+assert_status "$status" "401" "budgets invalid auth" "$workdir/budgets-invalid-auth.json"
+assert_contains "$workdir/budgets-invalid-auth.json" '"code"' 'budgets invalid auth body'
+assert_contains "$workdir/budgets-invalid-auth.json" '"trace_id"' 'budgets invalid auth trace'
+
 echo "[smoke] GET /api/budgets with auth"
 status=$(request GET "$BASE_URL/api/budgets" "$workdir/budgets.json" "$workdir/budgets.headers" "${common_auth_headers[@]}")
 assert_status "$status" "200" "budgets" "$workdir/budgets.json"
@@ -213,6 +222,8 @@ status=$(request POST "$BASE_URL/api/plans" "$workdir/plan-add.json" "$workdir/p
   -H 'content-type: application/json' \
   --data '{"action":"add","plan_id":"smoke-plan","steps":[{"step_id":"step-1","kind":"exec","depends_on":[],"config":{"command":"echo smoke"}}]}')
 assert_status "$status" "200" "plan add" "$workdir/plan-add.json"
+[[ "$(header_value "$workdir/plan-add.headers" 'x-request-id')" != '' ]] || { echo 'plan add missing x-request-id'; exit 1; }
+[[ "$(header_value "$workdir/plan-add.headers" 'x-trace-id')" != '' ]] || { echo 'plan add missing x-trace-id'; exit 1; }
 plan_hash="$(json_field "$workdir/plan-add.json" 'data.plan.plan_hash')"
 [[ -n "$plan_hash" ]] || { echo 'plan_hash missing'; cat "$workdir/plan-add.json"; exit 1; }
 
@@ -236,8 +247,28 @@ status=$(request POST "$BASE_URL/api/plans" "$workdir/plan-run.json" "$workdir/p
   -H 'content-type: application/json' \
   --data "{\"action\":\"run\",\"plan_hash\":\"$plan_hash\"}")
 assert_status "$status" "200" "plan run" "$workdir/plan-run.json"
+[[ "$(header_value "$workdir/plan-run.headers" 'x-requiem-idempotency-state')" == 'started' ]] || { echo 'plan run missing started idempotency state'; exit 1; }
+[[ "$(header_value "$workdir/plan-run.headers" 'x-request-id')" != '' ]] || { echo 'plan run missing x-request-id'; exit 1; }
+[[ "$(header_value "$workdir/plan-run.headers" 'x-trace-id')" != '' ]] || { echo 'plan run missing x-trace-id'; exit 1; }
 run_id="$(json_field "$workdir/plan-run.json" 'data.result.run_id')"
 [[ -n "$run_id" ]] || { echo 'run_id missing'; cat "$workdir/plan-run.json"; exit 1; }
+
+echo "[smoke] POST /api/plans run replay same key"
+status=$(request POST "$BASE_URL/api/plans" "$workdir/plan-run-replay.json" "$workdir/plan-run-replay.headers" \
+  -H "authorization: Bearer $AUTH_TOKEN" \
+  -H "x-tenant-id: $TENANT_ID" \
+  -H "x-trace-id: ${TRACE_ID}-plan-run-replay" \
+  -H 'idempotency-key: smoke-plan-run-1' \
+  -H 'content-type: application/json' \
+  --data "{\"action\":\"run\",\"plan_hash\":\"$plan_hash\"}")
+assert_status "$status" "200" "plan run replay" "$workdir/plan-run-replay.json"
+[[ "$(header_value "$workdir/plan-run-replay.headers" 'x-idempotency-replayed')" == '1' ]] || { echo 'plan run replay missing x-idempotency-replayed'; exit 1; }
+replayed_run_id="$(json_field "$workdir/plan-run-replay.json" 'data.result.run_id')"
+[[ "$replayed_run_id" == "$run_id" ]] || {
+  echo "plan run replay returned different run_id: $replayed_run_id vs $run_id"
+  diff -u "$workdir/plan-run.json" "$workdir/plan-run-replay.json" || true
+  exit 1
+}
 
 echo "[smoke] GET /api/plans retrieves plan and run state"
 status=$(request GET "$BASE_URL/api/plans?plan-hash=$plan_hash" "$workdir/plan-show.json" "$workdir/plan-show.headers" \
@@ -245,6 +276,8 @@ status=$(request GET "$BASE_URL/api/plans?plan-hash=$plan_hash" "$workdir/plan-s
   -H "x-tenant-id: $TENANT_ID" \
   -H "x-trace-id: ${TRACE_ID}-plan-show")
 assert_status "$status" "200" "plan show" "$workdir/plan-show.json"
+[[ "$(header_value "$workdir/plan-show.headers" 'x-request-id')" != '' ]] || { echo 'plan show missing x-request-id'; exit 1; }
+[[ "$(header_value "$workdir/plan-show.headers" 'x-trace-id')" != '' ]] || { echo 'plan show missing x-trace-id'; exit 1; }
 retrieved_run_id="$(json_field "$workdir/plan-show.json" 'data.runs.0.run_id')"
 [[ "$retrieved_run_id" == "$run_id" ]] || {
   echo 'plan run not visible on read-after-write'

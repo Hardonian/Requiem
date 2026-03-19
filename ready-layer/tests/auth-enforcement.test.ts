@@ -3,8 +3,42 @@ import { NextRequest } from "next/server";
 
 const originalEnv = { ...process.env };
 
+function mockSupabase() {
+  vi.doMock("../src/lib/supabase-service", () => ({
+    getSupabaseServiceClient: () => ({
+      from() {
+        return {
+          select() {
+            return this;
+          },
+          eq() {
+            return this;
+          },
+          maybeSingle: async () => ({ data: null, error: null }),
+          insert: async () => ({ error: null }),
+          update() {
+            return {
+              eq() {
+                return this;
+              },
+              select() {
+                return this;
+              },
+              maybeSingle: async () => ({ data: { scope_key: "mock-scope" }, error: null }),
+            };
+          },
+        };
+      },
+    }),
+    isSupabaseServiceConfigured: () => true,
+    assertSupabaseServiceConfigured: () => undefined,
+    resetSupabaseServiceClientForTests: () => undefined,
+  }));
+}
+
 afterEach(() => {
   vi.resetModules();
+  vi.unmock("../src/lib/supabase-service");
   process.env = { ...originalEnv };
 });
 
@@ -49,7 +83,10 @@ describe("auth enforcement on protected API routes", () => {
     Object.assign(process.env, {
       NODE_ENV: "production",
       REQUIEM_AUTH_SECRET: "prod-secret",
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service-role",
     });
+    mockSupabase();
     const { GET } = await import("../src/app/api/budgets/route");
 
     const req = new NextRequest("http://localhost/api/budgets", {
