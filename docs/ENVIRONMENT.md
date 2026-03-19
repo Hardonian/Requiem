@@ -49,7 +49,10 @@ There are two practical env scopes in this repo:
 
 Important: `REQUIEM_API_URL` is **not** required for every ReadyLayer page. Some routes are local-only, informational, or stub-backed.
 
-Important: `/api/readiness` is stricter than page boot. It treats external runtime reachability as part of full-runtime readiness, so it will remain `503` when `REQUIEM_API_URL` is absent even if console-only pages can still render honestly in a degraded state.
+Readiness contract:
+
+- If `REQUIEM_API_URL` is **unset**, `/api/readiness` evaluates console-only readiness and does not fail solely because the external runtime is absent.
+- If `REQUIEM_API_URL` is **set**, `/api/readiness` probes that endpoint and fails until the runtime health probe succeeds.
 
 ### Database / Prisma
 
@@ -112,6 +115,8 @@ cp ready-layer/.env.example ready-layer/.env.local
 pnpm install --frozen-lockfile
 pnpm run dev
 ```
+
+First install needs outbound access to `https://registry.npmjs.org`.
 
 ### Root local repo flow
 

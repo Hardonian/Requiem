@@ -91,6 +91,8 @@ Before any non-local deployment:
 pnpm install --frozen-lockfile
 ```
 
+This requires outbound access to the public npm registry (`https://registry.npmjs.org`) for first install.
+
 ### Core commands
 
 ```bash
@@ -146,6 +148,11 @@ High-level requirements:
 - **Routes that fetch external runtime data require:** `REQUIEM_API_URL`
 - **Prisma/DB workflows require:** `DATABASE_URL` and, where your setup uses it, `DIRECT_DATABASE_URL`
 - **Unsafe local-only auth fallback:** `REQUIEM_ALLOW_INSECURE_DEV_AUTH=1` only outside strict auth mode; never use this for production deployment
+
+Readiness truth:
+
+- `/api/readiness` passes for **console-only** deployments when auth and tenant-local persistence are healthy.
+- If `REQUIEM_API_URL` is configured, `/api/readiness` also probes that external runtime and fails until it is reachable.
 
 ## Supported topology matrix
 

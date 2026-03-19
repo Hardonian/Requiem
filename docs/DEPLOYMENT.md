@@ -110,22 +110,12 @@ It does **not** mean:
    - external-runtime-backed,
    - informational only,
    - stub/demo.
-5. If deploying ReadyLayer, verify auth behavior with real Supabase envs.
-6. If using `REQUIEM_API_URL`, verify reachable health/status endpoints and route-specific degraded states.
-7. Run the HTTP smoke flow against the booted app:
-
-   ```bash
-   AUTH_TOKEN="$REQUIEM_AUTH_SECRET" BASE_URL=http://localhost:3000 bash ready-layer/scripts/smoke-api.sh
-   ```
-
-   This exercises:
-   - public route liveness,
-   - protected-route auth enforcement,
-   - idempotent budget mutation replay,
-   - read-after-write truth,
-   - plan creation, execution, and retrieval.
-
-8. Do not scale horizontally unless you have first removed the single-process request-guard assumptions.
+4. If deploying ReadyLayer, verify auth behavior with real Supabase envs.
+5. If using `REQUIEM_API_URL`, verify reachable health/status endpoints and route-specific degraded states.
+6. Verify `/api/readiness` matches your topology:
+   - console-only deployment: should pass without `REQUIEM_API_URL`,
+   - console + external API: should fail until the configured `REQUIEM_API_URL` health probe succeeds.
+7. Do not scale horizontally unless you have first removed the single-process request-guard assumptions.
 
 ## Unsupported deployment shortcuts
 
