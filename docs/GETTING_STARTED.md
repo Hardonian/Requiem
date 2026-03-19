@@ -20,6 +20,7 @@ otherwise.
 ```bash
 git clone https://github.com/reachhq/requiem.git
 cd requiem
+node scripts/bootstrap-preflight.mjs
 pnpm install --frozen-lockfile
 pnpm run doctor
 pnpm run verify:all
@@ -35,8 +36,14 @@ engine-only work.
 ### 1) Install
 
 ```bash
+node scripts/bootstrap-preflight.mjs
 pnpm install --frozen-lockfile
 ```
+
+`bootstrap-preflight` checks Node/pnpm/Corepack versions, verifies the lockfile and
+env template exist, and probes the configured pnpm registry or mirror. If network
+egress is restricted, fix the registry/proxy path first instead of retrying a
+broken install blindly.
 
 ### 2) Configure local env
 
@@ -50,7 +57,8 @@ Then replace placeholders in `ready-layer/.env.local` before boot:
 - always set `NEXT_PUBLIC_SUPABASE_URL`
 - always set `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - set `REQUIEM_AUTH_SECRET` for any strict authenticated run
-- set `REQUIEM_API_URL` only if you want runtime-backed routes to be truly ready
+- set `SUPABASE_SERVICE_ROLE_KEY` for production-like shared coordination
+- set `REQUIEM_API_URL` only if you want readiness to include an external runtime probe
 
 ### 3) Start the app
 
@@ -66,9 +74,11 @@ curl -sS http://localhost:3000/api/readiness
 ```
 
 - `/api/health` is a liveness check: it should return `200` when the process is serving.
-- `/api/readiness` is a **strict full-runtime gate**: it returns `503` until auth,
-  control-plane persistence, and the external runtime/API probe are all configured.
-- A console-only boot can therefore be alive but intentionally **not ready**.
+- `/api/readiness` is a topology-aware readiness gate.
+  - local-single-runtime can return `200` when auth env and local persistence are healthy;
+  - production-like console-only deployments can return `200` without `REQUIEM_API_URL`
+    when shared Supabase-backed coordination/persistence is healthy;
+  - if `REQUIEM_API_URL` is configured, readiness returns `503` until that runtime probe succeeds.
 
 ### 5) Run the HTTP smoke flow
 
@@ -82,11 +92,11 @@ AUTH_TOKEN="$REQUIEM_AUTH_SECRET" BASE_URL=http://localhost:3000 bash ready-laye
 The smoke script checks:
 
 - public route liveness,
-- protected-route auth enforcement,
+- protected-route auth enforcement, including invalid auth rejection,
 - budget write + read-after-write,
 - idempotent replay on a duplicate budget mutation,
 - plan creation,
-- plan execution,
+- plan execution plus duplicate-run replay protection,
 - plan retrieval after execution.
 
 ## Faster local loop (when you do not need full gate)
