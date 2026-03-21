@@ -2,7 +2,11 @@ import {
   REQUEST_EXECUTION_MODEL,
   TENANCY_MODEL,
   currentDeploymentTopology,
+  EXECUTION_TAXONOMY,
+  MEMBERSHIP_LIFECYCLE,
+  type DurabilityClass,
 } from '@/lib/deployment-contract';
+import { isAnyWorkerActive, getWorkerCount } from '@/lib/worker-registry';
 import { createInternalAuthProof } from '@/lib/internal-auth-proof';
 import { checkControlPlanePersistence } from '@/lib/control-plane-store';
 import { checkSharedRuntimeCoordination } from '@/lib/shared-request-coordination';
@@ -31,7 +35,13 @@ export interface ReadinessResult {
     topology_mode: DeploymentTopologyMode;
     execution_model: string;
     tenancy_model: string;
-    background_execution_supported: boolean;
+    durable_queue_available: boolean;
+    autonomous_worker_active: boolean;
+    supported_durability_classes: DurabilityClass[];
+    membership_lifecycle: {
+      supported: readonly string[];
+      not_implemented: readonly string[];
+    };
     external_runtime_configured: boolean;
   };
 }
@@ -135,7 +145,21 @@ function probeExecutionModelTruth(topologyMode: DeploymentTopologyMode): Readine
     name: 'execution_model_contract',
     ok: true,
     required: false,
-    detail: `Topology mode=${topologyMode}; supported topology=${topology}; foreground execution stays ${REQUEST_EXECUTION_MODEL}; durable plan jobs can be resumed after process loss through the shared control-plane queue.`,
+    detail: `Topology mode=${topologyMode}; supported topology=${topology}; foreground execution stays ${REQUEST_EXECUTION_MODEL}; durable plan jobs can be enqueued and recovered after process loss through the shared control-plane queue, but there is no autonomous background worker — processing requires explicit operator-driven action=process calls.`,
+  };
+}
+
+function probeDurableQueueHealth(topologyMode: DeploymentTopologyMode): ReadinessCheck {
+  const queueAvailable = true; // The queue code path is always compiled in
+  const workerActive = isAnyWorkerActive();
+  const workerCount = getWorkerCount();
+  return {
+    name: 'durable_queue_health',
+    ok: queueAvailable,
+    required: false,
+    detail: workerActive
+      ? `Durable plan-job queue is available with ${workerCount} active worker(s) processing jobs autonomously.`
+      : 'Durable plan-job queue is available. Jobs can be enqueued, leased, recovered, and finalized. No autonomous background worker is currently running — start one via POST /api/worker with action=start, or process jobs manually via action=process.',
   };
 }
 
@@ -149,7 +173,10 @@ export async function computeReadiness(): Promise<ReadinessResult> {
     await probeRuntimeCoordination(topologyMode !== 'local-single-runtime'),
     await probeEngineApi(envContract.external_runtime_configured),
     probeExecutionModelTruth(topologyMode),
+    probeDurableQueueHealth(topologyMode),
   ];
+
+  const supportedDurabilityClasses = [...new Set(EXECUTION_TAXONOMY.map((e) => e.durability_class))];
 
   const ok = checks.every((check) => !check.required || check.ok);
   return {
@@ -162,7 +189,10 @@ export async function computeReadiness(): Promise<ReadinessResult> {
       topology_mode: topologyMode,
       execution_model: REQUEST_EXECUTION_MODEL,
       tenancy_model: TENANCY_MODEL,
-      background_execution_supported: true,
+      durable_queue_available: true,
+      autonomous_worker_active: isAnyWorkerActive(),
+      supported_durability_classes: supportedDurabilityClasses,
+      membership_lifecycle: MEMBERSHIP_LIFECYCLE,
       external_runtime_configured: envContract.external_runtime_configured,
     },
   };

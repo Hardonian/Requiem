@@ -12,6 +12,7 @@ import type {
   CapabilityToken,
   CasObject,
   EventLogEntry,
+  InviteStatus,
   Plan,
   PlanRunResult,
   PlanStep,
@@ -23,6 +24,7 @@ import type {
   TenantJobRecord,
   TenantOrganization,
   TenantOrganizationHealth,
+  TenantOrganizationInvite,
   TenantOrganizationMember,
 } from '@/types/engine';
 
@@ -101,6 +103,7 @@ type PlanRunRecord = PlanRunResult & {
 
 type OrganizationRecord = TenantOrganization;
 type OrganizationMemberRecord = TenantOrganizationMember;
+type InviteRecord = TenantOrganizationInvite;
 type PlanJobRecord = TenantJobRecord;
 
 type LogRecord = EventLogEntry & {
@@ -123,6 +126,7 @@ type ControlPlaneState = {
   plan_runs: PlanRunRecord[];
   organizations: OrganizationRecord[];
   organization_members: OrganizationMemberRecord[];
+  organization_invites: InviteRecord[];
   plan_jobs: PlanJobRecord[];
   snapshots: Snapshot[];
   logs: LogRecord[];
@@ -416,6 +420,7 @@ function createEmptyState(tenantId: string): ControlPlaneState {
     plan_runs: [],
     organizations: [],
     organization_members: [],
+    organization_invites: [],
     plan_jobs: [],
     snapshots: [],
     logs: [],
@@ -440,6 +445,7 @@ function normalizeState(tenantId: string, parsed?: Partial<ControlPlaneState> | 
     plan_runs: Array.isArray(parsed?.plan_runs) ? parsed.plan_runs : [],
     organizations: Array.isArray(parsed?.organizations) ? parsed.organizations : [],
     organization_members: Array.isArray(parsed?.organization_members) ? parsed.organization_members : [],
+    organization_invites: Array.isArray(parsed?.organization_invites) ? parsed.organization_invites : [],
     plan_jobs: Array.isArray(parsed?.plan_jobs) ? parsed.plan_jobs : [],
     snapshots: Array.isArray(parsed?.snapshots) ? parsed.snapshots : [],
     logs: Array.isArray(parsed?.logs) ? parsed.logs : [],
@@ -2021,5 +2027,330 @@ export async function getRunSummary(
     tenant_id: run.tenant_id,
     receipt_hash: run.receipt_hash,
     result_digest,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Invite lifecycle
+// ---------------------------------------------------------------------------
+
+const INVITE_EXPIRY_MS = Number(process.env.REQUIEM_INVITE_EXPIRY_MS ?? 7 * 24 * 60 * 60 * 1000); // 7 days
+
+export async function createInvite(
+  tenantId: string,
+  actorId: string,
+  input: { org_id: string; email: string; role: TenantAdminRole },
+): Promise<{ invite: InviteRecord; token: string }> {
+  const token = randomUUID();
+  const tokenHash = hashValue(token);
+
+  const invite = await mutateState(tenantId, (state) => {
+    ensureOrganizationExists(state, input.org_id);
+    requireOrganizationRole(state, input.org_id, actorId, 'admin');
+    const existing = state.organization_invites.find(
+      (entry) => entry.org_id === input.org_id && entry.email === input.email.toLowerCase().trim() && entry.status === 'pending',
+    );
+    if (existing) {
+      throw new ProblemError(409, 'Invite Exists', 'A pending invite already exists for this email in this organization.', {
+        code: 'invite_exists',
+        errors: [{ org_id: input.org_id, email: input.email }],
+      });
+    }
+    const now = Date.now();
+    const record: InviteRecord = {
+      invite_id: `inv_${hashValue({ tenantId, orgId: input.org_id, email: input.email, now }).slice(0, 16)}`,
+      org_id: input.org_id,
+      tenant_id: tenantId,
+      email: input.email.toLowerCase().trim(),
+      role: input.role,
+      status: 'pending',
+      token_hash: tokenHash,
+      invited_by: actorId,
+      accepted_by: null,
+      expires_at_unix_ms: now + INVITE_EXPIRY_MS,
+      created_at_unix_ms: now,
+      updated_at_unix_ms: now,
+    };
+    state.organization_invites.unshift(record);
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.invite.create',
+      payload: { org_id: input.org_id, invite_id: record.invite_id, email: record.email, role: input.role },
+    });
+    return record;
+  }, { operation: 'organization.invite.create', entity_id: input.org_id });
+
+  return { invite, token };
+}
+
+export async function acceptInvite(
+  tenantId: string,
+  actorId: string,
+  token: string,
+): Promise<{ invite: InviteRecord; membership: OrganizationMemberRecord }> {
+  const tokenHash = hashValue(token);
+  return mutateState(tenantId, (state) => {
+    const invite = state.organization_invites.find(
+      (entry) => entry.token_hash === tokenHash,
+    );
+    if (!invite) {
+      throw new ProblemError(404, 'Invite Not Found', 'No invite matched the provided token.', {
+        code: 'invite_not_found',
+      });
+    }
+    if (invite.status === 'accepted') {
+      throw new ProblemError(410, 'Invite Already Used', 'This invite has already been accepted.', {
+        code: 'invite_already_used',
+        errors: [{ invite_id: invite.invite_id }],
+      });
+    }
+    if (invite.status === 'revoked') {
+      throw new ProblemError(410, 'Invite Revoked', 'This invite has been revoked by an administrator.', {
+        code: 'invite_revoked',
+        errors: [{ invite_id: invite.invite_id }],
+      });
+    }
+    if (invite.status === 'expired' || invite.expires_at_unix_ms <= Date.now()) {
+      invite.status = 'expired';
+      invite.updated_at_unix_ms = Date.now();
+      throw new ProblemError(410, 'Invite Expired', 'This invite has expired.', {
+        code: 'invite_expired',
+        errors: [{ invite_id: invite.invite_id }],
+      });
+    }
+    ensureOrganizationExists(state, invite.org_id);
+    invite.status = 'accepted';
+    invite.accepted_by = actorId;
+    invite.updated_at_unix_ms = Date.now();
+    const membership = upsertOrganizationMembership(state, invite.org_id, actorId, invite.role);
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.invite.accept',
+      payload: { org_id: invite.org_id, invite_id: invite.invite_id, role: invite.role },
+    });
+    return { invite, membership };
+  }, { operation: 'organization.invite.accept' });
+}
+
+export async function revokeInvite(
+  tenantId: string,
+  actorId: string,
+  inviteId: string,
+): Promise<InviteRecord> {
+  return mutateState(tenantId, (state) => {
+    const invite = state.organization_invites.find(
+      (entry) => entry.invite_id === inviteId,
+    );
+    if (!invite) {
+      throw new ProblemError(404, 'Invite Not Found', 'No invite matched the provided invite_id.', {
+        code: 'invite_not_found',
+        errors: [{ invite_id: inviteId }],
+      });
+    }
+    requireOrganizationRole(state, invite.org_id, actorId, 'admin');
+    if (invite.status !== 'pending') {
+      throw new ProblemError(409, 'Invite Not Pending', `Cannot revoke an invite in status '${invite.status}'.`, {
+        code: 'invite_not_revocable',
+        errors: [{ invite_id: inviteId, status: invite.status }],
+      });
+    }
+    invite.status = 'revoked';
+    invite.updated_at_unix_ms = Date.now();
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.invite.revoke',
+      payload: { org_id: invite.org_id, invite_id: invite.invite_id },
+    });
+    return invite;
+  }, { operation: 'organization.invite.revoke', entity_id: inviteId });
+}
+
+export async function listInvites(
+  tenantId: string,
+  actorId: string,
+  orgId: string,
+): Promise<InviteRecord[]> {
+  const record = await loadState(tenantId);
+  ensureOrganizationExists(record.state, orgId);
+  requireOrganizationRole(record.state, orgId, actorId, 'admin');
+  return record.state.organization_invites
+    .filter((entry) => entry.org_id === orgId)
+    .sort((a, b) => b.created_at_unix_ms - a.created_at_unix_ms);
+}
+
+// ---------------------------------------------------------------------------
+// Member removal
+// ---------------------------------------------------------------------------
+
+export async function removeOrganizationMember(
+  tenantId: string,
+  actorId: string,
+  orgId: string,
+  subject: string,
+): Promise<boolean> {
+  return mutateState(tenantId, (state) => {
+    ensureOrganizationExists(state, orgId);
+    requireOrganizationRole(state, orgId, actorId, 'admin');
+    if (actorId === subject) {
+      throw new ProblemError(400, 'Cannot Remove Self', 'An admin cannot remove themselves from the organization.', {
+        code: 'cannot_remove_self',
+        errors: [{ org_id: orgId }],
+      });
+    }
+    const before = state.organization_members.length;
+    state.organization_members = state.organization_members.filter(
+      (entry) => !(entry.org_id === orgId && entry.actor_id === subject),
+    );
+    if (state.organization_members.length === before) {
+      throw new ProblemError(404, 'Member Not Found', 'The specified actor is not a member of this organization.', {
+        code: 'member_not_found',
+        errors: [{ org_id: orgId, subject }],
+      });
+    }
+    appendLog(state, {
+      tenant_id: tenantId,
+      actor: actorId,
+      event_type: 'organization.member.remove',
+      payload: { org_id: orgId, subject },
+    });
+    return true;
+  }, { operation: 'organization.member.remove', entity_id: orgId });
+}
+
+export async function listOrganizationMembers(
+  tenantId: string,
+  actorId: string,
+  orgId: string,
+): Promise<{ members: OrganizationMemberRecord[]; seat_count: number }> {
+  const record = await loadState(tenantId);
+  ensureOrganizationExists(record.state, orgId);
+  requireOrganizationRole(record.state, orgId, actorId, 'viewer');
+  const members = record.state.organization_members
+    .filter((entry) => entry.org_id === orgId)
+    .sort((a, b) => a.created_at_unix_ms - b.created_at_unix_ms);
+  return { members, seat_count: members.length };
+}
+
+// ---------------------------------------------------------------------------
+// Autonomous background worker
+// ---------------------------------------------------------------------------
+
+export interface WorkerLoopOptions {
+  tenantId: string;
+  actorId: string;
+  workerId: string;
+  orgId?: string;
+  pollIntervalMs?: number;
+  batchSize?: number;
+  signal?: AbortSignal;
+  onCycle?: (result: WorkerCycleResult) => void;
+}
+
+export interface WorkerCycleResult {
+  cycle: number;
+  jobs_processed: number;
+  jobs_recovered: number;
+  errors: string[];
+  timestamp_unix_ms: number;
+  duration_ms: number;
+}
+
+export interface WorkerHandle {
+  workerId: string;
+  started_at_unix_ms: number;
+  stop: () => void;
+  waitForCycle: () => Promise<WorkerCycleResult>;
+  getCycles: () => WorkerCycleResult[];
+}
+
+export function startWorkerLoop(options: WorkerLoopOptions): WorkerHandle {
+  const {
+    tenantId,
+    actorId,
+    workerId,
+    orgId,
+    pollIntervalMs = Number(process.env.REQUIEM_WORKER_POLL_MS ?? 5_000),
+    batchSize = Number(process.env.REQUIEM_WORKER_BATCH_SIZE ?? 10),
+    signal,
+    onCycle,
+  } = options;
+
+  const ac = new AbortController();
+  const combinedSignal = signal
+    ? AbortSignal.any([ac.signal, signal])
+    : ac.signal;
+
+  const cycles: WorkerCycleResult[] = [];
+  let cycleCount = 0;
+  let resolveNextCycle: ((result: WorkerCycleResult) => void) | null = null;
+
+  async function runCycle(): Promise<WorkerCycleResult> {
+    const start = Date.now();
+    cycleCount += 1;
+    const errors: string[] = [];
+    let jobsProcessed = 0;
+    let jobsRecovered = 0;
+
+    try {
+      const recovered = await recoverStalePlanJobs(tenantId, actorId, orgId);
+      jobsRecovered = recovered.length;
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : 'recovery failed');
+    }
+
+    try {
+      const processed = await processPlanJobs(tenantId, actorId, workerId, {
+        org_id: orgId,
+        limit: batchSize,
+      });
+      jobsProcessed = processed.length;
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : 'processing failed');
+    }
+
+    const result: WorkerCycleResult = {
+      cycle: cycleCount,
+      jobs_processed: jobsProcessed,
+      jobs_recovered: jobsRecovered,
+      errors,
+      timestamp_unix_ms: Date.now(),
+      duration_ms: Date.now() - start,
+    };
+    cycles.push(result);
+    onCycle?.(result);
+    return result;
+  }
+
+  async function loop() {
+    while (!combinedSignal.aborted) {
+      const result = await runCycle();
+      if (resolveNextCycle) {
+        resolveNextCycle(result);
+        resolveNextCycle = null;
+      }
+      if (combinedSignal.aborted) break;
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, pollIntervalMs);
+        combinedSignal.addEventListener('abort', () => {
+          clearTimeout(timer);
+          resolve();
+        }, { once: true });
+      });
+    }
+  }
+
+  loop().catch(() => { /* worker loop exited */ });
+
+  return {
+    workerId,
+    started_at_unix_ms: Date.now(),
+    stop: () => ac.abort(),
+    waitForCycle: () => new Promise<WorkerCycleResult>((resolve) => {
+      resolveNextCycle = resolve;
+    }),
+    getCycles: () => [...cycles],
   };
 }

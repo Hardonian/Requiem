@@ -11,6 +11,110 @@ export type SupportedTopology =
   | typeof EXTERNAL_RUNTIME_DEPLOYMENT_TOPOLOGY;
 export type TenancyModel = typeof TENANCY_MODEL;
 
+// ---------------------------------------------------------------------------
+// Execution taxonomy — canonical classification for every execution path
+// ---------------------------------------------------------------------------
+
+export type DurabilityClass =
+  | 'durable-queued'       // persisted before execution; survives process loss; recoverable via lease expiry
+  | 'request-bound'        // tied to the HTTP request lifecycle; lost on process death
+  | 'externally-delegated' // forwarded to REQUIEM_API_URL; durability depends on external service
+  | 'informational'        // read-only or stub; no execution side-effect
+  | 'not-implemented';     // surface exists but has no backend execution
+
+export interface ExecutionPathEntry {
+  path: string;
+  durability_class: DurabilityClass;
+  survives_process_loss: boolean;
+  duplicate_safe: boolean;
+  operator_visible_recovery: boolean;
+  notes: string;
+}
+
+export const EXECUTION_TAXONOMY: ExecutionPathEntry[] = [
+  {
+    path: '/api/tenants/jobs (action=enqueue)',
+    durability_class: 'durable-queued',
+    survives_process_loss: true,
+    duplicate_safe: true,
+    operator_visible_recovery: true,
+    notes: 'Job intent persisted before execution. Lease-based ownership prevents duplicate processing. Stale leases recovered via action=recover or automatically during action=process.',
+  },
+  {
+    path: '/api/tenants/jobs (action=process)',
+    durability_class: 'durable-queued',
+    survives_process_loss: true,
+    duplicate_safe: true,
+    operator_visible_recovery: true,
+    notes: 'Claims job with time-bounded lease. If worker dies mid-flight, lease expires and job returns to pending or failed. No autonomous background polling — requires explicit operator/worker call.',
+  },
+  {
+    path: '/api/tenants/jobs (action=recover)',
+    durability_class: 'durable-queued',
+    survives_process_loss: true,
+    duplicate_safe: true,
+    operator_visible_recovery: true,
+    notes: 'Explicitly reclaims stale leases. Idempotent.',
+  },
+  {
+    path: '/api/plans (action=run)',
+    durability_class: 'request-bound',
+    survives_process_loss: false,
+    duplicate_safe: false,
+    operator_visible_recovery: false,
+    notes: 'Plan execution runs synchronously in the request handler. If the process dies, the run is lost. Use durable job queue for crash-safe plan execution.',
+  },
+  {
+    path: '/api/tenants/organizations',
+    durability_class: 'request-bound',
+    survives_process_loss: false,
+    duplicate_safe: true,
+    operator_visible_recovery: false,
+    notes: 'CRUD mutations are request-bound but idempotency-keyed. State is persisted atomically within the request. Process death mid-write is protected by atomic file rename or Supabase OCC.',
+  },
+  {
+    path: '/api/engine/*',
+    durability_class: 'externally-delegated',
+    survives_process_loss: false,
+    duplicate_safe: false,
+    operator_visible_recovery: false,
+    notes: 'Proxied to REQUIEM_API_URL. Durability depends on the external runtime.',
+  },
+  {
+    path: '/api/health, /api/readiness, /api/status',
+    durability_class: 'informational',
+    survives_process_loss: false,
+    duplicate_safe: true,
+    operator_visible_recovery: false,
+    notes: 'Read-only probes with no side effects.',
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Membership lifecycle truth
+// ---------------------------------------------------------------------------
+
+export const MEMBERSHIP_LIFECYCLE = {
+  supported: [
+    'create organization (admin becomes first member)',
+    'set member role (admin can assign admin/operator/viewer to any actor_id)',
+    'delete organization (cascades members and jobs)',
+    'validate role (check actor role against minimum threshold)',
+    'list organizations and memberships for current tenant',
+    'invite user by email with durable token and expiry',
+    'accept invite with token validation and role assignment',
+    'revoke pending invite',
+    'remove individual member from organization',
+    'list members with seat count',
+    'change member role with admin enforcement',
+  ],
+  not_implemented: [
+    'billing/payment integration for seat accounting',
+    'self-service role change (requires admin)',
+    'org switching UI in console',
+  ],
+} as const;
+
 export function currentDeploymentTopology(productionLike: boolean, externalRuntimeConfigured = false): SupportedTopology {
   if (!productionLike) {
     return LOCAL_DEVELOPMENT_TOPOLOGY;

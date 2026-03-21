@@ -605,6 +605,39 @@ export interface TenantJobRecord {
   completed_run_id: string | null;
 }
 
+export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'expired';
+
+export interface TenantOrganizationInvite {
+  invite_id: string;
+  org_id: string;
+  tenant_id: string;
+  email: string;
+  role: TenantAdminRole;
+  status: InviteStatus;
+  token_hash: string;
+  invited_by: string;
+  accepted_by: string | null;
+  expires_at_unix_ms: number;
+  created_at_unix_ms: number;
+  updated_at_unix_ms: number;
+}
+
+export interface TenantInviteResponse {
+  ok: boolean;
+  invite?: TenantOrganizationInvite;
+  invites?: TenantOrganizationInvite[];
+  error?: TypedError;
+}
+
+export interface TenantMemberResponse {
+  ok: boolean;
+  membership?: TenantOrganizationMember;
+  removed?: boolean;
+  members?: TenantOrganizationMember[];
+  seat_count?: number;
+  error?: TypedError;
+}
+
 export interface TenantOrganizationsListResponse {
   ok: boolean;
   organizations: TenantOrganization[];

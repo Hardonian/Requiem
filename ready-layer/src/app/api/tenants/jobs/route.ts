@@ -10,6 +10,13 @@ import {
 } from '@/lib/control-plane-store';
 import type { ApiResponse, TenantJobMutationResponse, TenantJobsResponse } from '@/types/engine';
 
+const JOB_EXECUTION_CLASS = {
+  durability_class: 'durable-queued' as const,
+  survives_process_loss: true,
+  autonomous_worker: false,
+  recovery_mechanism: 'Stale leases are recovered via action=recover or automatically during action=process. There is no autonomous background worker — processing requires explicit operator-driven calls.',
+};
+
 export const dynamic = 'force-dynamic';
 
 const querySchema = z.object({
@@ -31,10 +38,10 @@ export async function GET(request: NextRequest): Promise<Response> {
     async (ctx) => {
       const query = parseQueryWithSchema(request, querySchema);
       const jobs = await listPlanJobs(ctx.tenant_id, ctx.actor_id, query.org_id);
-      const response: ApiResponse<TenantJobsResponse> = {
+      const response: ApiResponse<TenantJobsResponse & { execution_class: typeof JOB_EXECUTION_CLASS }> = {
         v: 1,
         kind: 'tenant.jobs.list',
-        data: { ok: true, jobs, total: jobs.length },
+        data: { ok: true, jobs, total: jobs.length, execution_class: JOB_EXECUTION_CLASS },
         error: null,
       };
       return NextResponse.json(response, { status: 200 });
@@ -59,10 +66,10 @@ export async function POST(request: NextRequest): Promise<Response> {
           plan_hash: body.plan_hash,
           max_attempts: body.max_attempts,
         });
-        const response: ApiResponse<TenantJobMutationResponse> = {
+        const response: ApiResponse<TenantJobMutationResponse & { execution_class: typeof JOB_EXECUTION_CLASS }> = {
           v: 1,
           kind: 'tenant.jobs.enqueue',
-          data: { ok: true, job },
+          data: { ok: true, job, execution_class: JOB_EXECUTION_CLASS },
           error: null,
         };
         return NextResponse.json(response, { status: 200 });

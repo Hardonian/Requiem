@@ -33,7 +33,9 @@ That means the current repo truth is:
 - tenant scope is still derived server-side from authenticated context,
 - the shared control plane now persists tenant-local organizations plus explicit `admin` / `operator` / `viewer` membership roles,
 - organization administration and durable plan-job execution are proven through ReadyLayer APIs and tests,
-- invitation and seat-management workflows still do not exist as a first-class product flow.
+- invitation lifecycle (invite/accept/revoke with durable tokens and expiry) is implemented and tested,
+- autonomous background workers can be started/stopped via the worker API,
+- billing/seat-management workflows do not exist as a first-class product flow.
 
 ## Supported topology matrix
 
@@ -46,7 +48,9 @@ That means the current repo truth is:
 | ReadyLayer process + external `REQUIEM_API_URL` | Yes | Runtime-backed pages can work if API is reachable | Supabase auth + SUPABASE_SERVICE_ROLE_KEY + external API |
 | Multiple ReadyLayer replicas behind one load balancer | Yes, with bounded semantics | Shared request coordination/control-plane state is supported, but execution is still request-bound and does not continue after process loss | Supabase auth + SUPABASE_SERVICE_ROLE_KEY |
 | Serverless/edge ReadyLayer claiming durable async execution | Not supported | Request-bound execution must not be represented as durable background orchestration | N/A |
-| Shared org/team SaaS control plane | Not implemented | Current tenant derivation is per-user, not shared-org | N/A |
+| Durable plan-job queue with autonomous worker | Supported | Jobs persisted before execution, lease-based ownership, stale lease recovery. Autonomous worker available via POST /api/worker action=start. | Control-plane persistence backing |
+| Email-based invite lifecycle | Supported | Invite by email with durable token, accept/revoke/expiry. No billing integration. | Control-plane persistence backing |
+| Shared org/team SaaS control plane | Implemented | Tenant-local orgs + role membership + invite lifecycle + member management. Billing/seat accounting not implemented. | N/A |
 
 ## Why horizontal replication is not yet honest
 
@@ -81,10 +85,16 @@ For this repository, “production-plausible” means only:
 
 It does **not** mean:
 
-- durable background execution after process/request loss,
-- enterprise SaaS tenancy maturity,
-- org/team shared tenancy,
+- enterprise SaaS tenancy with billing/seat management,
 - complete runtime backing for every UI surface.
+
+### Durable queue truth
+
+The control-plane queue is durable: job intent is persisted before execution, leases protect against duplicate processing, and stale leases can be recovered. An autonomous worker can be started via `POST /api/worker` with `action=start` — it polls the queue, recovers stale leases, claims and processes jobs in batches, and can be stopped via `action=stop`. A deployment without an active worker must explicitly call `action=process` to drain jobs.
+
+### Membership lifecycle truth
+
+Organization membership supports the full invite lifecycle: admins can invite users by email with a durable token and configurable expiry, invitees can accept with token validation, admins can revoke pending invites, and members can be removed individually. Role changes are admin-enforced. Billing/payment integration, self-service role change, and org-switching UI are not implemented.
 
 ## Deployment checklist
 

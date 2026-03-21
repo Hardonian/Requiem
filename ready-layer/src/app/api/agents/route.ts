@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withTenantContext } from '@/lib/big4-http';
+import { listRunSummaries } from '@/lib/control-plane-store';
 import type { ApiResponse } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,7 @@ interface AgentInfo {
   health: { ok: boolean; error?: string };
   last_invocation?: string;
   total_invocations: number;
+  source: 'control-plane';
 }
 
 interface AgentsResponse {
@@ -24,46 +26,27 @@ interface AgentsResponse {
 export async function GET(request: NextRequest): Promise<Response> {
   return withTenantContext(
     request,
-    async () => {
-      const agents: AgentInfo[] = [
-        {
-          agent_id: 'openai-gpt4',
-          adapter_type: 'openai',
-          capabilities: [
-            { name: 'code_review', description: 'Review code for bugs and improvements' },
-            { name: 'code_generation', description: 'Generate code from specifications' },
-          ],
-          health: { ok: true },
-          last_invocation: new Date(Date.now() - 300000).toISOString(),
-          total_invocations: 142,
-        },
-        {
-          agent_id: 'cli-linter',
-          adapter_type: 'cli',
-          capabilities: [
-            { name: 'eslint', description: 'Run ESLint on TypeScript/JavaScript files' },
-          ],
-          health: { ok: true },
-          last_invocation: new Date(Date.now() - 600000).toISOString(),
-          total_invocations: 89,
-        },
-        {
-          agent_id: 'custom-test-runner',
-          adapter_type: 'custom',
-          capabilities: [
-            { name: 'run_tests', description: 'Execute test suite and report results' },
-            { name: 'generate_fixtures', description: 'Generate test fixtures from schemas' },
-          ],
-          health: { ok: true },
-          last_invocation: new Date(Date.now() - 120000).toISOString(),
-          total_invocations: 256,
-        },
-      ];
+    async (ctx) => {
+      // Derive agent activity from real plan run history
+      const runs = await listRunSummaries(ctx.tenant_id);
+
+      const agent: AgentInfo = {
+        agent_id: 'control-plane-executor',
+        adapter_type: 'control-plane',
+        capabilities: [
+          { name: 'plan_execution', description: 'Execute multi-step plans with deterministic replay' },
+          { name: 'durable_queue', description: 'Process durable queued plan jobs with lease-based recovery' },
+        ],
+        health: { ok: true },
+        last_invocation: runs[0]?.created_at ?? undefined,
+        total_invocations: runs.length,
+        source: 'control-plane',
+      };
 
       const response: ApiResponse<AgentsResponse> = {
         v: 1,
         kind: 'agents.list',
-        data: { ok: true, agents },
+        data: { ok: true, agents: [agent] },
         error: null,
       };
 

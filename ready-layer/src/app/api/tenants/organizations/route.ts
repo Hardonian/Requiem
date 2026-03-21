@@ -6,6 +6,7 @@ import {
   createOrganization,
   deleteOrganization,
   listOrganizations,
+  removeOrganizationMember,
   setOrganizationMemberRole,
   updateOrganization,
 } from '@/lib/control-plane-store';
@@ -18,7 +19,7 @@ import type {
 export const dynamic = 'force-dynamic';
 
 const postSchema = z.object({
-  action: z.enum(['create', 'update', 'delete', 'set_member_role']),
+  action: z.enum(['create', 'update', 'delete', 'set_member_role', 'remove_member']),
   org_id: z.string().min(1),
   name: z.string().min(1).optional(),
   status: z.enum(['active', 'paused', 'degraded']).optional(),
@@ -101,6 +102,20 @@ export async function POST(request: NextRequest): Promise<Response> {
         const response: ApiResponse<TenantOrganizationMutationResponse> = {
           v: 1,
           kind: 'tenant.organizations.delete',
+          data: { ok: true, deleted: true },
+          error: null,
+        };
+        return NextResponse.json(response, { status: 200 });
+      }
+
+      if (body.action === 'remove_member') {
+        if (!body.subject) {
+          throw new ProblemError(400, 'Missing Argument', 'subject is required when action=remove_member.', { code: 'missing_argument' });
+        }
+        await removeOrganizationMember(ctx.tenant_id, ctx.actor_id, body.org_id, body.subject);
+        const response: ApiResponse<TenantOrganizationMutationResponse> = {
+          v: 1,
+          kind: 'tenant.organizations.member.remove',
           data: { ok: true, deleted: true },
           error: null,
         };

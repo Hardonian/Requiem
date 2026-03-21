@@ -237,14 +237,112 @@ curl -sS -X POST http://127.0.0.1:3000/api/tenants/jobs \
 
 If a worker/process dies mid-flight, the durable queue preserves the job in `running` state with a lease. A later `process` or explicit `recover` call will move expired leases back to `pending` or `failed` instead of silently losing work.
 
-## 8. Known caveats operators must remember
+## 8. Autonomous worker management
 
-- Foreground API handlers remain request-bound; there is still no hidden always-on scheduler inside ReadyLayer itself.
-- Durable continuation is currently implemented for control-plane plan jobs, not arbitrary external runtime tasks.
-- Some ReadyLayer routes are informational or stub-backed.
+Start an autonomous background worker that polls and processes durable jobs:
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/worker \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: worker-start-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"start","org_id":"org-alpha","poll_interval_ms":5000,"batch_size":10}'
+```
+
+Check worker status and stop:
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/worker \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: worker-status-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"status"}'
+
+curl -sS -X POST http://127.0.0.1:3000/api/worker \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: worker-stop-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"stop"}'
+```
+
+The worker automatically recovers stale leases, claims pending jobs, and processes them in batches. `/api/readiness` dynamically reports `autonomous_worker_active: true` when any worker is running.
+
+## 9. Invite and member management
+
+### Invite a user by email
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/invites \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: invite-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"create","org_id":"org-alpha","email":"bob@example.com","role":"operator","expires_in_hours":72}'
+```
+
+### Accept an invite
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/invites \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: bob" \
+  -H "idempotency-key: accept-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"accept","invite_token":"<token_from_invite_response>"}'
+```
+
+### Revoke a pending invite
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/invites \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: revoke-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"revoke","invite_token":"<token>"}'
+```
+
+### Remove a member or change role
+
+```bash
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/members \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: remove-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"remove","org_id":"org-alpha","actor_id":"bob"}'
+
+curl -sS -X POST http://127.0.0.1:3000/api/tenants/members \
+  -H "authorization: Bearer $REQUIEM_AUTH_SECRET" \
+  -H "x-tenant-id: tenant-a" \
+  -H "x-user-id: alice" \
+  -H "idempotency-key: role-change-1" \
+  -H "content-type: application/json" \
+  -d '{"action":"change_role","org_id":"org-alpha","actor_id":"bob","role":"viewer"}'
+```
+
+## 10. Known caveats operators must remember
+
+- Foreground API handlers remain request-bound; the autonomous worker runs as a background loop within the same process.
+- Without a running worker, durable plan jobs require explicit `action=process` calls from an operator.
+- Stale leases from dead workers are recovered automatically by running workers or via explicit `action=recover`.
+- Billing/payment integration for seat accounting is not implemented.
+- Self-service role change requires admin action.
 - `/app/tenants` is still a disclosure surface, not the source of truth for organization administration.
 
-## 9. Release/go-live minimum
+See [PRODUCT_BOUNDARIES.md](./PRODUCT_BOUNDARIES.md) for the complete hard boundary declaration.
+
+## 11. Release/go-live minimum
 
 Before any serious demo or deployment, capture:
 
