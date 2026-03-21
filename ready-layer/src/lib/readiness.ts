@@ -6,6 +6,7 @@ import {
   MEMBERSHIP_LIFECYCLE,
   type DurabilityClass,
 } from '@/lib/deployment-contract';
+import { isAnyWorkerActive, getWorkerCount } from '@/lib/worker-registry';
 import { createInternalAuthProof } from '@/lib/internal-auth-proof';
 import { checkControlPlanePersistence } from '@/lib/control-plane-store';
 import { checkSharedRuntimeCoordination } from '@/lib/shared-request-coordination';
@@ -35,7 +36,7 @@ export interface ReadinessResult {
     execution_model: string;
     tenancy_model: string;
     durable_queue_available: boolean;
-    autonomous_worker_active: false;
+    autonomous_worker_active: boolean;
     supported_durability_classes: DurabilityClass[];
     membership_lifecycle: {
       supported: readonly string[];
@@ -150,13 +151,15 @@ function probeExecutionModelTruth(topologyMode: DeploymentTopologyMode): Readine
 
 function probeDurableQueueHealth(topologyMode: DeploymentTopologyMode): ReadinessCheck {
   const queueAvailable = true; // The queue code path is always compiled in
+  const workerActive = isAnyWorkerActive();
+  const workerCount = getWorkerCount();
   return {
     name: 'durable_queue_health',
     ok: queueAvailable,
     required: false,
-    detail: queueAvailable
-      ? 'Durable plan-job queue is available. Jobs can be enqueued, leased, recovered, and finalized. No autonomous background worker exists — processing requires explicit action=process calls from an operator or external scheduler.'
-      : 'Durable plan-job queue is not available.',
+    detail: workerActive
+      ? `Durable plan-job queue is available with ${workerCount} active worker(s) processing jobs autonomously.`
+      : 'Durable plan-job queue is available. Jobs can be enqueued, leased, recovered, and finalized. No autonomous background worker is currently running — start one via POST /api/worker with action=start, or process jobs manually via action=process.',
   };
 }
 
@@ -187,7 +190,7 @@ export async function computeReadiness(): Promise<ReadinessResult> {
       execution_model: REQUEST_EXECUTION_MODEL,
       tenancy_model: TENANCY_MODEL,
       durable_queue_available: true,
-      autonomous_worker_active: false,
+      autonomous_worker_active: isAnyWorkerActive(),
       supported_durability_classes: supportedDurabilityClasses,
       membership_lifecycle: MEMBERSHIP_LIFECYCLE,
       external_runtime_configured: envContract.external_runtime_configured,

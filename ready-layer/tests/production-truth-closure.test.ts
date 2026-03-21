@@ -324,13 +324,13 @@ describe('readiness contract — no overclaim', () => {
     expect(body.deployment_contract.autonomous_worker_active).toBe(false);
     expect(body.deployment_contract.supported_durability_classes).toContain('durable-queued');
     expect(body.deployment_contract.supported_durability_classes).toContain('request-bound');
-    expect(body.deployment_contract.membership_lifecycle.not_implemented).toContain('email-based invite with durable token');
     expect(body.deployment_contract.membership_lifecycle.supported).toContain('create organization (admin becomes first member)');
+    expect(body.deployment_contract.membership_lifecycle.supported).toContain('invite user by email with durable token and expiry');
 
     // Verify the durable_queue_health check exists and is truthful
     const queueCheck = body.checks.find((c) => c.name === 'durable_queue_health');
     expect(queueCheck).toBeTruthy();
-    expect(queueCheck!.detail).toContain('No autonomous background worker');
+    expect(queueCheck!.detail).toContain('Durable plan-job queue is available');
 
     fs.rmSync(controlPlaneDir, { recursive: true, force: true });
   });
@@ -358,8 +358,8 @@ describe('execution taxonomy', () => {
     // Verify membership lifecycle truth
     expect(MEMBERSHIP_LIFECYCLE.supported.length).toBeGreaterThan(0);
     expect(MEMBERSHIP_LIFECYCLE.not_implemented.length).toBeGreaterThan(0);
-    expect(MEMBERSHIP_LIFECYCLE.not_implemented).toContain('email-based invite with durable token');
-    expect(MEMBERSHIP_LIFECYCLE.not_implemented).toContain('seat accounting or billing integration');
+    expect(MEMBERSHIP_LIFECYCLE.supported).toContain('invite user by email with durable token and expiry');
+    expect(MEMBERSHIP_LIFECYCLE.not_implemented).toContain('billing/payment integration for seat accounting');
   });
 });
 

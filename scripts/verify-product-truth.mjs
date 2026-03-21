@@ -8,6 +8,8 @@
  * - membership lifecycle claims
  * - readiness contract fields
  * - deployment topology documentation
+ * - autonomous worker infrastructure
+ * - invite lifecycle infrastructure
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -51,14 +53,14 @@ function fileDoesNotContain(filePath, needle, description) {
 
 console.log('=== Product Truth Verification ===\n');
 
-// 1. Readiness must NOT claim background_execution_supported
+// 1. Readiness must NOT claim background_execution_supported (old overclaim field)
 fileDoesNotContain(
   'ready-layer/src/lib/readiness.ts',
   'background_execution_supported',
   'Readiness does not overclaim background_execution_supported',
 );
 
-// 2. Readiness must report autonomous_worker_active: false
+// 2. Readiness must report autonomous_worker_active (dynamic field)
 fileContains(
   'ready-layer/src/lib/readiness.ts',
   'autonomous_worker_active',
@@ -86,11 +88,11 @@ fileContains(
   'Deployment contract exports MEMBERSHIP_LIFECYCLE',
 );
 
-// 6. Deployment contract lists not_implemented membership items
+// 6. Membership lifecycle includes invite support
 fileContains(
   'ready-layer/src/lib/deployment-contract.ts',
-  'email-based invite with durable token',
-  'Membership lifecycle explicitly marks invite as not implemented',
+  'invite user by email with durable token and expiry',
+  'Membership lifecycle includes invite support',
 );
 
 // 7. README does not claim durable background workers are proven
@@ -100,18 +102,18 @@ fileDoesNotContain(
   'README does not claim durable background workers are proven',
 );
 
-// 8. PRODUCT_BOUNDARIES.md exists
+// 8. PRODUCT_BOUNDARIES.md exists and documents worker
 fileContains(
   'docs/PRODUCT_BOUNDARIES.md',
-  'no autonomous background worker',
-  'PRODUCT_BOUNDARIES.md states no autonomous background worker',
+  'autonomous worker',
+  'PRODUCT_BOUNDARIES.md documents autonomous worker',
 );
 
-// 9. DEPLOYMENT.md mentions the durable queue truth
+// 9. DEPLOYMENT.md documents worker capability
 fileContains(
   'docs/DEPLOYMENT.md',
-  'no autonomous background worker',
-  'DEPLOYMENT.md states no autonomous background worker',
+  'autonomous worker',
+  'DEPLOYMENT.md documents autonomous worker',
 );
 
 // 10. Job route includes execution_class metadata
@@ -121,18 +123,39 @@ fileContains(
   'Job API route includes execution_class metadata',
 );
 
-// 11. No invite API endpoint exists
-fileDoesNotContain(
-  'ready-layer/src/app/api/tenants/organizations/route.ts',
-  "'invite'",
-  'Organization route does not support invite action',
+// 11. Invite API endpoint exists
+fileContains(
+  'ready-layer/src/app/api/tenants/invites/route.ts',
+  'invite',
+  'Invite API route exists',
 );
 
-// 12. Readiness includes membership_lifecycle in deployment_contract
+// 12. Worker API endpoint exists
+fileContains(
+  'ready-layer/src/app/api/worker/route.ts',
+  'startWorkerLoop',
+  'Worker API route uses real worker loop',
+);
+
+// 13. Worker registry provides dynamic state
+fileContains(
+  'ready-layer/src/lib/worker-registry.ts',
+  'isAnyWorkerActive',
+  'Worker registry exports isAnyWorkerActive',
+);
+
+// 14. Readiness includes membership_lifecycle in deployment_contract
 fileContains(
   'ready-layer/src/lib/readiness.ts',
   'membership_lifecycle',
   'Readiness includes membership_lifecycle in deployment_contract',
+);
+
+// 15. Member management API exists
+fileContains(
+  'ready-layer/src/app/api/tenants/members/route.ts',
+  'remove',
+  'Member management API supports member removal',
 );
 
 console.log(`\n=== ${failures === 0 ? 'ALL PASSED' : `${failures} FAILURE(S)`} ===`);
