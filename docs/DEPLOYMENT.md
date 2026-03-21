@@ -46,7 +46,9 @@ That means the current repo truth is:
 | ReadyLayer process + external `REQUIEM_API_URL` | Yes | Runtime-backed pages can work if API is reachable | Supabase auth + SUPABASE_SERVICE_ROLE_KEY + external API |
 | Multiple ReadyLayer replicas behind one load balancer | Yes, with bounded semantics | Shared request coordination/control-plane state is supported, but execution is still request-bound and does not continue after process loss | Supabase auth + SUPABASE_SERVICE_ROLE_KEY |
 | Serverless/edge ReadyLayer claiming durable async execution | Not supported | Request-bound execution must not be represented as durable background orchestration | N/A |
-| Shared org/team SaaS control plane | Not implemented | Current tenant derivation is per-user, not shared-org | N/A |
+| Durable plan-job queue with operator-driven processing | Supported | Jobs persisted before execution, lease-based ownership, stale lease recovery. No autonomous background worker. | Control-plane persistence backing |
+| Email-based invite / seat management | Not implemented | Membership is set directly via set_member_role. No invite/accept/revoke flow. | N/A |
+| Shared org/team SaaS control plane | Partially implemented | Tenant-local orgs + role membership exist. Invite/seat/billing workflows do not. | N/A |
 
 ## Why horizontal replication is not yet honest
 
@@ -81,10 +83,17 @@ For this repository, “production-plausible” means only:
 
 It does **not** mean:
 
-- durable background execution after process/request loss,
-- enterprise SaaS tenancy maturity,
-- org/team shared tenancy,
+- an autonomous background worker polling the durable queue,
+- enterprise SaaS tenancy with invite/seat management,
 - complete runtime backing for every UI surface.
+
+### Durable queue truth
+
+The control-plane queue is durable: job intent is persisted before execution, leases protect against duplicate processing, and stale leases can be recovered. However, there is **no autonomous background worker**. Processing requires explicit `action=process` calls from an operator, external scheduler, or cron. A deployment without an active worker caller must not imply that queued jobs are being automatically processed.
+
+### Membership lifecycle truth
+
+Organization membership is managed via direct `set_member_role` API calls from an admin. There is no email-based invite flow, no invite token, no acceptance/expiry handling, no seat accounting, and no self-service role change. Do not market the product as having enterprise member management.
 
 ## Deployment checklist
 

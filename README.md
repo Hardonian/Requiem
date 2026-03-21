@@ -9,7 +9,7 @@ Requiem is a monorepo for three related surfaces:
 - a TypeScript CLI under `packages/cli/`, and
 - a Next.js operator console under `ready-layer/`.
 
-The repository proves local build, route-contract, replay-oriented workflows, and a request-bound ReadyLayer deployment backed by shared Supabase state. It does **not** prove durable background workers or org/team SaaS tenancy.
+The repository proves local build, route-contract, replay-oriented workflows, and a request-bound ReadyLayer deployment backed by shared Supabase state with a durable control-plane queue for plan jobs. It does **not** prove autonomous background workers, email-based invite/seat management, or enterprise SaaS workspace tenancy.
 
 ## Current state
 
@@ -24,9 +24,21 @@ The repository proves local build, route-contract, replay-oriented workflows, an
 
 ### Tenancy model
 
-ReadyLayer currently derives tenant context from the authenticated Supabase user ID in middleware and forwards that same value as both `x-user-id` and `x-tenant-id` to server routes. In practice, the web app behaves as **single-tenant-per-authenticated-user**, not as a multi-user organization SaaS with shared workspaces, invitations, seats, or org switching.
+ReadyLayer derives tenant context from the authenticated Supabase user ID in middleware and forwards it as both `x-user-id` and `x-tenant-id` to server routes. Within each tenant scope, the control plane supports **tenant-local organizations** with explicit **admin / operator / viewer** role membership.
 
-If you need org/team tenancy, shared control-plane state across users, or delegated admin boundaries, treat that as future work rather than current repo truth.
+What works today:
+- create/update/delete organizations per tenant,
+- assign roles to actor IDs directly via `set_member_role`,
+- role-enforced access to org CRUD, job queue, and health endpoints.
+
+What does **not** exist:
+- email-based invite with durable token and acceptance flow,
+- invite revocation or expiry handling,
+- member deactivation/removal independent of org deletion,
+- seat accounting, billing integration, or self-service role change,
+- org-switching UI or shared multi-user workspace semantics.
+
+Membership is currently controlled via explicit API calls from an admin — not through an invite/accept product flow.
 
 ### Supported deployment model
 
@@ -38,9 +50,9 @@ Supported today:
 
 Not supported as a proven topology today:
 
-- any deployment that expects durable background continuation after request/process loss,
+- any deployment that expects an autonomous background worker polling the durable queue (plan jobs require explicit `action=process` calls from an operator or external scheduler),
 - serverless/edge topologies that reinterpret request-bound execution as durable async orchestration,
-- any deployment that markets the current ReadyLayer surface as a shared multi-user SaaS control plane.
+- any deployment that markets the current ReadyLayer surface as a shared multi-user SaaS control plane with invite/seat management.
 
 ### Control-plane and storage truth
 
@@ -54,9 +66,10 @@ Not supported as a proven topology today:
 
 Do **not** deploy this repository as though it already provides:
 
-- shared multi-user org tenancy,
-- horizontally safe control-plane coordination,
-- cross-replica idempotency/rate-limit guarantees, or
+- enterprise multi-user SaaS with invite/seat management,
+- autonomous background workers polling the durable queue,
+- horizontally safe control-plane coordination beyond shared Supabase state,
+- cross-replica idempotency/rate-limit guarantees beyond what Supabase OCC provides, or
 - production-ready backend telemetry for every ReadyLayer route.
 
 Before any non-local deployment:
@@ -67,7 +80,7 @@ Before any non-local deployment:
    - **local-single-runtime** (developer-only, filesystem-backed, not a production claim),
    - **shared request-bound ReadyLayer** (requires Supabase auth envs plus `SUPABASE_SERVICE_ROLE_KEY`), or
    - **shared request-bound ReadyLayer + external API** (same as above plus a reachable `REQUIEM_API_URL`).
-4. Reject any topology that depends on durable background work after request/process loss; current execution is request-bound even when control-plane state is shared.
+4. Understand that durable plan jobs can be enqueued and recovered after process loss, but there is no autonomous background worker — processing requires explicit `action=process` calls. Foreground API execution remains request-bound.
 
 ## Repository layout
 
@@ -166,9 +179,11 @@ Readiness truth:
 | CLI on one machine | Supported | Uses local filesystem/SQLite state. |
 | ReadyLayer dev server on one machine | Supported | Uses local filesystem state and process-local caches intentionally. |
 | ReadyLayer deployment with Supabase-backed shared state | Supported | Request coordination/control-plane state are shared; execution still remains request-bound in the handling runtime. |
-| Multiple ReadyLayer replicas sharing production traffic | Supported with bounded semantics | Safe only for request-bound flows backed by shared Supabase state; there is no durable background continuation after request/process loss. |
+| Multiple ReadyLayer replicas sharing production traffic | Supported with bounded semantics | Safe only for request-bound flows backed by shared Supabase state. Durable plan jobs can be enqueued and recovered, but there is no autonomous background worker — processing requires explicit operator calls. |
 | Edge/serverless deployment claiming durable async continuation | Not supported | Request-bound execution must not be marketed as durable async orchestration. |
-| Org/team multi-user SaaS control plane | Not implemented | Current tenant derivation is single-user-scoped. |
+| Durable plan-job queue with operator-driven processing | Supported | Jobs are persisted before execution, leases protect against duplicate processing, stale leases are recoverable. No autonomous background worker exists. |
+| Email-based invite / seat management | Not implemented | Membership is set directly via `set_member_role` API. No invite/accept/revoke flow exists. |
+| Org/team multi-user SaaS control plane | Partially implemented | Tenant-local orgs and role membership exist. Invite/seat/billing workflows do not. |
 
 Full detail: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md). Release gate: `pnpm run verify:release`.
 

@@ -110,7 +110,7 @@ describe('readiness route', () => {
 
     const { GET } = await import('../src/app/api/readiness/route');
     const response = await GET(new NextRequest('http://localhost/api/readiness'));
-    const body = await response.json() as { ok: boolean; status: string; checks: Array<{ name: string; ok: boolean }>; deployment_contract: { topology: string; topology_mode: string; execution_model: string; background_execution_supported: boolean } };
+    const body = await response.json() as { ok: boolean; status: string; checks: Array<{ name: string; ok: boolean }>; deployment_contract: { topology: string; topology_mode: string; execution_model: string; durable_queue_available: boolean; autonomous_worker_active: boolean; supported_durability_classes: string[]; membership_lifecycle: { supported: string[]; not_implemented: string[] } } };
 
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
@@ -118,8 +118,12 @@ describe('readiness route', () => {
     expect(body.deployment_contract.topology).toBe('shared-supabase-request-bound-external-api');
     expect(body.deployment_contract.topology_mode).toBe('shared-supabase-request-bound-external-api');
     expect(body.deployment_contract.execution_model).toBe('request-bound-same-runtime');
-    expect(body.deployment_contract.background_execution_supported).toBe(true);
-    expect(body.checks.filter((check) => check.name !== 'execution_model_contract').every((check) => check.ok)).toBe(true);
+    expect(body.deployment_contract.durable_queue_available).toBe(true);
+    expect(body.deployment_contract.autonomous_worker_active).toBe(false);
+    expect(body.deployment_contract.supported_durability_classes).toContain('durable-queued');
+    expect(body.deployment_contract.supported_durability_classes).toContain('request-bound');
+    expect(body.deployment_contract.membership_lifecycle.not_implemented.length).toBeGreaterThan(0);
+    expect(body.checks.filter((check) => check.name !== 'execution_model_contract' && check.name !== 'durable_queue_health').every((check) => check.ok)).toBe(true);
 
     server.close();
   });

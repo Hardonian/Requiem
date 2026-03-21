@@ -239,10 +239,15 @@ If a worker/process dies mid-flight, the durable queue preserves the job in `run
 
 ## 8. Known caveats operators must remember
 
-- Foreground API handlers remain request-bound; there is still no hidden always-on scheduler inside ReadyLayer itself.
-- Durable continuation is currently implemented for control-plane plan jobs, not arbitrary external runtime tasks.
+- Foreground API handlers remain request-bound; there is **no autonomous background worker** inside ReadyLayer itself.
+- Durable plan jobs can be enqueued and will survive process loss, but processing requires explicit `action=process` calls from an operator or external scheduler (e.g., cron job, external worker loop).
+- If you enqueue jobs without calling `action=process`, they accumulate as `pending` indefinitely.
+- Stale leases from dead workers are recovered either by explicit `action=recover` calls or automatically during `action=process`.
+- Organization membership is managed via direct `set_member_role` API calls — there is no invite/accept/revoke flow, no seat accounting, and no self-service role change.
 - Some ReadyLayer routes are informational or stub-backed.
 - `/app/tenants` is still a disclosure surface, not the source of truth for organization administration.
+
+See [PRODUCT_BOUNDARIES.md](./PRODUCT_BOUNDARIES.md) for the complete hard boundary declaration.
 
 ## 9. Release/go-live minimum
 
