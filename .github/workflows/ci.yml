@@ -196,10 +196,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
       - name: Fail if required env missing
         run: |
@@ -308,10 +308,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y cmake g++ libssl-dev libzstd-dev
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
       - name: install deps
         run: pnpm install --frozen-lockfile
@@ -504,10 +504,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
       - name: install
         run: pnpm install --frozen-lockfile
@@ -529,10 +529,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
       - name: install
         run: pnpm install --frozen-lockfile
@@ -566,10 +566,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 8.15.0
+          version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '20.11.0'
+          node-version: '24'
           cache: 'pnpm'
       - name: install (frozen lockfile)
         run: pnpm install --frozen-lockfile
