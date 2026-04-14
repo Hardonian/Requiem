@@ -223,3 +223,11 @@ Start here:
 - [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)
 
 If you are evaluating the repo, prefer command results and source-linked docs over narrative claims.
+
+
+## Repository Operations Standards
+
+- Squash-only merges
+- Auto-delete merged branches
+- Weekly dependency update windows
+- Security scanning in CI
