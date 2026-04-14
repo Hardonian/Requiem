@@ -1,26 +1,7 @@
-# .github/dependabot.yml
-#
-# Dependabot configuration for Requiem.
-#
-# IMPORTANT: All Dependabot PRs must be reviewed against contracts/deps.allowlist.json.
-# If a Dependabot PR bumps a dependency to a new major version, the allowlist entry
-# must be updated in the same PR. The CI governance job (verify_deps.sh +
-# verify_snapshot_diff.sh) will block merge if an unapproved dep appears.
-#
-# Processes:
-#   1. Dependabot opens PR with version bump.
-#   2. CI runs: verify_deps.sh confirms dep is in allowlist.
-#   3. CI runs: verify_snapshot_diff.sh confirms no new dep added outside allowlist.
-#   4. Reviewer checks: license unchanged, no breaking API changes.
-#   5. If dep is new (not a version bump): update contracts/deps.allowlist.json first.
-
 version: 2
 updates:
-  # ---------------------------------------------------------------------------
-  # Node.js — ready-layer (Next.js / React dashboard)
-  # ---------------------------------------------------------------------------
   - package-ecosystem: "npm"
-    directory: "/ready-layer"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -29,26 +10,17 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
-      - "node"
-    # Only security updates for major version bumps; allow patch/minor automatically.
-    # Major version bumps require manual allowlist update.
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
     groups:
-      ready-layer-minor-and-patch:
+      non-major:
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
-    commit-message:
-      prefix: "deps(node)"
-      include: "scope"
 
-  # ---------------------------------------------------------------------------
-  # GitHub Actions — workflow action version pinning
-  # ---------------------------------------------------------------------------
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -59,11 +31,6 @@ updates:
     open-pull-requests-limit: 2
     labels:
       - "dependencies"
-      - "github-actions"
-    groups:
-      github-actions-weekly:
-        patterns:
-          - "*"
+      - "ci"
     commit-message:
-      prefix: "deps(actions)"
-      include: "scope"
+      prefix: "chore(ci)"
