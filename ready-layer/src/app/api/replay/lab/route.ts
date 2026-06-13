@@ -44,12 +44,23 @@ export async function GET(request: NextRequest): Promise<Response> {
       const runs = await listRunSummaries(ctx.tenant_id);
       const limited = runs.slice(0, query.limit ?? 20);
 
-      let runDetail = null;
+      let runDetail: {
+        run_id: string;
+        plan_hash: string;
+        tenant_id: string;
+        receipt_hash: string;
+        result_digest: string;
+      } | null = null;
       if (query.run_id) {
         runDetail = await getRunSummary(ctx.tenant_id, query.run_id);
       }
 
-      let diff = null;
+      let diff: {
+        run_a: string;
+        run_b: string;
+        match: boolean;
+        reason: string;
+      } | null = null;
       if (query.run_id && query.compare_to) {
         const runA = await getRunSummary(ctx.tenant_id, query.run_id);
         const runB = await getRunSummary(ctx.tenant_id, query.compare_to);

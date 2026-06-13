@@ -175,7 +175,7 @@ describe('invite lifecycle', () => {
     expect(createBody.data?.invite?.email).toBe('bob@example.com');
     expect(createBody.data?.token).toBeTruthy();
     const token = createBody.data!.token!;
-    const inviteId = createBody.data!.invite!.invite_id!;
+    const _inviteId = createBody.data!.invite!.invite_id!;
 
     // List invites
     const list = await inviteRoute.GET(await makeRequest('http://localhost/api/tenants/invites?org_id=org-e2e', {
@@ -360,7 +360,7 @@ describe('stub routes replaced with real data', () => {
     const { addPlan, runPlan } = await import('../src/lib/control-plane-store');
     const plan = await addPlan('tenant-replay', 'admin-a', {
       plan_id: 'replay-test-plan',
-      steps: [{ tool: 'echo', args: { msg: 'replay-test' } }],
+      steps: [{ step_id: 'step-1', kind: 'exec', depends_on: [], config: { tool: 'echo', args: { msg: 'replay-test' } } }],
     });
     await runPlan('tenant-replay', 'admin-a', plan.plan_hash);
 

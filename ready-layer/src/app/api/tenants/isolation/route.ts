@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     request,
     async (ctx) => {
       const { organizations, memberships } = await listOrganizations(ctx.tenant_id, ctx.actor_id);
-      const healthOrgs = await getTenantOrganizationsHealth(ctx.tenant_id, ctx.actor_id);
+      const _healthOrgs = await getTenantOrganizationsHealth(ctx.tenant_id, ctx.actor_id);
       const totalBudget = organizations.reduce((sum, org) => sum + org.budget_cents, 0);
 
       const result: TenantIsolationResponse = {
