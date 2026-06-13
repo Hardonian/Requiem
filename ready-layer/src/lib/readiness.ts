@@ -149,7 +149,7 @@ function probeExecutionModelTruth(topologyMode: DeploymentTopologyMode): Readine
   };
 }
 
-function probeDurableQueueHealth(topologyMode: DeploymentTopologyMode): ReadinessCheck {
+function probeDurableQueueHealth(_topologyMode: DeploymentTopologyMode): ReadinessCheck {
   const queueAvailable = true; // The queue code path is always compiled in
   const workerActive = isAnyWorkerActive();
   const workerCount = getWorkerCount();

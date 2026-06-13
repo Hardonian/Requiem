@@ -12,7 +12,6 @@ import type {
   CapabilityToken,
   CasObject,
   EventLogEntry,
-  InviteStatus,
   Plan,
   PlanRunResult,
   PlanStep,
