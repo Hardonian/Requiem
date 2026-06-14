@@ -199,7 +199,7 @@ jobs:
           version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
       - name: Fail if required env missing
         run: |
@@ -311,7 +311,7 @@ jobs:
           version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
       - name: install deps
         run: pnpm install --frozen-lockfile
@@ -507,7 +507,7 @@ jobs:
           version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
       - name: install
         run: pnpm install --frozen-lockfile
@@ -532,7 +532,7 @@ jobs:
           version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
       - name: install
         run: pnpm install --frozen-lockfile
@@ -569,7 +569,7 @@ jobs:
           version: 10.13.1
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
       - name: install (frozen lockfile)
         run: pnpm install --frozen-lockfile
