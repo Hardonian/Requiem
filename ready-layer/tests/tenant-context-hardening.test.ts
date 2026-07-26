@@ -11,7 +11,7 @@ afterEach(() => {
 describe('withTenantContext hardening', () => {
   it('ignores spoofed x-actor-id on bearer-authenticated routes', async () => {
     Object.assign(process.env, {
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'prod-secret',
     });
 

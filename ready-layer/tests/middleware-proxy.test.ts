@@ -14,6 +14,7 @@ describe('middleware proxy auth behavior', () => {
       NODE_ENV: 'test',
       REQUIEM_ROUTE_VERIFY_MODE: '1',
       REQUIEM_ROUTE_VERIFY_TENANT: 'evidence-tenant',
+      REQUIEM_ROUTE_VERIFY_ACTOR: 'evidence-actor',
     });
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -32,7 +33,7 @@ describe('middleware proxy auth behavior', () => {
 
   it('authenticates protected API routes with direct bearer auth when REQUIEM_AUTH_SECRET is configured', async () => {
     Object.assign(process.env, {
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'api-secret',
     });
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -51,6 +52,46 @@ describe('middleware proxy auth behavior', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('x-requiem-authenticated')).toBe('1');
     expect(response.headers.get('x-tenant-id')).toBe('tenant-direct');
+  });
+
+  it('fails closed for production direct bearer requests with forged tenant and actor headers', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'api-secret',
+    });
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    const { middleware } = await import('../src/middleware/proxy');
+    const response = await middleware(new NextRequest('http://localhost/api/budgets', {
+      headers: {
+        authorization: 'Bearer api-secret',
+        'x-tenant-id': 'forged-tenant',
+        'x-actor-id': 'forged-actor',
+      },
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.code).toBe('identity_claims_required');
+  });
+
+  it('does not activate route verify mode in staging', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'staging',
+      REQUIEM_ROUTE_VERIFY_MODE: '1',
+      REQUIEM_ROUTE_VERIFY_TENANT: 'forged-tenant',
+    });
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    const { middleware } = await import('../src/middleware/proxy');
+    const response = await middleware(new NextRequest('http://localhost/api/budgets', {
+      headers: { 'x-tenant-id': 'forged-tenant', 'x-actor-id': 'forged-actor' },
+    }));
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get('x-requiem-authenticated')).toBeNull();
   });
 
   it('keeps tokenized proof diff route public', async () => {

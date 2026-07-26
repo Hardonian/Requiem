@@ -220,6 +220,11 @@ function getDirectApiBearerSecret(): string | null {
   return secret ? secret : null;
 }
 
+function isProductionLikeAuthRuntime(): boolean {
+  const runtime = process.env.NODE_ENV as string | undefined;
+  return runtime === 'production' || runtime === 'staging';
+}
+
 async function tryDirectApiBearerAuth(request: NextRequest, pathname: string, traceId: string): Promise<NextResponse | null> {
   const secret = getDirectApiBearerSecret();
   if (!secret || !pathname.startsWith('/api/')) {
@@ -239,6 +244,20 @@ async function tryDirectApiBearerAuth(request: NextRequest, pathname: string, tr
     return problemResponse(401, 'Authentication Failed', 'Invalid bearer token', traceId, 'invalid_auth');
   }
 
+  const signedTenantId = request.headers.get('x-tenant-id')?.trim();
+  const signedActorId = request.headers.get('x-user-id')?.trim();
+  const signedProof = request.headers.get(INTERNAL_AUTH_PROOF_HEADER)?.trim();
+  if (isProductionLikeAuthRuntime() && (!signedTenantId || !signedActorId || !signedProof)) {
+    return problemResponse(
+      401,
+      'Authentication Failed',
+      'A signed server-side identity context is required',
+      traceId,
+      'identity_claims_required',
+    );
+  }
+
+  // x-actor-id is never an accepted identity source. The signed path uses x-user-id.
   const tenantId = request.headers.get('x-tenant-id')?.trim();
   if (!tenantId) {
     return problemResponse(400, 'Authentication Failed', 'Missing tenant context (x-tenant-id)', traceId, 'missing_tenant_id');
@@ -246,6 +265,7 @@ async function tryDirectApiBearerAuth(request: NextRequest, pathname: string, tr
 
   const actorId = request.headers.get('x-user-id')?.trim() || tenantId;
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete('x-actor-id');
   requestHeaders.set('x-user-id', actorId);
   requestHeaders.set('x-tenant-id', tenantId);
   requestHeaders.set('x-requiem-authenticated', '1');
@@ -362,12 +382,13 @@ async function executeMiddleware(request: NextRequest, traceId: string): Promise
 
   if (
     process.env.REQUIEM_ROUTE_VERIFY_MODE === '1'
-    && process.env.NODE_ENV !== 'production'
+    && process.env.NODE_ENV === 'test'
     && (pathname.startsWith('/api/') || isProtectedPage)
   ) {
     const verifyHeaders = new Headers(request.headers);
-    const verifyTenant = verifyHeaders.get('x-tenant-id') ?? process.env.REQUIEM_ROUTE_VERIFY_TENANT ?? 'verify-tenant';
-    const verifyActor = verifyHeaders.get('x-user-id') ?? verifyTenant;
+    const verifyTenant = process.env.REQUIEM_ROUTE_VERIFY_TENANT ?? 'verify-tenant';
+    const verifyActor = process.env.REQUIEM_ROUTE_VERIFY_ACTOR ?? verifyTenant;
+    verifyHeaders.delete('x-actor-id');
     verifyHeaders.set('x-trace-id', traceId);
     verifyHeaders.set('x-requiem-authenticated', '1');
     verifyHeaders.set('x-tenant-id', verifyTenant);

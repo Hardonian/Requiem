@@ -398,7 +398,7 @@ function emitReviewerDocs(routes: RouteRow[], actions: ActionRow[]): void {
     '- **E**: authenticated + engine/runtime unavailable (route returns explicit unavailable/problem semantics).',
     '- **F**: authenticated + forbidden/unauthorized (problem+json 401/403 from route auth checks).',
     '- **G**: unauthenticated access (middleware redirect to `/auth/signin` for page routes).',
-    '- **H**: dev verify mode (`REQUIEM_ROUTE_VERIFY_MODE=1` and `NODE_ENV!=production`) with synthetic middleware headers.',
+    '- **H**: test-only route verify mode (`REQUIEM_ROUTE_VERIFY_MODE=1` and `NODE_ENV=test`) with synthetic middleware headers.',
     '- **I**: real auth mode (verify mode disabled; Supabase session required).',
     '',
     'Auth validity, backend configuration, backend reachability, and data availability are independent signals and must be interpreted separately.',

@@ -82,6 +82,27 @@ describe('validateTenantAuth strict vs local mode', () => {
     expect(result.status).toBe(503);
   });
 
+  it('rejects production bearer identity selected by caller tenant and actor headers', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'prod-secret',
+    });
+
+    const { validateTenantAuth } = await import('../src/lib/auth');
+    const req = new Request('http://localhost/api/runs', {
+      headers: {
+        authorization: 'Bearer prod-secret',
+        'x-tenant-id': 'forged-tenant',
+        'x-actor-id': 'forged-actor',
+      },
+    });
+
+    const result = await validateTenantAuth(req as never);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('identity_claims_required');
+    expect(result.status).toBe(401);
+  });
+
   it('rejects route verify mode outside test environment', async () => {
     Object.assign(process.env, {
       NODE_ENV: 'development',

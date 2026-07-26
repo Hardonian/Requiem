@@ -19,7 +19,7 @@ afterEach(() => {
 describe("tenant isolation enforcement on budget routes", () => {
   it("tenant A cannot read tenant B by query override", async () => {
     Object.assign(process.env, {
-      NODE_ENV: "production",
+      NODE_ENV: "test",
       REQUIEM_AUTH_SECRET: "tenant-secret",
     });
     const { GET } = await import("../src/app/api/budgets/route");
@@ -41,7 +41,7 @@ describe("tenant isolation enforcement on budget routes", () => {
 
   it("tenant context is required for protected mutation", async () => {
     Object.assign(process.env, {
-      NODE_ENV: "production",
+      NODE_ENV: "test",
       REQUIEM_AUTH_SECRET: "tenant-secret",
     });
     const { POST } = await import("../src/app/api/budgets/route");
@@ -64,7 +64,7 @@ describe("tenant isolation enforcement on budget routes", () => {
 
   it("malformed tenant context is rejected", async () => {
     Object.assign(process.env, {
-      NODE_ENV: "production",
+      NODE_ENV: "test",
       REQUIEM_AUTH_SECRET: "tenant-secret",
     });
     const { GET } = await import("../src/app/api/budgets/route");
@@ -84,7 +84,7 @@ describe("tenant isolation enforcement on budget routes", () => {
 
   it("budget surface does not advertise demo mode", async () => {
     Object.assign(process.env, {
-      NODE_ENV: "production",
+      NODE_ENV: "test",
       REQUIEM_AUTH_SECRET: "tenant-secret",
     });
     const { GET } = await import("../src/app/api/budgets/route");

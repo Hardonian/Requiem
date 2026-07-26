@@ -81,7 +81,7 @@ describe("auth enforcement on protected API routes", () => {
 
   it("allows authenticated flow on protected route", async () => {
     Object.assign(process.env, {
-      NODE_ENV: "production",
+      NODE_ENV: "test",
       REQUIEM_AUTH_SECRET: "prod-secret",
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       SUPABASE_SERVICE_ROLE_KEY: "service-role",

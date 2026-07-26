@@ -54,6 +54,10 @@ function allowInsecureDevAuth(): boolean {
   return process.env.NODE_ENV === 'development' && process.env.REQUIEM_ALLOW_INSECURE_DEV_AUTH === '1';
 }
 
+function allowTestFixtureAuth(): boolean {
+  return process.env.NODE_ENV === 'test';
+}
+
 export function getAuthReadiness(): {
   strict_mode: boolean;
   bearer_secret_present: boolean;
@@ -180,6 +184,14 @@ export async function validateTenantAuth(req: NextRequest): Promise<AuthResult> 
     };
   }
 
+  if (!allowTestFixtureAuth() && !middlewareAuthenticated) {
+    return {
+      ok: false,
+      error: 'identity_claims_required',
+      status: 401,
+    };
+  }
+
   if (!tenantHeader) {
     return {
       ok: false,
@@ -209,6 +221,8 @@ function authErrorDetail(code: string): string {
       return 'REQUIEM_AUTH_SECRET is missing and insecure dev auth is disabled';
     case 'invalid_auth_context':
       return 'Invalid middleware authentication context';
+    case 'identity_claims_required':
+      return 'A signed server-side identity context is required';
     default:
       return code;
   }
