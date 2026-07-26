@@ -14,6 +14,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { evaluatePolicy } from '../gate.js';
 import { evaluateGuardrails } from '../guardrails.js';
@@ -26,7 +27,7 @@ import type { ToolDefinition } from '../../tools/types.js';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Workspace root — three levels up from packages/ai/src/policy/__tests__/ */
-const WORKSPACE_ROOT = resolve(new URL(import.meta.url).pathname, '../../../../../../../');
+const WORKSPACE_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../../../../');
 
 function loadGolden(filename: string): unknown {
   const p = resolve(WORKSPACE_ROOT, 'testdata', 'golden', filename);

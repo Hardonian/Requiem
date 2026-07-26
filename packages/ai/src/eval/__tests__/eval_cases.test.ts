@@ -13,6 +13,7 @@ import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Side-effect imports to populate registries before assertions
 import '../../tools/builtins/system.echo';
@@ -60,7 +61,7 @@ interface SkillRegressionCaseFile {
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
-const CASES_DIR  = join(__dirname, '../../../../../..', 'eval/cases');
+const CASES_DIR = join(fileURLToPath(new URL('.', import.meta.url)), '../../../../../eval/cases');
 const BUILTIN_CASES_PATH     = join(CASES_DIR, 'ai_builtin_cases.json');
 const SKILL_REGRESSION_PATH  = join(CASES_DIR, 'skill_regression_cases.json');
 

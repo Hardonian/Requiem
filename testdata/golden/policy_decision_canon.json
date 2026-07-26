@@ -9,7 +9,7 @@
     "ctx": {
       "tenant": {
         "tenantId": "golden-tenant-001",
-        "role": "MEMBER",
+        "role": "member",
         "derivedAt": "2024-01-01T00:00:00.000Z"
       },
       "environment": "production",
@@ -35,7 +35,7 @@
     "ctx": {
       "tenant": {
         "tenantId": "golden-tenant-002",
-        "role": "VIEWER",
+        "role": "viewer",
         "derivedAt": "2024-01-01T00:00:00.000Z"
       },
       "environment": "production",
@@ -54,7 +54,7 @@
   "output_deny_example": {
     "decision": {
       "allowed": false,
-      "reason": "Role VIEWER cannot execute tools with side effects"
+      "reason": "Role viewer cannot execute tools with side effects"
     }
   }
 }

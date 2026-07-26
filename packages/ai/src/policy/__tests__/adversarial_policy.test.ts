@@ -12,6 +12,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { evaluatePolicy } from '../gate.js';
 import type { PolicyDecision } from '../gate.js';
 import { TenantRole } from '../../types/index.js';
@@ -21,7 +22,7 @@ import { Capabilities } from '../capabilities.js';
 
 // ─── Load case file dynamically ───────────────────────────────────────────────
 
-const CASES_PATH = join(__dirname, '../../../../../..', 'eval/policy_adversarial_cases.json');
+const CASES_PATH = join(fileURLToPath(new URL('.', import.meta.url)), '../../../../../eval/policy_adversarial_cases.json');
 
 interface AdversarialCase {
   id: string;

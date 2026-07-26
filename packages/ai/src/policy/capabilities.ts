@@ -21,6 +21,8 @@ export const Capabilities = {
   TOOLS_READ: 'tools:read',
   TOOLS_WRITE: 'tools:write',
   TOOLS_ADMIN: 'tools:admin',
+  FS_READ: 'fs:read',
+  FS_WRITE: 'fs:write',
 
   // AI model/provider access
   AI_GENERATE: 'ai:generate',
@@ -54,12 +56,15 @@ export type Capability = typeof Capabilities[keyof typeof Capabilities];
 const ROLE_CAPABILITIES: Record<TenantRole, readonly Capability[]> = {
   [TenantRole.VIEWER]: [
     Capabilities.TOOLS_READ,
+    Capabilities.FS_READ,
     Capabilities.MEMORY_READ,
     Capabilities.COST_READ,
   ],
   [TenantRole.MEMBER]: [
     Capabilities.TOOLS_READ,
     Capabilities.TOOLS_WRITE,
+    Capabilities.FS_READ,
+    Capabilities.FS_WRITE,
     Capabilities.AI_GENERATE,
     Capabilities.MEMORY_READ,
     Capabilities.MEMORY_WRITE,
@@ -71,6 +76,8 @@ const ROLE_CAPABILITIES: Record<TenantRole, readonly Capability[]> = {
     Capabilities.TOOLS_READ,
     Capabilities.TOOLS_WRITE,
     Capabilities.TOOLS_ADMIN,
+    Capabilities.FS_READ,
+    Capabilities.FS_WRITE,
     Capabilities.AI_GENERATE,
     Capabilities.AI_ADMIN,
     Capabilities.MEMORY_READ,
@@ -87,6 +94,8 @@ const ROLE_CAPABILITIES: Record<TenantRole, readonly Capability[]> = {
     Capabilities.TOOLS_READ,
     Capabilities.TOOLS_WRITE,
     Capabilities.TOOLS_ADMIN,
+    Capabilities.FS_READ,
+    Capabilities.FS_WRITE,
     Capabilities.AI_GENERATE,
     Capabilities.AI_ADMIN,
     Capabilities.MEMORY_READ,

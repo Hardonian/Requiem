@@ -196,7 +196,8 @@ export class DefaultBudgetChecker implements BudgetChecker {
 
     // Check if window expired (simplified - production would use proper window logic)
     const windowStart = new Date(state.windowStart).getTime();
-    const windowEnd = windowStart + (2592000 * 1000); // 30 days
+    const windowSeconds = tenantTiers.get(tenantId)?.limits.windowSeconds ?? FREE_TIER_LIMITS.windowSeconds;
+    const windowEnd = windowStart + (windowSeconds * 1000);
 
     if (this.clock.now() > windowEnd) {
       this.usageTracker.delete(tenantId);
@@ -211,7 +212,8 @@ export class DefaultBudgetChecker implements BudgetChecker {
     if (!state) return 0;
 
     const windowStart = new Date(state.windowStart).getTime();
-    const windowEnd = windowStart + (2592000 * 1000);
+    const windowSeconds = tenantTiers.get(tenantId)?.limits.windowSeconds ?? FREE_TIER_LIMITS.windowSeconds;
+    const windowEnd = windowStart + (windowSeconds * 1000);
 
     if (this.clock.now() > windowEnd) {
       return 0;
@@ -302,7 +304,7 @@ export class AtomicBudgetChecker implements BudgetChecker {
     // Reset window if expired
     const windowStart = new Date(state.windowStart).getTime();
     const windowEndMs = windowStart + limit.windowSeconds * 1000;
-    if (this.clock.now() > windowEndMs) {
+    if (this.clock.now() >= windowEndMs) {
       state.usedCostCents = 0;
       state.usedTokens = 0;
       state.windowStart = new Date(this.clock.now()).toISOString();
