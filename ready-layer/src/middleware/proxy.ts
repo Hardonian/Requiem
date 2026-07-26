@@ -8,6 +8,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createInternalAuthProof, INTERNAL_AUTH_PROOF_HEADER } from '@/lib/internal-auth-proof';
+import { verifyDirectBearerToken } from '@/lib/direct-bearer';
 
 const STATIC_ASSET_PATTERNS = [
   /\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|map|woff|woff2|ttf|eot)$/i,
@@ -240,6 +241,25 @@ async function tryDirectApiBearerAuth(request: NextRequest, pathname: string, tr
   }
 
   const token = auth.slice(7);
+  if (isProductionLikeAuthRuntime()) {
+    const identity = await verifyDirectBearerToken(token, secret);
+    if (!identity) {
+      return problemResponse(401, 'Authentication Failed', 'A signed bearer identity is required', traceId, 'identity_claims_required');
+    }
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.delete('x-actor-id');
+    requestHeaders.set('x-user-id', identity.actor_id);
+    requestHeaders.set('x-tenant-id', identity.tenant_id);
+    requestHeaders.set('x-requiem-authenticated', '1');
+    requestHeaders.set('x-trace-id', traceId);
+    const proof = await createInternalAuthProof({ tenantId: identity.tenant_id, actorId: identity.actor_id, method: request.method, pathname });
+    if (proof) requestHeaders.set(INTERNAL_AUTH_PROOF_HEADER, proof);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set('x-user-id', identity.actor_id);
+    response.headers.set('x-tenant-id', identity.tenant_id);
+    response.headers.set('x-requiem-authenticated', '1');
+    return withTraceHeader(response, traceId);
+  }
   if (token !== secret) {
     return problemResponse(401, 'Authentication Failed', 'Invalid bearer token', traceId, 'invalid_auth');
   }

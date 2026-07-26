@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z, type ZodTypeAny } from 'zod';
-import { authErrorResponse, validateTenantAuth } from './auth';
+import { authErrorResponse, validateTenantAuth, type AuthDecisionEvidence } from './auth';
 import {
   REQUEST_EXECUTION_MODEL,
   currentDeploymentTopology,
@@ -30,6 +30,7 @@ export interface RequestContext {
   auth_token: string;
   pathname: string;
   method: string;
+  auth_evidence?: AuthDecisionEvidence;
 }
 
 export interface RateLimitOptions {
@@ -321,6 +322,7 @@ export async function withTenantContext(
   const actorId = requireAuth ? auth.actor_id ?? auth.tenant?.tenant_id ?? tenantId : 'public';
 
   const ctx = buildContext(req, tenantId, authToken, actorId);
+  if (requireAuth) ctx.auth_evidence = auth.evidence;
   const routeId = options.routeId ?? ctx.pathname;
   const startedAtMs = Date.now();
   const productionLike = isProductionLikeRuntime();
@@ -346,6 +348,7 @@ export async function withTenantContext(
     execution_model: REQUEST_EXECUTION_MODEL,
     supported_topology: topology,
     has_idempotency_key: Boolean(req.headers.get('idempotency-key')),
+    auth_evidence: ctx.auth_evidence,
   });
 
   if (requireAuth && auth.ok && auth.tenant) {
@@ -356,6 +359,7 @@ export async function withTenantContext(
       request_id: ctx.request_id,
       tenant_id: ctx.tenant_id,
       actor_id: ctx.actor_id,
+      auth_evidence: ctx.auth_evidence,
     });
   }
 

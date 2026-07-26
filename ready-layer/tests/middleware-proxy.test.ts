@@ -54,6 +54,29 @@ describe('middleware proxy auth behavior', () => {
     expect(response.headers.get('x-tenant-id')).toBe('tenant-direct');
   });
 
+  it('derives production direct bearer tenant and actor only from token claims', async () => {
+    Object.assign(process.env, { NODE_ENV: 'production', REQUIEM_AUTH_SECRET: 'api-secret' });
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    const { createDirectBearerToken } = await import('../src/lib/direct-bearer');
+    const { middleware } = await import('../src/middleware/proxy');
+    const token = await createDirectBearerToken({ tenant_id: 'bound-tenant', actor_id: 'bound-actor' }, 'api-secret');
+    const response = await middleware(new NextRequest('http://localhost/api/budgets', {
+      headers: {
+        authorization: `Bearer ${token}`,
+        'x-tenant-id': 'forged-tenant',
+        'x-user-id': 'forged-actor',
+        'x-actor-id': 'forged-legacy-actor',
+      },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('x-tenant-id')).toBe('bound-tenant');
+    expect(response.headers.get('x-user-id')).toBe('bound-actor');
+    expect(response.headers.get('x-actor-id')).toBeNull();
+  });
+
   it('fails closed for production direct bearer requests with forged tenant and actor headers', async () => {
     Object.assign(process.env, {
       NODE_ENV: 'production',

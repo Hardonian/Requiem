@@ -12,6 +12,52 @@ afterEach(() => {
 });
 
 describe('validateTenantAuth strict vs local mode', () => {
+  it('binds production direct bearer identity to signed token claims, not caller headers', async () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      REQUIEM_AUTH_SECRET: 'prod-secret',
+    });
+
+    const { validateTenantAuth } = await import('../src/lib/auth');
+    const { createDirectBearerToken } = await import('../src/lib/direct-bearer');
+    const token = await createDirectBearerToken({ tenant_id: 'tenant-a', actor_id: 'actor-a' }, 'prod-secret');
+    const req = new Request('http://localhost/api/runs', {
+      headers: {
+        authorization: `Bearer ${token}`,
+        'x-tenant-id': 'forged-tenant',
+        'x-user-id': 'forged-actor',
+      },
+    });
+
+    const result = await validateTenantAuth(req as never);
+    expect(result.ok).toBe(true);
+    expect(result.tenant?.tenant_id).toBe('tenant-a');
+    expect(result.actor_id).toBe('actor-a');
+    expect(result.evidence).toMatchObject({ decision: 'allow', mode: 'direct_bearer', tenant_id: 'tenant-a', actor_id: 'actor-a' });
+  });
+
+  it('rejects production direct bearer tokens without signed identity claims', async () => {
+    Object.assign(process.env, { NODE_ENV: 'production', REQUIEM_AUTH_SECRET: 'prod-secret' });
+    const { validateTenantAuth } = await import('../src/lib/auth');
+    const result = await validateTenantAuth(new Request('http://localhost/api/runs', {
+      headers: { authorization: 'Bearer prod-secret', 'x-tenant-id': 'tenant-a', 'x-user-id': 'actor-a' },
+    }) as never);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('identity_claims_required');
+    expect(result.evidence).toMatchObject({ decision: 'deny', mode: 'direct_bearer', reason: 'identity_claims_required' });
+  });
+
+  it('does not let route verify mode override a real production request', async () => {
+    Object.assign(process.env, { NODE_ENV: 'production', REQUIEM_ROUTE_VERIFY_MODE: '1', REQUIEM_AUTH_SECRET: 'prod-secret' });
+    const { validateTenantAuth } = await import('../src/lib/auth');
+    const result = await validateTenantAuth(new Request('http://localhost/api/runs', {
+      headers: { 'x-tenant-id': 'verify-tenant' },
+    }) as never);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('missing_auth');
+    expect(result.evidence?.mode).toBe('none');
+  });
+
   it('rejects spoofed middleware auth headers without signed proof', async () => {
     Object.assign(process.env, {
       NODE_ENV: 'production',
