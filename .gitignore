@@ -114,3 +114,7 @@ docs/internal-private/
 # Local runtime evidence/cache outputs
 .requiem/
 **/.requiem/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.log
