@@ -4,7 +4,7 @@
   "description": "Provable AI Runtime — deterministic execution, enforced governance, replayable outcomes",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@10.13.1",
   "scripts": {
     "dev": "pnpm --filter ready-layer dev",
     "rl": "node scripts/run-tsx.mjs packages/cli/src/rl-cli.ts",
