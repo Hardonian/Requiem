@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withTenantContext } from '@/lib/big4-http';
-import { listOrganizations, getTenantOrganizationsHealth } from '@/lib/control-plane-store';
+import { listOrganizations } from '@/lib/control-plane-store';
 import type { ApiResponse } from '@/types/engine';
 
 export const dynamic = 'force-dynamic';
@@ -37,7 +37,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     request,
     async (ctx) => {
       const { organizations, memberships } = await listOrganizations(ctx.tenant_id, ctx.actor_id);
-      const healthOrgs = await getTenantOrganizationsHealth(ctx.tenant_id, ctx.actor_id);
       const totalBudget = organizations.reduce((sum, org) => sum + org.budget_cents, 0);
 
       const result: TenantIsolationResponse = {

@@ -5,7 +5,7 @@ import https from 'node:https';
 
 const rootPackage = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const requiredNode = rootPackage.engines?.node ?? '>=20.11.0';
-const requiredPnpm = String(rootPackage.packageManager ?? 'pnpm@8.15.0').split('@')[1] ?? '8.15.0';
+const requiredPnpm = String(rootPackage.packageManager ?? 'pnpm@10.13.1').split('@')[1] ?? '10.13.1';
 const expectedNvmrc = existsSync(new URL('../.nvmrc', import.meta.url))
   ? readFileSync(new URL('../.nvmrc', import.meta.url), 'utf8').trim()
   : null;
@@ -154,7 +154,7 @@ const corepackVersion = commandVersion('corepack');
 if (corepackVersion) {
   addCheck(true, 'corepack', `corepack ${corepackVersion} is available.`);
 } else {
-  addCheck(false, 'corepack', 'corepack is not available on PATH.', 'Install a Node distribution with corepack, then run `corepack enable` and `corepack prepare pnpm@8.15.0 --activate`.');
+  addCheck(false, 'corepack', 'corepack is not available on PATH.', `Install a Node distribution with corepack, then run \`corepack enable\` and \`corepack prepare pnpm@${requiredPnpm} --activate\`.`);
 }
 
 const pnpmVersion = commandVersion('pnpm');

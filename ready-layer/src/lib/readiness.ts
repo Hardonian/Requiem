@@ -149,7 +149,7 @@ function probeExecutionModelTruth(topologyMode: DeploymentTopologyMode): Readine
   };
 }
 
-function probeDurableQueueHealth(topologyMode: DeploymentTopologyMode): ReadinessCheck {
+function probeDurableQueueHealth(): ReadinessCheck {
   const queueAvailable = true; // The queue code path is always compiled in
   const workerActive = isAnyWorkerActive();
   const workerCount = getWorkerCount();
@@ -173,7 +173,7 @@ export async function computeReadiness(): Promise<ReadinessResult> {
     await probeRuntimeCoordination(topologyMode !== 'local-single-runtime'),
     await probeEngineApi(envContract.external_runtime_configured),
     probeExecutionModelTruth(topologyMode),
-    probeDurableQueueHealth(topologyMode),
+    probeDurableQueueHealth(),
   ];
 
   const supportedDurabilityClasses = [...new Set(EXECUTION_TAXONOMY.map((e) => e.durability_class))];

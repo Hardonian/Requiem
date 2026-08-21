@@ -23,8 +23,8 @@ const rootPackage = readJson('package.json');
 const webPackage = readJson('ready-layer/package.json');
 const vercelConfig = readJson('vercel.json');
 
-if (rootPackage.packageManager !== 'pnpm@8.15.0') {
-  fail(`packageManager must be pnpm@8.15.0 (found: ${rootPackage.packageManager ?? 'missing'})`);
+if (rootPackage.packageManager !== 'pnpm@10.13.1') {
+  fail(`packageManager must be pnpm@10.13.1 (found: ${rootPackage.packageManager ?? 'missing'})`);
 }
 
 if (rootPackage.engines?.node !== '>=20.11.0') {

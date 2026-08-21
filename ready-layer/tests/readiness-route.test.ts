@@ -34,7 +34,7 @@ function mockSupabase(selectImpl: (table: string) => { data: Record<string, unkn
 
 afterEach(() => {
   vi.resetModules();
-  vi.unmock('../src/lib/supabase-service');
+  vi.doUnmock('../src/lib/supabase-service');
   process.env = { ...originalEnv };
 });
 

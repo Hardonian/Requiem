@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 afterEach(() => {
   vi.resetModules();
-  vi.unmock('@requiem/ai/bootstrap');
-  vi.unmock('@requiem/ai/mcp');
+  vi.doUnmock('@requiem/ai/bootstrap');
+  vi.doUnmock('@requiem/ai/mcp');
 });
 
 type RouteSpec = {

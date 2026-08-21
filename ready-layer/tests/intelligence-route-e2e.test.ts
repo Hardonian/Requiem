@@ -12,7 +12,7 @@ function authFixtureHeaders(tenantId = 'tenant-e2e'): Record<string, string> {
 
 afterEach(() => {
   vi.resetModules();
-  vi.unmock('@/lib/engine-client');
+  vi.doUnmock('@/lib/engine-client');
   delete process.env.REQUIEM_AUTH_SECRET;
   delete process.env.REQUIEM_ROUTE_VERIFY_MODE;
 });

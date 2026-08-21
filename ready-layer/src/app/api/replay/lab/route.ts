@@ -44,12 +44,12 @@ export async function GET(request: NextRequest): Promise<Response> {
       const runs = await listRunSummaries(ctx.tenant_id);
       const limited = runs.slice(0, query.limit ?? 20);
 
-      let runDetail = null;
+      let runDetail: ReplayLabResponse['run_detail'] = null;
       if (query.run_id) {
         runDetail = await getRunSummary(ctx.tenant_id, query.run_id);
       }
 
-      let diff = null;
+      let diff: ReplayLabResponse['diff'] = null;
       if (query.run_id && query.compare_to) {
         const runA = await getRunSummary(ctx.tenant_id, query.run_id);
         const runB = await getRunSummary(ctx.tenant_id, query.compare_to);

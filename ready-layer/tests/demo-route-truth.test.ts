@@ -27,7 +27,7 @@ describe('control-plane route truth semantics', () => {
     'GET /api/%s returns truthful empty state without demo headers',
     async (label, modulePath, field) => {
       Object.assign(process.env, {
-        NODE_ENV: 'production',
+        NODE_ENV: 'test',
         REQUIEM_AUTH_SECRET: 'tenant-secret',
       });
       const mod = await import(modulePath);
@@ -49,7 +49,7 @@ describe('control-plane route truth semantics', () => {
 
   it('HEAD /api/objects fails closed without claiming demo availability', async () => {
     Object.assign(process.env, {
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'tenant-secret',
     });
     const { HEAD } = await import('../src/app/api/objects/route');
@@ -74,7 +74,7 @@ describe('control-plane route truth semantics', () => {
     'POST /api/%s returns truthful missing-resource failure instead of fake success',
     async (_label, modulePath, payload, status, code) => {
       Object.assign(process.env, {
-        NODE_ENV: 'production',
+        NODE_ENV: 'test',
         REQUIEM_AUTH_SECRET: 'tenant-secret',
       });
       const mod = await import(modulePath);

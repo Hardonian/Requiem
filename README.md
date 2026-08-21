@@ -96,7 +96,7 @@ Before any non-local deployment:
 ### Prerequisites
 
 - Node.js `20.11.0` or newer
-- pnpm `8.15.0`
+- pnpm `10.13.1`
 - CMake and a C++20-capable compiler for native engine builds/tests
 
 ### Install

@@ -19,7 +19,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.resetModules();
-  vi.unmock('@/lib/engine-client');
+  vi.doUnmock('@/lib/engine-client');
   delete process.env.REQUIEM_ROUTE_VERIFY_MODE;
 });
 

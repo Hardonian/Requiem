@@ -4,7 +4,7 @@ param(
 )
 
 $requiredNode = [Version]"20.11.0"
-$requiredPnpm = [Version]"8.15.0"
+$requiredPnpm = [Version]"10.13.1"
 $requiredCmake = [Version]"3.20.0"
 $requiredGcc = [Version]"11.0.0"
 $requiredClang = [Version]"14.0.0"
@@ -122,7 +122,7 @@ if (-not $Json) {
 
 Write-Log "INFO" "Checking required toolchain..."
 Test-ToolVersion "node" "Node.js" $requiredNode "Install Node.js >= 20.11.0 and rerun: pnpm install --frozen-lockfile"
-Test-ToolVersion "pnpm" "pnpm" $requiredPnpm "Install pnpm >= 8.15.0 (packageManager: pnpm@8.15.0) and rerun: pnpm install --frozen-lockfile"
+Test-ToolVersion "pnpm" "pnpm" $requiredPnpm "Install pnpm >= 10.13.1 (packageManager: pnpm@10.13.1) and rerun: pnpm install --frozen-lockfile"
 Test-ToolVersion "cmake" "CMake" $requiredCmake "Install CMake >= 3.20.0 and rerun: pnpm run build:engine"
 Test-Compiler
 Write-Log "INFO" "Checking local engine build state..."

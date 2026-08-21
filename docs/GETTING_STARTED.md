@@ -5,7 +5,7 @@ This is the canonical first-clone path for OSS contributors.
 ## Prerequisites
 
 - Node.js >= 20.11.0
-- pnpm >= 8.15.0 (`packageManager` is pinned to `pnpm@8.15.0`)
+- pnpm >= 10.13.1 (`packageManager` is pinned to `pnpm@10.13.1`)
 - CMake >= 3.20.0
 - C++20-capable compiler (GCC 11+, Clang 14+, or MSVC 2022+)
 - Outbound package access to `https://registry.npmjs.org/` for the initial `pnpm install`

@@ -70,7 +70,7 @@ This pass adds:
 ## 5) Environment requirements (observed)
 
 - Node.js `>=20.11.0` (root + workspace packages)
-- `pnpm@8.15.0`
+- `pnpm@10.13.1`
 - CMake + compiler toolchain for kernel build/tests
 - Optional Prisma workflow in `ready-layer` (`pnpm --filter ready-layer prisma:generate`)
 - Runtime env vars vary by integration (OpenAI/Supabase/Stripe/etc.); `pnpm doctor` should be used for local diagnostics.

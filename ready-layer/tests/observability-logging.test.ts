@@ -17,7 +17,7 @@ describe('structured observability logs', () => {
     const controlPlaneDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ready-layer-logs-'));
     process.env = {
       ...originalEnv,
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'log-secret',
       REQUIEM_CONTROL_PLANE_DIR: controlPlaneDir,
     };

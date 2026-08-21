@@ -333,7 +333,9 @@ int security_main(int argc, char **argv) {
     requiem::ExecutionRequest req;
     req.request_id     = "sec-d5";
     req.workspace_root = ws.string();
-    req.command        = std::string("/bin/sh\x00evil", 13);
+    req.command        = "/bin/sh";
+    req.command.push_back('\0');
+    req.command.append("evil");
     req.argv           = {"-c", "echo x"};
     req.timeout_ms     = 500;
 

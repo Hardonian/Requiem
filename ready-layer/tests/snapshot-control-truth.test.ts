@@ -12,7 +12,7 @@ describe("console snapshots action-truth semantics", () => {
 
   it("requires explicit confirmation before restore requests are submitted", () => {
     expect(source).toContain(
-      "This replaces tenant-local budget and capability state with the snapshot contents.",
+      "This replaces tenant-scoped budget and capability state with the snapshot contents during the current request.",
     );
     expect(source).toContain('action: "restore"');
     expect(source).toContain("snapshot_hash: hash");

@@ -10,8 +10,8 @@ async function useRealMcpHandlersWithStubBootstrap(): Promise<void> {
 
 afterEach(() => {
   vi.resetModules();
-  vi.unmock('@requiem/ai/bootstrap');
-  vi.unmock('@requiem/ai/mcp');
+  vi.doUnmock('@requiem/ai/bootstrap');
+  vi.doUnmock('@requiem/ai/mcp');
   delete process.env.REQUIEM_DEV_MODE;
   delete process.env.REQUIEM_JWT_SECRET;
   delete process.env.REQUIEM_AUTH_SECRET;

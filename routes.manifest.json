@@ -630,11 +630,91 @@
       "surface": "public"
     },
     {
+      "path": "/api/tenants/admin/validate",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenants/admin/validate/route.ts",
+      "auth_required": true,
+      "description": "GET /api/tenants/admin/validate handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/health",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenants/health/route.ts",
+      "auth_required": true,
+      "description": "GET /api/tenants/health handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/invites",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenants/invites/route.ts",
+      "auth_required": true,
+      "description": "GET /api/tenants/invites handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/invites",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/tenants/invites/route.ts",
+      "auth_required": true,
+      "description": "POST /api/tenants/invites handler",
+      "surface": "api"
+    },
+    {
       "path": "/api/tenants/isolation",
       "method": "GET",
       "file": "ready-layer/src/app/api/tenants/isolation/route.ts",
       "auth_required": true,
       "description": "GET /api/tenants/isolation handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/jobs",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenants/jobs/route.ts",
+      "auth_required": true,
+      "description": "GET /api/tenants/jobs handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/jobs",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/tenants/jobs/route.ts",
+      "auth_required": true,
+      "description": "POST /api/tenants/jobs handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/members",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenants/members/route.ts",
+      "auth_required": true,
+      "description": "GET /api/tenants/members handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/members",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/tenants/members/route.ts",
+      "auth_required": true,
+      "description": "POST /api/tenants/members handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/organizations",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/tenants/organizations/route.ts",
+      "auth_required": true,
+      "description": "GET /api/tenants/organizations handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/tenants/organizations",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/tenants/organizations/route.ts",
+      "auth_required": true,
+      "description": "POST /api/tenants/organizations handler",
       "surface": "api"
     },
     {
@@ -659,6 +739,22 @@
       "file": "ready-layer/src/app/api/vector/search/route.ts",
       "auth_required": true,
       "description": "POST /api/vector/search handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/worker",
+      "method": "GET",
+      "file": "ready-layer/src/app/api/worker/route.ts",
+      "auth_required": true,
+      "description": "GET /api/worker handler",
+      "surface": "api"
+    },
+    {
+      "path": "/api/worker",
+      "method": "POST",
+      "file": "ready-layer/src/app/api/worker/route.ts",
+      "auth_required": true,
+      "description": "POST /api/worker handler",
       "surface": "api"
     }
   ]

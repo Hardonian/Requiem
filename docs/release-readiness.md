@@ -4,7 +4,7 @@ _Last updated: 2026-03-14_
 
 ## Toolchain + lock policy
 
-- Package manager: `pnpm@8.15.0` (root `package.json#packageManager`).
+- Package manager: `pnpm@10.13.1` (root `package.json#packageManager`).
 - Lock policy: install with `pnpm install --frozen-lockfile` in CI and Vercel.
 - Node policy: `.nvmrc` pins `20.11.0`; root and `ready-layer` both require `>=20.11.0`.
 
@@ -22,7 +22,7 @@ _Last updated: 2026-03-14_
 
 The enforced parity contract is checked by `scripts/verify-deploy-readiness.mjs`:
 
-1. Toolchain pins (`pnpm@8.15.0`, Node `20.11.0` policy).
+1. Toolchain pins (`pnpm@10.13.1`, Node `20.11.0` policy).
 2. Vercel config (`framework: nextjs`, frozen install, scoped build command).
 3. Web env contract file (`ready-layer/.env.example`) exists and includes required keys.
 

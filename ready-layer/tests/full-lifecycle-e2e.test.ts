@@ -183,6 +183,7 @@ describe('invite lifecycle', () => {
     }));
     const listBody = await list.json() as { data?: { invites?: Array<{ invite_id?: string }> } };
     expect(listBody.data?.invites?.length).toBe(1);
+    expect(listBody.data?.invites?.[0]?.invite_id).toBe(inviteId);
 
     // Bob accepts invite
     const accept = await inviteRoute.POST(await makeRequest('http://localhost/api/tenants/invites', {
@@ -360,7 +361,12 @@ describe('stub routes replaced with real data', () => {
     const { addPlan, runPlan } = await import('../src/lib/control-plane-store');
     const plan = await addPlan('tenant-replay', 'admin-a', {
       plan_id: 'replay-test-plan',
-      steps: [{ tool: 'echo', args: { msg: 'replay-test' } }],
+      steps: [{
+        step_id: 'replay-step-1',
+        kind: 'exec',
+        depends_on: [],
+        config: { command: 'echo', argv: ['replay-test'] },
+      }],
     });
     await runPlan('tenant-replay', 'admin-a', plan.plan_hash);
 

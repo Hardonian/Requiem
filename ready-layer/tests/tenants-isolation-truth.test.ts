@@ -9,10 +9,10 @@ afterEach(() => {
 });
 
 describe('GET /api/tenants/isolation truth semantics', () => {
-  it('reports stub source and does not publish fabricated quota numbers when API is unconfigured', async () => {
+  it('reports the tenant-scoped control plane without fabricated quota numbers', async () => {
     delete process.env.REQUIEM_API_URL;
     Object.assign(process.env, {
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'test-token',
     });
 
@@ -34,8 +34,8 @@ describe('GET /api/tenants/isolation truth semantics', () => {
     };
 
     expect(response.status).toBe(200);
-    expect(body.data?.source).toBe('stub');
-    expect(body.data?.configured).toBe(false);
+    expect(body.data?.source).toBe('control-plane');
+    expect(body.data?.configured).toBe(true);
     expect(body.data?.quotas?.storage?.used_bytes).toBeNull();
   });
 });

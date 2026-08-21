@@ -19,7 +19,7 @@ function authHeaders(): Record<string, string> {
 describe('foundry mutation abuse guards', () => {
   it('requires Idempotency-Key for dataset creation', async () => {
     Object.assign(process.env, {
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'prod-secret',
     });
 
@@ -39,7 +39,7 @@ describe('foundry mutation abuse guards', () => {
 
   it('requires Idempotency-Key for generator run creation', async () => {
     Object.assign(process.env, {
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       REQUIEM_AUTH_SECRET: 'prod-secret',
     });
 

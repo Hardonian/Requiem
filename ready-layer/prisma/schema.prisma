@@ -12,7 +12,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // ─── Audit Log ────────────────────────────────────────────────────────────────
@@ -457,7 +459,6 @@ model GeneratorRun {
   generator         Generator   @relation(fields: [generatorId], references: [id], onDelete: Restrict)
   sourceDataset     Dataset?    @relation("GeneratorRunSource", fields: [sourceDatasetId], references: [id], onDelete: SetNull)
   outputDataset     Dataset?    @relation("GeneratorRunOutput", fields: [outputDatasetId], references: [id], onDelete: SetNull)
-  artifacts         RunArtifact[]
 
   @@index([tenantId])
   @@index([generatorId])
@@ -491,7 +492,6 @@ model EvalRun {
 
   // Relations
   dataset           Dataset     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  artifacts         RunArtifact[]
 
   @@index([tenantId])
   @@index([datasetId])
@@ -546,9 +546,9 @@ model RunArtifact {
   metadata          Json?
   createdAt         DateTime    @default(now()) @map("created_at")
 
-  // Relations
-  generatorRun      GeneratorRun? @relation(fields: [runId], references: [runId], onDelete: Cascade)
-  evalRun           EvalRun?      @relation(fields: [runId], references: [runId], onDelete: Cascade)
+  // runId is a polymorphic reference selected by runType. Prisma cannot model
+  // two foreign keys from the same non-null column without requiring both
+  // target rows to exist, so integrity is enforced by the repository layer.
 
   @@unique([tenantId, runId, artifactName])
   @@index([tenantId])
