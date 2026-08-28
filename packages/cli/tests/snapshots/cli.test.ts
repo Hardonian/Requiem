@@ -1,6 +1,6 @@
 /**
  * CLI Snapshot Tests
- * 
+ *
  * Validates CLI output structure and key behaviors.
  * Run with: pnpm --filter @requiem/cli test
  */
@@ -33,7 +33,7 @@ describe('CLI Snapshots', () => {
   describe('help', () => {
     it('should display help with all command categories', () => {
       const { stdout, exitCode } = runCLI(['--help']);
-      
+
       expect(exitCode).toBe(0);
       expect(stdout).toContain('Requiem CLI');
       expect(stdout).toContain('Control Plane for AI Systems');
@@ -45,7 +45,7 @@ describe('CLI Snapshots', () => {
 
     it('should display version', () => {
       const { stdout, exitCode } = runCLI(['--version']);
-      
+
       expect(exitCode).toBe(0);
       expect(stdout).toContain('Requiem CLI');
       expect(stdout).toMatch(/v\d+\.\d+\.\d+/);
@@ -55,17 +55,17 @@ describe('CLI Snapshots', () => {
   describe('doctor', () => {
     it('should output valid JSON with --json flag', () => {
       const { stdout, exitCode } = runCLI(['doctor', '--json']);
-      
+
       // Should parse as JSON even if unhealthy
       const result = JSON.parse(stdout);
-      
+
       expect(result).toHaveProperty('version');
       expect(result).toHaveProperty('timestamp');
       expect(result).toHaveProperty('platform');
       expect(result).toHaveProperty('status');
       expect(result).toHaveProperty('checks');
       expect(Array.isArray(result.checks)).toBe(true);
-      
+
       // Check structure of individual checks
       if (result.checks.length > 0) {
         const check = result.checks[0];
@@ -79,7 +79,7 @@ describe('CLI Snapshots', () => {
     it('should include runtime versions check', () => {
       const { stdout } = runCLI(['doctor', '--json']);
       const result = JSON.parse(stdout);
-      
+
       const runtimeCheck = result.checks.find((c: { name: string }) => c.name === 'Runtime Versions');
       expect(runtimeCheck).toBeDefined();
       expect(runtimeCheck?.status).toBe('ok');
@@ -90,14 +90,14 @@ describe('CLI Snapshots', () => {
   describe('stats', () => {
     it('should output valid JSON structure', () => {
       const { stdout, exitCode } = runCLI(['stats', '--json']);
-      
+
       const result = JSON.parse(stdout);
-      
+
       expect(result).toHaveProperty('total_decisions');
       expect(result).toHaveProperty('avg_latency_ms');
       expect(result).toHaveProperty('total_cost_usd');
       expect(result).toHaveProperty('success_rate');
-      
+
       expect(typeof result.total_decisions).toBe('number');
       expect(typeof result.avg_latency_ms).toBe('number');
     });
@@ -106,9 +106,9 @@ describe('CLI Snapshots', () => {
   describe('status', () => {
     it('should output valid JSON structure', () => {
       const { stdout, exitCode } = runCLI(['status', '--json']);
-      
+
       const result = JSON.parse(stdout);
-      
+
       expect(result).toHaveProperty('healthy');
       expect(result).toHaveProperty('version');
       expect(result).toHaveProperty('nodeVersion');
@@ -116,7 +116,7 @@ describe('CLI Snapshots', () => {
       expect(result).toHaveProperty('determinism');
       expect(result).toHaveProperty('policy');
       expect(result).toHaveProperty('replay');
-      
+
       expect(typeof result.healthy).toBe('boolean');
       expect(result.determinism).toHaveProperty('enforced');
       expect(result.policy).toHaveProperty('enforced');
@@ -126,7 +126,7 @@ describe('CLI Snapshots', () => {
   describe('error handling', () => {
     it('should handle unknown commands gracefully', () => {
       const { stdout, stderr, exitCode } = runCLI(['unknown-command']);
-      
+
       expect(exitCode).toBe(1);
       const output = stdout || stderr;
       expect(output).toContain('Unknown command');
@@ -134,9 +134,9 @@ describe('CLI Snapshots', () => {
 
     it('should output JSON errors with --json flag', () => {
       const { stdout, exitCode } = runCLI(['unknown-command', '--json']);
-      
+
       expect(exitCode).toBe(1);
-      
+
       const result = JSON.parse(stdout);
       expect(result).toHaveProperty('success', false);
       expect(result).toHaveProperty('error');
@@ -149,7 +149,7 @@ describe('CLI Snapshots', () => {
   describe('init', () => {
     it('should display help', () => {
       const { stdout, exitCode } = runCLI(['init', '--help']);
-      
+
       expect(exitCode).toBe(0);
       expect(stdout).toContain('Initialize');
       expect(stdout).toContain('--tenant');

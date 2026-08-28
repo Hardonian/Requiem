@@ -1,6 +1,6 @@
 # SSM CLI Hardening Report
 
-**Date:** 2026-03-02  
+**Date:** 2026-03-02
 **Scope:** `reach state` command family
 
 ---

@@ -1,8 +1,8 @@
 /**
  * SECTION 2 — EXIT CODES + ERROR NORMALIZATION (OPERATOR GRADE)
- * 
+ *
  * Consistent exit codes across all CLI commands.
- * 
+ *
  * Exit Code Map:
  *   0 - Success / Determinism verified
  *   1 - Generic failure
@@ -14,7 +14,7 @@
  *   7 - Invariant/determinism/replay drift
  *   8 - System/resource error (OOM, disk full, etc.)
  *   9 - Timeout/cancellation
- * 
+ *
  * This follows semantic exit codes from sysexits.h where applicable,
  * extended with domain-specific codes for provable execution.
  */
@@ -40,7 +40,7 @@ export type ExitCodeValue = typeof ExitCode[keyof typeof ExitCode];
 export function errorToExitCode(error: unknown): ExitCodeValue {
   if (error && typeof error === 'object') {
     const err = error as { code?: string; name?: string };
-    
+
     // Check error codes
     if (err.code) {
       switch (err.code) {
@@ -76,7 +76,7 @@ export function errorToExitCode(error: unknown): ExitCodeValue {
           return ExitCode.TIMEOUT;
       }
     }
-    
+
     // Check error names
     if (err.name) {
       switch (err.name) {
@@ -100,7 +100,7 @@ export function errorToExitCode(error: unknown): ExitCodeValue {
       }
     }
   }
-  
+
   // Default to generic failure
   return ExitCode.FAILURE;
 }
@@ -146,7 +146,7 @@ export function normalizeError(
 ): StructuredError {
   const timestamp = new Date().toISOString();
   const exitCode = errorToExitCode(error);
-  
+
   if (error && typeof error === 'object' && 'code' in error) {
     const err = error as { code: string; message?: string; details?: Record<string, unknown> };
     return {
@@ -158,7 +158,7 @@ export function normalizeError(
       remediation: getRemediation(err.code, exitCode),
     };
   }
-  
+
   if (error instanceof Error) {
     return {
       code: 'E_UNKNOWN',
@@ -169,7 +169,7 @@ export function normalizeError(
       remediation: 'Check logs or run with REQUIEM_DEBUG=1 for more details',
     };
   }
-  
+
   return {
     code: 'E_UNKNOWN',
     message: String(error) || 'An unexpected error occurred',
@@ -197,7 +197,7 @@ function getRemediation(code: string, exitCode: ExitCodeValue): string {
     E_DETERMINISM_FAILED: 'Non-deterministic behavior detected - review tool implementation',
     E_TIMEOUT: 'Increase timeout or reduce workload',
   };
-  
+
   return remediations[code] || remediations[exitCode.toString()] || 'Contact support if the issue persists';
 }
 

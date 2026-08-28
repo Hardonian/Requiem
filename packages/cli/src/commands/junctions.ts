@@ -1,6 +1,6 @@
 /**
  * Junctions CLI Module
- * 
+ *
  * Commands:
  * - requiem junctions scan --since <time> --json
  * - requiem junctions list
@@ -66,14 +66,14 @@ export function parseJunctionsArgs(argv: string[]): JunctionsCliArgs {
 function parseTimeString(timeStr: string): Date {
   const now = new Date();
   const match = timeStr.match(/^(\d+)([dhms])$/);
-  
+
   if (!match) {
     throw new Error(`Invalid time format: ${timeStr}. Use format like "7d", "24h", "30m"`);
   }
-  
+
   const value = parseInt(match[1], 10);
   const unit = match[2];
-  
+
   switch (unit) {
     case 'd':
       return new Date(now.getTime() - value * 24 * 60 * 60 * 1000);
@@ -94,7 +94,7 @@ function parseTimeString(timeStr: string): Date {
 function formatJunction(junction: Junction, verbose: boolean = false): any {
   const meta = JUNCTION_TYPE_META[junction.junction_type as keyof typeof JUNCTION_TYPE_META];
   const severityLevel = getSeverityLevel(junction.severity_score);
-  
+
   const output: any = {
     id: junction.id,
     type: junction.junction_type,
@@ -107,7 +107,7 @@ function formatJunction(junction: Junction, verbose: boolean = false): any {
     fingerprint: junction.fingerprint,
     createdAt: junction.created_at,
   };
-  
+
   if (verbose) {
     output.triggerData = JSON.parse(junction.trigger_data);
     output.triggerTrace = JSON.parse(junction.trigger_trace);
@@ -116,7 +116,7 @@ function formatJunction(junction: Junction, verbose: boolean = false): any {
     output.decisionReportId = junction.decision_report_id;
     output.updatedAt = junction.updated_at;
   }
-  
+
   return output;
 }
 
@@ -154,14 +154,14 @@ async function handleScan(args: JunctionsCliArgs): Promise<number> {
     console.error('Error: --since is required for scan command');
     return 1;
   }
-  
+
   const since = parseTimeString(args.since);
   const junctions = await junctionOrchestrator.scan(since, {
     junctionType: args.junctionType,
     minSeverity: args.minSeverity,
     limit: args.limit,
   });
-  
+
   if (args.json) {
     console.log(JSON.stringify({
       command: 'scan',
@@ -173,7 +173,7 @@ async function handleScan(args: JunctionsCliArgs): Promise<number> {
     console.log(`\n=== Junctions Scan ===`);
     console.log(`Since: ${args.since}`);
     console.log(`Found: ${junctions.length} junction(s)\n`);
-    
+
     for (const junction of junctions) {
       const output = formatJunction(junction);
       console.log(`[${output.severityLevel.toUpperCase()}] ${output.typeLabel}`);
@@ -185,7 +185,7 @@ async function handleScan(args: JunctionsCliArgs): Promise<number> {
       console.log('');
     }
   }
-  
+
   return 0;
 }
 
@@ -195,7 +195,7 @@ async function handleList(args: JunctionsCliArgs): Promise<number> {
     minSeverity: args.minSeverity,
     limit: args.limit || 50,
   });
-  
+
   if (args.json) {
     console.log(JSON.stringify({
       command: 'list',
@@ -205,7 +205,7 @@ async function handleList(args: JunctionsCliArgs): Promise<number> {
   } else {
     console.log(`\n=== Junctions List ===`);
     console.log(`Total: ${junctions.length} junction(s)\n`);
-    
+
     for (const junction of junctions) {
       const output = formatJunction(junction);
       console.log(`[${output.severityLevel.toUpperCase()}] ${output.typeLabel} - ${output.id}`);
@@ -214,7 +214,7 @@ async function handleList(args: JunctionsCliArgs): Promise<number> {
       console.log('');
     }
   }
-  
+
   return 0;
 }
 
@@ -223,9 +223,9 @@ async function handleShow(args: JunctionsCliArgs): Promise<number> {
     console.error('Error: Junction ID is required');
     return 1;
   }
-  
+
   const junction = await junctionOrchestrator.getJunction(args.id);
-  
+
   if (!junction) {
     if (args.json) {
       console.log(JSON.stringify({
@@ -238,9 +238,9 @@ async function handleShow(args: JunctionsCliArgs): Promise<number> {
     }
     return 1;
   }
-  
+
   const output = formatJunction(junction, true);
-  
+
   if (args.json) {
     console.log(JSON.stringify({
       command: 'show',
@@ -256,22 +256,22 @@ async function handleShow(args: JunctionsCliArgs): Promise<number> {
     console.log(`Fingerprint: ${output.fingerprint}`);
     console.log(`Created: ${output.createdAt}`);
     console.log(`Updated: ${output.updatedAt}`);
-    
+
     if (output.cooldownUntil) {
       console.log(`Cooldown Until: ${output.cooldownUntil}`);
     }
-    
+
     console.log('\n--- Trigger Data ---');
     console.log(JSON.stringify(output.triggerData, null, 2));
-    
+
     console.log('\n--- Trigger Trace ---');
     console.log(JSON.stringify(output.triggerTrace, null, 2));
-    
+
     if (output.decisionReportId) {
       console.log(`\nLinked Decision Report: ${output.decisionReportId}`);
     }
   }
-  
+
   return 0;
 }
 

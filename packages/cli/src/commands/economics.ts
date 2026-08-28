@@ -1,8 +1,8 @@
 /**
  * reach economics CLI Command
- * 
+ *
  * Show economic metrics and alerts
- * 
+ *
  * Usage:
  *   reach economics
  *   reach economics --alerts
@@ -29,21 +29,21 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
     forecast: args.includes('--forecast'),
     fairness: args.includes('--fairness'),
   };
-  
+
   const tenantId = process.env.REQUIEM_TENANT_ID || 'default-tenant';
-  
+
   try {
     // Detect alerts first
     const detectedAlerts = detectEconomicAlerts(tenantId);
-    
+
     // Create alerts in database
     if (detectedAlerts.length > 0) {
       createAlertsFromDetection(tenantId, detectedAlerts);
     }
-    
+
     // Get full summary
     const summary = getEconomicSummary(tenantId);
-    
+
     if (parsed.alerts) {
       // Show only alerts
       console.log('');
@@ -51,7 +51,7 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
       console.log('│ ECONOMIC ALERTS                                                     │');
       console.log(`│ Tenant: ${tenantId.padEnd(55)}│`);
       console.log('├─────────────────────────────────────────────────────────────────────┤');
-      
+
       if (summary.alerts.length === 0 && detectedAlerts.length === 0) {
         console.log('│   No alerts detected                                                │');
       } else {
@@ -62,13 +62,13 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
           console.log(`│   ${alert.alertType.padEnd(20)} [${alert.severity.padEnd(8)}] (new)`.padEnd(64) + '│');
         }
       }
-      
+
       console.log('└─────────────────────────────────────────────────────────────────────┘');
       console.log('');
-      
+
       return 0;
     }
-    
+
     if (parsed.forecast) {
       // Show only forecast
       console.log('');
@@ -85,10 +85,10 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
       console.log(`│ ${summary.forecast.recommendation.padEnd(62)}│`);
       console.log('└─────────────────────────────────────────────────────────────────────┘');
       console.log('');
-      
+
       return 0;
     }
-    
+
     if (parsed.fairness) {
       // Show only fairness
       console.log('');
@@ -99,7 +99,7 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
       console.log(`│   Fairness Index:     ${summary.fairness.fairnessIndex.toFixed(4).padEnd(37)}│`);
       console.log(`│   Tenant Imbalance:   ${summary.fairness.tenantImbalance.toFixed(4).padEnd(37)}│`);
       console.log('├─────────────────────────────────────────────────────────────────────┤');
-      
+
       if (summary.fairness.violations.length > 0) {
         console.log('│ VIOLATIONS                                                          │');
         console.log('├─────────────────────────────────────────────────────────────────────┤');
@@ -109,13 +109,13 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
       } else {
         console.log('│   No violations detected                                           │');
       }
-      
+
       console.log('└─────────────────────────────────────────────────────────────────────┘');
       console.log('');
-      
+
       return 0;
     }
-    
+
     // Default: show full economic summary
     console.log('');
     console.log('┌─────────────────────────────────────────────────────────────────────┐');
@@ -141,7 +141,7 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
     console.log('├─────────────────────────────────────────────────────────────────────┤');
     console.log(`│   Fairness Index:   ${summary.fairness.fairnessIndex.toFixed(4).padEnd(37)}│`);
     console.log(`│   Imbalance:        ${summary.fairness.tenantImbalance.toFixed(4).padEnd(37)}│`);
-    
+
     if (detectedAlerts.length > 0) {
       console.log('├─────────────────────────────────────────────────────────────────────┤');
       console.log('│ NEW ALERTS                                                          │');
@@ -150,10 +150,10 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
         console.log(`│   ${alert.alertType.padEnd(20)} [${alert.severity.padEnd(8)}] ${alert.currentValue.toFixed(2)} > ${alert.threshold.toFixed(2)}│`);
       }
     }
-    
+
     console.log('└─────────────────────────────────────────────────────────────────────┘');
     console.log('');
-    
+
     return 0;
   } catch (error) {
     console.error('Error running economics command:', error);
@@ -166,7 +166,7 @@ export async function runEconomicsCommand(args: string[]): Promise<number> {
 export const economics = {
   name: 'economics',
   description: 'Show economic metrics and alerts',
-  
+
   async parse(args: string[]) {
     return runEconomicsCommand(args);
   },

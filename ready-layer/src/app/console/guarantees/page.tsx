@@ -2,10 +2,10 @@
 
 /**
  * Execution Guarantees
- * 
+ *
  * Harvested from Stitch: execution_guarantees_deep_dive_1
  * Canonical route: /console/guarantees
- * 
+ *
  * Features:
  * - Guarantee cards with severity levels
  * - Verification metrics
@@ -14,8 +14,8 @@
 
 import { type ReactNode, useEffect, useState } from 'react';
 import {
-  StitchHeader, 
-  StitchContainer, 
+  StitchHeader,
+  StitchContainer,
   StitchCard,
   StitchFeatureCard,
   StitchStatCard,
@@ -146,7 +146,7 @@ export default function GuaranteesPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col pb-20">
       <StitchHeader title="Execution Guarantees" />
-      
+
       <StitchContainer maxWidth="md">
         <section className="px-5 pt-6">
           <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity disclosure">
@@ -156,7 +156,7 @@ export default function GuaranteesPage() {
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge variant={guaranteeStatusBadge.variant}>{guaranteeStatusBadge.text}</StitchBadge>
-          
+
           <h2 className="text-foreground text-3xl font-bold font-display leading-tight">
             Execution Guarantees
           </h2>
@@ -175,7 +175,7 @@ export default function GuaranteesPage() {
         <section className="px-5 pb-8">
           <div className="grid grid-cols-2 gap-3">
             {verificationStats.map((stat) => (
-              <StitchStatCard 
+              <StitchStatCard
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}
@@ -217,8 +217,8 @@ export default function GuaranteesPage() {
                   Single Choke Point Policy
                 </h4>
                 <p className="text-muted text-xs leading-relaxed mb-3">
-                  All execution paths flow through a single policy enforcement point. 
-                  No bypass paths exist. Every LLM call is validated against active constraints 
+                  All execution paths flow through a single policy enforcement point.
+                  No bypass paths exist. Every LLM call is validated against active constraints
                   before dispatch.
                 </p>
                 <div className="flex gap-2">

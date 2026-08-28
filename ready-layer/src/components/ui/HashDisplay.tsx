@@ -2,7 +2,7 @@
 
 /**
  * HashDisplay - Consistent hash display with shortening and copy functionality
- * 
+ *
  * Displays cryptographic hashes in a readable format with:
  * - Automatic shortening with ellipsis
  * - One-click copy to clipboard
@@ -19,16 +19,16 @@ interface HashDisplayProps {
   label?: string;
 }
 
-export function HashDisplay({ 
-  hash, 
-  length = 16, 
+export function HashDisplay({
+  hash,
+  length = 16,
   showCopy = true,
   className = '',
   label
 }: HashDisplayProps) {
   if (!hash) return <span className="text-gray-400">-</span>;
 
-  const shortened = hash.length > length 
+  const shortened = hash.length > length
     ? `${hash.substring(0, length)}...`
     : hash;
 
@@ -39,7 +39,7 @@ export function HashDisplay({
           {label}
         </span>
       )}
-      <code 
+      <code
         className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded"
         title={hash}
       >

@@ -1,7 +1,7 @@
 # BASELINE.md — Phase 0 Discovery Report
 
-> Generated: 2026-03-02  
-> Agent: Opus 4.6 (Antigravity)  
+> Generated: 2026-03-02
+> Agent: Opus 4.6 (Antigravity)
 > Commit: discovery, pre-kernel-lock
 
 ---

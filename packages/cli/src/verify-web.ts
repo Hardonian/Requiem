@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verify:web - Verify web console and API routes
- * 
+ *
  * This script verifies:
  * - Web console pages are accessible
  * - API routes are properly configured
@@ -13,10 +13,10 @@ import { join } from 'path';
 
 async function verifyWeb(): Promise<boolean> {
   console.log('🔍 Verifying web console...\n');
-  
+
   const cwd = process.cwd();
   let allPassed = true;
-  
+
   // Check for Next.js app directory
   // The CLI package is in packages/cli, the app is in ready-layer/src/app
   const rootDir = join(cwd, '..', '..');
@@ -24,7 +24,7 @@ async function verifyWeb(): Promise<boolean> {
     join(rootDir, 'ready-layer', 'src', 'app'),
     join(cwd, '..', 'ready-layer', 'src', 'app'),
   ];
-  
+
   let foundAppDir = false;
   for (const dir of appDirs) {
     if (existsSync(dir)) {
@@ -33,16 +33,16 @@ async function verifyWeb(): Promise<boolean> {
       break;
     }
   }
-  
+
   if (!foundAppDir) {
     console.log('⚠ App directory not found');
     return false;
   }
-  
+
   // Check console pages exist
   const consolePages = [
     'logs',
-    'objects', 
+    'objects',
     'capabilities',
     'policies',
     'runs',
@@ -50,7 +50,7 @@ async function verifyWeb(): Promise<boolean> {
     'finops',
     'snapshots',
   ];
-  
+
   console.log('\n📋 Console pages:');
   for (const page of consolePages) {
     const pagePath = join(rootDir, 'ready-layer', 'src', 'app', 'console', page, 'page.tsx');
@@ -61,7 +61,7 @@ async function verifyWeb(): Promise<boolean> {
       allPassed = false;
     }
   }
-  
+
   // Check API routes
   const apiRoutes = [
     'logs',
@@ -73,7 +73,7 @@ async function verifyWeb(): Promise<boolean> {
     'budgets',
     'snapshots',
   ];
-  
+
   console.log('\n📋 API routes:');
   for (const route of apiRoutes) {
     const routePath = join(rootDir, 'ready-layer', 'src', 'app', 'api', route, 'route.ts');
@@ -84,7 +84,7 @@ async function verifyWeb(): Promise<boolean> {
       allPassed = false;
     }
   }
-  
+
   console.log('\n' + (allPassed ? '✓' : '⚠') + ' Web verification complete');
   return allPassed;
 }

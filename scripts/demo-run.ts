@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 /**
  * Requiem Demo Runner
- * 
+ *
  * Executes the full vertical slice end-to-end:
  *   doctor → plan hash → plan verify → plan run → log verify
- * 
+ *
  * Usage:
  *   npx tsx scripts/demo-run.ts [--json] [--output-dir ./demo_artifacts]
  *   make demo
@@ -59,7 +59,7 @@ function runCommand(
   return new Promise((resolve) => {
     const timeoutMs = options?.timeoutMs || 30000;
     let timedOut = false;
-    
+
     const proc = spawn(cmd, args, {
       cwd: options?.cwd || ROOT_DIR,
       env: { ...process.env, ...options?.env },
@@ -97,12 +97,12 @@ function runCommand(
 function parseOutput(stdout: string): { ok: boolean; data?: unknown; raw: unknown } {
   try {
     const parsed = JSON.parse(stdout);
-    
+
     // Check if it's an envelope format {"v":1,"kind":"...","data":{...}}
     if (parsed.v === 1 && parsed.kind) {
       return { ok: parsed.data?.ok !== false, data: parsed.data, raw: parsed };
     }
-    
+
     // Plain JSON format {"ok":true,...}
     return { ok: parsed.ok === true, data: parsed, raw: parsed };
   } catch {
@@ -114,7 +114,7 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
   const traceId = generateTraceId();
   const startTime = Date.now();
   const cliPath = resolveCliPath(ROOT_DIR).command;
-  
+
   const result: DemoResult = {
     ok: false,
     runId: `demo-${Date.now()}`,
@@ -153,10 +153,10 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
     const stepStart = Date.now();
     const { stdout, exitCode, timedOut } = await runCommand(cliPath, ["doctor", "--json"]);
     const durationMs = Date.now() - stepStart;
-    
+
     const parsed = parseOutput(stdout);
     const doctorOk = parsed.ok && exitCode === 0;
-    
+
     if (parsed.data && typeof parsed.data === "object") {
       const data = parsed.data as Record<string, unknown>;
       result.environment.sandboxAvailable = (data.sandbox as { workspace_confinement?: boolean })?.workspace_confinement === true;
@@ -211,7 +211,7 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
 
     const parsed = parseOutput(stdout);
     const hashOk = parsed.ok && exitCode === 0;
-    
+
     if (parsed.data && typeof parsed.data === "object") {
       planHash = (parsed.data as { plan_hash?: string }).plan_hash || null;
     }
@@ -241,12 +241,12 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
     const parsed = parseOutput(stdout);
     let runOk = parsed.ok && exitCode === 0;
     let warning: string | undefined;
-    
+
     if (parsed.data && typeof parsed.data === "object") {
       const data = parsed.data as Record<string, unknown>;
       receiptHash = data.receipt_hash as string | null;
       runId = data.run_id as string | null;
-      
+
       // Check for spawn failures (expected in restricted environments)
       const stepResults = data.step_results as Record<string, { error_code?: string }> | undefined;
       const hasSpawnFailure = stepResults
@@ -283,7 +283,7 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
 
     const parsed = parseOutput(stdout);
     let logOk = parsed.ok && exitCode === 0;
-    
+
     // Accept if it returns valid data even with ok=false (might be empty log)
     if (!logOk && parsed.data && typeof parsed.data === "object") {
       const data = parsed.data as { total_events?: number };
@@ -291,7 +291,7 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
         logOk = true;
       }
     }
-    
+
     result.logVerifyOk = logOk;
 
     recordStep("log_verify", {
@@ -340,16 +340,16 @@ async function runDemo(doctorFirst = true, outputDir: string): Promise<DemoResul
   }
 
   result.durationMs = Date.now() - startTime;
-  
+
   // Demo passes if critical steps succeed
   const criticalSteps = ["doctor", "plan_verify", "plan_hash"];
   const criticalOk = result.steps
     .filter(s => criticalSteps.includes(s.step))
     .every(s => s.ok);
-  
+
   const planRunStep = result.steps.find(s => s.step === "plan_run");
   const planRunAcceptable = planRunStep?.ok === true;
-  
+
   result.ok = criticalOk && planRunAcceptable;
 
   // Write artifacts
@@ -382,13 +382,13 @@ function printSummary(result: DemoResult, jsonOutput: boolean): void {
   console.log(`Receipt Hash:  ${result.receiptHash || "(none)"}`);
   console.log(`Log Verify:    ${result.logVerifyOk === true ? "✓ PASS" : result.logVerifyOk === false ? "✗ FAIL" : "— SKIP"}`);
   console.log(`Duration:      ${result.durationMs}ms`);
-  
+
   if (!result.environment.spawnCapable) {
     console.log("");
     console.log("ℹ Note: Process spawn not available in this environment");
     console.log("        Plan validation passed, execution skipped (expected)");
   }
-  
+
   console.log("");
   console.log("Steps:");
   for (const step of result.steps) {
@@ -396,7 +396,7 @@ function printSummary(result: DemoResult, jsonOutput: boolean): void {
     const warnIcon = step.warning ? " ⚠" : "";
     console.log(`  ${status} ${step.step.padEnd(20)} ${step.durationMs}ms${warnIcon}`);
   }
-  
+
   if (result.warnings.length > 0) {
     console.log("");
     console.log("Warnings:");
@@ -404,9 +404,9 @@ function printSummary(result: DemoResult, jsonOutput: boolean): void {
       console.log(`  ⚠ ${warning}`);
     }
   }
-  
+
   console.log("");
-  
+
   if (result.ok) {
     console.log("╔════════════════════════════════════════════════════════════════╗");
     console.log("║  DEMO PASSED ✓                                                 ║");
@@ -429,10 +429,10 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const jsonOutput = args.includes("--json");
   const skipDoctor = args.includes("--skip-doctor");
-  
+
   const outputDirIndex = args.indexOf("--output-dir");
-  const outputDir = outputDirIndex >= 0 
-    ? args[outputDirIndex + 1] 
+  const outputDir = outputDirIndex >= 0
+    ? args[outputDirIndex + 1]
     : DEFAULT_OUTPUT_DIR;
 
   // Check if CLI exists

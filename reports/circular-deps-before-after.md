@@ -1,6 +1,6 @@
 # Circular Dependency Analysis Report
 
-**Date:** 2026-03-01  
+**Date:** 2026-03-01
 **Scope:** CLI package (`packages/cli/src`)
 
 ## Summary
@@ -64,6 +64,6 @@ To maintain zero circular dependencies:
 
 ## Status
 
-✅ Clean - No circular dependencies  
-✅ CI gate implemented  
+✅ Clean - No circular dependencies
+✅ CI gate implemented
 ✅ Zero cycles detected

@@ -1,8 +1,8 @@
 # KERNEL_SPEC.md — Requiem Kernel Architecture Specification
 
-> Version: 1.0.0  
-> Status: LOCKED  
-> Author: Opus 4.6 (Antigravity)  
+> Version: 1.0.0
+> Status: LOCKED
+> Author: Opus 4.6 (Antigravity)
 > Date: 2026-03-02
 
 ---

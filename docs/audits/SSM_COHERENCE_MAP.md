@@ -1,6 +1,6 @@
 # SSM Coherence Map
 
-**Generated:** 2026-03-02  
+**Generated:** 2026-03-02
 **Purpose:** Map the Semantic State Machine (SSM) primitive implementation to identify coherence breaks and hardening opportunities.
 
 ---

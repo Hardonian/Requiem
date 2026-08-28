@@ -1,6 +1,6 @@
 /**
  * AI Skills Registry Bridge
- * 
+ *
  * Provides CLI-accessible skill management.
  * These are simple in-memory registrations for CLI use.
  */
@@ -15,7 +15,7 @@ export interface SkillDefinition {
   postcondition?: (ctx: any, output: any) => Promise<boolean>;
 }
 
-export type SkillStep = 
+export type SkillStep =
   | { kind: 'tool'; toolName: string; input: any }
   | { kind: 'llm'; prompt: string }
   | { kind: 'assert'; condition: string };

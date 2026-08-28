@@ -1,9 +1,9 @@
 /**
  * AppShell Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/layout/app-layout.tsx, Reach/apps/arcade/src/components/StudioShell.tsx
  * EXTENSION_POINT: Add new layout configurations or sidebar variants
- * 
+ *
  * The main application shell providing consistent page structure.
  */
 

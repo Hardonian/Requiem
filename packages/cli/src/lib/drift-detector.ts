@@ -1,19 +1,19 @@
 /**
  * Drift and Pattern Detection Engine
- * 
+ *
  * Deterministic analyzers for detecting:
  * - Recurring failures
  * - Prompt ambiguities
  * - Skill coverage gaps
  * - Rollback frequency
  * - Time-to-green metrics
- * 
+ *
  * All analyzers are pure functions with no randomness.
  */
 
-import { 
+import {
   type SignalCategory,
-  type LearningSignal 
+  type LearningSignal
 } from '../db/governance.js';
 
 // ─── Signal Category Thresholds ─────────────────────────────────────────────────
@@ -75,13 +75,13 @@ export function detectRecurringFailures(
   signals: LearningSignal[]
 ): FailureDetectionResult[] {
   const counts: Partial<Record<SignalCategory, number>> = {};
-  
+
   for (const signal of signals) {
     counts[signal.category] = (counts[signal.category] || 0) + 1;
   }
-  
+
   const results: FailureDetectionResult[] = [];
-  
+
   for (const [category, count] of Object.entries(counts)) {
     const threshold = SIGNAL_THRESHOLDS[category as SignalCategory] || 1;
     results.push({
@@ -91,7 +91,7 @@ export function detectRecurringFailures(
       triggersDiagnosis: count >= threshold,
     });
   }
-  
+
   // Sort by count descending for deterministic ordering
   return results.sort((a, b) => b.count - a.count);
 }
@@ -113,11 +113,11 @@ export function detectPromptAmbiguities(
 ): AmbiguityDetectionResult {
   const missingInputs: string[] = [];
   let fallbackCount = 0;
-  
+
   for (const signal of signals) {
     const metadata = signal.metadata_json;
     if (!metadata) continue;
-    
+
     // Check for missing inputs
     const inputs = metadata.inputs as Record<string, unknown> | undefined;
     if (inputs) {
@@ -130,17 +130,17 @@ export function detectPromptAmbiguities(
         }
       }
     }
-    
+
     // Check for fallback branch usage
     const usedFallback = metadata.used_fallback as boolean | undefined;
     if (usedFallback) {
       fallbackCount++;
     }
   }
-  
+
   const totalSignals = signals.length || 1;
   const fallbackFrequency = fallbackCount / totalSignals;
-  
+
   return {
     missingInputs,
     fallbackFrequency,
@@ -166,10 +166,10 @@ export function detectSkillCoverage(
   for (const signal of signals) {
     signalCategories.add(signal.category);
   }
-  
+
   const covered: SignalCategory[] = [];
   const uncovered: SignalCategory[] = [];
-  
+
   for (const category of signalCategories) {
     const skills = skillTriggers[category];
     if (skills && skills.length > 0) {
@@ -178,10 +178,10 @@ export function detectSkillCoverage(
       uncovered.push(category);
     }
   }
-  
+
   const total = signalCategories.size || 1;
   const coverageRatio = covered.length / total;
-  
+
   return {
     covered,
     uncovered,
@@ -204,7 +204,7 @@ export function trackRollbackFrequency(signals: LearningSignal[]): RollbackFrequ
   const rollbackSignals = signals.filter(s => s.category === 'rollback_event');
   const rollbackCount = rollbackSignals.length;
   const totalSignals = signals.length || 1;
-  
+
   return {
     rollbackCount,
     totalSignals,
@@ -229,14 +229,14 @@ export function calculateTimeToGreen(
 ): TimeToGreenResult {
   let totalCycles = 0;
   let successfulCycles = 0;
-  
+
   for (const signal of signals) {
     const metadata = signal.metadata_json;
     if (!metadata) continue;
-    
+
     const cycles = metadata.verification_cycles as number | undefined;
     const passed = metadata.verification_passed as boolean | undefined;
-    
+
     if (cycles !== undefined) {
       totalCycles += cycles;
       if (passed) {
@@ -244,9 +244,9 @@ export function calculateTimeToGreen(
       }
     }
   }
-  
+
   const signalCount = signals.length || 1;
-  
+
   return {
     totalCycles,
     successfulCycles,
@@ -269,29 +269,29 @@ export function determineRootCause(
   signals: LearningSignal[]
 ): RootCauseResult | null {
   if (signals.length === 0) return null;
-  
+
   const categoryCounts = new Map<SignalCategory, number>();
   for (const signal of signals) {
     const count = categoryCounts.get(signal.category) || 0;
     categoryCounts.set(signal.category, count + 1);
   }
-  
+
   // Find the dominant category
   let dominantCategory: SignalCategory | null = null;
   let maxCount = 0;
-  
+
   for (const [category, count] of categoryCounts) {
     if (count > maxCount) {
       maxCount = count;
       dominantCategory = category;
     }
   }
-  
+
   if (!dominantCategory) return null;
-  
+
   const rootCause = SIGNAL_TO_ROOT_CAUSE[dominantCategory] || 'strategic_misalignment';
   const confidenceScore = calculateConfidenceScore(maxCount);
-  
+
   return {
     rootCause,
     confidenceScore,
@@ -331,12 +331,12 @@ export function analyzeSignals(
   const skillCoverage = detectSkillCoverage(signals, skillTriggers);
   const rollbackFrequency = trackRollbackFrequency(signals);
   const timeToGreen = calculateTimeToGreen(signals);
-  
+
   // Check for significant drift (any drift signal with count >= threshold)
   const hasSignificantDrift = recurringFailures.some(
     r => r.category === 'drift' && r.triggersDiagnosis
   );
-  
+
   return {
     recurringFailures,
     skillCoverage,

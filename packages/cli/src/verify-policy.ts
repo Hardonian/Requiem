@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verify:policy - Verify policy configuration and enforcement
- * 
+ *
  * This script verifies:
  * - Policy files are valid JSON
  * - Policy versions are tracked
@@ -13,10 +13,10 @@ import { join } from 'path';
 
 async function verifyPolicy(): Promise<boolean> {
   console.log('🔍 Verifying policy configuration...\n');
-  
+
   const cwd = process.cwd();
   let allPassed = true;
-  
+
   // Check policies directory
   const policyDir = join(cwd, '.reach', 'policies');
   if (existsSync(policyDir)) {
@@ -27,7 +27,7 @@ async function verifyPolicy(): Promise<boolean> {
         const index = JSON.parse(content);
         const policyCount = Object.keys(index.policies || {}).length;
         console.log(`✓ Policies: ${policyCount} policies loaded`);
-        
+
         // Check each policy
         for (const [name, policy] of Object.entries(index.policies || {})) {
           const pol = policy as { versions?: unknown[] };
@@ -41,13 +41,13 @@ async function verifyPolicy(): Promise<boolean> {
   } else {
     console.log('⚠ Policies: Not initialized (run "reach policy add" first)');
   }
-  
+
   // Check for policy files in common locations
   const policyPaths = [
     join(cwd, 'policy', 'default.policy.json'),
     join(cwd, 'policy.json'),
   ];
-  
+
   for (const path of policyPaths) {
     if (existsSync(path)) {
       try {
@@ -60,7 +60,7 @@ async function verifyPolicy(): Promise<boolean> {
       }
     }
   }
-  
+
   console.log('\n' + (allPassed ? '✓' : '⚠') + ' Policy verification complete');
   return allPassed;
 }

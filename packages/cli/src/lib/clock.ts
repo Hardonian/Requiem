@@ -1,10 +1,10 @@
 /**
  * Deterministic Clock Abstraction
- * 
+ *
  * INVARIANT: Core logic uses Clock interface, not direct Date/time.
  * INVARIANT: Seeded clocks produce identical timestamps for replay.
  * INVARIANT: Wall clock only used at system boundaries.
- * 
+ *
  * This enables:
  * - Deterministic replay of executions
  * - Testing time-dependent logic without mocking globals

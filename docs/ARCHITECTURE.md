@@ -1,6 +1,6 @@
 # Requiem Architecture & Determinism
 
-> **Status:** Production-bound.  
+> **Status:** Production-bound.
 > **Target:** Zero-entropy execution.
 
 Requiem is built on a multi-layered architecture that separates concerns between native execution truth and higher-level AI orchestration. This document outlines how we achieve determinism, isolation, and cryptographic auditability.

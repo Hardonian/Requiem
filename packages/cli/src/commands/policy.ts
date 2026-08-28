@@ -234,7 +234,7 @@ export function createPolicyCommand(): Command {
 
         const content = readFileSync(file, 'utf-8');
         let policyData: Partial<Policy>;
-        
+
         try {
           policyData = JSON.parse(content);
         } catch {
@@ -274,7 +274,7 @@ export function createPolicyCommand(): Command {
           author: process.env.USER || 'system',
           message: options.message || `Added policy ${name} v${version}`,
         });
-        
+
         index.policies[name].activeVersion = version;
         index.policies[name].rules = policyData.rules || [];
 
@@ -313,7 +313,7 @@ export function createPolicyCommand(): Command {
 
       try {
         const index = loadIndex();
-        
+
         const policies = Object.values(index.policies).map(p => ({
           name: p.name,
           type: p.type,
@@ -377,7 +377,7 @@ export function createPolicyCommand(): Command {
           // Simple condition evaluation - check if any context field matches
           const conditionFields = rule.condition.match(/\{\{(\w+)\}\}/g) || [];
           let matches = true;
-          
+
           for (const field of conditionFields) {
             const fieldName = field.replace(/\{\{|\}\}/g, '');
             if (!(fieldName in context)) {
@@ -385,7 +385,7 @@ export function createPolicyCommand(): Command {
               break;
             }
           }
-          
+
           if (matches) {
             matchedRules.push(rule.name);
             if (rule.action === 'deny') {
@@ -470,19 +470,19 @@ export function createPolicyCommand(): Command {
         } else {
           console.log(`Policy Test Results: ${policy}`);
           console.log('');
-          
+
           for (const test of tests) {
             const testPassed = test.check !== false;
             if (testPassed) passed++;
             else failed++;
-            
+
             const icon = testPassed ? '✓' : '✗';
             console.log(`  ${icon} ${test.name}: ${test.description}`);
           }
-          
+
           console.log('');
           console.log(`Passed: ${passed}/${tests.length}`);
-          
+
           if (failed > 0) {
             process.exit(1);
           }

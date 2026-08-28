@@ -1,7 +1,7 @@
 # Adversarial Report — Security Testing Results
 
-**Date:** 2026-03-02  
-**Phase:** STRATEGIC VALUE ADD - ADVERSARIAL PASS  
+**Date:** 2026-03-02
+**Phase:** STRATEGIC VALUE ADD - ADVERSARIAL PASS
 **Purpose:** Document attempts to break system invariants and security boundaries.
 
 ---

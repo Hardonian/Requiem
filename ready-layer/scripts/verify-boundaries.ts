@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 /**
  * verify:boundaries - API boundary verification per KERNEL_SPEC §3
- * 
+ *
  * Verifies:
  * - All API routes return typed envelopes (v1 schema)
  * - No secret leakage in responses
@@ -43,11 +43,11 @@ function runCli(args: string[]): any {
     cwd: '..',
     timeout: 10000
   });
-  
+
   if (result.error) {
     throw new Error(`CLI execution failed: ${result.error.message}`);
   }
-  
+
   try {
     return JSON.parse(result.stdout);
   } catch {
@@ -76,10 +76,10 @@ test('cas put returns v1 envelope', () => {
   const path = require('path');
   const tmpFile = path.join(os.tmpdir(), 'test-content-' + Date.now());
   fs.writeFileSync(tmpFile, 'test content for boundary verification');
-  
+
   const result = runCli(['cas', 'put', tmpFile]);
   fs.unlinkSync(tmpFile);
-  
+
   assert(result.v === 1, `Expected v=1, got v=${result.v}`);
   assert(result.kind === 'cas.put', `Unexpected kind: ${result.kind}`);
   assert(result.data?.hash?.startsWith('cas:'), 'Hash should use cas: prefix');
@@ -146,7 +146,7 @@ test('hashes use domain separation prefixes', () => {
   const result = runCli(['cas', 'put', '--data=test-prefix-check']);
   if (result.data?.hash) {
     assert(
-      result.data.hash.startsWith('cas:') || 
+      result.data.hash.startsWith('cas:') ||
       result.data.hash.startsWith('cap:') ||
       result.data.hash.startsWith('evt:') ||
       result.data.hash.startsWith('rcpt:'),

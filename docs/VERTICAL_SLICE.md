@@ -1,7 +1,7 @@
 # VERTICAL_SLICE.md
 
-Status: VERIFIED  
-Date: 2026-03-02  
+Status: VERIFIED
+Date: 2026-03-02
 Engine binary: `./build/requiem`
 
 ## Goal

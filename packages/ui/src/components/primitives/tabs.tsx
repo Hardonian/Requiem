@@ -1,9 +1,9 @@
 /**
  * Tabs Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/tabs.tsx
  * EXTENSION_POINT: Add vertical orientation or different visual styles
- * 
+ *
  * A tabbed interface for organizing content into sections.
  */
 

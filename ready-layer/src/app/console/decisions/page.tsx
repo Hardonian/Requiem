@@ -2,10 +2,10 @@
 
 /**
  * Console Decisions Page - DEPRECATED
- * 
+ *
  * This page has been consolidated into the Policies page.
  * Policy decisions are now viewable in the &quot;Recent Decisions&quot; tab.
- * 
+ *
  * @deprecated Use /console/policies instead
  */
 

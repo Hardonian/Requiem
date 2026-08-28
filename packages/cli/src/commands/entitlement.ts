@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Entitlement Command
- * 
+ *
  * View and verify feature entitlements.
- * 
+ *
  * Usage:
  *   reach entitlement show [--json]
  *   reach entitlement verify
@@ -32,10 +32,10 @@ entitlement
     try {
       // Clear cache to get fresh data
       clearEntitlementsCache();
-      
+
       const entitlements = loadEntitlements();
       const summary = getEntitlementsSummary();
-      
+
       if (options.json) {
         console.log(JSON.stringify({
           tier: entitlements.tier,
@@ -45,7 +45,7 @@ entitlement
         }, null, 2));
         return;
       }
-      
+
       console.log('\n╔══════════════════════════════════════════════════════════╗');
       console.log('║              ENTITLEMENTS                                ║');
       console.log('╠══════════════════════════════════════════════════════════╣');
@@ -54,7 +54,7 @@ entitlement
       console.log('╠══════════════════════════════════════════════════════════╣');
       console.log('║  FEATURES                                                ║');
       console.log('╠══════════════════════════════════════════════════════════╣');
-      
+
       const features = [
         ['Replication', entitlements.features.replication],
         ['Auto Arbitration', entitlements.features.arbitrationAutoMode],
@@ -63,12 +63,12 @@ entitlement
         ['Advanced Analytics', entitlements.features.advancedAnalytics],
         ['Priority Support', entitlements.features.prioritySupport],
       ];
-      
+
       for (const [name, enabled] of features as [string, boolean][]) {
         const status = enabled ? '✓ ENABLED' : '✗ disabled';
         console.log(`║  ${name.padEnd(20)} ${status.padEnd(27)}║`);
       }
-      
+
       console.log('╠══════════════════════════════════════════════════════════╣');
       console.log('║  LIMITS                                                  ║');
       console.log('╠══════════════════════════════════════════════════════════╣');
@@ -82,12 +82,12 @@ entitlement
       console.log(`║  Decisions/Month:    ${String(entitlements.quotas.decisionsPerMonth).padEnd(37)}║`);
       console.log(`║  Storage:            ${formatBytes(entitlements.quotas.storageBytes).padEnd(37)}║`);
       console.log('╚══════════════════════════════════════════════════════════╝\n');
-      
+
       logger.info('entitlement.show', 'Displayed entitlements', {
         tier: entitlements.tier,
         source: entitlements.source,
       });
-      
+
     } catch (error) {
       console.error('Error loading entitlements:', error instanceof Error ? error.message : error);
       process.exit(1);
@@ -102,7 +102,7 @@ entitlement
   .action(async (options) => {
     try {
       clearEntitlementsCache();
-      
+
       const results = {
         timestamp: new Date().toISOString(),
         checks: {
@@ -123,37 +123,37 @@ entitlement
           storageBytes: getQuota('storageBytes'),
         },
       };
-      
+
       if (options.json) {
         console.log(JSON.stringify(results, null, 2));
         return;
       }
-      
+
       console.log('\n╔══════════════════════════════════════════════════════════╗');
       console.log('║           ENTITLEMENT VERIFICATION                       ║');
       console.log('╠══════════════════════════════════════════════════════════╣');
       console.log('║  POLICY GATE CHECKS                                      ║');
       console.log('╠══════════════════════════════════════════════════════════╣');
-      
+
       for (const [name, result] of Object.entries(results.checks)) {
         const status = result.allowed ? '✓ PASS' : '✗ FAIL';
         const reason = result.reason ? ` (${result.reason})` : '';
         console.log(`║  ${name.padEnd(18)} ${(status + reason).slice(0, 38).padEnd(39)}║`);
       }
-      
+
       console.log('╠══════════════════════════════════════════════════════════╣');
       console.log('║  FEATURE FLAGS                                           ║');
       console.log('╠══════════════════════════════════════════════════════════╣');
-      
+
       for (const [name, enabled] of Object.entries(results.features)) {
         const status = enabled ? '✓ ENABLED' : '✗ disabled';
         console.log(`║  ${name.padEnd(18)} ${status.padEnd(39)}║`);
       }
-      
+
       console.log('╚══════════════════════════════════════════════════════════╝\n');
-      
+
       const allPassed = Object.values(results.checks).every(c => c.allowed);
-      
+
       if (allPassed) {
         console.log('✅ All entitlement checks passed\n');
         process.exit(0);
@@ -161,7 +161,7 @@ entitlement
         console.log('⚠️  Some entitlement checks failed (upgrade tier to enable)\n');
         process.exit(0); // Not a failure - just informational
       }
-      
+
     } catch (error) {
       console.error('Error verifying entitlements:', error instanceof Error ? error.message : error);
       process.exit(1);

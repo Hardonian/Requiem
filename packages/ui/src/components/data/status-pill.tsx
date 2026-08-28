@@ -1,9 +1,9 @@
 /**
  * StatusPill Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/badge.tsx (pattern), Reach/apps/arcade/src/components/StatusIndicator.tsx
  * EXTENSION_POINT: Add new status types or animation states
- * 
+ *
  * A compact status indicator with icon support for operational states.
  */
 
@@ -62,12 +62,12 @@ const StatusPill = React.forwardRef<HTMLSpanElement, StatusPillProps>(
 StatusPill.displayName = 'StatusPill'
 
 // Pre-configured status pills for common operational states
-const DeterminismPill = ({ 
-  confidence, 
-  className 
-}: { 
+const DeterminismPill = ({
+  confidence,
+  className
+}: {
   confidence: 'high' | 'medium' | 'low' | 'best_effort'
-  className?: string 
+  className?: string
 }) => {
   const variants: Record<string, { status: StatusPillProps['status']; label: string }> = {
     high: { status: 'success', label: 'High Confidence' },

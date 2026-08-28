@@ -14,7 +14,7 @@ import type { ToolDefinition } from './types.js';
 
 // ─── Review Status ───────────────────────────────────────────────────────────────
 
-export type ReviewStatus = 
+export type ReviewStatus =
   | 'pending'      // Not yet reviewed
   | 'in_review'    // Currently being reviewed
   | 'approved'     // Reviewed and approved

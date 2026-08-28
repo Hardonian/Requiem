@@ -2,10 +2,10 @@
 
 /**
  * Console Objects Page - DEPRECATED
- * 
+ *
  * This page has been consolidated into the Logs page.
  * CAS objects are now viewable as part of the event log.
- * 
+ *
  * @deprecated Use /console/logs instead
  */
 

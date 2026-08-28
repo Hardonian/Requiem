@@ -1,6 +1,6 @@
 /**
  * Lazy Logger - Observability Without Cost
- * 
+ *
  * Features:
  * - Lazy field evaluation (functions only called if log level allows)
  * - Respects log level strictly
@@ -72,7 +72,7 @@ class LazyLogger {
 
   private evaluateContext(context: LogContext): Record<string, unknown> {
     const result: Record<string, unknown> = {};
-    
+
     for (const [key, value] of Object.entries(context)) {
       if (typeof value === 'function') {
         // Lazy evaluation - only call if needed
@@ -85,7 +85,7 @@ class LazyLogger {
         result[key] = value;
       }
     }
-    
+
     return result;
   }
 
@@ -124,7 +124,7 @@ class LazyLogger {
     };
 
     const output = this.formatOutput(entry);
-    
+
     if (level === 'error') {
       stderr.write(output + '\n');
     } else {

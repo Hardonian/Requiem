@@ -1,6 +1,6 @@
 # Whitepaper: Cryptographic Receipts for AI
 
-**Technical Authority Series**  
+**Technical Authority Series**
 **Requiem Engineering**
 
 ## 1. Abstract

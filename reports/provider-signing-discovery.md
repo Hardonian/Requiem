@@ -62,13 +62,13 @@ This document maps the current architecture for:
 
 ### A.5 Policy Engine Hooks
 
-**Files**: 
+**Files**:
 - `packages/ai/src/policy/gate.ts`
 - `packages/ai/src/policy/budgets.ts`
 
 **Policy Evaluation Flow**:
 1. Tenant scoping check
-2. RBAC capability check  
+2. RBAC capability check
 3. Side-effect restriction for VIEWER role
 4. Guardrail evaluation
 5. Budget check (async)

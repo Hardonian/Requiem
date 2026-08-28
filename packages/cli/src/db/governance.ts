@@ -1,12 +1,12 @@
 /**
  * Governance Repository
- * 
+ *
  * Provides deterministic CRUD operations for:
  * - Learning signals, diagnoses, and patches
  * - Symmetry metrics
  * - Economic events, rollups, and alerts
  * - Skills registry
- * 
+ *
  * All operations are pure functions of stored data.
  */
 
@@ -15,7 +15,7 @@ import { randomUUID } from 'crypto';
 
 // ─── Types ───────────────────────────────────────────────────────────────────────
 
-export type SignalCategory = 
+export type SignalCategory =
   | 'build_failure'
   | 'drift'
   | 'policy_violation'
@@ -27,7 +27,7 @@ export type SignalCategory =
   | 'cost_spike'
   | 'fairness_violation';
 
-export type RootCause = 
+export type RootCause =
   | 'prompt_gap'
   | 'skill_gap'
   | 'schema_gap'
@@ -36,7 +36,7 @@ export type RootCause =
   | 'strategic_misalignment'
   | 'economic_misalignment';
 
-export type PatchType = 
+export type PatchType =
   | 'skill_update'
   | 'prompt_update'
   | 'schema_update'
@@ -48,13 +48,13 @@ export type PatchType =
 
 export type PatchStatus = 'proposed' | 'applied' | 'rejected';
 
-export type EventType = 
+export type EventType =
   | 'execution'
   | 'replay_storage'
   | 'policy_eval'
   | 'drift_analysis';
 
-export type AlertType = 
+export type AlertType =
   | 'burn_spike'
   | 'storage_spike'
   | 'policy_spike'
@@ -62,7 +62,7 @@ export type AlertType =
 
 export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-export type MetricName = 
+export type MetricName =
   | 'failure_recurrence_rate'
   | 'drift_severity_score'
   | 'replay_mismatch_rate'
@@ -171,7 +171,7 @@ export const LearningSignalRepository = {
     const db = getDB();
     const id = randomUUID();
     const createdAt = new Date().toISOString();
-    
+
     db.prepare(`
       INSERT INTO learning_signals (id, tenant_id, run_id, category, metadata_json, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -183,7 +183,7 @@ export const LearningSignalRepository = {
       params.metadata ? JSON.stringify(params.metadata) : null,
       createdAt
     );
-    
+
     return {
       id,
       tenant_id: params.tenantId,
@@ -201,18 +201,18 @@ export const LearningSignalRepository = {
   ): LearningSignal[] {
     const db = getDB();
     let sql = `
-      SELECT * FROM learning_signals 
+      SELECT * FROM learning_signals
       WHERE tenant_id = ? AND category = ?
     `;
     const params: (string | undefined)[] = [tenantId, category];
-    
+
     if (since) {
       sql += ` AND created_at >= ?`;
       params.push(since.toISOString());
     }
-    
+
     sql += ` ORDER BY created_at DESC`;
-    
+
     const rows = db.prepare(sql).all(...params) as Array<{
       id: string;
       tenant_id: string;
@@ -221,7 +221,7 @@ export const LearningSignalRepository = {
       metadata_json: string | null;
       created_at: string;
     }>;
-    
+
     return rows.map(row => ({
       ...row,
       category: row.category as SignalCategory,
@@ -233,14 +233,14 @@ export const LearningSignalRepository = {
     const db = getDB();
     let sql = `SELECT * FROM learning_signals WHERE tenant_id = ?`;
     const params: string[] = [tenantId];
-    
+
     if (since) {
       sql += ` AND created_at >= ?`;
       params.push(since.toISOString());
     }
-    
+
     sql += ` ORDER BY created_at DESC`;
-    
+
     const rows = db.prepare(sql).all(...params) as Array<{
       id: string;
       tenant_id: string;
@@ -249,7 +249,7 @@ export const LearningSignalRepository = {
       metadata_json: string | null;
       created_at: string;
     }>;
-    
+
     return rows.map(row => ({
       ...row,
       category: row.category as SignalCategory,
@@ -260,11 +260,11 @@ export const LearningSignalRepository = {
   countByCategory(tenantId: string, since?: Date): Record<SignalCategory, number> {
     const signals = this.findAllByTenant(tenantId, since);
     const counts: Partial<Record<SignalCategory, number>> = {};
-    
+
     for (const signal of signals) {
       counts[signal.category] = (counts[signal.category] || 0) + 1;
     }
-    
+
     return counts as Record<SignalCategory, number>;
   },
 };
@@ -281,7 +281,7 @@ export const LearningDiagnosisRepository = {
     const db = getDB();
     const id = randomUUID();
     const createdAt = new Date().toISOString();
-    
+
     db.prepare(`
       INSERT INTO learning_diagnoses (id, tenant_id, signal_ids, root_cause, confidence_score, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -293,7 +293,7 @@ export const LearningDiagnosisRepository = {
       params.confidenceScore,
       createdAt
     );
-    
+
     return {
       id,
       tenant_id: params.tenantId,
@@ -308,14 +308,14 @@ export const LearningDiagnosisRepository = {
     const db = getDB();
     let sql = `SELECT * FROM learning_diagnoses WHERE tenant_id = ?`;
     const params: string[] = [tenantId];
-    
+
     if (since) {
       sql += ` AND created_at >= ?`;
       params.push(since.toISOString());
     }
-    
+
     sql += ` ORDER BY confidence_score DESC, created_at DESC`;
-    
+
     const rows = db.prepare(sql).all(...params) as Array<{
       id: string;
       tenant_id: string;
@@ -324,7 +324,7 @@ export const LearningDiagnosisRepository = {
       confidence_score: number;
       created_at: string;
     }>;
-    
+
     return rows.map(row => ({
       id: row.id,
       tenant_id: row.tenant_id,
@@ -345,9 +345,9 @@ export const LearningDiagnosisRepository = {
       confidence_score: number;
       created_at: string;
     } | undefined;
-    
+
     if (!row) return null;
-    
+
     return {
       id: row.id,
       tenant_id: row.tenant_id,
@@ -373,7 +373,7 @@ export const LearningPatchRepository = {
     const db = getDB();
     const id = randomUUID();
     const createdAt = new Date().toISOString();
-    
+
     db.prepare(`
       INSERT INTO learning_patches (id, tenant_id, diagnosis_id, patch_type, target_files, patch_diff_json, rollback_plan_json, status, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -388,7 +388,7 @@ export const LearningPatchRepository = {
       'proposed',
       createdAt
     );
-    
+
     return {
       id,
       tenant_id: params.tenantId,
@@ -406,14 +406,14 @@ export const LearningPatchRepository = {
     const db = getDB();
     let sql = `SELECT * FROM learning_patches WHERE tenant_id = ?`;
     const params: (string)[] = [tenantId];
-    
+
     if (status) {
       sql += ` AND status = ?`;
       params.push(status);
     }
-    
+
     sql += ` ORDER BY created_at DESC`;
-    
+
     const rows = db.prepare(sql).all(...params) as Array<{
       id: string;
       tenant_id: string;
@@ -425,7 +425,7 @@ export const LearningPatchRepository = {
       status: string;
       created_at: string;
     }>;
-    
+
     return rows.map(row => ({
       id: row.id,
       tenant_id: row.tenant_id,
@@ -452,9 +452,9 @@ export const LearningPatchRepository = {
       status: string;
       created_at: string;
     } | undefined;
-    
+
     if (!row) return null;
-    
+
     return {
       id: row.id,
       tenant_id: row.tenant_id,
@@ -487,7 +487,7 @@ export const SymmetryMetricRepository = {
     const db = getDB();
     const id = randomUUID();
     const createdAt = new Date().toISOString();
-    
+
     db.prepare(`
       INSERT INTO symmetry_metrics (id, tenant_id, metric_name, metric_value, period_start, period_end, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -500,7 +500,7 @@ export const SymmetryMetricRepository = {
       params.periodEnd.toISOString(),
       createdAt
     );
-    
+
     return {
       id,
       tenant_id: params.tenantId,
@@ -516,14 +516,14 @@ export const SymmetryMetricRepository = {
     const db = getDB();
     let sql = `SELECT * FROM symmetry_metrics WHERE tenant_id = ?`;
     const params: string[] = [tenantId];
-    
+
     if (metricName) {
       sql += ` AND metric_name = ?`;
       params.push(metricName);
     }
-    
+
     sql += ` ORDER BY period_start DESC`;
-    
+
     const rows = db.prepare(sql).all(...params) as Array<{
       id: string;
       tenant_id: string;
@@ -533,7 +533,7 @@ export const SymmetryMetricRepository = {
       period_end: string;
       created_at: string;
     }>;
-    
+
     return rows.map(row => ({
       id: row.id,
       tenant_id: row.tenant_id,
@@ -564,7 +564,7 @@ export const EconomicEventRepository = {
     const db = getDB();
     const id = randomUUID();
     const createdAt = new Date().toISOString();
-    
+
     db.prepare(`
       INSERT INTO economic_events (id, tenant_id, run_id, event_type, resource_units, cost_units, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -577,7 +577,7 @@ export const EconomicEventRepository = {
       params.costUnits,
       createdAt
     );
-    
+
     return {
       id,
       tenant_id: params.tenantId,
@@ -593,21 +593,21 @@ export const EconomicEventRepository = {
     const db = getDB();
     let sql = `SELECT * FROM economic_events WHERE tenant_id = ?`;
     const params: (string)[] = [tenantId];
-    
+
     if (since) {
       sql += ` AND created_at >= ?`;
       params.push(since.toISOString());
     }
-    
+
     sql += ` ORDER BY created_at DESC`;
-    
+
     return db.prepare(sql).all(...params) as unknown as EconomicEvent[];
   },
 
   sumByType(tenantId: string, since?: Date): Record<EventType, { resources: number; costs: number }> {
     const events = this.findByTenant(tenantId, since);
     const sums: Partial<Record<EventType, { resources: number; costs: number }>> = {};
-    
+
     for (const event of events) {
       if (!sums[event.event_type]) {
         sums[event.event_type] = { resources: 0, costs: 0 };
@@ -615,7 +615,7 @@ export const EconomicEventRepository = {
       sums[event.event_type]!.resources += event.resource_units;
       sums[event.event_type]!.costs += event.cost_units;
     }
-    
+
     return sums as Record<EventType, { resources: number; costs: number }>;
   },
 };
@@ -636,7 +636,7 @@ export const EconomicRollupRepository = {
     const id = randomUUID();
     const createdAt = new Date().toISOString();
     const burnRate = params.totalCostUnits / Math.max(params.totalRuns, 1);
-    
+
     db.prepare(`
       INSERT INTO economic_rollups (id, tenant_id, period_start, period_end, total_runs, total_cost_units, total_storage_units, total_policy_units, burn_rate, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -652,7 +652,7 @@ export const EconomicRollupRepository = {
       burnRate,
       createdAt
     );
-    
+
     return {
       id,
       tenant_id: params.tenantId,
@@ -670,11 +670,11 @@ export const EconomicRollupRepository = {
   findByTenant(tenantId: string): EconomicRollup[] {
     const db = getDB();
     const rows = db.prepare(`
-      SELECT * FROM economic_rollups 
-      WHERE tenant_id = ? 
+      SELECT * FROM economic_rollups
+      WHERE tenant_id = ?
       ORDER BY period_start DESC
     `).all(tenantId) as unknown as EconomicRollup[];
-    
+
     return rows;
   },
 
@@ -696,7 +696,7 @@ export const EconomicAlertRepository = {
     const db = getDB();
     const id = randomUUID();
     const createdAt = new Date().toISOString();
-    
+
     db.prepare(`
       INSERT INTO economic_alerts (id, tenant_id, alert_type, severity, metadata_json, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -708,7 +708,7 @@ export const EconomicAlertRepository = {
       params.metadata ? JSON.stringify(params.metadata) : null,
       createdAt
     );
-    
+
     return {
       id,
       tenant_id: params.tenantId,
@@ -723,19 +723,19 @@ export const EconomicAlertRepository = {
     const db = getDB();
     let sql = `SELECT * FROM economic_alerts WHERE tenant_id = ?`;
     const params: (string)[] = [tenantId];
-    
+
     if (alertType) {
       sql += ` AND alert_type = ?`;
       params.push(alertType);
     }
-    
+
     if (severity) {
       sql += ` AND severity = ?`;
       params.push(severity);
     }
-    
+
     sql += ` ORDER BY created_at DESC`;
-    
+
     const rows = db.prepare(sql).all(...params) as Array<{
       id: string;
       tenant_id: string;
@@ -744,7 +744,7 @@ export const EconomicAlertRepository = {
       metadata_json: string | null;
       created_at: string;
     }>;
-    
+
     return rows.map(row => ({
       id: row.id,
       tenant_id: row.tenant_id,
@@ -771,7 +771,7 @@ export const SkillRepository = {
   }): Skill {
     const db = getDB();
     const createdAt = new Date().toISOString();
-    
+
     db.prepare(`
       INSERT INTO skills (id, scope, triggers, required_inputs, expected_outputs, verification_steps, rollback_instructions, version, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -786,7 +786,7 @@ export const SkillRepository = {
       params.version,
       createdAt
     );
-    
+
     return {
       id: params.id,
       scope: params.scope,
@@ -813,7 +813,7 @@ export const SkillRepository = {
       version: string;
       created_at: string;
     }>;
-    
+
     return rows.map(row => ({
       id: row.id,
       scope: row.scope as 'execution' | 'verification' | 'policy',
@@ -840,9 +840,9 @@ export const SkillRepository = {
       version: string;
       created_at: string;
     } | undefined;
-    
+
     if (!row) return null;
-    
+
     return {
       id: row.id,
       scope: row.scope as 'execution' | 'verification' | 'policy',
@@ -863,17 +863,17 @@ export const SkillRepository = {
 
   validate(skill: Partial<Skill>): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (!skill.id) errors.push('Missing required field: id');
     if (!skill.scope) errors.push('Missing required field: scope');
     if (!skill.triggers || skill.triggers.length === 0) errors.push('Missing required field: triggers');
     if (!skill.rollback_instructions) errors.push('Missing required field: rollback_instructions');
     if (!skill.version) errors.push('Missing required field: version');
-    
+
     // Check for duplicate ID
     const existing = this.findById(skill.id!);
     if (existing) errors.push(`Duplicate skill ID: ${skill.id}`);
-    
+
     return { valid: errors.length === 0, errors };
   },
 };

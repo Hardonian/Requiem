@@ -1,6 +1,6 @@
 /**
  * ReadyLayer Middleware
- * 
+ *
  * Tenant isolation and security middleware for the ReadyLayer dashboard.
  * Exports from middleware/proxy for centralized configuration.
  */

@@ -1,6 +1,6 @@
 /**
  * AI Skills List Component
- * 
+ *
  * Displays a list of registered AI skills with their metadata.
  * Enterprise-gated component.
  */
@@ -39,12 +39,12 @@ export function AiSkillsList({ skills, onSkillClick, onSkillRun }: AiSkillsListP
   return (
     <div className="space-y-3">
       {skills.map((skill) => (
-        <Card 
-          key={`${skill.name}@${skill.version}`} 
+        <Card
+          key={`${skill.name}@${skill.version}`}
           className="p-4 hover:shadow-md transition-shadow"
         >
           <div className="flex items-start justify-between">
-            <div 
+            <div
               className="flex-1 cursor-pointer"
               onClick={() => onSkillClick?.(skill)}
             >

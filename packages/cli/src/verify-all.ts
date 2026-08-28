@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verify:all - Run all verification scripts
- * 
+ *
  * This script runs:
  * - verify:boundaries
  * - verify:integrity
@@ -26,15 +26,15 @@ async function runAllVerifies(): Promise<boolean> {
   console.log('═══════════════════════════════════════════════════════════════');
   console.log('                    REQUIEM VERIFY SUITE                       ');
   console.log('═══════════════════════════════════════════════════════════════\n');
-  
+
   let allPassed = true;
   const results: Array<{ name: string; passed: boolean }> = [];
-  
+
   for (const script of verifyScripts) {
     console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
     console.log(`  Running verify:${script.name}`);
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
-    
+
     try {
       // Check if script exists
       if (!existsSync(join(process.cwd(), script.path))) {
@@ -43,13 +43,13 @@ async function runAllVerifies(): Promise<boolean> {
         allPassed = false;
         continue;
       }
-      
+
       // Use tsx to run the script
-      execSync(`npx tsx ${script.path}`, { 
+      execSync(`npx tsx ${script.path}`, {
         stdio: 'inherit',
         cwd: process.cwd()
       });
-      
+
       results.push({ name: script.name, passed: true });
     } catch (err) {
       console.log(`✗ verify:${script.name} FAILED`);
@@ -57,19 +57,19 @@ async function runAllVerifies(): Promise<boolean> {
       allPassed = false;
     }
   }
-  
+
   console.log('\n═══════════════════════════════════════════════════════════════');
   console.log('                      VERIFICATION SUMMARY                      ');
   console.log('═══════════════════════════════════════════════════════════════\n');
-  
+
   for (const result of results) {
     const icon = result.passed ? '✓' : '✗';
     console.log(`  ${icon} verify:${result.name}`);
   }
-  
+
   console.log('\n' + (allPassed ? '✓ ALL VERIFICATIONS PASSED' : '✗ SOME VERIFICATIONS FAILED'));
   console.log('═══════════════════════════════════════════════════════════════\n');
-  
+
   return allPassed;
 }
 

@@ -1,6 +1,6 @@
 # SQLite Hot Path Optimization Report
 
-**Date:** 2026-03-01  
+**Date:** 2026-03-01
 **Scope:** CLI database layer performance improvements
 
 ## Summary
@@ -111,7 +111,7 @@ EXPLAIN QUERY PLAN SELECT * FROM ledger WHERE run_id = ?;
 
 ## Status
 
-✅ Indexes added to in-memory schema  
-✅ Prepared statements available via OptimizedDatabase  
-✅ Statement caching implemented in DecisionRepository  
-✅ Query plans verified  
+✅ Indexes added to in-memory schema
+✅ Prepared statements available via OptimizedDatabase
+✅ Statement caching implemented in DecisionRepository
+✅ Query plans verified

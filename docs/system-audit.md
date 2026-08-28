@@ -1,6 +1,6 @@
 # Requiem System Truth Audit (Code + Runtime Verified)
 
-Date: 2026-03-14  
+Date: 2026-03-14
 Repository: `/workspace/Requiem`
 
 ## Executive Summary

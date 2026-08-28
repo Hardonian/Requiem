@@ -4,7 +4,7 @@
 
 This plan covers implementation of ALL items from:
 - Theatre Audit (Phase 1)
-- Security Audit (Phase 2) 
+- Security Audit (Phase 2)
 - Tool Registry Audit (Phase 3)
 - Reality Check Fixes (Phase 4)
 - Documentation Updates (Phase 5)
@@ -203,7 +203,7 @@ This plan covers implementation of ALL items from:
 **Required Work**: Same as 1.2 - Implement full seccomp
 
 ### 4.2 Windows Restricted Tokens
-**Current State**: Marked as unsupported  
+**Current State**: Marked as unsupported
 **Required Work**: Same as 1.3 - Implement full restricted tokens
 
 ### 4.3 Full LLM Freeze Flow

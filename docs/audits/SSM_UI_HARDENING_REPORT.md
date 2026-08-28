@@ -1,6 +1,6 @@
 # SSM UI Hardening Report
 
-**Date:** 2026-03-02  
+**Date:** 2026-03-02
 **Scope:** `/app/semantic-ledger` page
 
 ---

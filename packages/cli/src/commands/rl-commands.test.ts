@@ -72,7 +72,7 @@ describe('ReadyLayer CLI', () => {
 
       it('should list prompts with filters', () => {
         const repo = new PromptRepository();
-        
+
         repo.create({
           id: hashContent('p1:1.0.0:c1'),
           name: 'p1',
@@ -208,7 +208,7 @@ describe('ReadyLayer CLI', () => {
 
       it('should update mode settings', () => {
         const repo = new ModeSettingsRepository();
-        
+
         const updated = repo.update('global', {
           intensity: 'aggressive',
           thinking_mode: 'deep',
@@ -238,7 +238,7 @@ describe('ReadyLayer CLI', () => {
 
       it('should update provider settings', () => {
         const repo = new ProviderConfigRepository();
-        
+
         const updated = repo.update('anthropic', {
           enabled: false,
           throttle_rpm: 30,
@@ -276,7 +276,7 @@ describe('ReadyLayer CLI', () => {
       it('should produce consistent output regardless of key order', () => {
         const obj1 = { b: 2, a: 1 };
         const obj2 = { a: 1, b: 2 };
-        
+
         expect(deterministicJson(obj1)).toBe(deterministicJson(obj2));
       });
 
@@ -292,7 +292,7 @@ describe('ReadyLayer CLI', () => {
       it('should sort arrays consistently', () => {
         const arr = [{ name: 'Charlie' }, { name: 'Alice' }, { name: 'Bob' }];
         const sorted = stableSort(arr, 'name');
-        
+
         expect(sorted[0].name).toBe('Alice');
         expect(sorted[1].name).toBe('Bob');
         expect(sorted[2].name).toBe('Charlie');
@@ -324,7 +324,7 @@ describe('ReadyLayer CLI', () => {
 
       it('should generate numbers between 0 and 1', () => {
         const rng = createSeededRandom('test');
-        
+
         for (let i = 0; i < 10; i++) {
           const num = rng();
           expect(num).toBeGreaterThanOrEqual(0);
@@ -337,7 +337,7 @@ describe('ReadyLayer CLI', () => {
       it('should normalize dates to ISO format', () => {
         const date = new Date('2024-01-15T10:30:00.000Z');
         const normalized = normalizeTimestamp(date);
-        
+
         expect(normalized).toBe('2024-01-15T10:30:00.000Z');
       });
 

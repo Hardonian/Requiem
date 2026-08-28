@@ -1,6 +1,6 @@
 # SSM Storage Risk Review
 
-**Date:** 2026-03-02  
+**Date:** 2026-03-02
 **Scope:** LocalSSMStore implementation in `packages/cli/src/lib/semantic-state-machine.ts`
 
 ---

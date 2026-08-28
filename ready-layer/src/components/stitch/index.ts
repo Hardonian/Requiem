@@ -1,6 +1,6 @@
 /**
  * Stitch UI Components - ReadyLayer design system
- * 
+ *
  * These components implement the Stitch visual language:
  * - Space Grotesk typography
  * - Primary blue (#137fec) accent

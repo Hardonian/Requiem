@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * SBOM Generator - Supply Chain Security
- * 
+ *
  * Generates Software Bill of Materials in SPDX and CycloneDX formats.
  * Runs in CI to verify dependencies.
  */
@@ -44,16 +44,16 @@ function success(msg: string) {
 // Parse npm packages
 function getNPMPackages(): SBOMPackage[] {
   const packages: SBOMPackage[] = [];
-  
+
   try {
     // Use npm ls to get dependency tree
-    const output = execSync('npm ls --all --json', { 
-      cwd: ROOT, 
+    const output = execSync('npm ls --all --json', {
+      cwd: ROOT,
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe']
     });
     const tree = JSON.parse(output);
-    
+
     function traverseDeps(deps: Record<string, unknown>, path: string[] = []) {
       for (const [name, info] of Object.entries(deps)) {
         const dep = info as { version: string; dependencies?: Record<string, unknown> };
@@ -70,20 +70,20 @@ function getNPMPackages(): SBOMPackage[] {
         }
       }
     }
-    
+
     if (tree.dependencies) {
       traverseDeps(tree.dependencies);
     }
   } catch {
     // npm ls exits with error if peer deps missing, but still outputs valid JSON
     try {
-      const output = execSync('npm ls --all --json 2>/dev/null || true', { 
-        cwd: ROOT, 
+      const output = execSync('npm ls --all --json 2>/dev/null || true', {
+        cwd: ROOT,
         encoding: 'utf-8',
         shell: true
       });
       const tree = JSON.parse(output);
-      
+
       if (tree.dependencies) {
         for (const [name, info] of Object.entries(tree.dependencies)) {
           const dep = info as { version: string };
@@ -103,7 +103,7 @@ function getNPMPackages(): SBOMPackage[] {
       if (existsSync(pkgPath)) {
         const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
         const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-        
+
         for (const [name, version] of Object.entries(deps)) {
           packages.push({
             name,
@@ -115,21 +115,21 @@ function getNPMPackages(): SBOMPackage[] {
       }
     }
   }
-  
+
   return packages;
 }
 
 // Get pnpm workspace packages
 function getPnpmPackages(): SBOMPackage[] {
   const packages: SBOMPackage[] = [];
-  
+
   try {
-    const output = execSync('pnpm list --json', { 
-      cwd: ROOT, 
-      encoding: 'utf-8' 
+    const output = execSync('pnpm list --json', {
+      cwd: ROOT,
+      encoding: 'utf-8'
     });
     const trees = JSON.parse(output);
-    
+
     for (const tree of trees) {
       if (tree.dependencies) {
         for (const dep of tree.dependencies) {
@@ -145,7 +145,7 @@ function getPnpmPackages(): SBOMPackage[] {
   } catch {
     // Ignore errors
   }
-  
+
   return packages;
 }
 
@@ -236,9 +236,9 @@ function main(): number {
   // Collect packages
   const npmPackages = getNPMPackages();
   const pnpmPackages = getPnpmPackages();
-  
+
   const allPackages = deduplicate([...npmPackages, ...pnpmPackages]);
-  
+
   const sbom: SBOM = {
     schema: 'sbom_v1',
     generated_at: new Date().toISOString(),

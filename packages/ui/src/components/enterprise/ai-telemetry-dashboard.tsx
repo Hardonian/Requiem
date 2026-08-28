@@ -1,6 +1,6 @@
 /**
  * AI Telemetry Dashboard Component
- * 
+ *
  * Displays AI usage metrics including cost, requests, latency, and error rates.
  * Enterprise-gated component.
  */
@@ -25,10 +25,10 @@ export interface AiTelemetryDashboardProps {
  * AI Telemetry Dashboard Component
  * Displays key AI usage metrics
  */
-export function AiTelemetryDashboard({ 
-  summary, 
-  tenantId, 
-  period = 'day' 
+export function AiTelemetryDashboard({
+  summary,
+  tenantId,
+  period = 'day'
 }: AiTelemetryDashboardProps) {
   const formatCost = (cents: number) => {
     if (cents >= 100) {
@@ -53,7 +53,7 @@ export function AiTelemetryDashboard({
           Period: <span className="capitalize">{period}</span>
         </div>
       )}
-      
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
           label="Total Requests"

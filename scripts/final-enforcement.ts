@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Final Enforcement - Entropy Collapse Complete
- * 
+ *
  * Runs all verification gates:
  * - lint
  * - typecheck
@@ -131,18 +131,18 @@ function checkBundleBudget(): CheckResult {
     if (!existsSync(buildDir)) {
       throw new Error('Build output not found');
     }
-    
+
     // Get total bundle size
-    const result = execSync(`find ${buildDir} -name "*.js" -exec stat -f%z {} + 2>/dev/null | awk '{sum+=$1} END {print sum/1024}' || echo "0"`, { 
+    const result = execSync(`find ${buildDir} -name "*.js" -exec stat -f%z {} + 2>/dev/null | awk '{sum+=$1} END {print sum/1024}' || echo "0"`, {
       encoding: 'utf-8',
       shell: true
     });
     const sizeKb = Math.round(parseFloat(result.trim()) || 0);
-    
+
     if (sizeKb > BASELINE.bundleSizeKb) {
       throw new Error(`Bundle ${sizeKb}kb exceeds budget ${BASELINE.bundleSizeKb}kb`);
     }
-    
+
     return { bundleSizeKb: sizeKb };
   });
 }
@@ -150,9 +150,9 @@ function checkBundleBudget(): CheckResult {
 function checkCircularDeps(): CheckResult {
   return runCheck('Circular Dependencies', () => {
     try {
-      execSync('npx madge --circular packages/cli/src --extensions ts', { 
-        cwd: ROOT, 
-        stdio: 'pipe' 
+      execSync('npx madge --circular packages/cli/src --extensions ts', {
+        cwd: ROOT,
+        stdio: 'pipe'
       });
     } catch (err) {
       // madge exits with error if circular deps found
@@ -167,7 +167,7 @@ function checkSurfaceSnapshot(): CheckResult {
     if (!existsSync(snapshotPath)) {
       throw new Error('Surface snapshot not found');
     }
-    
+
     const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf-8'));
     if (!snapshot.version || !snapshot.commands) {
       throw new Error('Invalid surface snapshot format');
@@ -182,7 +182,7 @@ function checkNoConsole(): CheckResult {
       { cwd: ROOT, encoding: 'utf-8', shell: true }
     );
     const count = parseInt(result.trim()) || 0;
-    
+
     if (count > 0) {
       throw new Error(`Found ${count} console.* statements`);
     }
@@ -205,7 +205,7 @@ function checkRatchet(): CheckResult {
 function generateReport(results: CheckResult[]): void {
   const passed = results.filter(r => r.passed);
   const failed = results.filter(r => !r.passed);
-  
+
   const report = {
     schema: 'entropy_collapse_v1',
     generated_at: new Date().toISOString(),
@@ -274,8 +274,8 @@ function generateReport(results: CheckResult[]): void {
 }
 
 function generateMarkdownReport(report: unknown): string {
-  const r = report as typeof report & { 
-    status: string; 
+  const r = report as typeof report & {
+    status: string;
     summary: { total: number; passed: number; failed: number; duration_ms: number };
     improvements: {
       seo_improvements: string[];
@@ -350,10 +350,10 @@ function main(): number {
 
   // Summary
   section('SUMMARY');
-  
+
   const passed = results.filter(r => r.passed);
   const failed = results.filter(r => !r.passed);
-  
+
   log(`Total: ${results.length}`);
   log(`${G}Passed: ${passed.length}${N}`);
   log(`${failed.length > 0 ? R : G}Failed: ${failed.length}${N}`);
@@ -363,7 +363,7 @@ function main(): number {
 
   // Final status
   section('FINAL STATUS');
-  
+
   if (failed.length === 0) {
     log(`
 ${G}ENTROPY: COLLAPSED${N}

@@ -1,7 +1,7 @@
 # Requiem Schema Versioning Policy
 
-> **Status:** Active Policy  
-> **Last Updated:** 2026-03-02  
+> **Status:** Active Policy
+> **Last Updated:** 2026-03-02
 > **Applies To:** CLI contracts, API envelopes, JSON schemas, wire formats
 
 ## Versioning Philosophy

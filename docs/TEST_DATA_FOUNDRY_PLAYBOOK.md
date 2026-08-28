@@ -1,8 +1,8 @@
 # Zeo Test Data Foundry: Playbook
 
-**Version:** 1.0  
-**Status:** IMPLEMENTATION DRAFT  
-**Focus:** Governance, Repeatability, No Paid APIs  
+**Version:** 1.0
+**Status:** IMPLEMENTATION DRAFT
+**Focus:** Governance, Repeatability, No Paid APIs
 
 ---
 

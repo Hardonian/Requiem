@@ -66,9 +66,9 @@ export default function Dashboard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <StatusPill status="success">All Systems Operational</StatusPill>
-        <MetricCard 
-          label="Total Executions" 
-          value={1234} 
+        <MetricCard
+          label="Total Executions"
+          value={1234}
           format="number"
           trend={{ value: 12, direction: 'up' }}
         />
@@ -115,7 +115,7 @@ interface CardProps {
 
 ```tsx
 interface BadgeProps {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' |
             'success' | 'warning' | 'info'
 }
 
@@ -254,7 +254,7 @@ function ThemeProvider({ children }) {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', prefersDark)
   }, [prefersDark])
-  
+
   return children
 }
 ```
@@ -310,7 +310,7 @@ const classes = cn(
 ### Formatters
 
 ```tsx
-import { 
+import {
   formatNumber,      // 1234 → "1.2K"
   formatDate,        // Date → "Jan 1, 2024"
   formatRelativeTime,// Date → "2 hours ago"

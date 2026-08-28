@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 /**
  * CLI Contract Verification
- * 
+ *
  * Validates CLI output against committed contract snapshots.
  * Fails on breaking changes, allows additive changes.
- * 
+ *
  * Usage:
  *   npx tsx scripts/verify-cli-contract.ts [--update]
  *   pnpm run verify:contracts
@@ -81,28 +81,28 @@ function runCommand(cmd: string, args: string[]): Promise<{ stdout: string; stde
 // Normalize output to handle volatile fields
 function normalizeOutput(stdout: string, command: string): string {
   let normalized = stdout;
-  
+
   // Normalize timestamps
   normalized = normalized.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?/g, "<TIMESTAMP>");
-  
+
   // Normalize trace_ids (UUIDs)
   normalized = normalized.replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi, "<UUID>");
-  
+
   // Normalize run_ids with timestamps
   normalized = normalized.replace(/run-\d{13}-[a-z0-9]+/g, "<RUN_ID>");
   normalized = normalized.replace(/demo-[a-z0-9]{8,}-[a-z0-9]{6}/g, "<TRACE_ID>");
-  
+
   // Normalize receipt hashes (64 hex chars)
   normalized = normalized.replace(/[a-f0-9]{64}/gi, "<HASH64>");
-  
+
   // Normalize milliseconds durations
   normalized = normalized.replace(/"durationMs":\s*\d+/g, '"durationMs":<NUMBER>');
   normalized = normalized.replace(/"duration_ms":\s*\d+/g, '"duration_ms":<NUMBER>');
   normalized = normalized.replace(/\d+ms/g, "<NUMBER>ms");
-  
+
   // Normalize version strings (allow flexibility)
   normalized = normalized.replace(/"engine":\s*"[\d.]+"/g, '"engine":"<VERSION>"');
-  
+
   return normalized;
 }
 
@@ -111,11 +111,11 @@ function extractStableFields(obj: unknown, command: string): unknown {
   if (typeof obj !== "object" || obj === null) {
     return obj;
   }
-  
+
   if (Array.isArray(obj)) {
     return obj.map(item => extractStableFields(item, command));
   }
-  
+
   const result: Record<string, unknown> = {};
   const stableFields: Record<string, string[]> = {
     "doctor": ["ok", "blockers", "hash_primitive", "hash_backend", "protocol_version"],
@@ -125,7 +125,7 @@ function extractStableFields(obj: unknown, command: string): unknown {
     "cas_verify": ["ok", "total", "verified", "corrupt"],
     "plan_hash": ["plan_hash"],
   };
-  
+
   const fields = stableFields[command];
   if (fields) {
     for (const key of fields) {
@@ -147,7 +147,7 @@ function extractStableFields(obj: unknown, command: string): unknown {
       }
     }
   }
-  
+
   return result;
 }
 
@@ -159,7 +159,7 @@ async function checkCommandStructure(
 ): Promise<ContractCheck> {
   const cliPath = getCliPath();
   const { stdout, exitCode } = await runCommand(cliPath, args);
-  
+
   if (exitCode !== 0 && name !== "invalid_command") {
     return {
       name,
@@ -167,7 +167,7 @@ async function checkCommandStructure(
       error: `Command failed with exit code ${exitCode}`,
     };
   }
-  
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(stdout);
@@ -179,7 +179,7 @@ async function checkCommandStructure(
       current: stdout.slice(0, 500),
     };
   }
-  
+
   // Check required fields
   const missingFields: string[] = [];
   for (const field of expectedFields) {
@@ -187,7 +187,7 @@ async function checkCommandStructure(
       missingFields.push(field);
     }
   }
-  
+
   if (missingFields.length > 0) {
     return {
       name,
@@ -196,7 +196,7 @@ async function checkCommandStructure(
       current: Object.keys(parsed as object),
     };
   }
-  
+
   // Check against snapshot if provided
   if (snapshotFile) {
     const snapshotPath = path.join(SNAPSHOT_DIR, snapshotFile);
@@ -205,7 +205,7 @@ async function checkCommandStructure(
       const current = extractStableFields(parsed, name);
       const normalizedCurrent = JSON.parse(normalizeOutput(JSON.stringify(current), name));
       const normalizedSnapshot = JSON.parse(normalizeOutput(JSON.stringify(snapshot), name));
-      
+
       if (JSON.stringify(normalizedCurrent) !== JSON.stringify(normalizedSnapshot)) {
         return {
           name,
@@ -217,7 +217,7 @@ async function checkCommandStructure(
       }
     }
   }
-  
+
   return {
     name,
     ok: true,
@@ -227,7 +227,7 @@ async function checkCommandStructure(
 async function checkHelpOutput(): Promise<ContractCheck> {
   const cliPath = getCliPath();
   const { stdout } = await runCommand(cliPath, ["--help"]);
-  
+
   // Check that core commands are documented
   const requiredCommands = [
     "doctor",
@@ -238,14 +238,14 @@ async function checkHelpOutput(): Promise<ContractCheck> {
     "log verify",
     "cas verify",
   ];
-  
+
   const missing: string[] = [];
   for (const cmd of requiredCommands) {
     if (!stdout.includes(cmd)) {
       missing.push(cmd);
     }
   }
-  
+
   if (missing.length > 0) {
     return {
       name: "help_output",
@@ -253,7 +253,7 @@ async function checkHelpOutput(): Promise<ContractCheck> {
       error: `Missing documented commands: ${missing.join(", ")}`,
     };
   }
-  
+
   return {
     name: "help_output",
     ok: true,
@@ -264,7 +264,7 @@ async function checkErrorEnvelope(): Promise<ContractCheck> {
   const cliPath = getCliPath();
   // Run a command that will fail
   const { stdout } = await runCommand(cliPath, ["cas", "get", "--digest", "invalid"])
-  
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(stdout);
@@ -275,12 +275,12 @@ async function checkErrorEnvelope(): Promise<ContractCheck> {
       ok: true,
     };
   }
-  
+
   // Check error structure
   if (typeof parsed === "object" && parsed !== null) {
     const hasOk = "ok" in parsed;
     const hasError = "error" in parsed || "message" in parsed;
-    
+
     if (!hasOk) {
       return {
         name: "error_envelope",
@@ -289,7 +289,7 @@ async function checkErrorEnvelope(): Promise<ContractCheck> {
         current: Object.keys(parsed as object),
       };
     }
-    
+
     if (!hasError) {
       return {
         name: "error_envelope",
@@ -298,7 +298,7 @@ async function checkErrorEnvelope(): Promise<ContractCheck> {
       };
     }
   }
-  
+
   return {
     name: "error_envelope",
     ok: true,
@@ -307,22 +307,22 @@ async function checkErrorEnvelope(): Promise<ContractCheck> {
 
 async function checkExitCodes(): Promise<ContractCheck> {
   const cliPath = getCliPath();
-  
+
   // Test success exit code
   const { exitCode: doctorCode } = await runCommand(cliPath, ["doctor", "--json"]);
-  
+
   // Test validation error exit code
   // Note: policy check currently returns 0 even on error (known issue)
   // We check for error in output instead
   const { exitCode: invalidCode, stdout: invalidStdout } = await runCommand(cliPath, ["policy", "check"]);
-  
+
   const issues: string[] = [];
-  
+
   // Doctor should return 0 on success
   if (doctorCode !== 0 && doctorCode !== 2) {
     issues.push(`doctor returned ${doctorCode}, expected 0 or 2`);
   }
-  
+
   // Check that policy check with no args returns error in output
   // (exit code handling is a known limitation)
   let hasErrorOutput = false;
@@ -332,11 +332,11 @@ async function checkExitCodes(): Promise<ContractCheck> {
   } catch {
     // Parse error means not valid JSON
   }
-  
+
   if (!hasErrorOutput) {
     issues.push("policy check (no args) should return error output");
   }
-  
+
   if (issues.length > 0) {
     return {
       name: "exit_codes",
@@ -344,7 +344,7 @@ async function checkExitCodes(): Promise<ContractCheck> {
       error: issues.join("; "),
     };
   }
-  
+
   return {
     name: "exit_codes",
       ok: true,
@@ -353,12 +353,12 @@ async function checkExitCodes(): Promise<ContractCheck> {
 
 async function checkCapabilitiesNoSecrets(): Promise<ContractCheck> {
   const cliPath = getCliPath();
-  
+
   // Check caps mint output format
   // Use a dummy keypair
   const secretKey = "eb8b0ae66c32d1d9407f9b32b5e586dcdbf72ff6e58fd70e00e7f8fe07dd8e2d";
   const publicKey = "25263ce03758f12cbf70c922f2805e7f24a3832f0630220baa07c524b8b7424f";
-  
+
   const { stdout } = await runCommand(cliPath, [
     "caps", "mint",
     "--subject", "test",
@@ -366,7 +366,7 @@ async function checkCapabilitiesNoSecrets(): Promise<ContractCheck> {
     "--secret-key", secretKey,
     "--public-key", publicKey,
   ]);
-  
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(stdout);
@@ -377,11 +377,11 @@ async function checkCapabilitiesNoSecrets(): Promise<ContractCheck> {
       error: "Invalid JSON output",
     };
   }
-  
+
   // Check that no secrets are in the output
   const outputStr = JSON.stringify(parsed).toLowerCase();
   const forbidden = ["secret_key", "token", "private"];
-  
+
   for (const key of forbidden) {
     if (outputStr.includes(key)) {
       return {
@@ -391,7 +391,7 @@ async function checkCapabilitiesNoSecrets(): Promise<ContractCheck> {
       };
     }
   }
-  
+
   // Check that fingerprint IS present
   if (typeof parsed === "object" && parsed !== null) {
     if (!("fingerprint" in parsed)) {
@@ -402,7 +402,7 @@ async function checkCapabilitiesNoSecrets(): Promise<ContractCheck> {
       };
     }
   }
-  
+
   return {
     name: "caps_no_secrets",
     ok: true,
@@ -414,9 +414,9 @@ async function runAllChecks(): Promise<ContractReport> {
   if (!fs.existsSync(SNAPSHOT_DIR)) {
     fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
   }
-  
+
   const checks: ContractCheck[] = [];
-  
+
   // Check CLI is available
   const cliPath = getCliPath();
   if (!fs.existsSync(cliPath) && cliPath === "requiem") {
@@ -430,7 +430,7 @@ async function runAllChecks(): Promise<ContractReport> {
       }],
     };
   }
-  
+
   // Run contract checks
   checks.push(await checkHelpOutput());
   checks.push(await checkCommandStructure("doctor", ["doctor", "--json"], ["ok", "blockers", "engine_version", "protocol_version"]));
@@ -439,7 +439,7 @@ async function runAllChecks(): Promise<ContractReport> {
   checks.push(await checkErrorEnvelope());
   checks.push(await checkExitCodes());
   checks.push(await checkCapabilitiesNoSecrets());
-  
+
   return {
     ok: checks.every(c => c.ok),
     timestamp: new Date().toISOString(),
@@ -458,7 +458,7 @@ function printReport(report: ContractReport, jsonOutput: boolean): void {
   console.log("║  CLI CONTRACT VERIFICATION                                     ║");
   console.log("╚════════════════════════════════════════════════════════════════╝");
   console.log("");
-  
+
   for (const check of report.checks) {
     const icon = check.ok ? "✓" : "✗";
     console.log(`${icon} ${check.name}`);
@@ -466,13 +466,13 @@ function printReport(report: ContractReport, jsonOutput: boolean): void {
       console.log(`  Error: ${check.error}`);
     }
   }
-  
+
   console.log("");
   const pass = report.checks.filter(c => c.ok).length;
   const fail = report.checks.filter(c => !c.ok).length;
   console.log(`Result: ${pass} passed, ${fail} failed`);
   console.log("");
-  
+
   if (report.ok) {
     console.log("✓ All contract checks passed");
   } else {
@@ -487,15 +487,15 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const jsonOutput = args.includes("--json");
   const update = args.includes("--update");
-  
+
   if (update) {
     console.log("Updating contract snapshots...");
     // Implementation would update snapshots here
   }
-  
+
   const report = await runAllChecks();
   printReport(report, jsonOutput);
-  
+
   process.exit(report.ok ? 0 : 1);
 }
 

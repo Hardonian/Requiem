@@ -1,11 +1,11 @@
 /**
  * Symmetry Engine
- * 
+ *
  * Computes deterministic symmetry metrics:
  * - Technical symmetry
  * - Strategic symmetry
  * - Economic symmetry
- * 
+ *
  * All metrics are pure functions of stored metadata.
  */
 
@@ -39,27 +39,27 @@ export function calculateTechnicalSymmetry(
   since?: Date
 ): TechnicalSymmetry {
   const signals = LearningSignalRepository.findAllByTenant(tenantId, since);
-  
+
   // Failure recurrence rate
   const totalSignals = signals.length || 1;
-  const failureSignals = signals.filter(s => 
+  const failureSignals = signals.filter(s =>
     ['build_failure', 'test_failure', 'policy_violation'].includes(s.category)
   ).length;
   const failureRecurrenceRate = failureSignals / totalSignals;
-  
+
   // Drift severity score
   const driftSignals = signals.filter(s => s.category === 'drift');
-  const driftScores = driftSignals.map(s => 
+  const driftScores = driftSignals.map(s =>
     (s.metadata_json?.severity as number) || 0
   );
   const driftSeverityScore = driftScores.length > 0
     ? driftScores.reduce((a, b) => a + b, 0) / driftScores.length
     : 0;
-  
+
   // Replay mismatch rate
   const replaySignals = signals.filter(s => s.category === 'replay_mismatch');
   const replayMismatchRate = replaySignals.length / totalSignals;
-  
+
   // Time to green (average verification cycles)
   const verificationCycles = signals
     .filter(s => s.metadata_json?.verification_cycles !== undefined)
@@ -67,7 +67,7 @@ export function calculateTechnicalSymmetry(
   const timeToGreen = verificationCycles.length > 0
     ? verificationCycles.reduce((a, b) => a + b, 0) / verificationCycles.length
     : 0;
-  
+
   return {
     failureRecurrenceRate,
     driftSeverityScore,
@@ -93,34 +93,34 @@ export function calculateStrategicSymmetry(
 ): StrategicSymmetry {
   const signals = LearningSignalRepository.findAllByTenant(tenantId, since);
   const patches = LearningPatchRepository.findByTenant(tenantId);
-  
+
   // Rollback frequency
   const rollbackSignals = signals.filter(s => s.category === 'rollback_event');
   const rollbackFrequency = rollbackSignals.length;
-  
+
   // Skill coverage ratio
   const allSkills = SkillRepository.findAll();
   const signalCategories = new Set(signals.map(s => s.category));
   let coveredCategories = 0;
-  
+
   for (const category of signalCategories) {
     const skills = SkillRepository.findByTrigger(category);
     if (skills.length > 0) {
       coveredCategories++;
     }
   }
-  
+
   const skillCoverageRatio = signalCategories.size > 0
     ? coveredCategories / signalCategories.size
     : 1;
-  
+
   // Instruction coverage score
   // Based on number of patches that were successfully applied
   const appliedPatches = patches.filter(p => p.status === 'applied');
   const instructionCoverageScore = patches.length > 0
     ? appliedPatches.length / patches.length
     : 1;
-  
+
   return {
     rollbackFrequency,
     skillCoverageRatio,
@@ -145,16 +145,16 @@ export function calculateEconomicSymmetry(
   since?: Date
 ): EconomicSymmetry {
   const events = EconomicEventRepository.findByTenant(tenantId, since);
-  
+
   // Sum costs by type
   let totalCost = 0;
   let executionCount = 0;
   let storageCost = 0;
   let policyCost = 0;
-  
+
   for (const event of events) {
     totalCost += event.cost_units;
-    
+
     if (event.event_type === 'execution') {
       executionCount++;
     } else if (event.event_type === 'replay_storage') {
@@ -163,24 +163,24 @@ export function calculateEconomicSymmetry(
       policyCost += event.cost_units;
     }
   }
-  
+
   // Burn rate (cost per period - normalized to per-hour)
   const hoursInPeriod = since ? (Date.now() - since.getTime()) / 3600000 : 24;
   const burnRate = totalCost / Math.max(hoursInPeriod, 1);
-  
+
   // Cost per verified run
   const verifiedRuns = executionCount; // Simplified
   const costPerVerifiedRun = verifiedRuns > 0 ? totalCost / verifiedRuns : 0;
-  
+
   // Replay efficiency ratio
   const replayEvents = events.filter(e => e.event_type === 'execution');
-  const replayEfficiencyRatio = replayEvents.length > 0 
+  const replayEfficiencyRatio = replayEvents.length > 0
     ? 1 - (replayEvents.filter(e => e.resource_units > 0).length / replayEvents.length)
     : 1;
-  
+
   // Fairness index (placeholder - would need tenant distribution data)
   const fairnessIndex = 1; // Perfectly fair by default
-  
+
   return {
     burnRate,
     costPerVerifiedRun,
@@ -205,7 +205,7 @@ export function calculateSymmetry(tenantId: string, since?: Date): SymmetryScore
   const technical = calculateTechnicalSymmetry(tenantId, since);
   const strategic = calculateStrategicSymmetry(tenantId, since);
   const economic = calculateEconomicSymmetry(tenantId, since);
-  
+
   // Overall score: weighted average of normalized metrics
   // Perfect symmetry = 100
   const technicalScore = (
@@ -214,22 +214,22 @@ export function calculateSymmetry(tenantId: string, since?: Date): SymmetryScore
     (1 - technical.replayMismatchRate) * 25 +
     (1 - Math.min(technical.timeToGreen / 10, 1)) * 25
   );
-  
+
   const strategicScore = (
     (1 - Math.min(strategic.rollbackFrequency / 10, 1)) * 33.33 +
     strategic.skillCoverageRatio * 33.33 +
     strategic.instructionCoverageScore * 33.34
   );
-  
+
   const economicScore = (
     (1 - Math.min(economic.burnRate / 1000, 1)) * 25 +
     (1 - Math.min(economic.costPerVerifiedRun / 100, 1)) * 25 +
     economic.replayEfficiencyRatio * 25 +
     economic.fairnessIndex * 25
   );
-  
+
   const overallScore = (technicalScore + strategicScore + economicScore) / 3;
-  
+
   return {
     technical,
     strategic,
@@ -251,7 +251,7 @@ export interface PersistSymmetryParams {
  */
 export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
   const symmetry = calculateSymmetry(params.tenantId, params.periodStart);
-  
+
   // Technical metrics
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
@@ -260,7 +260,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'drift_severity_score',
@@ -268,7 +268,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'replay_mismatch_rate',
@@ -276,7 +276,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'time_to_green',
@@ -284,7 +284,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   // Strategic metrics
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
@@ -293,7 +293,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'skill_coverage_ratio',
@@ -301,7 +301,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'instruction_coverage_score',
@@ -309,7 +309,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   // Economic metrics
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
@@ -318,7 +318,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'cost_per_verified_run',
@@ -326,7 +326,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'replay_efficiency_ratio',
@@ -334,7 +334,7 @@ export function persistSymmetryMetrics(params: PersistSymmetryParams): void {
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
   });
-  
+
   SymmetryMetricRepository.create({
     tenantId: params.tenantId,
     metricName: 'fairness_index',

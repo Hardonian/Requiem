@@ -2,7 +2,7 @@
 
 /**
  * VerificationBadge - Trust/verifiability visibility component
- * 
+ *
  * Displays verification status with clear visual indicators:
  * - Verified: Green checkmark
  * - Failed: Red X with explanation
@@ -84,9 +84,9 @@ export function VerificationBadge({
   const style = config[status];
 
   return (
-    <div 
+    <div
       className={`
-        rounded-lg border p-4 
+        rounded-lg border p-4
         ${style.bg} ${style.border}
         ${className}
       `}
@@ -111,8 +111,8 @@ export function VerificationBadge({
             className={`
               px-3 py-1.5 text-sm font-medium rounded-md
               transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
-              ${status === 'verified' 
-                ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500 dark:bg-green-900/30 dark:text-green-400' 
+              ${status === 'verified'
+                ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500 dark:bg-green-900/30 dark:text-green-400'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-emerald-500'
               }
             `}

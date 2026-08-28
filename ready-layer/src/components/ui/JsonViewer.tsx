@@ -2,7 +2,7 @@
 
 /**
  * JsonViewer - Expandable JSON display with syntax highlighting
- * 
+ *
  * Features:
  * - Collapsed by default for large payloads
  * - Syntax highlighting for keys, strings, numbers, booleans
@@ -23,8 +23,8 @@ interface JsonViewerProps {
 
 const MAX_SAFE_SIZE = 100000; // 100KB
 
-export function JsonViewer({ 
-  data, 
+export function JsonViewer({
+  data,
   title,
   initiallyExpanded = false,
   maxPreviewLines = 5,
@@ -61,10 +61,10 @@ export function JsonViewer({
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
               type="button"
             >
-              <svg 
-                className={`w-4 h-4 transform transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className={`w-4 h-4 transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -85,11 +85,11 @@ export function JsonViewer({
       <div className="p-4 overflow-x-auto">
         {isLarge && !isExpanded && (
           <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm text-yellow-700 dark:text-yellow-400">
-            Large payload ({(jsonString.length / 1024).toFixed(0)} KB). 
+            Large payload ({(jsonString.length / 1024).toFixed(0)} KB).
             Click expand to view full content.
           </div>
         )}
-        
+
         <pre className="text-sm font-mono leading-relaxed">
           <code>
             {isExpanded || !shouldCollapse ? (
@@ -113,25 +113,25 @@ export function JsonViewer({
 function SyntaxHighlighted({ json }: { json: string }) {
   // Simple regex-based syntax highlighting
   const tokens = json.split(/("(?:[^"\\]|\\.)*")|(\b(?:true|false|null)\b)|(\b\d+(?:\.\d+)?\b)|([{}[\],:])/g);
-  
+
   return (
     <>
       {tokens.map((token, i) => {
         if (!token) return null;
-        
+
         // String (key or value)
         if (token.startsWith('"')) {
           const isKey = token.endsWith('":') || token.endsWith('" :');
           return (
-            <span 
-              key={i} 
+            <span
+              key={i}
               className={isKey ? 'text-purple-600 dark:text-purple-400' : 'text-green-600 dark:text-green-400'}
             >
               {token}
             </span>
           );
         }
-        
+
         // Boolean/null
         if (/^(true|false|null)$/.test(token)) {
           return (
@@ -140,7 +140,7 @@ function SyntaxHighlighted({ json }: { json: string }) {
             </span>
           );
         }
-        
+
         // Number
         if (/^\d+(?:\.\d+)?$/.test(token)) {
           return (
@@ -149,7 +149,7 @@ function SyntaxHighlighted({ json }: { json: string }) {
             </span>
           );
         }
-        
+
         // Punctuation/brackets
         if (/^[{}[\],:]$/.test(token)) {
           return (
@@ -158,7 +158,7 @@ function SyntaxHighlighted({ json }: { json: string }) {
             </span>
           );
         }
-        
+
         // Default (whitespace, etc)
         return <span key={i}>{token}</span>;
       })}

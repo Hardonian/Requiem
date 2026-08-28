@@ -1,6 +1,6 @@
 # Boundary and Build Hygiene Report
 
-> Generated: 2026-03-02  
+> Generated: 2026-03-02
 > Scope: OSS/Enterprise boundaries and build optimization
 
 ---

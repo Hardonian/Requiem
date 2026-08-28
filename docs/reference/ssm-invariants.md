@@ -1,7 +1,7 @@
 # SSM Invariants
 
-**Status:** Infrastructure-grade  
-**Version:** 1.0.0  
+**Status:** Infrastructure-grade
+**Version:** 1.0.0
 **Enforcement:** Runtime assertions (dev mode), CI tests, schema validation
 
 ---
@@ -23,8 +23,8 @@ Each invariant has corresponding:
 
 > State IDs are opaque BLAKE3 hash strings. No parsing assumptions may be made about their structure beyond being 64-character hex strings.
 
-**Type Constraint:** `SemanticStateId` branded type  
-**Format:** `/^[a-f0-9]{64}$/` (64 character hex)  
+**Type Constraint:** `SemanticStateId` branded type
+**Format:** `/^[a-f0-9]{64}$/` (64 character hex)
 **Derivation:** `BLAKE3(canonicalJSON(descriptor))`
 
 **Runtime Assertion:**
@@ -53,7 +53,7 @@ assertValidStateId(id: string): asserts id is SemanticStateId {
 
 > Semantic state descriptors must strictly conform to the schema. Unknown fields are rejected in strict mode.
 
-**Schema:** `SemanticStateDescriptorSchema` (Zod)  
+**Schema:** `SemanticStateDescriptorSchema` (Zod)
 **Strict Mode:** `z.object({...}).strict()` (rejects unknown keys)
 
 **Required Fields:**
@@ -127,7 +127,7 @@ assertValidTransition(store: SSMStore, transition: SemanticTransition): void {
 
 > The drift classifier must be deterministic, stable, and side-effect free. Same inputs always produce same outputs.
 
-**Function:** `classifyDrift(from, to)`  
+**Function:** `classifyDrift(from, to)`
 **Properties:**
 
 - Pure function (no side effects)
@@ -206,7 +206,7 @@ assertValidIntegrityScore(score: number): void {
 
 > Export bundles must be stable (deterministic key ordering, schema versioning).
 
-**Bundle Schema Version:** `1.0.0`  
+**Bundle Schema Version:** `1.0.0`
 **Required Properties:**
 
 - JSON keys in alphabetical order

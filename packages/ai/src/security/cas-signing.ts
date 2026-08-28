@@ -18,8 +18,8 @@ import { logger } from '../telemetry/logger.js';
 // ─── Path Configuration ────────────────────────────────────────────────────────
 
 function getCASDir(): string {
-  return process.env['REQUIEM_CAS_DIR'] || 
-         process.env['REQUIEM_DATA_DIR'] || 
+  return process.env['REQUIEM_CAS_DIR'] ||
+         process.env['REQUIEM_DATA_DIR'] ||
          join(process.cwd(), '.data', 'cas');
 }
 
@@ -32,11 +32,11 @@ export function getCASObjectPath(contentHash: string): string {
   const casDir = getCASDir();
   const subdir = contentHash.slice(0, 2);
   const objectDir = join(casDir, 'objects', subdir);
-  
+
   if (!existsSync(objectDir)) {
     mkdirSync(objectDir, { recursive: true });
   }
-  
+
   return join(objectDir, contentHash.slice(2));
 }
 
@@ -63,7 +63,7 @@ export async function writeSignedCASObject(
 
   // Write the content
   const contentBuffer = typeof content === 'string' ? Buffer.from(content, 'utf8') : content;
-  
+
   // Ensure directory exists
   const dir = dirname(objectPath);
   if (!existsSync(dir)) {
@@ -75,15 +75,15 @@ export async function writeSignedCASObject(
 
   // Sign and write signature (if enabled)
   let signature: ArtifactSignature | null = null;
-  
+
   if (isSigningEnabled()) {
     try {
       signature = await signContent(contentBuffer, contentHash, tenantId);
-      
+
       // Write signature to .sig file
       const sigData = JSON.stringify(signature, null, 2);
       writeFileSync(signaturePath, sigData, 'utf8');
-      
+
       logger.debug('[cas-signing] signed object', { contentHash, keyId: signature.keyId });
     } catch (err) {
       // Graceful degradation: log error but don't fail
@@ -120,11 +120,11 @@ export async function readVerifiedCASObject(
     try {
       const sigData = readFileSync(signaturePath, 'utf8');
       signature = JSON.parse(sigData) as ArtifactSignature;
-      
+
       if (isSigningEnabled()) {
         const result = await verifyContent(content, signature);
         verified = result.valid;
-        
+
         if (!verified) {
           logger.warn('[cas-signing] signature verification failed', {
             contentHash,

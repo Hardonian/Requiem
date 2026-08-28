@@ -1,7 +1,7 @@
 # Requiem v1.4 Cutover Readiness Report
 
-**Date**: 2026-03-01  
-**Version**: v1.4 (Audit Remediation Complete)  
+**Date**: 2026-03-01
+**Version**: v1.4 (Audit Remediation Complete)
 **Status**: ✅ READY FOR PRODUCTION
 
 ---

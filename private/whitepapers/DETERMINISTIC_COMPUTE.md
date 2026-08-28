@@ -1,6 +1,6 @@
 # Whitepaper: Deterministic AI Compute
 
-**Technical Authority Series**  
+**Technical Authority Series**
 **Requiem Engineering**
 
 ## 1. Abstract

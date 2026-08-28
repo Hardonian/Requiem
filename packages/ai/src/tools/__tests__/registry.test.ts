@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests for new tool registry methods.
  *
- * Tests for getToolVersion, getToolDigest, isToolDeterministic, 
+ * Tests for getToolVersion, getToolDigest, isToolDeterministic,
  * isToolIdempotent, validateToolSchema, and new ToolDefinition fields.
  */
 

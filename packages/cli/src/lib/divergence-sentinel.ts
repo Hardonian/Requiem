@@ -1,8 +1,8 @@
 /**
  * Divergence Sentinel
- * 
+ *
  * Automatic detection and tracking of execution divergence.
- * 
+ *
  * Features:
  * - Records divergence events
  * - Marks runs as divergent
@@ -32,7 +32,7 @@ export interface DivergenceEvent {
 export function recordDivergence(event: Omit<DivergenceEvent, 'id' | 'detectedAt' | 'acknowledged'>): DivergenceEvent {
   const db = getDB();
   const id = `div_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
-  
+
   const fullEvent: DivergenceEvent = {
     ...event,
     id,
@@ -100,11 +100,11 @@ export function recordDivergence(event: Omit<DivergenceEvent, 'id' | 'detectedAt
  */
 function markRunDivergent(runId: string, severity: 'warning' | 'critical'): void {
   const db = getDB();
-  
+
   try {
     // Update runs table
     db.prepare(`
-      UPDATE runs SET 
+      UPDATE runs SET
         divergence_status = ?,
         divergence_detected_at = ?
       WHERE run_id = ?
@@ -120,12 +120,12 @@ function markRunDivergent(runId: string, severity: 'warning' | 'critical'): void
  */
 export function hasDivergence(runId: string): boolean {
   const db = getDB();
-  
+
   try {
     const result = db.prepare(`
       SELECT COUNT(*) as count FROM divergence_events WHERE run_id = ?
     `).get(runId) as { count: number } | undefined;
-    
+
     return (result?.count || 0) > 0;
   } catch {
     return false;
@@ -141,7 +141,7 @@ export function getDivergenceStatus(runId: string): {
   events: DivergenceEvent[];
 } {
   const db = getDB();
-  
+
   try {
     const events = db.prepare(`
       SELECT * FROM divergence_events WHERE run_id = ? ORDER BY detected_at DESC
@@ -195,10 +195,10 @@ export function getDivergentRuns(): Array<{
   eventCount: number;
 }> {
   const db = getDB();
-  
+
   try {
     const results = db.prepare(`
-      SELECT 
+      SELECT
         run_id,
         MAX(detected_at) as detected_at,
         MAX(CASE WHEN severity = 'critical' THEN 2 ELSE 1 END) as severity_val,
@@ -230,7 +230,7 @@ export function getDivergentRuns(): Array<{
  */
 export function initDivergenceTables(): void {
   const db = getDB();
-  
+
   try {
     db.exec(`
       CREATE TABLE IF NOT EXISTS divergence_events (
@@ -268,11 +268,11 @@ export function formatDivergenceBadge(status: { isDivergent: boolean; severity?:
   if (!status.isDivergent) {
     return '✓ canonical';
   }
-  
+
   if (status.severity === 'critical') {
     return '🔴 DIVERGENT';
   }
-  
+
   return '🟡 divergent';
 }
 

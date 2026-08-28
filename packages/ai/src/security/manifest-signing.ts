@@ -18,7 +18,7 @@ import { logger } from '../telemetry/logger.js';
 // ─── Path Configuration ────────────────────────────────────────────────────────
 
 function getDataDir(): string {
-  return process.env['REQUIEM_DATA_DIR'] || 
+  return process.env['REQUIEM_DATA_DIR'] ||
          join(process.cwd(), '.data');
 }
 
@@ -124,11 +124,11 @@ export async function writeSignedRunManifest(
   if (isSigningEnabled()) {
     try {
       signature = await signRunManifest(manifest as unknown as Record<string, unknown>, manifest.runId);
-      
+
       // Write signature
       const sigData = JSON.stringify(signature, null, 2);
       writeFileSync(signaturePath, sigData, 'utf8');
-      
+
       logger.debug('[manifest-signing] signed manifest', { runId: manifest.runId, keyId: signature.keyId });
     } catch (err) {
       logger.warn('[manifest-signing] failed to sign manifest, continuing without signature', {
@@ -168,11 +168,11 @@ export async function readVerifiedRunManifest(
     try {
       const sigData = readFileSync(signaturePath, 'utf8');
       signature = JSON.parse(sigData) as ManifestSignature;
-      
+
       if (isSigningEnabled()) {
         const result = await verifyRunManifest(manifest as unknown as Record<string, unknown>, signature);
         verified = result.valid;
-        
+
         if (!verified) {
           logger.warn('[manifest-signing] signature verification failed', {
             runId,
@@ -294,7 +294,7 @@ export async function verifyArtifactAtRead(artifactHash: string): Promise<{
 }> {
   // Import dynamically to avoid circular dependencies
   const { verifyCASObjectSignature } = await import('./cas-signing.js');
-  
+
   const result = await verifyCASObjectSignature(artifactHash);
   return {
     valid: result.valid,

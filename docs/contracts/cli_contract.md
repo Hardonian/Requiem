@@ -1,7 +1,7 @@
 # Requiem CLI Contract
 
-> **Status:** FROZEN — Contract stable for v1.x  
-> **Last Updated:** 2026-03-02  
+> **Status:** FROZEN — Contract stable for v1.x
+> **Last Updated:** 2026-03-02
 > **Enforcement:** CI fails on breaking changes
 
 ## Overview

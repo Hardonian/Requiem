@@ -1,6 +1,6 @@
 # IRAP Project Summary: Requiem
 
-**Version**: 1.0.0  
+**Version**: 1.0.0
 **Last Updated**: 2026-03-02
 
 ## 1. Project Overview: "Requiem Synthesis"

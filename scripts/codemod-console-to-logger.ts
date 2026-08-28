@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Codemod: Replace console.* with logger.* in production code
- * 
+ *
  * This is a migration helper to convert existing console usage.
  * Run once, then review and commit.
  */
@@ -51,20 +51,20 @@ const REPLACEMENTS: Replacement[] = [
 function processFile(filePath: string): { changed: boolean; content: string } {
   let content = fs.readFileSync(filePath, 'utf-8');
   let changed = false;
-  
+
   // Check if already has logger import
-  const hasLoggerImport = content.includes('from\'./core/logging\'') || 
+  const hasLoggerImport = content.includes('from\'./core/logging\'') ||
                           content.includes('from"./core/logging"') ||
                           content.includes('from\'../core/logging\'') ||
                           content.includes('from"../core/logging"');
-  
+
   for (const { pattern, replacement } of REPLACEMENTS) {
     if (pattern.test(content)) {
       content = content.replace(pattern, replacement);
       changed = true;
     }
   }
-  
+
   // Add import if needed and we made changes
   if (changed && !hasLoggerImport) {
     // Find the last import statement
@@ -75,7 +75,7 @@ function processFile(filePath: string): { changed: boolean; content: string } {
         lastImportIndex = i;
       }
     }
-    
+
     if (lastImportIndex >= 0) {
       const relativePath = path.relative(path.dirname(filePath), 'packages/cli/src/core').replace(/\\/g, '/');
       const importPath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
@@ -83,26 +83,26 @@ function processFile(filePath: string): { changed: boolean; content: string } {
       content = lines.join('\n');
     }
   }
-  
+
   return { changed, content };
 }
 
 function main() {
   const targetDir = process.argv[2] || 'packages/cli/src/commands';
-  
+
   if (!fs.existsSync(targetDir)) {
     console.error(`Directory not found: ${targetDir}`);
     process.exit(1);
   }
-  
+
   console.log(`🔧 Processing ${targetDir}...\n`);
-  
+
   const files = fs.readdirSync(targetDir)
     .filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts'))
     .map(f => path.join(targetDir, f));
-  
+
   let totalChanged = 0;
-  
+
   for (const file of files) {
     try {
       const { changed, content } = processFile(file);
@@ -116,7 +116,7 @@ function main() {
       console.log(`  ✗ ${path.basename(file)}: ${(e as Error).message}`);
     }
   }
-  
+
   console.log(`\n${totalChanged} file(s) would be modified.`);
   console.log('Review changes, then uncomment the write line in the script.');
 }

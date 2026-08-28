@@ -88,15 +88,15 @@ function computeFingerprint(cap: Omit<Capability, 'fingerprint'>): string {
 
 function parseDuration(duration: string): Date | null {
   if (!duration) return null;
-  
+
   const now = new Date();
   const match = duration.match(/^(\d+)([dhms])$/);
-  
+
   if (!match) return null;
-  
+
   const value = parseInt(match[1], 10);
   const unit = match[2];
-  
+
   switch (unit) {
     case 'd':
       now.setDate(now.getDate() + value);
@@ -111,7 +111,7 @@ function parseDuration(duration: string): Date | null {
       now.setSeconds(now.getSeconds() + value);
       break;
   }
-  
+
   return now;
 }
 
@@ -211,7 +211,7 @@ export function createCapsCommand(): Command {
         const id = `cap_${randomBytes(8).toString('hex')}`;
         const createdAt = new Date().toISOString();
         const expiresAt = options.expires ? parseDuration(options.expires)?.toISOString() || null : null;
-        
+
         let metadata: Record<string, unknown> = {};
         if (options.metadata) {
           try {
@@ -276,10 +276,10 @@ export function createCapsCommand(): Command {
 
       try {
         const index = loadIndex();
-        
+
         // Try to find by ID or fingerprint prefix
         let cap: Capability | null = null;
-        
+
         // Direct ID lookup
         if (index.capabilities[token]) {
           cap = index.capabilities[token];
@@ -364,11 +364,11 @@ export function createCapsCommand(): Command {
 
       try {
         const index = loadIndex();
-        
+
         // Find the capability
         let cap: Capability | null = null;
         let capId: string = '';
-        
+
         if (index.capabilities[token]) {
           capId = token;
           cap = index.capabilities[token];

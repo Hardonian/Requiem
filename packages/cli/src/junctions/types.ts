@@ -50,7 +50,7 @@ export function generateJunctionFingerprint(trigger: JunctionTrigger): string {
     // Sort keys for deterministic output
     triggerData: sortObjectKeys(trigger.triggerData),
   });
-  
+
   return hashShort(canonical);
 }
 
@@ -69,11 +69,11 @@ function sortObjectKeys(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
-  
+
   if (Array.isArray(obj)) {
     return obj.map(item => sortObjectKeys(item));
   }
-  
+
   if (typeof obj === 'object') {
     const sorted: any = {};
     const keys = Object.keys(obj).sort();
@@ -82,7 +82,7 @@ function sortObjectKeys(obj: any): any {
     }
     return sorted;
   }
-  
+
   return obj;
 }
 

@@ -1,7 +1,7 @@
 # Requiem API Envelope Contract
 
-> **Status:** FROZEN — Contract stable for v1.x  
-> **Last Updated:** 2026-03-02  
+> **Status:** FROZEN — Contract stable for v1.x
+> **Last Updated:** 2026-03-02
 > **Enforcement:** CI fails on breaking changes
 
 ## Overview
@@ -182,7 +182,7 @@ For streaming endpoints (Server-Sent Events or NDJSON):
 {"type": "complete", "seq": number, "timestamp": string}
 ```
 
-**Contract:** 
+**Contract:**
 - Each line is a valid JSON object
 - `seq` is monotonically increasing within the stream
 - `type` is one of: `event`, `error`, `complete`

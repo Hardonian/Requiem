@@ -1,17 +1,17 @@
 /**
  * @fileoverview Redaction Tests
- * 
+ *
  * Tests that intentionally inject fake secrets to verify redaction works.
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { 
-  redactString, 
-  redactObject, 
-  redactEnv, 
+import {
+  redactString,
+  redactObject,
+  redactEnv,
   containsSecrets,
   getFakeSecrets,
-  redactConfig 
+  redactConfig
 } from '../redaction.js';
 
 describe('Redaction', () => {
@@ -83,9 +83,9 @@ describe('Redaction', () => {
           }
         }
       };
-      
+
       const result = redactObject(input);
-      
+
       expect(result).toMatchObject({
         name: 'test',
         api_key: '[REDACTED]',
@@ -105,9 +105,9 @@ describe('Redaction', () => {
           { key: 'api_key_2' }
         ]
       };
-      
+
       const result = redactObject(input);
-      
+
       expect(result).toMatchObject({
         items: [
           { key: '[REDACTED]' },
@@ -134,9 +134,9 @@ describe('Redaction', () => {
         DATABASE_PASSWORD: 'my_secret',
         USER_TOKEN: 'bearer_abc123'
       };
-      
+
       const result = redactEnv(env);
-      
+
       expect(result.PATH).toBe('/usr/bin');
       expect(result.HOME).toBe('/home/user');
       expect(result.REQUIEM_API_KEY).toBe('[REDACTED]');
@@ -157,7 +157,7 @@ describe('Redaction', () => {
   describe('getFakeSecrets', () => {
     it('should return test secrets', () => {
       const secrets = getFakeSecrets();
-      
+
       expect(secrets.api_key).toBeDefined();
       expect(secrets.bearer_token).toBeDefined();
       expect(secrets.email).toBeDefined();
@@ -182,9 +182,9 @@ describe('Redaction', () => {
           enabled: true
         }
       };
-      
+
       const result = redactConfig(config);
-      
+
       expect(result.name).toBe('my-app');
       expect(result.apiKey).toBe('[REDACTED]');
       expect(result.database).toMatchObject({

@@ -1,9 +1,9 @@
 /**
  * ErrorBoundary Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/error-boundary.tsx
  * EXTENSION_POINT: Add error reporting integration or recovery options
- * 
+ *
  * Catches JavaScript errors in child components and displays a fallback UI.
  * Prevents hard-500 errors from breaking the entire app.
  */

@@ -1,13 +1,13 @@
 /**
  * @fileoverview Typed Plugin Interfaces
- * 
+ *
  * Defines the canonical plugin interfaces for the Requiem AI control plane:
  * - LLMProvider: Language model integration
  * - StorageProvider: Data persistence
  * - PolicyProvider: Policy enforcement
  * - TelemetryExporter: Observability export
  * - AuthProvider: Authentication/authorization
- * 
+ *
  * All plugins MUST implement these interfaces.
  * Plugins are loaded via config/env.
  */
@@ -69,15 +69,15 @@ export interface LLMResponse {
 
 export interface LLMProvider {
   readonly metadata: PluginMetadata;
-  
+
   initialize(config: PluginConfig): Promise<PluginInitResult>;
   health(): Promise<PluginHealthResult>;
-  
+
   complete(request: LLMRequest): Promise<LLMResponse>;
   stream?(request: LLMRequest): AsyncGenerator<LLMResponse, void, unknown>;
-  
+
   listModels(): Promise<string[]>;
-  
+
   shutdown(): Promise<void>;
 }
 
@@ -106,27 +106,27 @@ export interface StorageQuery {
 
 export interface StorageProvider {
   readonly metadata: PluginMetadata;
-  
+
   initialize(config: PluginConfig): Promise<PluginInitResult>;
   health(): Promise<PluginHealthResult>;
-  
+
   // CRUD operations
   create(table: string, record: Omit<StorageRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<StorageRecord>;
   read(table: string, id: string): Promise<StorageRecord | null>;
   update(table: string, id: string, data: Partial<StorageRecord>): Promise<StorageRecord>;
   delete(table: string, id: string): Promise<boolean>;
-  
+
   // Query operations
   query(query: StorageQuery): Promise<StorageRecord[]>;
   count(table: string, filter?: Record<string, unknown>): Promise<number>;
-  
+
   // Batch operations
   bulkCreate(table: string, records: Array<Omit<StorageRecord, 'id' | 'createdAt' | 'updatedAt'>>): Promise<StorageRecord[]>;
   bulkUpdate(table: string, updates: Array<{ id: string; data: Partial<StorageRecord> }>): Promise<StorageRecord[]>;
-  
+
   // Transaction support
   transaction<T>(fn: () => Promise<T>): Promise<T>;
-  
+
   shutdown(): Promise<void>;
 }
 
@@ -148,17 +148,17 @@ export interface PolicyEvaluationContext {
 
 export interface PolicyProvider {
   readonly metadata: PluginMetadata;
-  
+
   initialize(config: PluginConfig): Promise<PluginInitResult>;
   health(): Promise<PluginHealthResult>;
-  
+
   // Policy evaluation
   evaluate(context: PolicyEvaluationContext): Promise<PolicyCheckResult>;
-  
+
   // Policy management
   loadPolicy(policyId: string): Promise<unknown>;
   listPolicies(): Promise<Array<{ id: string; name: string; version: string }>>;
-  
+
   shutdown(): Promise<void>;
 }
 
@@ -178,17 +178,17 @@ export interface TelemetryBatch {
 
 export interface TelemetryExporter {
   readonly metadata: PluginMetadata;
-  
+
   initialize(config: PluginConfig): Promise<PluginInitResult>;
   health(): Promise<PluginHealthResult>;
-  
+
   // Export operations
   exportTrace(batch: TelemetryBatch): Promise<{ success: boolean; exportedCount: number }>;
   exportMetrics?(metrics: Record<string, unknown>): Promise<void>;
-  
+
   // Flush pending exports
   flush(): Promise<void>;
-  
+
   shutdown(): Promise<void>;
 }
 
@@ -213,18 +213,18 @@ export interface AuthResult {
 
 export interface AuthProvider {
   readonly metadata: PluginMetadata;
-  
+
   initialize(config: PluginConfig): Promise<PluginInitResult>;
   health(): Promise<PluginHealthResult>;
-  
+
   // Authentication
   authenticate(credentials: AuthCredentials): Promise<AuthResult>;
   validate(token: string): Promise<AuthResult>;
   refresh?(token: string): Promise<AuthResult>;
-  
+
   // Authorization
   checkPermission(userId: string, permission: string, resource?: unknown): Promise<boolean>;
-  
+
   shutdown(): Promise<void>;
 }
 
@@ -240,13 +240,13 @@ export interface PluginRegistry {
   registerPolicyProvider(name: string, factory: PolicyProviderFactory): void;
   registerTelemetryExporter(name: string, factory: TelemetryExporterFactory): void;
   registerAuthProvider(name: string, factory: AuthProviderFactory): void;
-  
+
   getLLMProvider(name: string): LLMProviderFactory | undefined;
   getStorageProvider(name: string): StorageProviderFactory | undefined;
   getPolicyProvider(name: string): PolicyProviderFactory | undefined;
   getTelemetryExporter(name: string): TelemetryExporterFactory | undefined;
   getAuthProvider(name: string): AuthProviderFactory | undefined;
-  
+
   listProviders(type: 'llm' | 'storage' | 'policy' | 'telemetry' | 'auth'): string[];
 }
 
@@ -263,47 +263,47 @@ export class PluginManager implements PluginRegistry {
   private policyProviders = new Map<string, PolicyProviderFactory>();
   private telemetryExporters = new Map<string, TelemetryExporterFactory>();
   private authProviders = new Map<string, AuthProviderFactory>();
-  
+
   registerLLMProvider(name: string, factory: LLMProviderFactory): void {
     this.llmProviders.set(name, factory);
   }
-  
+
   registerStorageProvider(name: string, factory: StorageProviderFactory): void {
     this.storageProviders.set(name, factory);
   }
-  
+
   registerPolicyProvider(name: string, factory: PolicyProviderFactory): void {
     this.policyProviders.set(name, factory);
   }
-  
+
   registerTelemetryExporter(name: string, factory: TelemetryExporterFactory): void {
     this.telemetryExporters.set(name, factory);
   }
-  
+
   registerAuthProvider(name: string, factory: AuthProviderFactory): void {
     this.authProviders.set(name, factory);
   }
-  
+
   getLLMProvider(name: string): LLMProviderFactory | undefined {
     return this.llmProviders.get(name);
   }
-  
+
   getStorageProvider(name: string): StorageProviderFactory | undefined {
     return this.storageProviders.get(name);
   }
-  
+
   getPolicyProvider(name: string): PolicyProviderFactory | undefined {
     return this.policyProviders.get(name);
   }
-  
+
   getTelemetryExporter(name: string): TelemetryExporterFactory | undefined {
     return this.telemetryExporters.get(name);
   }
-  
+
   getAuthProvider(name: string): AuthProviderFactory | undefined {
     return this.authProviders.get(name);
   }
-  
+
   listProviders(type: 'llm' | 'storage' | 'policy' | 'telemetry' | 'auth'): string[] {
     switch (type) {
       case 'llm': return Array.from(this.llmProviders.keys());

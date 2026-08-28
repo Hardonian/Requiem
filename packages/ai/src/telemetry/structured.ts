@@ -1,11 +1,11 @@
 /**
  * @fileoverview Structured Observability
- * 
+ *
  * Provides structured JSON events with:
  * - trace_id: Unique identifier for a trace
  * - run_id: Unique identifier for a run/execution
  * - schema_version: Version of the event schema
- * 
+ *
  * Events are stored in SQLite metadata + CAS blobs.
  * Optional exporter interface for external systems.
  */
@@ -19,7 +19,7 @@ export const OBSERVABILITY_SCHEMA_VERSION = 1;
 
 // ─── Event Types ───────────────────────────────────────────────────────────
 
-export type EventType = 
+export type EventType =
   | 'span_start'
   | 'span_end'
   | 'log'
@@ -38,7 +38,7 @@ export interface StructuredEvent {
   run_id: string;
   seq: number;
   schema_version: number;
-  
+
   // Optional fields
   span_id?: string;
   parent_span_id?: string;
@@ -66,7 +66,7 @@ export interface TraceMetadata {
 
 export class EventBuilder {
   private event: Partial<StructuredEvent>;
-  
+
   constructor(traceId: string, runId: string, seq: number) {
     this.event = {
       trace_id: traceId,
@@ -76,12 +76,12 @@ export class EventBuilder {
       timestamp: new Date().toISOString(),
     };
   }
-  
+
   type(type: EventType): this {
     this.event.type = type;
     return this;
   }
-  
+
   span(spanId: string, parentSpanId?: string): this {
     this.event.span_id = spanId;
     if (parentSpanId) {
@@ -89,28 +89,28 @@ export class EventBuilder {
     }
     return this;
   }
-  
+
   name(name: string): this {
     this.event.name = name;
     return this;
   }
-  
+
   level(level: 'debug' | 'info' | 'warn' | 'error'): this {
     this.event.level = level;
     return this;
   }
-  
+
   message(message: string): this {
     this.event.message = message;
     return this;
   }
-  
+
   data(data: Record<string, unknown>): this {
     // Redact sensitive data
     this.event.data = redactObject(data);
     return this;
   }
-  
+
   error(error: Error): this {
     this.event.type = 'error';
     this.event.level = 'error';
@@ -121,7 +121,7 @@ export class EventBuilder {
     };
     return this;
   }
-  
+
   build(): StructuredEvent {
     return this.event as StructuredEvent;
   }
@@ -145,21 +145,21 @@ let currentContext: TraceContext | null = null;
 export function startTrace(tenantId?: string): TraceContext {
   const traceId = generateTraceId();
   const runId = generateRunId();
-  
+
   currentContext = {
     traceId,
     runId,
     tenantId,
     seq: 0,
   };
-  
+
   // Emit span start event
   emit({
     type: 'span_start',
     name: 'trace',
     data: { tenantId },
   });
-  
+
   return currentContext;
 }
 
@@ -182,13 +182,13 @@ export function setCurrentTrace(ctx: TraceContext): void {
  */
 export function endTrace(status: 'completed' | 'failed' = 'completed'): TraceMetadata | null {
   if (!currentContext) return null;
-  
+
   emit({
     type: 'span_end',
     name: 'trace',
     data: { status },
   });
-  
+
   const metadata: TraceMetadata = {
     trace_id: currentContext.traceId,
     run_id: currentContext.runId,
@@ -198,7 +198,7 @@ export function endTrace(status: 'completed' | 'failed' = 'completed'): TraceMet
     ended_at: new Date().toISOString(),
     status,
   };
-  
+
   currentContext = null;
   return metadata;
 }
@@ -252,7 +252,7 @@ export function emit(event: Omit<StructuredEvent, 'trace_id' | 'run_id' | 'seq' 
       schema_version: OBSERVABILITY_SCHEMA_VERSION,
       timestamp: new Date().toISOString(),
     };
-    
+
     handlers.forEach(h => {
       try {
         h(evt);
@@ -260,12 +260,12 @@ export function emit(event: Omit<StructuredEvent, 'trace_id' | 'run_id' | 'seq' 
         console.error('[Observability] Handler error:', e);
       }
     });
-    
+
     return evt;
   }
-  
+
   currentContext.seq++;
-  
+
   const evt: StructuredEvent = {
     ...event,
     trace_id: currentContext.traceId,
@@ -274,7 +274,7 @@ export function emit(event: Omit<StructuredEvent, 'trace_id' | 'run_id' | 'seq' 
     schema_version: OBSERVABILITY_SCHEMA_VERSION,
     timestamp: new Date().toISOString(),
   };
-  
+
   handlers.forEach(h => {
     try {
       h(evt);
@@ -282,7 +282,7 @@ export function emit(event: Omit<StructuredEvent, 'trace_id' | 'run_id' | 'seq' 
       console.error('[Observability] Handler error:', e);
     }
   });
-  
+
   return evt;
 }
 
@@ -293,14 +293,14 @@ export function emit(event: Omit<StructuredEvent, 'trace_id' | 'run_id' | 'seq' 
  */
 export function createSpan(name: string, parentSpanId?: string): string {
   const spanId = generateSpanId();
-  
+
   emit({
     type: 'span_start',
     name,
     span_id: spanId,
     parent_span_id: parentSpanId,
   });
-  
+
   return spanId;
 }
 

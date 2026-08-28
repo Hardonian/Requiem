@@ -485,7 +485,7 @@ export class FoundryRepository {
     input: Partial<Omit<GeneratorRun, 'id' | 'tenant_id' | 'run_id' | 'created_at'>>
   ): Promise<GeneratorRun> {
     const updateData: Record<string, unknown> = { ...input };
-    
+
     if (input.status === 'running' && !input.started_at) {
       updateData.started_at = now();
     }

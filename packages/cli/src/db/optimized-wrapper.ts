@@ -1,6 +1,6 @@
 /**
  * Optimized Database Wrapper
- * 
+ *
  * Features:
  * - Prepared statements for hot queries
  * - Statement caching
@@ -22,23 +22,23 @@ interface PreparedStatements {
   getRunByFingerprint: Database.Statement;
   insertRun: Database.Statement;
   updateRunStatus: Database.Statement;
-  
+
   // Artifact queries
   getArtifactByHash: Database.Statement;
   insertArtifact: Database.Statement;
-  
+
   // Ledger queries
   getLedgerByRunId: Database.Statement;
   insertLedgerEntry: Database.Statement;
-  
+
   // Policy queries
   getPolicyByHash: Database.Statement;
   getActivePolicy: Database.Statement;
-  
+
   // Verification cache
   getVerificationCache: Database.Statement;
   setVerificationCache: Database.Statement;
-  
+
   // Provider catalog cache
   getProviderCatalog: Database.Statement;
   setProviderCatalog: Database.Statement;
@@ -72,12 +72,12 @@ export class OptimizedDatabase {
     this.db.pragma('cache_size = -64000'); // 64MB cache
     this.db.pragma('temp_store = MEMORY');
     this.db.pragma('mmap_size = 268435456'); // 256MB mmap
-    
+
     // Run schema
     const schemaPath = join(__dirname, 'optimized-schema.sql');
     const schema = readFileSync(schemaPath, 'utf-8');
     this.db.exec(schema);
-    
+
     // Prepare statements
     this.prepareStatements();
   }
@@ -98,7 +98,7 @@ export class OptimizedDatabase {
       updateRunStatus: this.db.prepare(
         'UPDATE runs SET status = ?, completed_at = ?, duration_ms = ?, outputs = ? WHERE run_id = ?'
       ),
-      
+
       // Artifact queries
       getArtifactByHash: this.db.prepare(
         'SELECT hash, size_bytes, content_type, created_at FROM artifacts WHERE hash = ? LIMIT 1'
@@ -106,7 +106,7 @@ export class OptimizedDatabase {
       insertArtifact: this.db.prepare(
         'INSERT OR IGNORE INTO artifacts (hash, size_bytes, content_type, created_at) VALUES (?, ?, ?, ?)'
       ),
-      
+
       // Ledger queries
       getLedgerByRunId: this.db.prepare(
         'SELECT * FROM ledger WHERE run_id = ? ORDER BY sequence_number ASC'
@@ -115,7 +115,7 @@ export class OptimizedDatabase {
         `INSERT INTO ledger (entry_id, run_id, event_type, timestamp, sequence_number, previous_hash, entry_hash, details)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       ),
-      
+
       // Policy queries
       getPolicyByHash: this.db.prepare(
         'SELECT hash, version, created_at, content FROM policy_snapshots WHERE hash = ? LIMIT 1'
@@ -123,7 +123,7 @@ export class OptimizedDatabase {
       getActivePolicy: this.db.prepare(
         'SELECT hash, version, content FROM policy_snapshots WHERE is_active = 1 LIMIT 1'
       ),
-      
+
       // Verification cache
       getVerificationCache: this.db.prepare(
         'SELECT result FROM verification_cache WHERE manifest_hash = ? AND expires_at > ? LIMIT 1'
@@ -132,7 +132,7 @@ export class OptimizedDatabase {
         `INSERT OR REPLACE INTO verification_cache (manifest_hash, result, verified_at, expires_at)
          VALUES (?, ?, ?, ?)`
       ),
-      
+
       // Provider catalog cache
       getProviderCatalog: this.db.prepare(
         'SELECT catalog_data FROM provider_catalog_cache WHERE catalog_hash = ? AND expires_at > ? LIMIT 1'
@@ -282,7 +282,7 @@ export class OptimizedDatabase {
   // Cleanup old data
   cleanup(olderThanDays: number = 90): void {
     const cutoff = Math.floor(Date.now() / 1000) - (olderThanDays * 86400);
-    
+
     this.db.prepare('DELETE FROM ledger WHERE timestamp < ?').run(cutoff);
     this.db.prepare('DELETE FROM verification_cache WHERE expires_at < ?').run(Math.floor(Date.now() / 1000));
     this.db.prepare('DELETE FROM provider_catalog_cache WHERE expires_at < ?').run(Math.floor(Date.now() / 1000));

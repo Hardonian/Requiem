@@ -1,12 +1,12 @@
 /**
  * Minimal Mode - Fast Help + Zero Overhead
- * 
+ *
  * When REQUIEM_MINIMAL=1:
  * - Disables ledger
  * - Disables signing
  * - Disables arbitration
  * - Raw execution path for benchmarks
- * 
+ *
  * For --help, version, status:
  * - No DB initialization
  * - No provider initialization
@@ -74,12 +74,12 @@ export async function withMinimalMode<T>(
   fn: (mode: MinimalMode) => Promise<T>
 ): Promise<T> {
   const mode = getMinimalMode(command);
-  
+
   if (mode.enabled) {
     // Skip heavy initialization
     return fn(mode);
   }
-  
+
   // Full initialization
   return fn(mode);
 }
@@ -90,12 +90,12 @@ export function handleFastCommand(command: string, args: string[]): number {
     printFastHelp();
     return 0;
   }
-  
+
   if (command === 'version' || command === '--version' || command === '-v') {
     printFastVersion();
     return 0;
   }
-  
+
   return -1; // Not handled
 }
 

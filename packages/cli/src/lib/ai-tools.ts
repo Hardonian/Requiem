@@ -1,6 +1,6 @@
 /**
  * AI Tools Registry
- * 
+ *
  * Provides a simple in-memory tool registry for CLI use.
  * This is a simplified version that doesn't require cross-package imports.
  */
@@ -114,17 +114,17 @@ export function getTool(
   version?: string
 ): RegisteredTool | undefined {
   const key = version ? `${name}@${version}` : name;
-  
+
   // Try exact match first
   if (toolRegistry.has(key)) {
     return toolRegistry.get(key);
   }
-  
+
   // Try finding latest version
   if (!version) {
     let latest: RegisteredTool | undefined;
     let latestVersion = '0.0.0';
-    
+
     for (const [k, tool] of toolRegistry.entries()) {
       if (k.startsWith(`${name}@`)) {
         const v = k.replace(`${name}@`, '');
@@ -136,7 +136,7 @@ export function getTool(
     }
     return latest;
   }
-  
+
   return undefined;
 }
 

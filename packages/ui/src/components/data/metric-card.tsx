@@ -1,9 +1,9 @@
 /**
  * MetricCard Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/metrics-card.tsx, Reach/apps/arcade/src/components/ExecutionDetails.tsx
  * EXTENSION_POINT: Add sparkline charts, trend indicators, or comparison values
- * 
+ *
  * Displays a single metric with label, value, and optional trend.
  */
 

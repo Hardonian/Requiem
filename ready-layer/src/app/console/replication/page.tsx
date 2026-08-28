@@ -2,19 +2,19 @@
 
 /**
  * Multi-Region Replication
- * 
+ *
  * Harvested from Stitch: multi_region_replication_protocol
  * Canonical route: /console/replication
- * 
+ *
  * Features:
  * - Region status cards
  * - Replication topology
  * - Sync metrics
  */
 
-import { 
-  StitchHeader, 
-  StitchContainer, 
+import {
+  StitchHeader,
+  StitchContainer,
   StitchCard,
   StitchStatCard,
   StitchBadge,
@@ -72,7 +72,7 @@ export default function ReplicationPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col pb-20">
       <StitchHeader title="Multi-Region Replication" />
-      
+
       <StitchContainer maxWidth="md">
         <section className="px-5 pt-6">
           <RouteMaturityNote maturity={maturityNoteTone(routeMaturity.maturity)} title="Maturity: informational route">
@@ -83,7 +83,7 @@ export default function ReplicationPage() {
         {/* Hero Section */}
         <section className="px-5 py-8 flex flex-col gap-4">
           <StitchBadge variant="success">Replication Surface</StitchBadge>
-          
+
           <h2 className="text-foreground text-3xl font-bold font-display leading-tight">
             Replication Diagnostics
           </h2>
@@ -97,7 +97,7 @@ export default function ReplicationPage() {
         <section className="px-5 pb-8">
           <div className="grid grid-cols-2 gap-3">
             {replicationStats.map((stat) => (
-              <StitchStatCard 
+              <StitchStatCard
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}

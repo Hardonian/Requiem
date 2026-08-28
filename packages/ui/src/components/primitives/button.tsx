@@ -1,9 +1,9 @@
 /**
  * Button Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/button.tsx
  * EXTENSION_POINT: Add new variants in buttonVariants, new sizes as needed
- * 
+ *
  * A versatile button component with multiple variants and sizes.
  * Uses Radix Slot for composition support.
  */
@@ -23,17 +23,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 
+        default:
           'bg-accent text-accent-foreground hover:bg-accent-hover shadow-surface-raised',
-        destructive: 
+        destructive:
           'bg-danger text-danger-foreground hover:bg-danger/90 shadow-surface-raised',
-        outline: 
+        outline:
           'border border-border-strong bg-surface-raised hover:bg-surface-hover hover:border-border-strong',
-        secondary: 
+        secondary:
           'bg-surface-muted text-text-primary hover:bg-surface-hover shadow-surface-raised',
-        ghost: 
+        ghost:
           'hover:bg-surface-hover text-text-primary',
-        link: 
+        link:
           'text-accent underline-offset-4 hover:underline hover:text-accent-hover',
       },
       size: {

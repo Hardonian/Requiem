@@ -1,6 +1,6 @@
 # BASELINE_AUDIT.md
 
-Date: 2026-03-02  
+Date: 2026-03-02
 Phase: 0 (discovery + baseline evidence, no-code baseline capture)
 
 ## Baseline Log Directories

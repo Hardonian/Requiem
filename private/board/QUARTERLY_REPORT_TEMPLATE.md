@@ -1,6 +1,6 @@
 # Quarterly Board Report: Requiem
 
-**Reporting Period**: Q1 2026  
+**Reporting Period**: Q1 2026
 **Status**: Confidential - For Board Use Only
 
 ## 1. Executive Summary

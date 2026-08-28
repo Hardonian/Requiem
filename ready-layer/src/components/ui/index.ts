@@ -1,6 +1,6 @@
 /**
  * UI Components - Shared design system components
- * 
+ *
  * These components provide consistent UI patterns across the console:
  * - CopyButton: Copy-to-clipboard with feedback
  * - HashDisplay: Cryptographic hash display with shortening
@@ -13,17 +13,17 @@
 export { CopyButton } from './CopyButton';
 export { HashDisplay, HashRow } from './HashDisplay';
 export { JsonViewer } from './JsonViewer';
-export { 
-  ErrorDisplay, 
-  BudgetErrorDisplay, 
-  CapabilityErrorDisplay 
+export {
+  ErrorDisplay,
+  BudgetErrorDisplay,
+  CapabilityErrorDisplay
 } from './ErrorDisplay';
 export { VerificationBadge } from './VerificationBadge';
-export { 
-  PageHeader, 
-  SectionHeader, 
-  LoadingState, 
-  EmptyState 
+export {
+  PageHeader,
+  SectionHeader,
+  LoadingState,
+  EmptyState
 } from './PageHeader';
 
 export { RouteMaturityNote } from './RouteMaturityNote';

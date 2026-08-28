@@ -1,6 +1,6 @@
 /**
  * @fileoverview Failure Mode Hardening - Structured Error Objects
- * 
+ *
  * Provides:
  * - Structured error objects with remediation hints
  * - No hard-500 routes (graceful degradation)
@@ -17,42 +17,42 @@ export const ERROR_CODES = {
   CONFIG_MISSING: 'CONFIG_MISSING',
   CONFIG_INVALID: 'CONFIG_INVALID',
   CONFIG_UNREADABLE: 'CONFIG_UNREADABLE',
-  
+
   // Database errors (20xx)
   DB_CONNECTION_FAILED: 'DB_CONNECTION_FAILED',
   DB_QUERY_FAILED: 'DB_QUERY_FAILED',
   DB_MIGRATION_FAILED: 'DB_MIGRATION_FAILED',
   DB_INTEGRITY_FAILED: 'DB_INTEGRITY_FAILED',
-  
+
   // Storage/CAS errors (30xx)
   CAS_NOT_FOUND: 'CAS_NOT_FOUND',
   CAS_WRITE_FAILED: 'CAS_WRITE_FAILED',
   CAS_CORRUPTED: 'CAS_CORRUPTED',
-  
+
   // Policy errors (40xx)
   POLICY_NOT_FOUND: 'POLICY_NOT_FOUND',
   POLICY_DENIED: 'POLICY_DENIED',
   POLICY_PARSE_FAILED: 'POLICY_PARSE_FAILED',
-  
+
   // Execution errors (50xx)
   EXECUTION_TIMEOUT: 'EXECUTION_TIMEOUT',
   EXECUTION_FAILED: 'EXECUTION_FAILED',
   EXECUTION_CANCELLED: 'EXECUTION_CANCELLED',
-  
+
   // Authentication/Authorization errors (60xx)
   AUTH_FAILED: 'AUTH_FAILED',
   AUTH_UNAUTHORIZED: 'AUTH_UNAUTHORIZED',
   AUTH_FORBIDDEN: 'AUTH_FORBIDDEN',
-  
+
   // Plugin errors (70xx)
   PLUGIN_NOT_FOUND: 'PLUGIN_NOT_FOUND',
   PLUGIN_INIT_FAILED: 'PLUGIN_INIT_FAILED',
   PLUGIN_INVALID: 'PLUGIN_INVALID',
-  
+
   // Network errors (80xx)
   NETWORK_ERROR: 'NETWORK_ERROR',
   NETWORK_TIMEOUT: 'NETWORK_TIMEOUT',
-  
+
   // Internal errors (90xx)
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   NOT_IMPLEMENTED: 'NOT_IMPLEMENTED',
@@ -84,7 +84,7 @@ export interface StructuredError {
 
 export class ErrorBuilder {
   private error: Partial<StructuredError>;
-  
+
   constructor(code: ErrorCode, message: string) {
     this.error = {
       code,
@@ -96,38 +96,38 @@ export class ErrorBuilder {
       version: '1.0.0',
     };
   }
-  
+
   severity(severity: ErrorSeverity): this {
     this.error.severity = severity;
     return this;
   }
-  
+
   retryable(retryable: boolean): this {
     this.error.retryable = retryable;
     return this;
   }
-  
+
   remediation(hint: string): this {
     this.error.remediation = hint;
     return this;
   }
-  
+
   details(details: Record<string, unknown>): this {
     this.error.details = redactErrorDetails(details);
     return this;
   }
-  
+
   cause(cause: StructuredError): this {
     this.error.cause = cause;
     return this;
   }
-  
+
   trace(traceId: string, runId?: string): this {
     this.error.trace_id = traceId;
     if (runId) this.error.run_id = runId;
     return this;
   }
-  
+
   build(): StructuredError {
     return this.error as StructuredError;
   }
@@ -138,7 +138,7 @@ export class ErrorBuilder {
  */
 function redactErrorDetails(details: Record<string, unknown>): Record<string, unknown> {
   const redacted: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(details)) {
     if (/key|secret|password|token|auth|credential/i.test(key)) {
       redacted[key] = '[REDACTED]';
@@ -148,7 +148,7 @@ function redactErrorDetails(details: Record<string, unknown>): Record<string, un
       redacted[key] = value;
     }
   }
-  
+
   return redacted;
 }
 
@@ -319,51 +319,51 @@ export function errorToHttpStatus(error: StructuredError): number {
     case ERROR_CODES.CONFIG_MISSING:
     case ERROR_CODES.CONFIG_INVALID:
       return 400;
-      
+
     case ERROR_CODES.DB_CONNECTION_FAILED:
     case ERROR_CODES.DB_QUERY_FAILED:
     case ERROR_CODES.DB_MIGRATION_FAILED:
       return 503; // Service unavailable
-      
+
     case ERROR_CODES.CAS_NOT_FOUND:
       return 404;
-      
+
     case ERROR_CODES.CAS_WRITE_FAILED:
     case ERROR_CODES.CAS_CORRUPTED:
       return 500;
-      
+
     case ERROR_CODES.POLICY_NOT_FOUND:
     case ERROR_CODES.POLICY_PARSE_FAILED:
       return 500;
-      
+
     case ERROR_CODES.POLICY_DENIED:
       return 403;
-      
+
     case ERROR_CODES.EXECUTION_TIMEOUT:
       return 504;
-      
+
     case ERROR_CODES.EXECUTION_FAILED:
     case ERROR_CODES.EXECUTION_CANCELLED:
       return 500;
-      
+
     case ERROR_CODES.AUTH_FAILED:
     case ERROR_CODES.AUTH_UNAUTHORIZED:
       return 401;
-      
+
     case ERROR_CODES.AUTH_FORBIDDEN:
       return 403;
-      
+
     case ERROR_CODES.PLUGIN_NOT_FOUND:
     case ERROR_CODES.PLUGIN_INVALID:
       return 400;
-      
+
     case ERROR_CODES.PLUGIN_INIT_FAILED:
       return 500;
-      
+
     case ERROR_CODES.NETWORK_ERROR:
     case ERROR_CODES.NETWORK_TIMEOUT:
       return 502;
-      
+
     case ERROR_CODES.INTERNAL_ERROR:
     case ERROR_CODES.NOT_IMPLEMENTED:
     default:

@@ -1,6 +1,6 @@
 /**
  * Layout Components Export
- * 
+ *
  * Components for page structure, navigation, and state handling.
  */
 

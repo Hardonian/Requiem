@@ -2,7 +2,7 @@
 
 /**
  * CopyButton - Reusable copy-to-clipboard component
- * 
+ *
  * Provides visual feedback when content is copied.
  */
 
@@ -28,16 +28,16 @@ export function CopyButton({ text, label = 'Copy', className = '', size = 'sm' }
     }
   }, [text]);
 
-  const sizeClasses = size === 'sm' 
-    ? 'p-1' 
+  const sizeClasses = size === 'sm'
+    ? 'p-1'
     : 'px-3 py-1.5 text-sm';
 
   return (
     <button
       onClick={handleCopy}
       className={`
-        inline-flex items-center gap-1.5 
-        text-gray-500 dark:text-gray-400 
+        inline-flex items-center gap-1.5
+        text-gray-500 dark:text-gray-400
         hover:text-emerald-600 dark:hover:text-emerald-400
         transition-colors rounded
         focus:outline-none focus:ring-2 focus:ring-emerald-500/20

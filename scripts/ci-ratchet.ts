@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * CI Ratchet Gates - Entropy Collapse Enforcement
- * 
+ *
  * Fails CI if:
  * - Bundle size increases > X%
  * - Cold start increases > Y ms
@@ -129,7 +129,7 @@ function checkNoConsole(): { passed: boolean; metrics: number } {
 function checkCircularDeps(): { passed: boolean; metrics: number } {
   // Use madge or similar if available, otherwise check import patterns
   const cliSrc = join(ROOT, 'packages', 'cli', 'src');
-  
+
   if (!existsSync(cliSrc)) {
     return { passed: true, metrics: 0 };
   }
@@ -184,7 +184,7 @@ function checkUnusedExports(): { passed: boolean; metrics: number } {
 // Check 5: CLI surface snapshot
 function checkCliSurface(): { passed: boolean; metrics: number } {
   const snapshotPath = join(ROOT, 'contracts', 'cli-surface.snapshot.json');
-  
+
   if (!existsSync(snapshotPath)) {
     warn('CLI surface snapshot not found, creating...');
     return { passed: true, metrics: 0 };
@@ -198,7 +198,7 @@ function checkCliSurface(): { passed: boolean; metrics: number } {
 // Check 6: Cold start budget
 function checkColdStart(): { passed: boolean; metrics: number } {
   const reportPath = join(ROOT, 'reports', 'cold-start-baseline.json');
-  
+
   if (!existsSync(reportPath)) {
     warn('Cold start baseline not found, skipping');
     return { passed: true, metrics: 0 };

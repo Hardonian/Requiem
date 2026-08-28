@@ -202,7 +202,7 @@ export async function handleCallTool(
     const policyEnforcer = getPolicyEnforcer();
     const toolDef = getToolDefinition(toolName);
     const policyResult: PolicyCheckResult = policyEnforcer.enforce(ctx, toolName, toolDef);
-    
+
     if (!policyResult.allowed) {
       const err = new AiError({
         code: AiErrorCode.POLICY_CHECK_FAILED,
@@ -212,10 +212,10 @@ export async function handleCallTool(
       console.warn(
         `[MCP Policy] Denied: tool=${toolName} reason=${policyResult.reason} rule=${policyResult.rule || 'unknown'} correlationId=${(ctx as any).correlationId || 'n/a'}`
       );
-      return { 
-        ok: false, 
-        error: err.toSafeJson(), 
-        trace_id: ctx.traceId 
+      return {
+        ok: false,
+        error: err.toSafeJson(),
+        trace_id: ctx.traceId
       };
     }
 

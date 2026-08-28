@@ -1,8 +1,8 @@
 /**
  * reach learn CLI Command
- * 
+ *
  * Outputs learning data: signals, diagnoses, proposed patches
- * 
+ *
  * Usage:
  *   reach learn --window=7d --format=table|json
  */
@@ -32,10 +32,10 @@ export function parseLearnArgs(args: string[]): LearnArgs {
     result.mode = args[0];
     args = args.slice(1);
   }
-  
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
+
     if (arg === '--window' && i + 1 < args.length) {
       result.window = args[++i];
     } else if (arg === '--format' && i + 1 < args.length) {
@@ -49,12 +49,12 @@ export function parseLearnArgs(args: string[]): LearnArgs {
       result.runPipeline = true;
     }
   }
-  
+
   // Default tenant ID if not provided
   if (!result.tenantId) {
     result.tenantId = process.env.REQUIEM_TENANT_ID || 'default-tenant';
   }
-  
+
   return result;
 }
 
@@ -62,16 +62,16 @@ export function parseLearnArgs(args: string[]): LearnArgs {
 
 function parseWindow(window?: string): Date | undefined {
   if (!window) return undefined;
-  
+
   const match = window.match(/^(\d+)([dh])$/);
   if (!match) return undefined;
-  
+
   const value = parseInt(match[1], 10);
   const unit = match[2];
-  
+
   const now = new Date();
   const ms = unit === 'd' ? value * 24 * 60 * 60 * 1000 : value * 60 * 60 * 1000;
-  
+
   return new Date(now.getTime() - ms);
 }
 
@@ -86,19 +86,19 @@ function printTableSummary(
   console.log('┌─────────────────────────────────────────────────────────────────────┐');
   console.log(`│ LEARNING SUMMARY — Tenant: ${tenantId.padEnd(43)}│`);
   console.log('├─────────────────────────────────────────────────────────────────────┤');
-  
+
   // Signal counts
   console.log('│ SIGNALS BY CATEGORY                                                │');
   console.log('├─────────────────────────────────────────────────────────────────────┤');
   for (const [category, count] of Object.entries(summary.signalCounts)) {
     console.log(`│   ${category.padEnd(25)} ${String(count).padStart(10)}`.padEnd(64) + '│');
   }
-  
+
   console.log('├─────────────────────────────────────────────────────────────────────┤');
   console.log(`│ Diagnoses: ${summary.diagnosisCount.toString().padEnd(54)}│`);
   console.log(`│ Patches:   ${summary.patchCount.toString().padEnd(54)}│`);
   console.log('├─────────────────────────────────────────────────────────────────────┤');
-  
+
   // Proposed patches
   console.log('│ PROPOSED PATCHES                                                   │');
   console.log('├─────────────────────────────────────────────────────────────────────┤');
@@ -112,9 +112,9 @@ function printTableSummary(
       console.log(`│   ... and ${summary.proposedPatches.length - 5} more                                       │`);
     }
   }
-  
+
   console.log('├─────────────────────────────────────────────────────────────────────┤');
-  
+
   // Symmetry score
   console.log('│ SYMMETRY SCORE                                                      │');
   console.log('├─────────────────────────────────────────────────────────────────────┤');
@@ -122,7 +122,7 @@ function printTableSummary(
   console.log(`│   Technical:     ${symmetry.technical.failureRecurrenceRate.toFixed(2).padEnd(21)}failure rate│`);
   console.log(`│   Strategic:     ${symmetry.strategic.skillCoverageRatio.toFixed(2).padEnd(21)}skill coverage│`);
   console.log(`│   Economic:     ${symmetry.economic.fairnessIndex.toFixed(2).padEnd(21)}fairness index│`);
-  
+
   console.log('└─────────────────────────────────────────────────────────────────────┘');
   console.log('');
 }
@@ -156,7 +156,7 @@ function printJsonSummary(
       economic: symmetry.economic,
     },
   };
-  
+
   console.log(JSON.stringify(output, null, 2));
 }
 
@@ -165,7 +165,7 @@ function printJsonSummary(
 export async function runLearnCommand(args: string[]): Promise<number> {
   const parsed = parseLearnArgs(args);
   const since = parseWindow(parsed.window);
-  
+
   try {
     // Run pipeline if requested
     if (parsed.runPipeline) {
@@ -176,23 +176,23 @@ export async function runLearnCommand(args: string[]): Promise<number> {
         traceId: `learn-${Date.now().toString(36)}` ,
       });
     }
-    
+
     // Get summary
     const summary = getLearningSummary({
       tenantId: parsed.tenantId!,
       since,
     });
-    
+
     // Get symmetry
     const symmetry = calculateSymmetry(parsed.tenantId!, since);
-    
+
     // Output
     if (parsed.format === 'json') {
       printJsonSummary(parsed.tenantId!, summary, symmetry);
     } else {
       printTableSummary(parsed.tenantId!, summary, symmetry);
     }
-    
+
     return 0;
   } catch (error) {
     if (error instanceof ProofDependencyError) {
@@ -218,7 +218,7 @@ export async function runLearnCommand(args: string[]): Promise<number> {
 export const learn = {
   name: 'learn',
   description: 'Show learning signals, diagnoses, patterns, and drift summaries',
-  
+
   async parse(args: string[]) {
     return runLearnCommand(args);
   },

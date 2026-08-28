@@ -1,6 +1,6 @@
 # HANDOFF_KIMI.md — Next Phase Expansion Tasks
 
-> Status: **Vertical Slice Complete** — Core kernel is solid  
+> Status: **Vertical Slice Complete** — Core kernel is solid
 > Date: 2026-03-02
 
 ---

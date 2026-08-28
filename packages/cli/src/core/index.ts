@@ -1,6 +1,6 @@
 /**
  * Core Module
- * 
+ *
  * Unified error system + structured logging + CLI helpers.
  * No console.* in production paths.
  */
@@ -12,29 +12,29 @@ export {
   type ErrorSeverity,
   type AppError,
   type AppErrorDetails,
-  
+
   // Constants
   ERROR_CATEGORIES,
   SEVERITY_ORDER,
-  
+
   // Factory functions
   err,
   wrap,
   isAppError,
-  
+
   // Serialization
   toJSON,
   toJSONObject,
   formatHuman,
   toHttpStatus,
-  
+
   // Redaction
   sanitizeValue,
   sanitizeError,
-  
+
   // Predefined errors
   Errors,
-  
+
   // Assertions
   assertInvariant,
   assertDefined,
@@ -47,19 +47,19 @@ export {
   type LogEntry,
   type LogFields,
   type LogSink,
-  
+
   // Logger class
   Logger,
-  
+
   // Global logger
   getLogger,
   configureLogger,
   resetLogger,
   logger,
-  
+
   // Sinks
   sinks,
-  
+
   // Dev helpers
   enablePrettyLogs,
   captureLogs,
@@ -80,20 +80,20 @@ export {
   // Types
   type CLIError,
   type HelpTemplate,
-  
+
   // JSON formatting
   deterministicJson,
   stableSortKeys,
-  
+
   // Error handling
   createError,
   formatError,
   formatSuccess,
   handleCliError,
-  
+
   // Help generation
   generateHelp,
-  
+
   // Error codes
   ErrorCodes,
   ErrorHints,

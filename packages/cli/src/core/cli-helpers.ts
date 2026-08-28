@@ -1,6 +1,6 @@
 /**
  * CLI Helpers - Consistent formatting and error handling for CLI commands
- * 
+ *
  * Provides:
  * - Deterministic JSON output (stable key ordering)
  * - Consistent error formatting
@@ -24,18 +24,18 @@ export function stableSortKeys(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
-  
+
   if (Array.isArray(obj)) {
     return obj.map(stableSortKeys);
   }
-  
+
   const sorted: Record<string, unknown> = {};
   const keys = Object.keys(obj).sort();
-  
+
   for (const key of keys) {
     sorted[key] = stableSortKeys((obj as Record<string, unknown>)[key]);
   }
-  
+
   return sorted;
 }
 
@@ -83,7 +83,7 @@ export function formatError(error: CLIError, ctx: CommandContext): string {
       timestamp: error.timestamp,
     });
   }
-  
+
   let output = `[${error.code}] ${error.message}`;
   if (error.hint && ctx.explain) {
     output += `\n  Hint: ${error.hint}`;
@@ -105,11 +105,11 @@ export function formatSuccess(
     ...(meta && { meta }),
     ...(ctx.trace && { traceId: ctx.traceId }),
   };
-  
+
   if (ctx.json) {
     return deterministicJson(stableSortKeys(output));
   }
-  
+
   // Human-readable format
   return Object.entries(data)
     .map(([key, value]) => `${key}: ${formatValue(value)}`)
@@ -140,14 +140,14 @@ export interface HelpTemplate {
  */
 export function generateHelp(template: HelpTemplate): string {
   const lines: string[] = [];
-  
+
   lines.push(template.description);
   lines.push('');
-  
+
   lines.push('USAGE:');
   lines.push(`  ${template.usage}`);
   lines.push('');
-  
+
   if (template.arguments && template.arguments.length > 0) {
     lines.push('ARGUMENTS:');
     for (const arg of template.arguments) {
@@ -156,7 +156,7 @@ export function generateHelp(template: HelpTemplate): string {
     }
     lines.push('');
   }
-  
+
   if (template.options && template.options.length > 0) {
     lines.push('OPTIONS:');
     // Sort options alphabetically by flag
@@ -167,14 +167,14 @@ export function generateHelp(template: HelpTemplate): string {
     }
     lines.push('');
   }
-  
+
   lines.push('EXAMPLES:');
   for (const ex of template.examples) {
     lines.push(`  $ ${ex.command}`);
     lines.push(`    ${ex.description}`);
     lines.push('');
   }
-  
+
   return lines.join('\n');
 }
 
@@ -186,23 +186,23 @@ export const ErrorCodes = {
   E_INVALID_INPUT: 'E_INVALID_INPUT',
   E_MISSING_ARGUMENT: 'E_MISSING_ARGUMENT',
   E_INVALID_JSON: 'E_INVALID_JSON',
-  
+
   // Execution errors
   E_EXECUTION_FAILED: 'E_EXECUTION_FAILED',
   E_POLICY_DENIED: 'E_POLICY_DENIED',
   E_CAPABILITY_DENIED: 'E_CAPABILITY_DENIED',
   E_BUDGET_EXCEEDED: 'E_BUDGET_EXCEEDED',
-  
+
   // System errors
   E_NETWORK_ERROR: 'E_NETWORK_ERROR',
   E_DATABASE_ERROR: 'E_DATABASE_ERROR',
   E_ENGINE_ERROR: 'E_ENGINE_ERROR',
-  
+
   // Resource errors
   E_NOT_FOUND: 'E_NOT_FOUND',
   E_ALREADY_EXISTS: 'E_ALREADY_EXISTS',
   E_CONFLICT: 'E_CONFLICT',
-  
+
   // Unknown
   E_UNKNOWN: 'E_UNKNOWN',
 } as const;
@@ -230,7 +230,7 @@ export function handleCliError(
   options: { defaultCode?: string; defaultHint?: string } = {}
 ): never {
   let cliError: CLIError;
-  
+
   if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
     // Already a structured error
     cliError = {
@@ -252,7 +252,7 @@ export function handleCliError(
       timestamp: new Date().toISOString(),
     };
   }
-  
+
   const output = formatError(cliError, ctx);
   process.stderr.write(output + '\n');
   process.exit(1);

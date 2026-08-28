@@ -1,8 +1,8 @@
 /**
  * reach symmetry CLI Command
- * 
+ *
  * Show symmetry metrics
- * 
+ *
  * Usage:
  *   reach symmetry
  *   reach symmetry --economics
@@ -24,12 +24,12 @@ export async function runSymmetryCommand(args: string[]): Promise<number> {
   const parsed: SymmetryArgs = {
     economics: args.includes('--economics'),
   };
-  
+
   const tenantId = process.env.REQUIEM_TENANT_ID || 'default-tenant';
-  
+
   try {
     const symmetry = calculateSymmetry(tenantId);
-    
+
     console.log('');
     console.log('┌─────────────────────────────────────────────────────────────────────┐');
     console.log('│ SYMMETRY METRICS                                                    │');
@@ -52,7 +52,7 @@ export async function runSymmetryCommand(args: string[]): Promise<number> {
     console.log(`│   Skill Coverage Ratio:   ${symmetry.strategic.skillCoverageRatio.toFixed(4).padEnd(25)}│`);
     console.log(`│   Instruction Coverage:   ${symmetry.strategic.instructionCoverageScore.toFixed(4).padEnd(25)}│`);
     console.log('├─────────────────────────────────────────────────────────────────────┤');
-    
+
     if (parsed.economics || args.includes('--economics')) {
       console.log('│ ECONOMIC SYMMETRY                                                  │');
       console.log('├─────────────────────────────────────────────────────────────────────┤');
@@ -61,10 +61,10 @@ export async function runSymmetryCommand(args: string[]): Promise<number> {
       console.log(`│   Replay Efficiency:      ${symmetry.economic.replayEfficiencyRatio.toFixed(4).padEnd(25)}│`);
       console.log(`│   Fairness Index:         ${symmetry.economic.fairnessIndex.toFixed(4).padEnd(25)}│`);
       console.log('├─────────────────────────────────────────────────────────────────────┤');
-      
+
       // Also show economic summary
       const economicSummary = getEconomicSummary(tenantId);
-      
+
       console.log('│ ECONOMIC SUMMARY                                                    │');
       console.log('├─────────────────────────────────────────────────────────────────────┤');
       console.log(`│   Total Cost:             ${economicSummary.totalCost.toFixed(0).padEnd(25)}│`);
@@ -91,10 +91,10 @@ export async function runSymmetryCommand(args: string[]): Promise<number> {
         }
       }
     }
-    
+
     console.log('└─────────────────────────────────────────────────────────────────────┘');
     console.log('');
-    
+
     return 0;
   } catch (error) {
     console.error('Error calculating symmetry:', error);
@@ -107,7 +107,7 @@ export async function runSymmetryCommand(args: string[]): Promise<number> {
 export const symmetry = {
   name: 'symmetry',
   description: 'Show symmetry metrics',
-  
+
   async parse(args: string[]) {
     return runSymmetryCommand(args);
   },

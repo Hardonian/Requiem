@@ -3,23 +3,23 @@
  *
  * Verifies execution determinism by replaying and comparing fingerprints.
  * Aliases to `replay run <hash> --verify` to surface trust.
- * 
+ *
  * USAGE:
  *   requiem verify <hash> [options]
- * 
+ *
  * ARGUMENTS:
  *   hash                Execution hash to verify (required)
- * 
+ *
  * OPTIONS:
  *   --json              Output in JSON format
  *   --minimal           Quiet deterministic output
  *   --explain           Verbose structural reasoning
  *   --trace             Include trace ID in output
- * 
+ *
  * EXAMPLES:
  *   $ requiem verify sha256:abc123...
  *     Verify execution by hash
- * 
+ *
  *   $ requiem verify abc123 --json
  *     Verify and output result as JSON
  */
@@ -51,10 +51,10 @@ export async function runVerifyCommand(
     if (hash === 'proof-pack') {
       return runProofPackVerifyCommand(ctx);
     }
-    
+
     // We need to invoke the replay command's 'run' subcommand programmatically.
     const runCommand = replay.commands.find(cmd => cmd.name() === 'run');
-    
+
     if (!runCommand) {
       throw createError(
         ErrorCodes.E_ENGINE_ERROR,
@@ -62,10 +62,10 @@ export async function runVerifyCommand(
         { hint: 'The replay system may not be properly initialized.' }
       );
     }
-    
+
     // The action handler for 'run' takes (runId, options)
     const action = (runCommand as unknown as { _actionHandler?: (args: string[], options: { verify: boolean; verbose: boolean }) => Promise<void> })._actionHandler;
-    
+
     if (action) {
       if (!ctx.minimal) {
         process.stdout.write(`Verifying execution ${hash}...\n`);

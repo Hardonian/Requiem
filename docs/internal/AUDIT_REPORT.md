@@ -1,7 +1,7 @@
 # Tenant Isolation Security Audit Report
 
-**Audit Date:** 2026-02-28  
-**Phase:** 1 - End-to-End Audit  
+**Audit Date:** 2026-02-28
+**Phase:** 1 - End-to-End Audit
 **Classification:** Internal Security Assessment
 
 ---
@@ -39,8 +39,8 @@ This audit identified **CRITICAL** tenant isolation vulnerabilities in the Requi
 
 ### FINDING #1: Client-Supplied Tenant ID (BLOCKER)
 
-**Severity:** BLOCKER  
-**File:** `ready-layer/src/lib/auth.ts`  
+**Severity:** BLOCKER
+**File:** `ready-layer/src/lib/auth.ts`
 **Lines:** 68-90
 
 **Evidence:**
@@ -81,8 +81,8 @@ const tenant_id = payload.tenant_id; // From token claims
 
 ### FINDING #2: RPC Functions Accept Unsanitized tenant_id (BLOCKER)
 
-**Severity:** BLOCKER  
-**File:** `ready-layer/migrations/20260228000000_vector_search_initial.sql`  
+**Severity:** BLOCKER
+**File:** `ready-layer/migrations/20260228000000_vector_search_initial.sql`
 **Lines:** 359-398, 401-439
 
 **Evidence:**
@@ -136,8 +136,8 @@ $$;
 
 ### FINDING #3: Missing RLS Enforcement on RPC Functions (HIGH)
 
-**Severity:** HIGH  
-**File:** `ready-layer/migrations/20260228000000_vector_search_initial.sql`  
+**Severity:** HIGH
+**File:** `ready-layer/migrations/20260228000000_vector_search_initial.sql`
 **Lines:** 359-468
 
 **Issue:** While RLS policies exist on the tables, RPC functions bypass RLS when called directly. The migration creates functions that run with SECURITY DEFINER privilege (implied), which bypasses RLS.
@@ -165,8 +165,8 @@ BEGIN
 
 ### FINDING #4: Dev Mode Authentication Bypass (HIGH)
 
-**Severity:** HIGH  
-**File:** `ready-layer/src/lib/auth.ts`  
+**Severity:** HIGH
+**File:** `ready-layer/src/lib/auth.ts`
 **Lines:** 68-75
 
 **Evidence:**
@@ -202,8 +202,8 @@ if (process.env.NODE_ENV === 'development' && !process.env.REQUIEM_AUTH_SECRET) 
 
 ### FINDING #5: CLI Has No Tenant Isolation (MEDIUM)
 
-**Severity:** MEDIUM  
-**File:** `packages/cli/src/db/connection.ts`  
+**Severity:** MEDIUM
+**File:** `packages/cli/src/db/connection.ts`
 **Lines:** 219-268
 
 **Evidence:**
@@ -235,8 +235,8 @@ dbInstance.exec(`
 
 ### FINDING #6: Public Route Disclosure (LOW)
 
-**Severity:** LOW  
-**File:** `ready-layer/src/app/api/health/route.ts`  
+**Severity:** LOW
+**File:** `ready-layer/src/app/api/health/route.ts`
 **Lines:** 25-29
 
 **Evidence:**

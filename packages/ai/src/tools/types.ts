@@ -96,7 +96,7 @@ export interface ToolInvocationResult {
 
 /**
  * Enhanced audit record for policy decisions.
- * 
+ *
  * INVARIANT: All policy decisions MUST be logged.
  * INVARIANT: Audit records are immutable - never modify after creation.
  * INVARIANT: Input is never logged - only its hash for identification.

@@ -1,11 +1,11 @@
 # PLATFORM_HARDENING_REPORT
 
-Date: 2026-03-14  
+Date: 2026-03-14
 Repository: Requiem (current branch)
 
 ## Executive summary
 
-This pass focused on architectural integrity and contract truth, with minimal-change hardening.  
+This pass focused on architectural integrity and contract truth, with minimal-change hardening.
 The main gaps were documentation-level ambiguity (security posture + cross-layer invariants), not a fundamental absence of verification machinery.
 
 ### PLATFORM_MATURITY_SCORE

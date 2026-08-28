@@ -22,9 +22,9 @@ API_DIR="ready-layer/src/app/api"
 if [ -d "$API_DIR" ]; then
     ROUTE_FILES=$(find "$API_DIR" -name "route.ts" -o -name "route.js" 2>/dev/null || true)
     TOTAL_ROUTES=$(echo "$ROUTE_FILES" | grep -c "\." || echo "0")
-    
+
     echo "Found $TOTAL_ROUTES route files"
-    
+
     # Check for try/catch in each route
     for route in $ROUTE_FILES; do
         ROUTE_NAME=$(basename $(dirname "$route"))
@@ -33,7 +33,7 @@ if [ -d "$API_DIR" ]; then
             ((WARNINGS++))
         fi
     done
-    
+
     # Check for dynamic export (required for Next.js API routes)
     WITHOUT_DYNAMIC=$(grep -L "export const dynamic" $ROUTE_FILES 2>/dev/null || true)
     if [ -n "$WITHOUT_DYNAMIC" ]; then
@@ -41,7 +41,7 @@ if [ -d "$API_DIR" ]; then
         echo "$WITHOUT_DYNAMIC" | head -3 | sed 's/^/    /'
         ((WARNINGS++))
     fi
-    
+
     echo "  ✅ Checked $TOTAL_ROUTES API routes"
 else
     echo "  ⚠️  API directory not found: $API_DIR"

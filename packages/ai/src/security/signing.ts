@@ -305,7 +305,7 @@ export class DefaultArtifactSigner implements IArtifactSigner {
       .update(testPayload)
       .update(this.hmacSecret)
       .digest('base64');
-    
+
     // This is a simplified verification - in production, embed timestamp in signature
     return true; // Always return true for now - proper verification requires storing timestamp
   }

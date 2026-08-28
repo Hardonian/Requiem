@@ -1,12 +1,12 @@
 /**
  * Learning Pipeline
- * 
+ *
  * Deterministic pipeline: signals → diagnoses → patch proposals
- * 
+ *
  * - Signals are captured during runtime execution
  * - Diagnoses map signals to root causes with confidence scores
  * - Patch proposals are generated from diagnoses
- * 
+ *
  * All outputs are artifacts only - never auto-applied.
  */
 
@@ -110,11 +110,11 @@ export function diagnose(params: DiagnoseParams): LearningDiagnosis[] {
     params.tenantId,
     params.since
   );
-  
+
   if (signals.length === 0) {
     return [];
   }
-  
+
   // Group signals by category
   const categoryGroups = new Map<SignalCategory, LearningSignal[]>();
   for (const signal of signals) {
@@ -122,27 +122,27 @@ export function diagnose(params: DiagnoseParams): LearningDiagnosis[] {
     group.push(signal);
     categoryGroups.set(signal.category, group);
   }
-  
+
   const diagnoses: LearningDiagnosis[] = [];
-  
+
   // Generate diagnosis for each category that exceeds threshold
   for (const [category, categorySignals] of categoryGroups) {
     if (categorySignals.length >= SIGNAL_THRESHOLD) {
       const rootCause = ROOT_CAUSE_MAPPER[category];
       const confidenceScore = calculateConfidenceScore(categorySignals.length);
       const signalIds = categorySignals.map(s => s.id);
-      
+
       const diagnosis = LearningDiagnosisRepository.create({
         tenantId: params.tenantId,
         signalIds,
         rootCause,
         confidenceScore,
       });
-      
+
       diagnoses.push(diagnosis);
     }
   }
-  
+
   return diagnoses;
 }
 
@@ -164,21 +164,21 @@ export interface GeneratePatchParams {
 export function generatePatch(params: GeneratePatchParams): LearningPatch | null {
   enforceProofDependencies({ proofs: params.proofPacks, traceId: params.traceId });
   const diagnosis = LearningDiagnosisRepository.findById(params.diagnosisId);
-  
+
   if (!diagnosis) {
     return null;
   }
-  
+
   const patchType = PATCH_TYPE_PROPOSER[diagnosis.root_cause];
   const targetFiles = ROOT_CAUSE_TARGET_FILES[diagnosis.root_cause] || [];
-  
+
   // Generate rollback plan if not provided
   const rollbackPlan = params.rollbackPlan || {
     action: 'revert',
     target: 'previous_state',
     verification: 'run full verify suite',
   };
-  
+
   // Generate patch diff if not provided
   const patchDiff = params.patchDiff || {
     type: patchType,
@@ -186,7 +186,7 @@ export function generatePatch(params: GeneratePatchParams): LearningPatch | null
     confidence: diagnosis.confidence_score,
     description: `Proposed fix for ${diagnosis.root_cause}`,
   };
-  
+
   return LearningPatchRepository.create({
     tenantId: params.tenantId,
     diagnosisId: params.diagnosisId,
@@ -224,16 +224,16 @@ export function runLearningPipeline(
     params.tenantId,
     params.since
   );
-  
+
   // Step 2: Generate diagnoses from signals
   const diagnoses = diagnose({
     tenantId: params.tenantId,
     since: params.since,
   });
-  
+
   // Step 3: Generate patch proposals from diagnoses
   const patches: LearningPatch[] = [];
-  
+
   if (params.autoGeneratePatches !== false) {
     for (const diagnosis of diagnoses) {
       const patch = generatePatch({
@@ -242,13 +242,13 @@ export function runLearningPipeline(
         traceId: params.traceId,
         proofPacks: params.proofPacks,
       });
-      
+
       if (patch) {
         patches.push(patch);
       }
     }
   }
-  
+
   return {
     signals,
     diagnoses,
@@ -280,19 +280,19 @@ export function getLearningSummary(params: LearningSummaryParams): LearningSumma
     params.tenantId,
     params.since
   );
-  
+
   const signalCounts: Partial<Record<SignalCategory, number>> = {};
   for (const signal of signals) {
     signalCounts[signal.category] = (signalCounts[signal.category] || 0) + 1;
   }
-  
+
   const diagnoses = LearningDiagnosisRepository.findByTenant(
     params.tenantId,
     params.since
   );
-  
+
   const patches = LearningPatchRepository.findByTenant(params.tenantId);
-  
+
   return {
     signalCounts: signalCounts as Record<SignalCategory, number>,
     diagnosisCount: diagnoses.length,

@@ -18,13 +18,13 @@ export default function StatusPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">System Status</h1>
-        
+
         <div className="bg-white rounded-xl p-8 shadow-sm mb-8">
           <div className="flex items-center gap-3 mb-6">
             <span className="w-3 h-3 bg-green-500 rounded-full"></span>
             <span className="text-xl font-semibold text-gray-900">All Systems Operational</span>
           </div>
-          
+
           <div className="space-y-4">
             {services.map((service) => (
               <div key={service.name} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
@@ -33,8 +33,8 @@ export default function StatusPage() {
                   <p className="text-sm text-gray-500">{service.description}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm ${
-                  service.status === 'operational' 
-                    ? 'bg-green-100 text-green-700' 
+                  service.status === 'operational'
+                    ? 'bg-green-100 text-green-700'
                     : 'bg-red-100 text-red-700'
                 }`}>
                   {service.status}

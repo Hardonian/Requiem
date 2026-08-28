@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Verify no console.* usage in production code paths
- * 
+ *
  * INVARIANT: No console.log/error/warn/info in production code.
  * Allowed: console.* in tests, scripts, and explicitly whitelisted files.
  */
@@ -15,18 +15,18 @@ const WHITELIST = new Set([
   '.test.ts',
   '.spec.ts',
   '__tests__',
-  
+
   // Scripts that run outside CLI
   'scripts/',
-  
+
   // This file itself
   'verify-no-console.ts',
-  
+
   // Build/dev scripts
   'vite.config.',
   'next.config.',
   'webpack.config.',
-  
+
   // CLI entry point allowed for stdout writes (not logs)
   // But we still want to catch console.* there
 ]);
@@ -45,39 +45,39 @@ interface Violation {
 
 function shouldCheckFile(filePath: string): boolean {
   // Skip node_modules, dist, etc.
-  if (filePath.includes('node_modules') || 
-      filePath.includes('dist/') || 
+  if (filePath.includes('node_modules') ||
+      filePath.includes('dist/') ||
       filePath.includes('.next/') ||
       filePath.includes('build/')) {
     return false;
   }
-  
+
   // Skip declaration files
   if (filePath.endsWith('.d.ts')) return false;
-  
+
   // Skip whitelisted paths
   for (const white of WHITELIST) {
     if (filePath.includes(white)) return false;
   }
-  
+
   return filePath.endsWith('.ts') || filePath.endsWith('.tsx');
 }
 
 function findViolations(dir: string): Violation[] {
   const violations: Violation[] = [];
-  
+
   function scan(directory: string) {
     const entries = fs.readdirSync(directory, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(directory, entry.name);
-      
+
       if (entry.isDirectory()) {
         scan(fullPath);
       } else if (shouldCheckFile(fullPath)) {
         const content = fs.readFileSync(fullPath, 'utf-8');
         const lines = content.split('\n');
-        
+
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
           // Match console.log, console.error, console.warn, console.info
@@ -100,25 +100,25 @@ function findViolations(dir: string): Violation[] {
       }
     }
   }
-  
+
   scan(dir);
   return violations;
 }
 
 function main(): number {
   const targetDir = process.argv[2] || 'packages/cli/src';
-  
+
   console.log(`🔍 Scanning ${targetDir} for console.* usage...\n`);
-  
+
   const violations = findViolations(targetDir);
-  
+
   if (violations.length === 0) {
     console.log('✅ No console.* violations found in production code.');
     return 0;
   }
-  
+
   console.log(`❌ Found ${violations.length} console.* usage violation(s):\n`);
-  
+
   // Group by file
   const byFile = new Map<string, Violation[]>();
   for (const v of violations) {
@@ -126,7 +126,7 @@ function main(): number {
     list.push(v);
     byFile.set(v.file, list);
   }
-  
+
   for (const [file, vs] of byFile) {
     console.log(`  ${file}`);
     for (const v of vs) {
@@ -134,12 +134,12 @@ function main(): number {
     }
     console.log();
   }
-  
+
   console.log('Fix: Replace console.* with logger.* from core/logging.ts');
   console.log('Example:');
   console.log('  ❌ console.log("message")');
   console.log('  ✅ logger.info("event_name", "message", { fields })');
-  
+
   return 1;
 }
 

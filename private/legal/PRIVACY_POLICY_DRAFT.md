@@ -1,6 +1,6 @@
 # Privacy Policy (Draft): Requiem
 
-**Version**: 0.1.0-DRAFT  
+**Version**: 0.1.0-DRAFT
 **Last Updated**: 2026-03-02
 
 ## 1. Introduction

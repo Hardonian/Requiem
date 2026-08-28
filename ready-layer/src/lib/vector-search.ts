@@ -109,7 +109,7 @@ let supabaseClient: SupabaseClient | null = null;
 
 /**
  * Get or create the Supabase client
- * 
+ *
  * @returns Supabase client or null if not configured
  */
 export function getSupabaseClient(): SupabaseClient | null {
@@ -140,7 +140,7 @@ export function getSupabaseClient(): SupabaseClient | null {
 
 /**
  * Check if vector search is available
- * 
+ *
  * @returns true if the vector search subsystem is configured
  */
 export function isVectorSearchAvailable(): boolean {
@@ -153,11 +153,11 @@ export function isVectorSearchAvailable(): boolean {
 
 /**
  * Generate embeddings for text
- * 
+ *
  * EXTENSION_POINT: embedding_provider
  * This is a stub implementation that returns a zero vector.
  * Replace with actual embedding provider integration.
- * 
+ *
  * @param params - Text and model parameters
  * @returns Embedding vector
  */
@@ -165,14 +165,14 @@ export async function generateEmbedding(
   params: GenerateEmbeddingParams,
 ): Promise<number[]> {
   // STUB: Return zero vector (replace with actual embedding provider)
-  // 
+  //
   // Upgrade paths:
   // 1. OpenAI: const response = await openai.embeddings.create({...})
   // 2. Cohere: const response = await cohere.embed({...})
   // 3. Self-hosted: Call internal embedding service
 
   const dimension = DEFAULT_VECTOR_SEARCH_CONFIG.dimension;
-  
+
   console.warn(
     `[vector-search] generateEmbedding is stubbed. ` +
     `Returning zero vector of dimension ${dimension}. ` +
@@ -185,7 +185,7 @@ export async function generateEmbedding(
 
 /**
  * Generate embeddings for multiple texts
- * 
+ *
  * @param texts - Array of texts to embed
  * @param model - Model to use (optional)
  * @returns Array of embedding vectors
@@ -207,7 +207,7 @@ export async function generateEmbeddings(
 
 /**
  * Perform vector similarity search
- * 
+ *
  * @param params - Search parameters
  * @returns Array of search results with similarity scores
  */
@@ -250,7 +250,7 @@ export async function vectorSearch(
 
 /**
  * Perform text-based search (fallback when vector search unavailable)
- * 
+ *
  * @param params - Search parameters
  * @returns Array of text search results
  */
@@ -292,7 +292,7 @@ export async function textSearch(
 
 /**
  * Search with automatic fallback from vector to text search
- * 
+ *
  * @param params - Search parameters
  * @param preferVector - Whether to try vector search first (default: true)
  * @returns Search results
@@ -332,12 +332,12 @@ export async function hybridSearch(
 
 /**
  * Index a document for vector search
- * 
+ *
  * This function:
  * 1. Creates the document record
  * 2. Generates embeddings for the content
  * 3. Stores embeddings in the vector_embeddings table
- * 
+ *
  * @param params - Document parameters
  * @returns Created document ID or null on failure
  */
@@ -433,7 +433,7 @@ export async function indexDocument(
 
 /**
  * Delete a document and its embeddings
- * 
+ *
  * @param tenant_id - Tenant ID
  * @param document_id - Document ID to delete
  * @returns True if successful
@@ -472,7 +472,7 @@ export async function deleteDocument(
 
 /**
  * Log a vector query for observability
- * 
+ *
  * @param tenant_id - Tenant ID
  * @param actor_user_id - User performing the search
  * @param query_text - Search query text
@@ -511,7 +511,7 @@ export async function logQuery(
 
 /**
  * Calculate SHA-256 hash of content for deduplication
- * 
+ *
  * @param content - Content to hash
  * @returns Hex-encoded hash string
  */
@@ -526,7 +526,7 @@ async function calculateContentHash(content: string): Promise<string> {
 
 /**
  * Normalize embedding vector to unit length (for cosine similarity)
- * 
+ *
  * @param embedding - Raw embedding vector
  * @returns Normalized embedding vector
  */

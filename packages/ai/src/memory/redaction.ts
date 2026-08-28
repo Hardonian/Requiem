@@ -1,13 +1,13 @@
 /**
  * @fileoverview Centralized Secrets Redaction Pipeline
- * 
+ *
  * Provides comprehensive redaction for:
  * - Environment variables
  * - Log entries
  * - Error traces
  * - Bugreport bundles
  * - API tokens and keys
- * 
+ *
  * This module is the single source of truth for redaction patterns.
  * All output paths MUST go through this module to ensure no secrets leak.
  */
@@ -96,12 +96,12 @@ export function clearUserPatterns(): void {
  */
 export function redactString(value: string): string {
   let result = value;
-  
+
   // Apply core patterns
   for (const { pattern, replacement } of CORE_PATTERNS) {
     result = result.replace(pattern, replacement);
   }
-  
+
   // Apply user patterns
   for (const { pattern, replacement } of userPatterns) {
     try {
@@ -111,7 +111,7 @@ export function redactString(value: string): string {
       // Skip invalid patterns
     }
   }
-  
+
   return result;
 }
 
@@ -149,7 +149,7 @@ export function redactObject<T>(value: unknown): T {
 export function redactEnv(env: Record<string, string>): Record<string, string> {
   const redacted: Record<string, string> = {};
   const secretKeys = /^(REQUIEM_|API_|SECRET|PASSWORD|TOKEN|KEY|AUTH|CREDENTIAL)/i;
-  
+
   for (const [key, value] of Object.entries(env)) {
     if (secretKeys.test(key)) {
       redacted[key] = '[REDACTED]';
@@ -157,7 +157,7 @@ export function redactEnv(env: Record<string, string>): Record<string, string> {
       redacted[key] = redactString(value);
     }
   }
-  
+
   return redacted;
 }
 
@@ -263,11 +263,11 @@ const SENSITIVE_CONFIG_KEYS = [
  */
 export function redactConfig(config: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(config)) {
     const lowerKey = key.toLowerCase();
     const isSensitive = SENSITIVE_CONFIG_KEYS.some(sk => lowerKey.includes(sk.toLowerCase()));
-    
+
     if (isSensitive) {
       result[key] = '[REDACTED]';
     } else if (typeof value === 'object' && value !== null) {
@@ -278,7 +278,7 @@ export function redactConfig(config: Record<string, unknown>): Record<string, un
       result[key] = value;
     }
   }
-  
+
   return result;
 }
 

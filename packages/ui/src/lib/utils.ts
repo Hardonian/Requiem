@@ -1,6 +1,6 @@
 /**
  * Requiem UI Utilities
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/lib/utils.ts
  * EXTENSION_POINT: Add formatters, validators, and shared utilities here
  */
@@ -47,12 +47,12 @@ export function formatDate(date: Date | string | number): string {
 export function formatRelativeTime(date: Date | string | number): string {
   const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
   const seconds = Math.floor((new Date().getTime() - d.getTime()) / 1000)
-  
+
   if (seconds < 60) return 'just now'
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
-  
+
   return formatDate(d)
 }
 
@@ -85,13 +85,13 @@ export function debounce<T extends (...args: unknown[]) => void>(
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null
-  
+
   return function executedFunction(...args: Parameters<T>): void {
     const later = (): void => {
       timeout = null
       func(...args)
     }
-    
+
     if (timeout) {
       clearTimeout(timeout)
     }

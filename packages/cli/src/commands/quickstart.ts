@@ -112,7 +112,7 @@ export const quickstart = new Command('quickstart')
       // Step 2: Infrastructure
       if (!options.json) {
         logStep('Step 2: Checking infrastructure...', false);
-        
+
         // Check if DB is running
         try {
           execSync('docker ps | grep postgres', { stdio: 'pipe' });
@@ -139,32 +139,32 @@ export const quickstart = new Command('quickstart')
       if (!options.json) {
         logStep('Step 3: Running your first deterministic execution...', false);
         console.log('Executing: reach run system.echo "Hello, Determinism!"');
-        
+
         try {
           // We use the CLI itself to run the command
           // Assuming we are in the root or can call `pnpm exec reach`
           // For this script, we'll try to import the tool runner directly or spawn the process
           // Spawning is safer to simulate real user experience
-          
+
           const output = execSync('pnpm exec reach run system.echo "Hello, Determinism!" --json', { encoding: 'utf-8' });
           const result = JSON.parse(output);
-          
+
           if (result.executionHash) {
             console.log(`✓ Execution successful!`);
             console.log(`  Hash: ${result.executionHash}`);
             console.log(`  Output: ${JSON.stringify(result.output)}`);
-            
+
             // Step 4: Verification
             logStep('Step 4: Verifying determinism...', false);
             console.log(`Replaying hash: ${result.executionHash}`);
-            
+
             try {
               execSync(`pnpm exec reach verify ${result.executionHash}`, { stdio: 'inherit' });
               console.log('✓ Determinism verified!');
             } catch {
               console.error('❌ Verification failed.');
             }
-            
+
           } else {
             console.log('⚠ Execution finished but no hash returned.');
           }

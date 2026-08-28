@@ -1,18 +1,18 @@
 /**
  * Enterprise Components
- * 
+ *
  * WARNING: These components are for Enterprise use only.
  * Importing these in OSS code paths will fail the boundary check.
- * 
+ *
  * Components in this module:
  * - TenantSwitcher: Multi-tenant workspace selector
  * - RoleBadge: User role display with permissions
  * - AuditLogViewer: Security audit trail display
  * - BillingMeter: Usage and quota visualization
- * 
+ *
  * OSS Build Guarantee: The verify:boundaries script ensures these
  * components are not imported in OSS-only code paths.
- * 
+ *
  * @enterprise-only
  */
 

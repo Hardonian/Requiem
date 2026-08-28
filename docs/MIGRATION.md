@@ -1,6 +1,6 @@
 # Migration Guide
 
-> **Version**: 1.4.0  
+> **Version**: 1.4.0
 > **Last Updated**: 2026-03-01 (Phase 5 Documentation Finalization)
 
 ## v0.x to v1.0
@@ -16,13 +16,13 @@ v1.0 introduces breaking changes:
 
 ### Pre-Migration Checklist
 
-- [x] Backup existing CAS  
+- [x] Backup existing CAS
       _Validated: 2026-03-01 — Automated backup verified_
-- [x] Run `requiem validate-replacement` on current version  
+- [x] Run `requiem validate-replacement` on current version
       _Validated: 2026-03-01 — Replacement validation passes_
-- [x] Document current hash primitives in use  
+- [x] Document current hash primitives in use
       _Validated: 2026-03-01 — Hash primitive audit complete_
-- [x] Test migration in staging environment  
+- [x] Test migration in staging environment
       _Validated: 2026-03-01 — Staging migration successful_
 
 ### Migration Steps

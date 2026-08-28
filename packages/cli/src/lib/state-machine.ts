@@ -1,10 +1,10 @@
 /**
  * State Machine — Prevent Impossible States
- * 
+ *
  * INVARIANT: All state transitions are explicit and validated.
  * INVARIANT: Invalid transitions fail deterministically.
  * INVARIANT: Terminal states are immutable.
- * 
+ *
  * Used for: job executions, runs, workflows, background tasks.
  */
 
@@ -470,13 +470,13 @@ BEGIN
   IF OLD.state = NEW.state THEN
     RETURN NEW;
   END IF;
-  
+
   CASE
     ${cases}
     ELSE
       RAISE EXCEPTION 'Invalid state transition: % → %', OLD.state, NEW.state;
   END CASE;
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

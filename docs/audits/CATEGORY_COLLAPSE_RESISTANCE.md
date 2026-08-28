@@ -1,6 +1,6 @@
 # Category Collapse Resistance: SSM vs CI Wrappers
 
-**Date:** 2026-03-02  
+**Date:** 2026-03-02
 **Purpose:** Truthful technical analysis of what differentiates SSM from CI-based approaches
 
 ---

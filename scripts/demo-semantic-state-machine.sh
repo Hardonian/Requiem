@@ -73,7 +73,7 @@ STATES=$($REACH_CMD state list --label demo=true --minimal 2>/dev/null || echo "
 if [ -n "$STATES" ]; then
     STATE_A=$(echo "$STATES" | grep gpt-4 | awk '{print $1}' | head -1)
     STATE_B=$(echo "$STATES" | grep claude-3 | awk '{print $1}' | head -1)
-    
+
     if [ -n "$STATE_A" ] && [ -n "$STATE_B" ]; then
         $REACH_CMD state diff $STATE_A $STATE_B 2>/dev/null || echo "   (Diff requires states to exist)"
     fi

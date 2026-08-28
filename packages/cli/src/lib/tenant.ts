@@ -1,10 +1,10 @@
 /**
  * Tenant Resolution — Single Source of Truth
- * 
+ *
  * INVARIANT: Tenant derivation is ALWAYS server-side.
  * INVARIANT: Client input is NEVER trusted for tenant identification.
  * INVARIANT: All tenant-scoped operations validate membership.
- * 
+ *
  * This module provides the canonical tenant resolution logic for:
  * - API routes (HTTP requests)
  * - CLI commands (session context)

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Replicate Command
- * 
+ *
  * Multi-region durability through export/import of replication streams.
- * 
+ *
  * Usage:
  *   reach replicate export --since <cursor> --out <file>
  *   reach replicate import --in <file>
@@ -77,17 +77,17 @@ async function exportReplication(
 ): Promise<void> {
   const config = getReplicationConfig();
   const db = getDB();
-  
+
   logger.info('replicate.export_start', 'Starting replication export', {
     since,
     outPath,
     limit: options.limit || config.exportChunkLimit,
   });
-  
+
   const events: ReplicationEvent[] = [];
   const { timestamp: sinceTimestamp } = parseCursor(since);
   const sinceIso = new Date(sinceTimestamp).toISOString();
-  
+
   // Query runs since cursor
   const runs = db
     .prepare('SELECT * FROM runs WHERE created_at > ? ORDER BY created_at ASC LIMIT ?')
@@ -98,7 +98,7 @@ async function exportReplication(
       metadata_json: string;
       status: string;
     }>;
-  
+
   for (let i = 0; i < runs.length; i++) {
     const run = runs[i];
     events.push({
@@ -115,7 +115,7 @@ async function exportReplication(
       },
     });
   }
-  
+
   // Query decisions since cursor
   const decisions = db
     .prepare('SELECT * FROM decisions WHERE created_at > ? ORDER BY created_at ASC LIMIT ?')
@@ -127,7 +127,7 @@ async function exportReplication(
       decision_output: string;
       input_fingerprint: string;
     }>;
-  
+
   for (let i = 0; i < decisions.length; i++) {
     const decision = decisions[i];
     events.push({
@@ -146,10 +146,10 @@ async function exportReplication(
       },
     });
   }
-  
+
   // Sort events by timestamp
   events.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  
+
   const stream: ReplicationStream = {
     version: VERSION,
     exportedAt: new Date().toISOString(),
@@ -160,22 +160,22 @@ async function exportReplication(
     events,
     streamHash: '', // Computed below
   };
-  
+
   // Compute stream hash (deterministic)
   const streamForHash = { ...stream };
   delete (streamForHash as { streamHash?: string }).streamHash;
   stream.streamHash = generateStreamHash(streamForHash);
-  
+
   // Write output
   writeFileSync(outPath, JSON.stringify(stream, null, 2));
-  
+
   logger.info('replicate.export_complete', 'Replication export complete', {
     eventsExported: events.length,
     cursorStart: stream.cursorStart,
     cursorEnd: stream.cursorEnd,
     outPath,
   });
-  
+
   console.log(`Exported ${events.length} events to ${outPath}`);
   console.log(`Cursor range: ${stream.cursorStart} → ${stream.cursorEnd}`);
 }
@@ -196,30 +196,30 @@ function generateStreamHash(stream: Omit<ReplicationStream, 'streamHash'>): stri
 // Import replication stream
 async function importReplication(inPath: string, options: { dryRun?: boolean; skipVerify?: boolean }): Promise<void> {
   const config = getReplicationConfig();
-  
+
   logger.info('replicate.import_start', 'Starting replication import', {
     inPath,
     dryRun: options.dryRun,
   });
-  
+
   if (!existsSync(inPath)) {
     throw new Error(`Input file not found: ${inPath}`);
   }
-  
+
   const stream: ReplicationStream = JSON.parse(readFileSync(inPath, 'utf-8'));
-  
+
   // Verify stream hash
   if (!options.skipVerify) {
     const streamForHash = { ...stream };
     delete (streamForHash as { streamHash?: string }).streamHash;
     const computedHash = generateStreamHash(streamForHash);
-    
+
     if (computedHash !== stream.streamHash) {
       throw new Error(`Stream hash verification failed: expected ${stream.streamHash}, got ${computedHash}`);
     }
     console.log('✓ Stream hash verified');
   }
-  
+
   // Verify signatures if required
   if (config.requireSignatures && !options.skipVerify) {
     for (const event of stream.events) {
@@ -231,30 +231,30 @@ async function importReplication(inPath: string, options: { dryRun?: boolean; sk
       }
     }
   }
-  
+
   if (options.dryRun) {
     console.log(`\nDRY RUN: Would import ${stream.eventCount} events`);
     console.log(`From: ${stream.exportedBy} at ${stream.exportedAt}`);
     console.log(`Cursor: ${stream.cursorStart} → ${stream.cursorEnd}`);
     return;
   }
-  
+
   const db = getDB();
   let importedCount = 0;
   let skippedCount = 0;
-  
+
   // Import events
   for (const event of stream.events) {
     // Tag with origin
     const originTag = `${stream.exportedBy}:${event.region || 'unknown'}`;
-    
+
     switch (event.type) {
       case 'RunCreated': {
         const payload = event.payload as { runId: string; status: string; policySnapshotHash: string };
-        
+
         // Check for fingerprint conflicts
         const existing = db.prepare('SELECT run_id FROM runs WHERE run_id = ?').get(payload.runId) as { run_id: string } | undefined;
-        
+
         if (existing) {
           // Mark as divergence
           logger.warn('replicate.divergence_detected', 'Run fingerprint conflict', {
@@ -275,13 +275,13 @@ async function importReplication(inPath: string, options: { dryRun?: boolean; sk
         }
         break;
       }
-        
+
       case 'ProviderDecision': {
         const payload = event.payload as { decisionId: string; inputFingerprint: string };
-        
+
         // Check for existing decision with same fingerprint
         const existing = db.prepare('SELECT id FROM decisions WHERE id = ?').get(payload.decisionId) as { id: string } | undefined;
-        
+
         if (existing) {
           logger.warn('replicate.divergence_detected', 'Decision fingerprint conflict', {
             decisionId: payload.decisionId,
@@ -293,7 +293,7 @@ async function importReplication(inPath: string, options: { dryRun?: boolean; sk
         }
         break;
       }
-        
+
       default:
         logger.debug('replicate.skipped_event', 'Unhandled event type', {
           type: event.type,
@@ -301,13 +301,13 @@ async function importReplication(inPath: string, options: { dryRun?: boolean; sk
         });
     }
   }
-  
+
   logger.info('replicate.import_complete', 'Replication import complete', {
     imported: importedCount,
     skipped: skippedCount,
     from: stream.exportedBy,
   });
-  
+
   console.log(`\nImport complete:`);
   console.log(`  Imported: ${importedCount} events`);
   console.log(`  Skipped (divergence): ${skippedCount} events`);

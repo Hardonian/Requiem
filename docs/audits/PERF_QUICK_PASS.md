@@ -1,6 +1,6 @@
 # Performance Quick Pass Report
 
-> Generated: 2026-03-02  
+> Generated: 2026-03-02
 > Scope: Performance regression check and quick wins
 
 ---

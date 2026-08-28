@@ -2,12 +2,12 @@
 
 /**
  * StitchIcon - SVG icon wrapper with consistent sizing
- * 
+ *
  * Provides common icons used in Stitch designs
  */
 
-export type IconName = 
-  | 'layers' | 'account' | 'verified' | 'schema' | 'gavel' | 'hub' | 'fingerprint' 
+export type IconName =
+  | 'layers' | 'account' | 'verified' | 'schema' | 'gavel' | 'hub' | 'fingerprint'
   | 'wallet' | 'chevron-right' | 'trending-up' | 'schedule' | 'arrow-down'
   | 'database' | 'folder-zip' | 'key' | 'sync' | 'check-circle' | 'warning'
   | 'info' | 'arrow-back' | 'article' | 'shield' | 'settings' | 'analytics';
@@ -54,10 +54,10 @@ const iconPaths: Record<IconName, string> = {
 
 export function StitchIcon({ name, className = '', size = 'md' }: StitchIconProps) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      className={`${iconSizes[size]} ${className}`} 
-      viewBox="0 0 24 24" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className={`${iconSizes[size]} ${className}`}
+      viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
     >

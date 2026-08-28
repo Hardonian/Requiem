@@ -441,14 +441,14 @@ let _ipLimiter: IpRateLimiter | null = null;
 /**
  * Get (or lazily create) the singleton rate limiter.
  * Config is read from env on first access; subsequent calls reuse the instance.
- * 
+ *
  * WARNING: In production (NODE_ENV=production), distributed rate limiting is REQUIRED.
  * Set REQUIEM_RATE_LIMIT_DISTRIBUTED=true and configure REQUIEM_RATE_LIMIT_ENDPOINT.
  */
 export function getRateLimiter(): SlidingWindowRateLimiter {
   if (!_limiter) {
     const config = loadRateLimitConfig();
-    
+
     // Production validation: warn if distributed mode is not enabled
     if (process.env.NODE_ENV === 'production' && !config.distributed) {
       logger.error(
@@ -456,12 +456,12 @@ export function getRateLimiter(): SlidingWindowRateLimiter {
         'Set REQUIEM_RATE_LIMIT_DISTRIBUTED=true and configure REQUIEM_RATE_LIMIT_ENDPOINT for Redis-based rate limiting.'
       );
     }
-    
+
     if (config.distributed) {
       _limiter = new EnhancedRateLimiter(config);
     } else {
       _limiter = new SlidingWindowRateLimiter(config);
-      
+
       // Log warning about in-memory limitations
       if (!config.distributed) {
         logger.warn(

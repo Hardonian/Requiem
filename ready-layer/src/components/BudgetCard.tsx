@@ -12,7 +12,7 @@ export function BudgetCard({ budget }: BudgetCardProps) {
   // Get budgets from the nested structure
   const budgets = budget.budgets || {};
   const unitEntries = Object.entries(budgets) as [string, BudgetUnit | undefined][];
-  
+
   if (unitEntries.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -38,7 +38,7 @@ export function BudgetCard({ budget }: BudgetCardProps) {
       <div className="space-y-4">
         {unitEntries.map(([unitName, unit]) => {
           if (!unit) return null;
-          
+
           const percent = unit.limit > 0 ? (unit.used / unit.limit) * 100 : 0;
           const getColorClass = () => {
             if (percent < 70) return 'bg-green-500';

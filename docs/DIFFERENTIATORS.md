@@ -1,6 +1,6 @@
 # Requiem: Technical Differentiators
 
-> **Last updated:** 2026-02-28  
+> **Last updated:** 2026-02-28
 > **Phase:** 7 — Market Maker Differentiation
 
 ---

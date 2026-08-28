@@ -165,7 +165,7 @@ test('Same plan execution produces same receipt hash', () => {
   receiptHash2 = dataOf(run2.parsed)?.receipt_hash;
   assert(!!receiptHash2, 'Second execution should produce receipt');
 
-  assert(receiptHash1 === receiptHash2, 
+  assert(receiptHash1 === receiptHash2,
     `INV-REPLAY violated: ${receiptHash1} !== ${receiptHash2}`);
 });
 
@@ -175,7 +175,7 @@ test('Receipt hash changes with different inputs', () => {
   const receiptHash3 = dataOf(run3.parsed)?.receipt_hash;
   assert(!!receiptHash3, 'Different-input run should produce receipt hash');
 
-  assert(receiptHash3 !== receiptHash1, 
+  assert(receiptHash3 !== receiptHash1,
     `Different inputs should produce different hash: ${receiptHash3} vs ${receiptHash1}`);
 });
 

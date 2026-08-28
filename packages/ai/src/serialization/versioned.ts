@@ -1,16 +1,16 @@
 /**
  * @fileoverview Versioned Deterministic Serialization
- * 
+ *
  * Provides canonical serialization for:
  * - Plans
  * - Execution events
  * - Artifact manifests
- * 
+ *
  * Each serialized object includes:
  * - schema_version: Version of the serialization schema
  * - engine_version: Version of the engine
  * - platform_version: Platform identifier
- * 
+ *
  * Includes backward/forward compatibility tests and replay invariants.
  */
 
@@ -18,9 +18,9 @@
 
 export const SERIALIZATION_SCHEMA_VERSION = 1;
 export const ENGINE_VERSION = '1.0.0';
-export const PLATFORM_VERSION = process.platform === 'win32' ? 'windows' 
-  : process.platform === 'darwin' ? 'darwin' 
-  : process.platform === 'linux' ? 'linux' 
+export const PLATFORM_VERSION = process.platform === 'win32' ? 'windows'
+  : process.platform === 'darwin' ? 'darwin'
+  : process.platform === 'linux' ? 'linux'
   : 'unknown';
 
 // ─── Common Headers ─────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ export interface SerializedPlan extends SerializationHeader {
 
 // ─── Execution Event Serialization ─────────────────────────────────────────
 
-export type ExecutionEventType = 
+export type ExecutionEventType =
   | 'execution_start'
   | 'execution_end'
   | 'tool_call'
@@ -131,12 +131,12 @@ export function serializePlan(plan: Plan): string {
  */
 export function deserializePlan(json: string): Plan {
   const parsed = JSON.parse(json) as SerializedPlan;
-  
+
   // Version compatibility check
   if (parsed.schema_version > SERIALIZATION_SCHEMA_VERSION) {
     throw new Error(`Cannot deserialize plan: schema version ${parsed.schema_version} is newer than supported ${SERIALIZATION_SCHEMA_VERSION}`);
   }
-  
+
   // Handle backward compatibility
   return migratePlan(parsed);
 }
@@ -159,11 +159,11 @@ export function serializeExecutionLog(executionId: string, events: ExecutionEven
  */
 export function deserializeExecutionLog(json: string): { executionId: string; events: ExecutionEvent[] } {
   const parsed = JSON.parse(json) as SerializedExecutionLog;
-  
+
   if (parsed.schema_version > SERIALIZATION_SCHEMA_VERSION) {
     throw new Error(`Cannot deserialize execution log: schema version ${parsed.schema_version} is newer than supported ${SERIALIZATION_SCHEMA_VERSION}`);
   }
-  
+
   return {
     executionId: parsed.execution_id,
     events: parsed.events,
@@ -187,11 +187,11 @@ export function serializeArtifactManifest(manifest: ArtifactManifest): string {
  */
 export function deserializeArtifactManifest(json: string): ArtifactManifest {
   const parsed = JSON.parse(json) as SerializedArtifactManifest;
-  
+
   if (parsed.schema_version > SERIALIZATION_SCHEMA_VERSION) {
     throw new Error(`Cannot deserialize manifest: schema version ${parsed.schema_version} is newer than supported ${SERIALIZATION_SCHEMA_VERSION}`);
   }
-  
+
   return parsed.data;
 }
 
@@ -208,28 +208,28 @@ export function canonicalStringify(obj: unknown): string {
 function canonicalStringifyInternal(obj: unknown): string {
   if (obj === null) return 'null';
   if (obj === undefined) return 'null';
-  
+
   if (typeof obj === 'boolean') return obj.toString();
   if (typeof obj === 'number') return canonicalNumberStringify(obj);
   if (typeof obj === 'string') return canonicalStringStringify(obj);
-  
+
   if (Array.isArray(obj)) {
     if (obj.length === 0) return '[]';
     return '[' + obj.map(canonicalStringifyInternal).join(',') + ']';
   }
-  
+
   if (typeof obj === 'object') {
     const keys = Object.keys(obj as Record<string, unknown>).sort();
     if (keys.length === 0) return '{}';
-    
+
     const pairs = keys.map(key => {
       const value = (obj as Record<string, unknown>)[key];
       return canonicalStringStringify(key) + ':' + canonicalStringifyInternal(value);
     });
-    
+
     return '{' + pairs.join(',') + '}';
   }
-  
+
   // Fallback
   return JSON.stringify(obj);
 }
@@ -244,12 +244,12 @@ function canonicalNumberStringify(n: number): string {
   if (!Number.isFinite(n)) {
     return 'null'; // NaN and Infinity become null
   }
-  
+
   // Check if integer
   if (Number.isInteger(n)) {
     return n.toString();
   }
-  
+
   // Float with exactly 6 decimal places
   return n.toFixed(6).replace(/\.?0+$/, '');
 }
@@ -262,11 +262,11 @@ function canonicalNumberStringify(n: number): string {
  */
 function canonicalStringStringify(s: string): string {
   let result = '"';
-  
+
   for (let i = 0; i < s.length; i++) {
     const char = s[i];
     const code = s.charCodeAt(i);
-    
+
     // Handle escape sequences
     switch (char) {
       case '\n': result += '\\n'; break;
@@ -285,7 +285,7 @@ function canonicalStringStringify(s: string): string {
         }
     }
   }
-  
+
   result += '"';
   return result;
 }
@@ -366,14 +366,14 @@ export function verifyAllReplays(
   replayed: SerializedPlan | SerializedExecutionLog | SerializedArtifactManifest
 ): { ok: boolean; failures: string[] } {
   const failures: string[] = [];
-  
+
   for (const invariant of REPLAY_INVARIANTS) {
     const result = verifyReplayInvariant(invariant, original, replayed);
     if (!result.ok) {
       failures.push(`${invariant.name}: ${result.error || 'failed'}`);
     }
   }
-  
+
   return { ok: failures.length === 0, failures };
 }
 
@@ -388,16 +388,16 @@ export function testBackwardCompatibility(
   testCases: unknown[]
 ): { ok: boolean; failures: string[] } {
   const failures: string[] = [];
-  
+
   for (const testCase of testCases) {
     try {
       const serialized = serializeFn(testCase);
       const deserialized = deserializeFn(serialized);
-      
+
       // Compare canonical forms
       const original = canonicalStringify(testCase);
       const restored = canonicalStringify(deserialized);
-      
+
       if (original !== restored) {
         failures.push(`Canonical form mismatch for ${JSON.stringify(testCase).slice(0, 50)}`);
       }
@@ -405,7 +405,7 @@ export function testBackwardCompatibility(
       failures.push(`Serialization error: ${(e as Error).message}`);
     }
   }
-  
+
   return { ok: failures.length === 0, failures };
 }
 

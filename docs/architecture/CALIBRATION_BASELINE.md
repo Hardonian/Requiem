@@ -1,7 +1,7 @@
 # Calibration Baseline Audit
 
 ## Inventory
-- Prediction source: `packages/cli/src/commands/decide.ts` computes implicit prediction score from ranking via `getPredictedScore()`, then records `calibration_delta = actual - predicted` in `handleOutcome`. 
+- Prediction source: `packages/cli/src/commands/decide.ts` computes implicit prediction score from ranking via `getPredictedScore()`, then records `calibration_delta = actual - predicted` in `handleOutcome`.
 - Outcome source: `decide outcome --id ... --status success|failure|mixed` updates `decisions.outcome_status` and `calibration_delta`.
 - Existing aggregate: `CalibrationRepository.getAverageDelta()` in `packages/cli/src/db/decisions.ts` averages recent deltas and feeds `handleEvaluate()` as `weights.calibration_bias`.
 - Existing storage: `decisions` table in SQLite (in-memory and persisted providers).

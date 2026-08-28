@@ -1,12 +1,12 @@
 /**
  * Economic Symmetry Layer
- * 
+ *
  * Tracks:
  * - Cost model configuration
  * - Economic events
  * - Economic alerts
  * - Economic rollups
- * 
+ *
  * All metrics are pure functions of stored metadata.
  */
 
@@ -103,7 +103,7 @@ export function recordEconomicEvent(params: RecordEventParams): EconomicEvent {
       'drift_analysis_unit'
     ]
   );
-  
+
   const created = EconomicEventRepository.create({
     tenantId: params.tenantId,
     runId: params.runId,
@@ -146,7 +146,7 @@ export function detectEconomicAlerts(
 ): AlertDetectionResult[] {
   const costModel = getCostModel();
   const events = EconomicEventRepository.findByTenant(tenantId, since);
-  
+
   // Calculate totals by type
   const totals: Partial<Record<EventType, { resources: number; costs: number }>> = {};
   for (const event of events) {
@@ -156,9 +156,9 @@ export function detectEconomicAlerts(
     totals[event.event_type]!.resources += event.resource_units;
     totals[event.event_type]!.costs += event.cost_units;
   }
-  
+
   const alerts: AlertDetectionResult[] = [];
-  
+
   // Check for burn spike
   const executionCosts = totals.execution?.costs || 0;
   const avgCost = executionCosts / Math.max(events.filter(e => e.event_type === 'execution').length, 1);
@@ -171,7 +171,7 @@ export function detectEconomicAlerts(
       metadata: { avg_cost: avgCost, multiplier: costModel.thresholds.burn_spike_multiplier },
     });
   }
-  
+
   // Check for storage spike
   const storageCosts = totals.replay_storage?.costs || 0;
   const avgStorage = storageCosts / Math.max(events.filter(e => e.event_type === 'replay_storage').length, 1);
@@ -184,7 +184,7 @@ export function detectEconomicAlerts(
       metadata: { avg_storage: avgStorage },
     });
   }
-  
+
   // Check for policy spike
   const policyCosts = totals.policy_eval?.costs || 0;
   const avgPolicy = policyCosts / Math.max(events.filter(e => e.event_type === 'policy_eval').length, 1);
@@ -197,7 +197,7 @@ export function detectEconomicAlerts(
       metadata: { avg_policy: avgPolicy },
     });
   }
-  
+
   return alerts;
 }
 
@@ -208,7 +208,7 @@ export function createAlertsFromDetection(
   alerts: AlertDetectionResult[]
 ): EconomicAlert[] {
   const createdAlerts: EconomicAlert[] = [];
-  
+
   for (const alert of alerts) {
     const created = EconomicAlertRepository.create({
       tenantId,
@@ -218,7 +218,7 @@ export function createAlertsFromDetection(
     });
     createdAlerts.push(created);
   }
-  
+
   return createdAlerts;
 }
 
@@ -235,12 +235,12 @@ export interface RollupParams {
  */
 export function generateEconomicRollup(params: RollupParams): EconomicRollup | null {
   const events = EconomicEventRepository.findByTenant(params.tenantId, params.periodStart);
-  
+
   let totalRuns = 0;
   let totalCost = 0;
   let totalStorage = 0;
   let totalPolicy = 0;
-  
+
   for (const event of events) {
     if (event.event_type === 'execution') {
       totalRuns++;
@@ -253,7 +253,7 @@ export function generateEconomicRollup(params: RollupParams): EconomicRollup | n
       totalCost += event.cost_units;
     }
   }
-  
+
   return EconomicRollupRepository.create({
     tenantId: params.tenantId,
     periodStart: params.periodStart,
@@ -279,7 +279,7 @@ export interface EconomicForecast {
  */
 export function forecastEconomics(tenantId: string): EconomicForecast {
   const rollups = EconomicRollupRepository.findByTenant(tenantId);
-  
+
   if (rollups.length < 2) {
     return {
       projectedBurnRate: 0,
@@ -288,31 +288,31 @@ export function forecastEconomics(tenantId: string): EconomicForecast {
       recommendation: 'Insufficient data for forecasting. Continue monitoring.',
     };
   }
-  
+
   // Calculate trend from recent rollups
   const recent = rollups.slice(0, Math.min(7, rollups.length));
   const costs = recent.map(r => r.total_cost_units);
-  
+
   let trend: 'stable' | 'increasing' | 'decreasing' = 'stable';
   if (costs.length >= 2) {
     const first = costs[0];
     const last = costs[costs.length - 1];
     const change = (last - first) / Math.max(first, 1);
-    
+
     if (change > 0.2) {
       trend = 'increasing';
     } else if (change < -0.2) {
       trend = 'decreasing';
     }
   }
-  
+
   // Project future burn rate (simple average)
   const avgCost = costs.reduce((a, b) => a + b, 0) / costs.length;
   const projectedBurnRate = avgCost;
-  
+
   // Project storage (sum of storage units)
   const projectedStorageUsage = recent.reduce((a, r) => a + r.total_storage_units, 0);
-  
+
   // Generate recommendation
   let recommendation = '';
   if (trend === 'increasing') {
@@ -322,7 +322,7 @@ export function forecastEconomics(tenantId: string): EconomicForecast {
   } else {
     recommendation = 'Costs are stable. Continue monitoring for anomalies.';
   }
-  
+
   return {
     projectedBurnRate,
     projectedStorageUsage,
@@ -344,29 +344,29 @@ export interface FairnessMetrics {
  */
 export function calculateFairness(tenantId: string): FairnessMetrics {
   const events = EconomicEventRepository.findByTenant(tenantId);
-  
+
   // Simplified fairness calculation
   // In production, this would compare across tenants
-  
+
   const totalCost = events.reduce((sum, e) => sum + e.cost_units, 0);
   const avgCost = events.length > 0 ? totalCost / events.length : 0;
-  
+
   // Check for significant cost variance within tenant
-  const costVariance = events.reduce((sum, e) => 
+  const costVariance = events.reduce((sum, e) =>
     sum + Math.pow(e.cost_units - avgCost, 2), 0
   ) / Math.max(events.length, 1);
-  
+
   const stdDev = Math.sqrt(costVariance);
   const imbalance = avgCost > 0 ? stdDev / avgCost : 0;
-  
+
   const costModel = getCostModel();
   const threshold = costModel.thresholds.fairness_violation_threshold;
-  
+
   const violations: string[] = [];
   if (imbalance > threshold) {
     violations.push(`Tenant imbalance (${imbalance.toFixed(2)}) exceeds threshold (${threshold})`);
   }
-  
+
   return {
     fairnessIndex: Math.max(0, 1 - imbalance),
     tenantImbalance: imbalance,
@@ -393,12 +393,12 @@ export function getEconomicSummary(tenantId: string): EconomicSummary {
   const alerts = EconomicAlertRepository.findByTenant(tenantId);
   const forecast = forecastEconomics(tenantId);
   const fairness = calculateFairness(tenantId);
-  
+
   const totalCost = events.reduce((sum, e) => sum + e.cost_units, 0);
   const executionEvents = events.filter(e => e.event_type === 'execution');
   const totalRuns = executionEvents.length;
   const avgCostPerRun = totalRuns > 0 ? totalCost / totalRuns : 0;
-  
+
   return {
     totalCost,
     totalRuns,

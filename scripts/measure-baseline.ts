@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
  * SECTION 0 — MEASURE WHAT MATTERS (AND KEEP IT)
- * 
+ *
  * Deterministic benchmark harness for:
  * - CLI cold start
  * - Hot command timings p50/p95
  * - "run" path timing for a standard fixture
  * - Build time, typecheck time, test time
  * - Memory usage snapshot (RSS delta) for 100 sequential runs
- * 
+ *
  * Stores results in /reports/perf-*.json
  */
 
@@ -55,7 +55,7 @@ function measureColdStart(): { ms: number; memoryKB: number } {
   });
   const end = process.hrtime.bigint();
   const ms = Number(end - start) / 1_000_000;
-  
+
   // Memory is harder to measure accurately in subprocess
   // Use process.memoryUsage as approximation for parent
   const mem = process.memoryUsage();
@@ -64,7 +64,7 @@ function measureColdStart(): { ms: number; memoryKB: number } {
 
 function measureCommandTimes(command: string, args: string[], runs: number): { p50: number; p95: number } {
   const times: number[] = [];
-  
+
   for (let i = 0; i < runs; i++) {
     const start = process.hrtime.bigint();
     try {
@@ -79,11 +79,11 @@ function measureCommandTimes(command: string, args: string[], runs: number): { p
     const end = process.hrtime.bigint();
     times.push(Number(end - start) / 1_000_000);
   }
-  
+
   times.sort((a, b) => a - b);
   const p50 = times[Math.floor(times.length * 0.5)];
   const p95 = times[Math.floor(times.length * 0.95)];
-  
+
   return { p50, p95 };
 }
 
@@ -99,7 +99,7 @@ function measureBuildTime(): { cpp: number; web: number } {
     console.log('    C++ build failed or not available');
   }
   const cpp = Date.now() - cppStart;
-  
+
   console.log('  Measuring web build time...');
   const webStart = Date.now();
   try {
@@ -111,7 +111,7 @@ function measureBuildTime(): { cpp: number; web: number } {
     console.log('    Web build failed');
   }
   const web = Date.now() - webStart;
-  
+
   return { cpp, web };
 }
 
@@ -147,7 +147,7 @@ function measureMemoryProfile100(): { initialKB: number; finalKB: number; deltaK
   console.log('  Measuring memory profile (100 sequential runs)...');
   const initial = process.memoryUsage().rss;
   let peak = initial;
-  
+
   for (let i = 0; i < 100; i++) {
     try {
       execSync('node packages/cli/dist/cli/src/cli.js --help', {
@@ -160,9 +160,9 @@ function measureMemoryProfile100(): { initialKB: number; finalKB: number; deltaK
     const current = process.memoryUsage().rss;
     if (current > peak) peak = current;
   }
-  
+
   const final = process.memoryUsage().rss;
-  
+
   return {
     initialKB: Math.round(initial / 1024),
     finalKB: Math.round(final / 1024),
@@ -173,12 +173,12 @@ function measureMemoryProfile100(): { initialKB: number; finalKB: number; deltaK
 
 async function main() {
   console.log('=== PERFORMANCE BASELINE MEASUREMENT ===\n');
-  
+
   // Ensure reports directory exists
   if (!existsSync('reports')) {
     mkdirSync('reports', { recursive: true });
   }
-  
+
   const metrics: PerfMetrics = {
     timestamp: new Date().toISOString(),
     version: '0.2.0',
@@ -198,46 +198,46 @@ async function main() {
       run100Seq: { initialKB: 0, finalKB: 0, deltaKB: 0, peakKB: 0 },
     },
   };
-  
+
   console.log('1. Measuring cold start...');
   metrics.coldStart = measureColdStart();
   console.log(`   Cold start: ${metrics.coldStart.ms.toFixed(2)}ms, ${metrics.coldStart.memoryKB}KB`);
-  
+
   console.log('\n2. Measuring hot command timings (50 runs each)...');
   metrics.hotCommand.help = measureCommandTimes('--help', [], 50);
   console.log(`   --help: p50=${metrics.hotCommand.help.p50.toFixed(2)}ms, p95=${metrics.hotCommand.help.p95.toFixed(2)}ms`);
-  
+
   metrics.hotCommand.version = measureCommandTimes('--version', [], 50);
   console.log(`   --version: p50=${metrics.hotCommand.version.p50.toFixed(2)}ms, p95=${metrics.hotCommand.version.p95.toFixed(2)}ms`);
-  
+
   // status may fail without setup - just measure timing
   metrics.hotCommand.status = measureCommandTimes('status', [], 20);
   console.log(`   status: p50=${metrics.hotCommand.status.p50.toFixed(2)}ms, p95=${metrics.hotCommand.status.p95.toFixed(2)}ms`);
-  
+
   console.log('\n3. Measuring build times...');
   metrics.buildTime = measureBuildTime();
   console.log(`   C++ build: ${metrics.buildTime.cpp}ms`);
   console.log(`   Web build: ${metrics.buildTime.web}ms`);
-  
+
   console.log('\n4. Measuring typecheck time...');
   metrics.typecheckTime = measureTypecheckTime();
   console.log(`   Typecheck: ${metrics.typecheckTime}ms`);
-  
+
   console.log('\n5. Measuring memory profile...');
   metrics.memoryProfile.run100Seq = measureMemoryProfile100();
   console.log(`   Initial: ${metrics.memoryProfile.run100Seq.initialKB}KB`);
   console.log(`   Final: ${metrics.memoryProfile.run100Seq.finalKB}KB`);
   console.log(`   Delta: ${metrics.memoryProfile.run100Seq.deltaKB}KB`);
   console.log(`   Peak: ${metrics.memoryProfile.run100Seq.peakKB}KB`);
-  
+
   // Save results
   const outputPath = join('reports', `perf-baseline-${Date.now()}.json`);
   writeFileSync(outputPath, JSON.stringify(metrics, null, 2));
   console.log(`\n✓ Baseline saved to: ${outputPath}`);
-  
+
   // Also save as current
   writeFileSync(join('reports', 'perf-current.json'), JSON.stringify(metrics, null, 2));
-  
+
   // Print summary
   console.log('\n=== BASELINE SUMMARY ===');
   console.log(`Cold Start: ${metrics.coldStart.ms.toFixed(2)}ms`);

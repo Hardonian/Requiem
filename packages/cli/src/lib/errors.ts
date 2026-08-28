@@ -1,9 +1,9 @@
 /**
  * Structured Error Envelope
- * 
+ *
  * Unified error model with stable identifiers, severity levels,
  * and safe serialization for UI/CLI consumption.
- * 
+ *
  * INVARIANT: All errors thrown across the codebase MUST use
  * RequiemError or its subclasses for consistent handling.
  */
@@ -104,7 +104,7 @@ export interface ErrorMeta {
 
 /**
  * Structured error envelope.
- * 
+ *
  * INVARIANT: Never include secrets, tokens, or raw SQL in any field.
  * INVARIANT: message is safe for UI display (no internal details).
  * INVARIANT: cause chain is preserved for debugging.
@@ -143,7 +143,7 @@ export interface RequiemErrorOptions {
 
 /**
  * Base error class for all Requiem errors.
- * 
+ *
  * Usage:
  *   throw new RequiemError({
  *     code: ErrorCode.ENGINE_UNAVAILABLE,
@@ -217,7 +217,7 @@ export class RequiemError extends Error {
   private sanitizeMeta(meta: ErrorMeta): ErrorMeta {
     const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
     const sanitized: ErrorMeta = { ...meta };
-    
+
     if (meta.context) {
       sanitized.context = Object.entries(meta.context).reduce((acc, [k, v]) => {
         const isSensitive = sensitiveKeys.some(sk => k.toLowerCase().includes(sk));

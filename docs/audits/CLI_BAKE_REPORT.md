@@ -1,6 +1,6 @@
 # CLI Bake Report
 
-> Generated: 2026-03-02  
+> Generated: 2026-03-02
 > Scope: CLI ergonomics, safety, consistency, and test coverage
 
 ---

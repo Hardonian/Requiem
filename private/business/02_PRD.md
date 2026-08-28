@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD): Requiem
 
-**Version**: 1.0.0  
-**Status**: Active  
+**Version**: 1.0.0
+**Status**: Active
 **Last Updated**: 2026-03-02
 
 ## 1. Executive Summary

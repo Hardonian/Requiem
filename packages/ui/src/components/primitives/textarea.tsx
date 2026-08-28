@@ -1,9 +1,9 @@
 /**
  * Textarea Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/textarea.tsx
  * EXTENSION_POINT: Add auto-resize or character count features
- * 
+ *
  * A multi-line text input with consistent styling.
  */
 

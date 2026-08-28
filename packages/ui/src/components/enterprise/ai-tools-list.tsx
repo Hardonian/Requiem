@@ -1,6 +1,6 @@
 /**
  * AI Tools List Component
- * 
+ *
  * Displays a list of registered AI tools with their metadata.
  * Enterprise-gated component.
  */
@@ -41,8 +41,8 @@ export function AiToolsList({ tools, onToolClick }: AiToolsListProps) {
   return (
     <div className="space-y-3">
       {tools.map((tool) => (
-        <Card 
-          key={`${tool.name}@${tool.version}`} 
+        <Card
+          key={`${tool.name}@${tool.version}`}
           className="p-4 hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => onToolClick?.(tool)}
         >

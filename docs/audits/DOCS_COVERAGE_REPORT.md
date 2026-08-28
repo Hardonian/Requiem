@@ -1,6 +1,6 @@
 # Docs Coverage Report
 
-> Generated: 2026-03-02  
+> Generated: 2026-03-02
 > Scope: Documentation completeness audit
 
 ---

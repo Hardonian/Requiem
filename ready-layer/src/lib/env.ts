@@ -31,7 +31,7 @@ let cachedEnv: Env | null = null;
 
 /**
  * Get and validate environment variables
- * 
+ *
  * @throws Error if required variables are missing in production
  * @returns Parsed environment variables
  */
@@ -62,7 +62,7 @@ export function getEnv(): Env {
 
 /**
  * Check if the vector search subsystem is properly configured
- * 
+ *
  * @returns true if Supabase or DATABASE_URL is configured
  */
 export function isVectorSearchConfigured(): boolean {
@@ -72,7 +72,7 @@ export function isVectorSearchConfigured(): boolean {
 
 /**
  * Check if Supabase client is available
- * 
+ *
  * @returns true if Supabase client can be initialized
  */
 export function isSupabaseConfigured(): boolean {
@@ -82,7 +82,7 @@ export function isSupabaseConfigured(): boolean {
 
 /**
  * Get the database connection string
- * 
+ *
  * @returns DATABASE_URL or undefined
  */
 export function getDatabaseUrl(): string | undefined {
@@ -91,7 +91,7 @@ export function getDatabaseUrl(): string | undefined {
 
 /**
  * Get the Supabase URL
- * 
+ *
  * @returns SUPABASE_URL or undefined
  */
 export function getSupabaseUrl(): string | undefined {
@@ -100,7 +100,7 @@ export function getSupabaseUrl(): string | undefined {
 
 /**
  * Get the Supabase anon key (for client-side use)
- * 
+ *
  * @returns SUPABASE_ANON_KEY or undefined
  */
 export function getSupabaseAnonKey(): string | undefined {
@@ -109,7 +109,7 @@ export function getSupabaseAnonKey(): string | undefined {
 
 /**
  * Get the Supabase service role key (for server-side use only)
- * 
+ *
  * @returns SUPABASE_SERVICE_ROLE_KEY or undefined
  */
 export function getSupabaseServiceRoleKey(): string | undefined {

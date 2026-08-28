@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verify:integrity - Verify data integrity and checksums
- * 
+ *
  * This script verifies:
  * - CAS integrity
  * - Event log chain integrity
@@ -14,10 +14,10 @@ import { createHash } from 'crypto';
 
 async function verifyIntegrity(): Promise<boolean> {
   console.log('🔍 Verifying data integrity...\n');
-  
+
   const cwd = process.cwd();
   let allPassed = true;
-  
+
   // Verify CAS integrity
   const casIndexPath = join(cwd, '.reach', 'cas', 'index.json');
   if (existsSync(casIndexPath)) {
@@ -32,7 +32,7 @@ async function verifyIntegrity(): Promise<boolean> {
   } else {
     console.log('⚠ CAS: Not initialized (run "reach cas put" first)');
   }
-  
+
   // Verify event log integrity
   const logDir = join(cwd, '.requiem', 'logs');
   if (existsSync(logDir)) {
@@ -40,7 +40,7 @@ async function verifyIntegrity(): Promise<boolean> {
   } else {
     console.log('⚠ Event logs: Not initialized');
   }
-  
+
   // Verify policy snapshots
   const policyDir = join(cwd, '.reach', 'policies');
   if (existsSync(policyDir)) {
@@ -48,7 +48,7 @@ async function verifyIntegrity(): Promise<boolean> {
   } else {
     console.log('⚠ Policies: Not initialized');
   }
-  
+
   console.log('\n✓ Integrity verification complete');
   return allPassed;
 }

@@ -1,9 +1,9 @@
 /**
  * Badge Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/badge.tsx
  * EXTENSION_POINT: Add new status variants as needed
- * 
+ *
  * A small status indicator component with multiple color variants.
  */
 
@@ -23,7 +23,7 @@ const badgeVariants = cva(
           'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
         destructive:
           'border-transparent bg-danger text-danger-foreground hover:bg-danger/80',
-        outline: 
+        outline:
           'text-text-primary border-border-subtle hover:border-border-strong hover:bg-surface-hover',
         success:
           'border-transparent bg-success text-success-foreground hover:bg-success/80',

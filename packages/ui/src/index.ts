@@ -1,9 +1,9 @@
 /**
  * Requiem UI Kit
- * 
+ *
  * A deterministic design system for operational interfaces.
  * Harvested from Reach and ReadyLayer, consolidated for reuse.
- * 
+ *
  * @package @requiem/ui
  * @version 0.1.0
  */
@@ -25,12 +25,12 @@ export * from './components/data'
 
 /**
  * OSS vs Enterprise Boundary
- * 
+ *
  * All exports in this file are OSS-safe and can be used in any context.
  * Enterprise-specific components (billing, tenant management, audit logs)
  * are available via the /enterprise subpath export and should only be
  * imported in enterprise-gated code paths.
- * 
+ *
  * Example:
  *   import { Button, Card } from '@requiem/ui'              // OK for OSS
  *   import { BillingMeter } from '@requiem/ui/enterprise'  // Enterprise only

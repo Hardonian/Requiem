@@ -1,6 +1,6 @@
 /**
  * Entitlements System
- * 
+ *
  * Enforceable feature gating and quota management.
  * Integrates with Policy Engine (single choke point).
  */
@@ -19,12 +19,12 @@ export interface FeatureGates {
   replication: boolean;
   arbitrationAutoMode: boolean;
   signingRequired: boolean;
-  
+
   // Limits
   maxExportSizeBytes: number;
   maxRunRetentionDays: number;
   maxConcurrency: number;
-  
+
   // Premium features
   multiRegion: boolean;
   advancedAnalytics: boolean;
@@ -121,34 +121,34 @@ export function loadEntitlements(): Entitlements {
   }
 
   const configPath = join(homedir(), '.requiem', 'config.toml');
-  
+
   // Try to load from config file
   if (existsSync(configPath)) {
     try {
       const content = readFileSync(configPath, 'utf-8');
-      
+
       // Parse tier from config
       const tierMatch = content.match(/tier\s*=\s*["']([^"']+)["']/);
       const tier = tierMatch?.[1] as Entitlements['tier'] || 'oss';
-      
+
       // Parse custom feature overrides
       const featureOverrides: Partial<FeatureGates> = {};
-      
+
       const replicationMatch = content.match(/replication\s*=\s*(true|false)/);
       if (replicationMatch) {
         featureOverrides.replication = replicationMatch[1] === 'true';
       }
-      
+
       const arbitrationMatch = content.match(/arbitration_auto_mode\s*=\s*(true|false)/);
       if (arbitrationMatch) {
         featureOverrides.arbitrationAutoMode = arbitrationMatch[1] === 'true';
       }
-      
+
       const signingMatch = content.match(/signing_required\s*=\s*(true|false)/);
       if (signingMatch) {
         featureOverrides.signingRequired = signingMatch[1] === 'true';
       }
-      
+
       // Get base entitlements for tier
       let base: Entitlements;
       switch (tier) {
@@ -161,21 +161,21 @@ export function loadEntitlements(): Entitlements {
         default:
           base = { ...DEFAULT_OSS_ENTITLEMENTS };
       }
-      
+
       // Apply overrides
       base.features = { ...base.features, ...featureOverrides };
       base.source = 'config';
-      
+
       cachedEntitlements = base;
       return base;
-      
+
     } catch (error) {
       logger.warn('entitlements.config_parse_failed', 'Failed to parse config.toml, using defaults', {
         error: error instanceof Error ? error.message : String(error),
       });
     }
   }
-  
+
   // Check environment variables
   const envTier = process.env.REQUIEM_TIER as Entitlements['tier'];
   if (envTier === 'pro' || envTier === 'enterprise') {
@@ -183,7 +183,7 @@ export function loadEntitlements(): Entitlements {
     cachedEntitlements.source = 'environment';
     return cachedEntitlements;
   }
-  
+
   // Return default OSS entitlements
   cachedEntitlements = { ...DEFAULT_OSS_ENTITLEMENTS };
   return cachedEntitlements;
@@ -202,11 +202,11 @@ export function clearEntitlementsCache(): void {
 export function isFeatureEnabled(feature: keyof FeatureGates): boolean {
   const entitlements = loadEntitlements();
   const value = entitlements.features[feature];
-  
+
   if (typeof value === 'boolean') {
     return value;
   }
-  
+
   return false;
 }
 
@@ -243,7 +243,7 @@ export function checkQuota(quota: keyof Entitlements['quotas'], used: number): {
 } {
   const limit = getQuota(quota);
   const remaining = Math.max(0, limit - used);
-  
+
   return {
     allowed: used < limit,
     remaining,
@@ -261,11 +261,11 @@ export function getEntitlementsSummary(): {
   quotas: Record<string, { limit: number; unit: string }>;
 } {
   const entitlements = loadEntitlements();
-  
+
   const enabledFeatures = Object.entries(entitlements.features)
     .filter(([, v]) => v === true)
     .map(([k]) => k);
-  
+
   return {
     tier: entitlements.tier,
     source: entitlements.source,
@@ -286,20 +286,20 @@ export function policyGate(
   params?: { exportSizeBytes?: number }
 ): { allowed: boolean; reason?: string } {
   const entitlements = loadEntitlements();
-  
+
   switch (operation) {
     case 'replication':
       if (!entitlements.features.replication) {
         return { allowed: false, reason: 'Replication not enabled in current tier' };
       }
       return { allowed: true };
-      
+
     case 'arbitration_auto':
       if (!entitlements.features.arbitrationAutoMode) {
         return { allowed: false, reason: 'Auto arbitration mode requires Pro tier or higher' };
       }
       return { allowed: true };
-      
+
     case 'signing':
       if (entitlements.features.signingRequired) {
         // Signing is required - check if available
@@ -307,7 +307,7 @@ export function policyGate(
         return { allowed: true };
       }
       return { allowed: true };
-      
+
     case 'export':
       if (params?.exportSizeBytes && params.exportSizeBytes > entitlements.features.maxExportSizeBytes) {
         return {
@@ -316,7 +316,7 @@ export function policyGate(
         };
       }
       return { allowed: true };
-      
+
     default:
       return { allowed: false, reason: 'Unknown operation' };
   }

@@ -1,7 +1,7 @@
 # Requiem Threat Model
 
-> **Version:** 1.4.0  
-> **Last Updated:** 2026-03-01  
+> **Version:** 1.4.0
+> **Last Updated:** 2026-03-01
 > **Classification:** Internal
 
 ---
@@ -343,7 +343,7 @@ This threat model covers:
 
 ### Scenario 1: Cross-Tenant Data Access
 
-**Attacker:** Malicious customer with valid credentials  
+**Attacker:** Malicious customer with valid credentials
 **Goal:** Access other tenants' execution data
 
 **Attack Path:**
@@ -366,7 +366,7 @@ This threat model covers:
 
 ### Scenario 2: Determinism Violation
 
-**Attacker:** Compromised insider  
+**Attacker:** Compromised insider
 **Goal:** Corrupt execution results undetectably
 
 **Attack Path:**
@@ -391,7 +391,7 @@ This threat model covers:
 
 ### Scenario 3: CAS Tampering
 
-**Attacker:** External with storage access  
+**Attacker:** External with storage access
 **Goal:** Modify stored execution artifacts
 
 **Attack Path:**
@@ -414,7 +414,7 @@ This threat model covers:
 
 ### Scenario 4: Prompt Injection
 
-**Attacker:** Malicious user via MCP tool  
+**Attacker:** Malicious user via MCP tool
 **Goal:** Execute unauthorized commands via tool input
 
 **Attack Path:**
@@ -442,47 +442,47 @@ pnpm run verify:ai-safety
 
 ### New Endpoint Checklist
 
-- [x] Authentication required  
+- [x] Authentication required
       _Validated: 2026-03-01 — All endpoints require auth_
-- [x] Authorization checks (tenant + role)  
+- [x] Authorization checks (tenant + role)
       _Validated: 2026-03-01 — RLS + server-side checks_
-- [x] Input validation (Zod schemas)  
+- [x] Input validation (Zod schemas)
       _Validated: 2026-03-01 — All inputs validated_
-- [x] Rate limiting applied  
+- [x] Rate limiting applied
       _Validated: 2026-03-01 — Token bucket per tenant_
-- [x] Structured error responses  
+- [x] Structured error responses
       _Validated: 2026-03-01 — No hard-500s_
-- [x] No secrets in responses  
+- [x] No secrets in responses
       _Validated: 2026-03-01 — Secret redaction active_
-- [x] Audit log entry created  
+- [x] Audit log entry created
       _Validated: 2026-03-01 — All operations logged_
-- [x] Added to `verify_no_hard_500.sh`  
+- [x] Added to `verify_no_hard_500.sh`
       _Validated: 2026-03-01 — Verification coverage complete_
 
 ### New Dependency Checklist
 
-- [x] Security audit (npm audit, Snyk)  
+- [x] Security audit (npm audit, Snyk)
       _Validated: 2026-03-01 — No high/critical vulnerabilities_
-- [x] License compatibility check  
+- [x] License compatibility check
       _Validated: 2026-03-01 — All licenses compatible_
-- [x] Added to `contracts/deps.allowlist.json`  
+- [x] Added to `contracts/deps.allowlist.json`
       _Validated: 2026-03-01 — Dependencies allowlisted_
-- [x] Pin to exact version  
+- [x] Pin to exact version
       _Validated: 2026-03-01 — Exact versions pinned_
-- [x] No postinstall scripts (or reviewed)  
+- [x] No postinstall scripts (or reviewed)
       _Validated: 2026-03-01 — Postinstall scripts reviewed_
 
 ### Release Security Checklist
 
-- [x] All CI gates pass  
+- [x] All CI gates pass
       _Validated: 2026-03-01 — verify:full passes_
-- [x] `verify_secrets.sh` clean  
+- [x] `verify_secrets.sh` clean
       _Validated: 2026-03-01 — No secrets detected_
-- [x] `verify_supply_chain.sh` clean  
+- [x] `verify_supply_chain.sh` clean
       _Validated: 2026-03-01 — Supply chain verified_
-- [x] No new high/critical vulnerabilities  
+- [x] No new high/critical vulnerabilities
       _Validated: 2026-03-01 — Audit clean_
-- [x] Security team sign-off (major releases)  
+- [x] Security team sign-off (major releases)
       _Validated: 2026-03-01 — Security review complete_
 
 ---

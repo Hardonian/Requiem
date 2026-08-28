@@ -86,7 +86,7 @@ async function handleToolsCommand(args: AiCliArgs): Promise<number> {
       console.log(JSON.stringify(tools, null, 2));
     } else {
       console.log(`\n=== Registered AI Tools (${tools.length}) ===\n`);
-      
+
       if (tools.length === 0) {
         console.log('No tools registered.');
       } else {
@@ -114,7 +114,7 @@ async function handleSkillsCommand(args: AiCliArgs): Promise<number> {
       console.log(JSON.stringify(skills, null, 2));
     } else {
       console.log(`\n=== Registered AI Skills (${skills.length}) ===\n`);
-      
+
       if (skills.length === 0) {
         console.log('No skills registered.');
       } else {

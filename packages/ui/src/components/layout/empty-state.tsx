@@ -1,9 +1,9 @@
 /**
  * EmptyState Component
- * 
+ *
  * HARVESTED_FROM: Reach/apps/arcade/src/components/EmptyState.tsx, ReadyLayer/components/ui/empty-state.tsx
  * EXTENSION_POINT: Add new visual styles or action button patterns
- * 
+ *
  * A placeholder for empty lists, search results, and initial states.
  */
 

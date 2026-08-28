@@ -1,8 +1,8 @@
 # Product Hunt Polish — Implementation Summary
 
-**Date:** 2026-03-02  
-**Scope:** Presentation, messaging clarity, demo smoothness, visual trust  
-**Constraint:** No architecture changes, no invariant drift  
+**Date:** 2026-03-02
+**Scope:** Presentation, messaging clarity, demo smoothness, visual trust
+**Constraint:** No architecture changes, no invariant drift
 
 ---
 
@@ -202,13 +202,13 @@ npm run lint
 
 ## Invariant Checklist
 
-✅ **No kernel invariants modified**  
-✅ **No new primitives introduced**  
-✅ **No receipt logic altered**  
-✅ **No hashing logic changed**  
-✅ **Build passes**  
-✅ **No broken links**  
-✅ **No hard-500 routes**  
+✅ **No kernel invariants modified**
+✅ **No new primitives introduced**
+✅ **No receipt logic altered**
+✅ **No hashing logic changed**
+✅ **Build passes**
+✅ **No broken links**
+✅ **No hard-500 routes**
 ✅ **Demo works in <60 seconds**
 
 ---

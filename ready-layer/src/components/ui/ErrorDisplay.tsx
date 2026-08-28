@@ -2,13 +2,13 @@
 
 /**
  * ErrorDisplay - Consistent error envelope presentation
- * 
+ *
  * Displays errors with:
  * - Error code (machine-readable)
  * - Human-readable message
  * - Trace ID for debugging
  * - "Copy debug info" button (hides stack traces)
- * 
+ *
  * NEVER displays raw stack traces in UI.
  */
 
@@ -44,10 +44,10 @@ export function ErrorDisplay({
   }, null, 2);
 
   return (
-    <div 
+    <div
       className={`
-        rounded-lg border p-4 
-        bg-red-50 dark:bg-red-900/10 
+        rounded-lg border p-4
+        bg-red-50 dark:bg-red-900/10
         border-red-200 dark:border-red-800
         ${className}
       `}
@@ -56,21 +56,21 @@ export function ErrorDisplay({
       {/* Error Header */}
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
-          <svg 
-            className="w-5 h-5 text-red-500" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="w-5 h-5 text-red-500"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
         </div>
-        
+
         <div className="flex-1 min-w-0">
           {/* Error Code */}
           <div className="flex items-center gap-2 mb-1">
@@ -83,28 +83,28 @@ export function ErrorDisplay({
               </span>
             )}
           </div>
-          
+
           {/* Message */}
           <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
             {message}
           </h3>
-          
+
           {/* Hint */}
           {hint && (
             <p className="mt-2 text-sm text-red-600/80 dark:text-red-400/80">
               {hint}
             </p>
           )}
-          
+
           {/* Actions */}
           <div className="mt-3 flex items-center gap-3">
-            <CopyButton 
-              text={debugInfo} 
-              label="debug info" 
+            <CopyButton
+              text={debugInfo}
+              label="debug info"
               size="md"
               className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
             />
-            
+
             {action && (
               <a
                 href={action.href}
@@ -113,7 +113,7 @@ export function ErrorDisplay({
                 {action.label}
               </a>
             )}
-            
+
             {onRetry && (
               <button
                 onClick={onRetry}

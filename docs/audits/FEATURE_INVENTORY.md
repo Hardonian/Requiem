@@ -1,6 +1,6 @@
 # Feature Inventory — Reach CLI + ReadyLayer Cloud
 
-> Generated: 2026-03-02  
+> Generated: 2026-03-02
 > Scope: Complete bake pass baseline
 
 ---
@@ -238,10 +238,10 @@
 
 ## Summary
 
-**Total CLI Commands**: 42 commands across 8 categories  
-**Total Console Routes**: 20 routes (8 dashboard + 12 marketing/support)  
-**Docs Pages**: 52 markdown files  
-**Boundary Violations**: 0  
+**Total CLI Commands**: 42 commands across 8 categories
+**Total Console Routes**: 20 routes (8 dashboard + 12 marketing/support)
+**Docs Pages**: 52 markdown files
+**Boundary Violations**: 0
 **Build Blockers**: 0 (all fixed)
 
 ---

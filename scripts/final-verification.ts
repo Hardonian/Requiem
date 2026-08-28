@@ -4,7 +4,7 @@
  * Use `pnpm run verify:release` instead.
  *
  * SECTION 9 — FINAL VERIFICATION (PROVE IT)
- * 
+ *
  * Runs and shows evidence for all optimization requirements:
  * - lint
  * - typecheck (incremental)
@@ -17,7 +17,7 @@
  * - signing verify
  * - provider arbitration deterministic
  * - perf budgets
- * 
+ *
  * Outputs final metrics summary in /reports/perf-final-delta.md
  */
 
@@ -53,10 +53,10 @@ interface FinalMetrics {
 function runCheck(name: string, command: string): VerificationResult {
   console.log(`  ${name}...`);
   const start = Date.now();
-  
+
   try {
-    const output = execSync(command, { 
-      encoding: 'utf-8', 
+    const output = execSync(command, {
+      encoding: 'utf-8',
       stdio: 'pipe',
       timeout: 300000,
     });
@@ -101,12 +101,12 @@ function loadCurrentMetrics(): Partial<FinalMetrics['metrics']> {
 
 function generateDeltaReport(metrics: FinalMetrics['metrics']): string {
   const lines: string[] = [];
-  
+
   lines.push('# Performance Final Delta Report');
   lines.push('');
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push('');
-  
+
   lines.push('## Cold Start Performance');
   if (metrics.coldStartBefore && metrics.coldStartAfter) {
     const delta = metrics.coldStartAfter - metrics.coldStartBefore;
@@ -119,7 +119,7 @@ function generateDeltaReport(metrics: FinalMetrics['metrics']): string {
     lines.push('- No baseline comparison available');
   }
   lines.push('');
-  
+
   lines.push('## Package Size');
   if (metrics.packageSizeBefore && metrics.packageSizeAfter) {
     const delta = metrics.packageSizeAfter - metrics.packageSizeBefore;
@@ -132,7 +132,7 @@ function generateDeltaReport(metrics: FinalMetrics['metrics']): string {
     lines.push('- No baseline comparison available');
   }
   lines.push('');
-  
+
   lines.push('## Build/Test Time');
   if (metrics.buildTimeBefore && metrics.buildTimeAfter) {
     const delta = metrics.buildTimeAfter - metrics.buildTimeBefore;
@@ -147,18 +147,18 @@ function generateDeltaReport(metrics: FinalMetrics['metrics']): string {
     lines.push(`- Test Delta: ${delta > 0 ? '+' : ''}${(delta / 1000).toFixed(2)}s`);
   }
   lines.push('');
-  
+
   lines.push('## Code Quality Improvements');
   lines.push(`- Dead code removed: ${metrics.deadCodeRemoved} exports/files`);
   lines.push(`- Console usage reduced: ${metrics.consoleUsageReduced} violations`);
   lines.push(`- New CI gates added: ${metrics.newGatesAdded}`);
   lines.push('');
-  
+
   lines.push('---');
   lines.push('');
   lines.push('**Summary**: Optimization pass complete with enforceable contracts,');
   lines.push('ratchet mode active, and all verification gates passing.');
-  
+
   return lines.join('\n');
 }
 
@@ -166,74 +166,74 @@ async function main() {
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║     FINAL VERIFICATION — OPTIMIZATION COMPLETENESS           ║');
   console.log('╚══════════════════════════════════════════════════════════════╝\n');
-  
+
   const results: VerificationResult[] = [];
-  
+
   // 1. Lint
   console.log('1. LINT');
   results.push(runCheck('eslint', 'pnpm run lint'));
-  
+
   // 2. Typecheck (incremental)
   console.log('\n2. TYPECHECK (incremental)');
   results.push(runCheck('tsc-incremental', 'pnpm run typecheck'));
-  
+
   // 3. Build
   console.log('\n3. BUILD');
   results.push(runCheck('build-cpp', 'pnpm run build:cpp'));
   results.push(runCheck('build-web', 'pnpm run build:web'));
-  
+
   // 4. Tests
   console.log('\n4. TESTS');
   results.push(runCheck('unit-tests', 'pnpm run test'));
-  
+
   // 5. Verify scripts
   console.log('\n5. VERIFY SCRIPTS');
   results.push(runCheck('verify-boundaries', 'pnpm run verify:boundaries'));
   results.push(runCheck('verify-routes', 'pnpm run verify:routes'));
-  
+
   // 6. CLI Contract
   console.log('\n6. CLI CONTRACT');
   results.push(runCheck('cli-contract', 'npx tsx scripts/verify-cli-contract.ts'));
-  
+
   // 7. Route Contract
   console.log('\n7. ROUTE CONTRACT');
   results.push(runCheck('route-contract', 'npx tsx scripts/verify-routes.ts'));
-  
+
   // 8. Replay invariants
   console.log('\n8. REPLAY INVARIANTS');
   results.push(runCheck('replay-invariants', 'pnpm run verify:determinism'));
-  
+
   // 9. Ratchet check
   console.log('\n9. CI RATCHET');
   results.push(runCheck('ratchet', 'npx tsx scripts/ci-ratchet.ts'));
-  
+
   // 10. Dead code analysis
   console.log('\n10. DEAD CODE ANALYSIS');
   results.push(runCheck('dead-code', 'npx tsx scripts/dead-code-elimination.ts'));
-  
+
   // Summary
   console.log('\n' + '═'.repeat(64));
   console.log('VERIFICATION SUMMARY');
   console.log('═'.repeat(64));
-  
+
   const passed = results.filter(r => r.status === 'PASS');
   const failed = results.filter(r => r.status === 'FAIL');
-  
+
   for (const result of results) {
     const symbol = result.status === 'PASS' ? '✓' : '✗';
-    const duration = result.durationMs < 1000 ? 
-      `${result.durationMs}ms` : 
+    const duration = result.durationMs < 1000 ?
+      `${result.durationMs}ms` :
       `${(result.durationMs / 1000).toFixed(2)}s`;
     console.log(`${symbol} ${result.name.padEnd(30)} ${duration.padStart(10)}`);
   }
-  
+
   console.log('─'.repeat(64));
   console.log(`Total: ${results.length} | Passed: ${passed.length} | Failed: ${failed.length}`);
-  
+
   // Load metrics for delta
   const previous = loadPreviousMetrics();
   const current = loadCurrentMetrics();
-  
+
   const metrics: FinalMetrics['metrics'] = {
     coldStartBefore: previous?.coldStartMs || previous?.coldStart,
     coldStartAfter: current?.coldStartMs || current?.coldStart,
@@ -247,15 +247,15 @@ async function main() {
     consoleUsageReduced: 0,
     newGatesAdded: 5, // cli-contract, route-contract, ratchet, dead-code, exit-codes
   };
-  
+
   // Generate and save delta report
   if (!existsSync('reports')) {
     mkdirSync('reports', { recursive: true });
   }
-  
+
   const deltaReport = generateDeltaReport(metrics);
   writeFileSync('reports/perf-final-delta.md', deltaReport);
-  
+
   // Save full results
   const finalReport: FinalMetrics = {
     timestamp: new Date().toISOString(),
@@ -263,7 +263,7 @@ async function main() {
     metrics,
   };
   writeFileSync('reports/final-verification.json', JSON.stringify(finalReport, null, 2));
-  
+
   // Final output
   console.log('\n' + '═'.repeat(64));
   if (failed.length === 0) {

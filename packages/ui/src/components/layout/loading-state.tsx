@@ -1,9 +1,9 @@
 /**
  * LoadingState Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/loading.tsx (pattern)
  * EXTENSION_POINT: Add skeleton variants or progress indicators
- * 
+ *
  * Loading states and skeleton placeholders.
  */
 

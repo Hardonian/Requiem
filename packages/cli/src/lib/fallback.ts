@@ -31,13 +31,13 @@ export interface DecisionOutput {
 
 export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   const startTime = Date.now();
-  
+
   // Handle weights normalization or validation
   let effectiveWeights = input.weights;
 
   if (input.weights) {
     const sum = Object.values(input.weights).reduce((a, b) => a + b, 0);
-    
+
     if (input.strict) {
       if (Math.abs(sum - 1.0) > 1e-9) {
         throw new Error(`Weights must sum to 1.0 (got ${sum})`);
@@ -55,7 +55,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
       }
     }
   }
-  
+
   // Create effective input with potentially normalized weights
   const effectiveInput = { ...input, weights: effectiveWeights };
 
@@ -119,16 +119,16 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
 
   // Add processing time to trace
   result.trace.processingTimeMs = Date.now() - startTime;
-  
+
   return result;
 }
 
 function minimaxRegretFallback(input: DecisionInput): DecisionOutput {
   const { actions, states, outcomes } = input;
-  
+
   // Calculate regret matrix
   const regrets: Record<string, Record<string, number>> = {};
-  
+
   for (const state of states) {
     // Find best outcome for this state
     let bestOutcome = -Infinity;
@@ -136,7 +136,7 @@ function minimaxRegretFallback(input: DecisionInput): DecisionOutput {
       const val = outcomes[action]?.[state] ?? 0;
       bestOutcome = Math.max(bestOutcome, val);
     }
-    
+
     // Calculate regret for each action
     for (const action of actions) {
       if (!regrets[action]) regrets[action] = {};
@@ -144,16 +144,16 @@ function minimaxRegretFallback(input: DecisionInput): DecisionOutput {
       regrets[action][state] = bestOutcome - val;
     }
   }
-  
+
   // Find maximum regret for each action
   const maxRegrets: Record<string, number> = {};
   for (const action of actions) {
     maxRegrets[action] = Math.max(...Object.values(regrets[action]));
   }
-  
+
   // Find action with minimum maximum regret
   const ranking = actions.slice().sort((a, b) => maxRegrets[a] - maxRegrets[b]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -168,15 +168,15 @@ function minimaxRegretFallback(input: DecisionInput): DecisionOutput {
 
 function maximinFallback(input: DecisionInput): DecisionOutput {
   const { actions, states, outcomes } = input;
-  
+
   const minOutcomes: Record<string, number> = {};
   for (const action of actions) {
     const values = states.map(s => outcomes[action]?.[s] ?? 0);
     minOutcomes[action] = Math.min(...values);
   }
-  
+
   const ranking = actions.slice().sort((a, b) => minOutcomes[b] - minOutcomes[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -191,7 +191,7 @@ function maximinFallback(input: DecisionInput): DecisionOutput {
 
 function weightedSumFallback(input: DecisionInput): DecisionOutput {
   const { actions, states, outcomes, weights } = input;
-  
+
   // Use uniform weights if not provided
   const uniformWeight = 1 / states.length;
   const effectiveWeights: Record<string, number> = weights || {};
@@ -200,7 +200,7 @@ function weightedSumFallback(input: DecisionInput): DecisionOutput {
       effectiveWeights[state] = uniformWeight;
     }
   }
-  
+
   const scores: Record<string, number> = {};
   for (const action of actions) {
     let sum = 0;
@@ -209,9 +209,9 @@ function weightedSumFallback(input: DecisionInput): DecisionOutput {
     }
     scores[action] = sum;
   }
-  
+
   const ranking = actions.slice().sort((a, b) => scores[b] - scores[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -226,14 +226,14 @@ function weightedSumFallback(input: DecisionInput): DecisionOutput {
 
 function softmaxFallback(input: DecisionInput): DecisionOutput {
   const { actions, states, outcomes, temperature = 1.0 } = input;
-  
+
   // Calculate average outcome for each action
   const avgOutcomes: Record<string, number> = {};
   for (const action of actions) {
     const values = states.map(s => outcomes[action]?.[s] ?? 0);
     avgOutcomes[action] = values.reduce((a, b) => a + b, 0) / values.length;
   }
-  
+
   // Apply softmax
   const expValues: Record<string, number> = {};
   let sumExp = 0;
@@ -242,14 +242,14 @@ function softmaxFallback(input: DecisionInput): DecisionOutput {
     expValues[action] = expVal;
     sumExp += expVal;
   }
-  
+
   const scores: Record<string, number> = {};
   for (const action of actions) {
     scores[action] = expValues[action] / sumExp;
   }
-  
+
   const ranking = actions.slice().sort((a, b) => scores[b] - scores[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -264,7 +264,7 @@ function softmaxFallback(input: DecisionInput): DecisionOutput {
 
 function hurwiczFallback(input: DecisionInput): DecisionOutput {
   const { actions, states, outcomes, optimism = 0.5 } = input;
-  
+
   const scores: Record<string, number> = {};
   for (const action of actions) {
     const values = states.map(s => outcomes[action]?.[s] ?? 0);
@@ -272,9 +272,9 @@ function hurwiczFallback(input: DecisionInput): DecisionOutput {
     const minVal = Math.min(...values);
     scores[action] = optimism * maxVal + (1 - optimism) * minVal;
   }
-  
+
   const ranking = actions.slice().sort((a, b) => scores[b] - scores[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -303,7 +303,7 @@ function hodgesLehmannFallback(input: DecisionInput): DecisionOutput {
   // Simplified: use weighted average of minimax regret and Laplace scores
   const minimaxResult = minimaxRegretFallback(input);
   const laplaceResult = laplaceFallback(input);
-  
+
   const scores: Record<string, number> = {};
   for (const action of input.actions) {
     const minimaxScore = minimaxResult.trace.scores[action] || 0;
@@ -311,9 +311,9 @@ function hodgesLehmannFallback(input: DecisionInput): DecisionOutput {
     // Combine (lower minimax regret is better, higher laplace is better)
     scores[action] = laplaceScore - minimaxScore;
   }
-  
+
   const ranking = input.actions.slice().sort((a, b) => scores[b] - scores[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -342,7 +342,7 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
   // Pareto optimality
   // Simplified: rank by number of states where action is optimal
   const { actions, states, outcomes } = input;
-  
+
   const paretoScores: Record<string, number> = {};
   for (const action of actions) {
     let score = 0;
@@ -353,9 +353,9 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
     }
     paretoScores[action] = score;
   }
-  
+
   const ranking = actions.slice().sort((a, b) => paretoScores[b] - paretoScores[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -373,16 +373,16 @@ function epsilonContaminationFallback(input: DecisionInput): DecisionOutput {
   // Mixture of best estimate and uniform distribution
   const laplaceResult = laplaceFallback(input);
   const minimaxResult = maximinFallback(input);
-  
+
   const scores: Record<string, number> = {};
   for (const action of input.actions) {
     const laplaceScore = laplaceResult.trace.scores[action] || 0;
     const minimaxScore = minimaxResult.trace.scores[action] || 0;
     scores[action] = (1 - epsilon) * laplaceScore + epsilon * minimaxScore;
   }
-  
+
   const ranking = input.actions.slice().sort((a, b) => scores[b] - scores[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,
@@ -398,7 +398,7 @@ function epsilonContaminationFallback(input: DecisionInput): DecisionOutput {
 function topsisFallback(input: DecisionInput): DecisionOutput {
   // TOPSIS: Technique for Order Preference by Similarity to Ideal Solution
   const { actions, states, outcomes } = input;
-  
+
   // Calculate normalized scores
   const normalized: Record<string, Record<string, number>> = {};
   for (const state of states) {
@@ -408,14 +408,14 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
       sumSquares += val * val;
     }
     const norm = Math.sqrt(sumSquares);
-    
+
     for (const action of actions) {
       if (!normalized[action]) normalized[action] = {};
       const val = outcomes[action]?.[state] ?? 0;
       normalized[action][state] = norm > 0 ? val / norm : 0;
     }
   }
-  
+
   // Find ideal and anti-ideal solutions
   const ideal: Record<string, number> = {};
   const antiIdeal: Record<string, number> = {};
@@ -424,7 +424,7 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
     ideal[state] = Math.max(...values);
     antiIdeal[state] = Math.min(...values);
   }
-  
+
   // Calculate distances
   const scores: Record<string, number> = {};
   for (const action of actions) {
@@ -438,9 +438,9 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
     distToAntiIdeal = Math.sqrt(distToAntiIdeal);
     scores[action] = distToAntiIdeal / (distToIdeal + distToAntiIdeal);
   }
-  
+
   const ranking = actions.slice().sort((a, b) => scores[b] - scores[a]);
-  
+
   return {
     recommended_action: ranking[0],
     ranking,

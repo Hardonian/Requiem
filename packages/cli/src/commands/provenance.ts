@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Provenance Command
- * 
+ *
  * Generate and verify shareable provenance reports.
- * 
+ *
  * Usage:
  *   reach provenance export <run_id> --out <file>
  *   reach provenance verify <file>

@@ -94,7 +94,7 @@ Structured JSON logs with trace IDs
 
 ```
 ✓ [PASS] core-error-system: Unified error system present with typed codes
-✓ [PASS] core-logging-system: Structured logging present  
+✓ [PASS] core-logging-system: Structured logging present
 ✓ [PASS] core-module-exports: Core exports errors and logging
 ✓ [PASS] cli-uses-core: CLI uses core system with lazy imports
 ✓ [PASS] documentation: Error and logging docs present

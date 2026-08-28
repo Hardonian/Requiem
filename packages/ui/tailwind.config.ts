@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss/types/config'
 
 /**
  * Requiem UI Design System - Tailwind Configuration
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/tailwind.config.ts
  * EXTENSION_POINT: Add new theme tokens in extend.colors, extend.boxShadow
  */

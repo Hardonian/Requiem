@@ -2,7 +2,7 @@
 
 /**
  * verify:web - Web console verification
- * 
+ *
  * Verifies:
  * - Next.js build passes
  * - API routes are accessible
@@ -46,7 +46,7 @@ function runCommand(cmd: string, args: string[], cwd: string = '.'): { stdout: s
     timeout: 120000,
     shell: true  // Required for Windows to find npm
   });
-  
+
   return {
     stdout: result.stdout,
     stderr: result.stderr,
@@ -82,7 +82,7 @@ test('ESLint passes', () => {
 test('API routes exist', () => {
   const apiDir = 'src/app/api';
   assert(fs.existsSync(apiDir), 'API directory should exist');
-  
+
   const requiredRoutes = ['budgets', 'caps', 'logs', 'objects', 'plans', 'policies', 'runs', 'snapshots'];
   for (const route of requiredRoutes) {
     assert(fs.existsSync(path.join(apiDir, route)), `Route ${route} should exist`);
@@ -95,7 +95,7 @@ console.log('\n[Console Pages]');
 test('Console pages exist', () => {
   const consoleDir = 'src/app/console';
   assert(fs.existsSync(consoleDir), 'Console directory should exist');
-  
+
   const requiredPages = ['capabilities', 'logs', 'objects', 'plans', 'policies', 'runs', 'snapshots', 'finops'];
   for (const page of requiredPages) {
     const pageFile = path.join(consoleDir, page, 'page.tsx');
@@ -164,7 +164,7 @@ console.log('\n[Type Safety]');
 test('Engine types are defined', () => {
   const typesFile = 'src/types/engine.ts';
   assert(fs.existsSync(typesFile), 'Engine types file should exist');
-  
+
   const content = fs.readFileSync(typesFile, 'utf-8');
   assert(content.includes('Budget'), 'Should define Budget type');
   assert(content.includes('Snapshot'), 'Should define Snapshot type');
@@ -176,7 +176,7 @@ test('No explicit any in API routes', () => {
   // Check for explicit any usage
   const apiDir = 'src/app/api';
   const routes = fs.readdirSync(apiDir);
-  
+
   for (const route of routes) {
     const routeFile = path.join(apiDir, route, 'route.ts');
     if (fs.existsSync(routeFile)) {

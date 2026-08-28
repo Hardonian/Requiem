@@ -319,8 +319,8 @@ reach audit transition $STATE_A $STATE_B
 ```markdown
 # Audit Narrative: Semantic State
 
-> **Version:** 1.0.0  
-> **Generated:** 2024-...  
+> **Version:** 1.0.0
+> **Generated:** 2024-...
 > **Subject:** `abc123...`
 
 ## Executive Summary

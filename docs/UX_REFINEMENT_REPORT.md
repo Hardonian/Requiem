@@ -1,7 +1,7 @@
 # UX Refinement Report
 
-**Date:** 2026-03-02  
-**Scope:** ReadyLayer Web Console + Requiem CLI  
+**Date:** 2026-03-02
+**Scope:** ReadyLayer Web Console + Requiem CLI
 **Mode:** UX Refinement + Legibility Hardening (No Feature Addition)
 
 ---

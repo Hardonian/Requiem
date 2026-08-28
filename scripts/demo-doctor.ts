@@ -1,11 +1,11 @@
 #!/usr/bin/env tsx
 /**
  * Requiem Demo Doctor
- * 
+ *
  * Validates the environment before running the demo.
  * Checks: CLI availability, required files, environment variables,
  * web endpoints (if applicable), and output consistency.
- * 
+ *
  * Usage:
  *   npx tsx scripts/demo-doctor.ts [--json]
  *   make doctor  (also runs this)
@@ -50,7 +50,7 @@ function runCommand(cmd: string, args: string[], timeoutMs = 10000): Promise<{ s
 
     let stdout = "";
     let stderr = "";
-    
+
     const timeoutId = setTimeout(() => {
       timedOut = true;
       proc.kill();
@@ -82,7 +82,7 @@ async function checkCliAvailable(): Promise<CheckResult> {
 
   const { exitCode, stdout, stderr, timedOut } = await runCommand(cli.command, ["version"]);
   const durationMs = Date.now() - start;
-  
+
   if (timedOut) {
     return {
       name: "cli_available",
@@ -91,7 +91,7 @@ async function checkCliAvailable(): Promise<CheckResult> {
       durationMs,
     };
   }
-  
+
   if (exitCode !== 0) {
     return {
       name: "cli_available",
@@ -139,7 +139,7 @@ async function checkRequiredFiles(): Promise<CheckResult> {
   }
 
   const durationMs = Date.now() - start;
-  
+
   if (missing.length > 0) {
     return {
       name: "required_files",
@@ -159,25 +159,25 @@ async function checkRequiredFiles(): Promise<CheckResult> {
 
 async function checkEnvVars(): Promise<CheckResult> {
   const start = Date.now();
-  
+
   // Check for optional environment variables that affect behavior
   // but don't print their values (security)
   const checks: string[] = [];
-  
+
   if (process.env.FORCE_RUST === "1") {
     checks.push("FORCE_RUST=1 (will use Rust engine)");
   }
-  
+
   if (process.env.REQUIEM_EVENT_LOG) {
     checks.push(`REQUIEM_EVENT_LOG set (using custom log path)`);
   }
-  
+
   if (process.env.REQUIEM_CAS_PATH) {
     checks.push(`REQUIEM_CAS_PATH set (using custom CAS path)`);
   }
 
   const durationMs = Date.now() - start;
-  
+
   if (checks.length > 0) {
     return {
       name: "env_vars",
@@ -201,7 +201,7 @@ async function checkCliDoctor(): Promise<CheckResult> {
 
   const { stdout, stderr, exitCode, timedOut } = await runCommand(cli.command, ["doctor", "--json"]);
   const durationMs = Date.now() - start;
-  
+
   if (timedOut) {
     return {
       name: "engine_health",
@@ -210,7 +210,7 @@ async function checkCliDoctor(): Promise<CheckResult> {
       durationMs,
     };
   }
-  
+
   if (exitCode !== 0) {
     let error = `Doctor failed with exit code ${exitCode}${stderr ? `: ${stderr.trim()}` : ""}`;
     try {
@@ -261,7 +261,7 @@ async function checkCliDoctor(): Promise<CheckResult> {
 async function checkDemoArtifactsDir(): Promise<CheckResult> {
   const start = Date.now();
   const demoArtifactsDir = path.join(ROOT_DIR, "demo_artifacts");
-  
+
   // Check if directory exists or can be created
   try {
     if (!fs.existsSync(demoArtifactsDir)) {
@@ -271,7 +271,7 @@ async function checkDemoArtifactsDir(): Promise<CheckResult> {
     const testFile = path.join(demoArtifactsDir, ".write-test");
     fs.writeFileSync(testFile, "test");
     fs.unlinkSync(testFile);
-    
+
     return {
       name: "artifacts_dir",
       status: "pass",
@@ -308,7 +308,7 @@ async function checkJsonParseable(): Promise<CheckResult> {
   }
 
   const durationMs = Date.now() - start;
-  
+
   if (errors.length > 0) {
     return {
       name: "json_valid",
@@ -328,19 +328,19 @@ async function checkJsonParseable(): Promise<CheckResult> {
 
 async function checkPlanStructure(): Promise<CheckResult> {
   const start = Date.now();
-  
+
   try {
     const planPath = path.join(ROOT_DIR, "examples", "demo", "plan.json");
     const content = fs.readFileSync(planPath, "utf-8");
     const plan = JSON.parse(content);
-    
+
     const issues: string[] = [];
-    
+
     // Check required fields
     if (!plan.plan_id) issues.push("missing plan_id");
     if (!plan.steps || !Array.isArray(plan.steps)) issues.push("missing or invalid steps");
     if (plan.steps && plan.steps.length === 0) issues.push("empty steps array");
-    
+
     // Check step structure
     if (plan.steps) {
       for (let i = 0; i < plan.steps.length; i++) {
@@ -350,9 +350,9 @@ async function checkPlanStructure(): Promise<CheckResult> {
         if (!step.config) issues.push(`step ${i}: missing config`);
       }
     }
-    
+
     const durationMs = Date.now() - start;
-    
+
     if (issues.length > 0) {
       return {
         name: "plan_structure",
@@ -361,7 +361,7 @@ async function checkPlanStructure(): Promise<CheckResult> {
         durationMs,
       };
     }
-    
+
     return {
       name: "plan_structure",
       status: "pass",
@@ -381,21 +381,21 @@ async function checkPlanStructure(): Promise<CheckResult> {
 async function runAllChecks(): Promise<DoctorReport> {
   const checks: CheckResult[] = [];
   const recommendations: string[] = [];
-  
+
   // Run checks in sequence
   const cliAvailable = await checkCliAvailable();
   checks.push(cliAvailable);
-  
+
   if (cliAvailable.status !== "pass") {
     recommendations.push("Build the CLI: pnpm build (or make build)");
   }
-  
+
   checks.push(await checkRequiredFiles());
-  
+
   if (checks[checks.length - 1].status === "fail") {
     recommendations.push("Ensure demo fixtures exist in examples/demo/");
   }
-  
+
   checks.push(await checkEnvVars());
   checks.push(await checkJsonParseable());
   checks.push(await checkPlanStructure());
@@ -412,12 +412,12 @@ async function runAllChecks(): Promise<DoctorReport> {
   }
 
   checks.push(await checkDemoArtifactsDir());
-  
+
   const pass = checks.filter(c => c.status === "pass").length;
   const fail = checks.filter(c => c.status === "fail").length;
   const warn = checks.filter(c => c.status === "warn").length;
   const skip = checks.filter(c => c.status === "skip").length;
-  
+
   return {
     ok: fail === 0,
     timestamp: new Date().toISOString(),
@@ -438,17 +438,17 @@ function printReport(report: DoctorReport, jsonOutput: boolean): void {
   console.log("║  REQUIEM DEMO DOCTOR                                           ║");
   console.log("╚════════════════════════════════════════════════════════════════╝");
   console.log("");
-  
+
   for (const check of report.checks) {
     const icon = check.status === "pass" ? "✓" : check.status === "fail" ? "✗" : check.status === "warn" ? "⚠" : "⊘";
     const status = check.status.toUpperCase().padEnd(4);
     console.log(`${icon} [${status}] ${check.name.padEnd(20)} ${check.message}`);
   }
-  
+
   console.log("");
   console.log(`Summary: ${report.summary.pass} passed, ${report.summary.fail} failed, ${report.summary.warn} warned, ${report.summary.skip} skipped`);
   console.log("");
-  
+
   if (report.recommendations.length > 0) {
     console.log("Recommendations:");
     for (const rec of report.recommendations) {
@@ -456,7 +456,7 @@ function printReport(report: DoctorReport, jsonOutput: boolean): void {
     }
     console.log("");
   }
-  
+
   if (report.ok) {
     console.log("✓ Environment ready for demo");
   } else {
@@ -469,10 +469,10 @@ function printReport(report: DoctorReport, jsonOutput: boolean): void {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const jsonOutput = args.includes("--json");
-  
+
   const report = await runAllChecks();
   printReport(report, jsonOutput);
-  
+
   process.exit(report.ok ? 0 : 1);
 }
 

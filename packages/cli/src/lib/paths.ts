@@ -1,6 +1,6 @@
 /**
  * @fileoverview Cross-platform path resolver for Requiem
- * 
+ *
  * Handles path resolution across different platforms (Windows, Linux, macOS).
  * Provides consistent path handling for:
  * - Config files

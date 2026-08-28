@@ -1,9 +1,9 @@
 /**
  * Input Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/input.tsx
  * EXTENSION_POINT: Add new input variants or sizes
- * 
+ *
  * A text input field with consistent styling.
  */
 

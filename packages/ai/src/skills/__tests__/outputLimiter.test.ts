@@ -40,7 +40,7 @@ describe('OutputSizeLimiter', () => {
     it('should pass when under limit', () => {
       const limiter = new OutputSizeLimiter({ maxBytes: 1000, truncateOnExceed: false });
       const result = limiter.check('hello world');
-      
+
       expect(result.withinLimits).toBe(true);
       expect(result.truncated).toBe(false);
       expect(result.output).toBe('hello world');
@@ -48,14 +48,14 @@ describe('OutputSizeLimiter', () => {
 
     it('should throw when over limit and not truncating', () => {
       const limiter = new OutputSizeLimiter({ maxBytes: 5, truncateOnExceed: false });
-      
+
       expect(() => limiter.check('hello world')).toThrow();
     });
 
     it('should truncate when enabled', () => {
       const limiter = new OutputSizeLimiter({ maxBytes: 10, truncateOnExceed: true });
       const result = limiter.check('hello world very long string');
-      
+
       expect(result.withinLimits).toBe(true);
       expect(result.truncated).toBe(true);
       expect(result.sizeBytes).toBeLessThanOrEqual(10);
@@ -65,7 +65,7 @@ describe('OutputSizeLimiter', () => {
       const limiter = new OutputSizeLimiter({ maxBytes: 1000 });
       const obj = { key: 'value', nested: { data: 'test' } };
       const result = limiter.check(obj);
-      
+
       expect(result.withinLimits).toBe(true);
       expect(result.output).toEqual(obj);
     });
@@ -74,7 +74,7 @@ describe('OutputSizeLimiter', () => {
       const limiter = new OutputSizeLimiter({ maxBytes: 1000 });
       const arr = [1, 2, 3, 4, 5];
       const result = limiter.check(arr);
-      
+
       expect(result.withinLimits).toBe(true);
       expect(result.output).toEqual(arr);
     });
@@ -102,10 +102,10 @@ describe('OutputSizeLimiter', () => {
     it('should allow setting custom instance', () => {
       const customLimiter = new OutputSizeLimiter({ maxBytes: 100 });
       setOutputLimiter(customLimiter);
-      
+
       const limiter = getOutputLimiter();
       expect(limiter.getMaxBytes()).toBe(100);
-      
+
       // Reset to default
       setOutputLimiter(new OutputSizeLimiter());
     });
@@ -127,7 +127,7 @@ describe('parseTriggerDataWithLimit', () => {
 
   it('should throw when data exceeds default limit', () => {
     const largeData = 'x'.repeat(DEFAULT_TRIGGER_DATA_MAX_BYTES + 1);
-    
+
     expect(() => parseTriggerDataWithLimit(largeData)).toThrow(AiErrorCode.TRIGGER_DATA_TOO_LARGE);
   });
 
@@ -138,7 +138,7 @@ describe('parseTriggerDataWithLimit', () => {
   it('should respect custom limit from env', () => {
     process.env.REQUIEM_TRIGGER_DATA_MAX_BYTES = '100';
     const data = 'x'.repeat(101);
-    
+
     expect(() => parseTriggerDataWithLimit(data)).toThrow(AiErrorCode.TRIGGER_DATA_TOO_LARGE);
   });
 });

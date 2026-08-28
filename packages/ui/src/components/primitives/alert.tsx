@@ -1,9 +1,9 @@
 /**
  * Alert Component
- * 
+ *
  * HARVESTED_FROM: ReadyLayer/components/ui/alert.tsx (pattern)
  * EXTENSION_POINT: Add new severity levels or icons
- * 
+ *
  * A prominent message for user feedback, warnings, and errors.
  */
 
