@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Project
-- Name: $repo
+- Name: Requiem
 - Primary branch: mainsa
 - Owner: Hardonian / AI Automated Systems
 - Deploy: not configured
