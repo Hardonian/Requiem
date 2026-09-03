@@ -37,7 +37,7 @@
     "verify:routes-runtime": "node ../scripts/run-tsx.mjs scripts/verify-routes-runtime.ts"
   },
   "dependencies": {
-    "@babel/parser": "^7.29.2",
+    "@babel/parser": "^8.0.4",
     "@babel/types": "^7.28.6",
     "@octokit/app": "^16.1.2",
     "@octokit/rest": "^22.0.1",
