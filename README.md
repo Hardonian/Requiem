@@ -1,5 +1,9 @@
 # Requiem
 
+<!-- BEGIN: REPO HERO -->
+![Requiem — hero generated locally on the GPU stack](assets/repo-hero.png)
+<!-- END: REPO HERO -->
+
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 ![Node >=20.11](https://img.shields.io/badge/node-%3E%3D20.11.0-339933)
 
