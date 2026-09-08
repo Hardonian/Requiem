@@ -47,7 +47,7 @@
     "@types/react-dom": "^19.2.5",
     "eslint": "^8.0.0",
     "eslint-plugin-react": "^7.33.0",
-    "framer-motion": "^12.43.0",
+    "framer-motion": "^13.2.0",
     "globals": "^14.0.0",
     "lucide-react": "^0.300.0",
     "recharts": "^2.10.0",
@@ -55,7 +55,7 @@
     "typescript-eslint": "^7.0.0"
   },
   "optionalDependencies": {
-    "framer-motion": "^12.43.0",
+    "framer-motion": "^13.2.0",
     "lucide-react": "^0.300.0",
     "recharts": "^2.10.0"
   },
