@@ -278,8 +278,8 @@ importers:
         specifier: ^13.1.3
         version: 13.1.3
       rate-limiter-flexible:
-        specifier: ^9.0.1
-        version: 9.1.1
+        specifier: ^11.2.1
+        version: 11.2.1
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -7303,8 +7303,8 @@ packages:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
     dev: false
 
-  /rate-limiter-flexible@9.1.1:
-    resolution: {integrity: sha512-imxFjzPCmvDLMe7d2tsgiSQvs5EI2fI9SNymmslAfOqznZhsZ+PqbIjIYKpuSbd3pKovR1aMG47qfCLIO/adVg==}
+  /rate-limiter-flexible@11.2.1:
+    resolution: {integrity: sha512-JAaz01HZ893zAw+Hx5MdM1z3lLAkyVvNpqR+GNp0k3kjuQB8gY91fXhf5C0osWs+A7iKgFv585qzwmjS3aBHlA==}
     dev: false
 
   /rc9@3.1.0:
